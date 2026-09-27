@@ -29,6 +29,14 @@ export const config = {
   // How long preference/consent proof is kept after account deletion. PLACEHOLDER: confirm with counsel.
   ledgerRetentionMonthsAfterDeletion: 36,
   exportCooldownHours: 24,
+  // Behind a hosting proxy (Render): read the visitor's IP from X-Forwarded-For for rate limits.
+  trustProxy: process.env.TRUST_PROXY === '1',
+  // Preview mode: a shared password in front of the whole site. While set, and only if no email
+  // provider is configured, the sign-in code is also shown on the page (safe: only testers get in).
+  previewPassword: process.env.PREVIEW_PASSWORD || '',
+  // Transactional email for sign-in codes (Brevo, EU). Sender must be a verified address.
+  brevoApiKey: process.env.BREVO_API_KEY || '',
+  mailFrom: process.env.MAIL_FROM || '',
 };
 
 // Versions of user-facing texts. Bump when the text changes; the version is stamped
@@ -51,3 +59,9 @@ export const isLaunched = () => config.forceLaunched || Date.now() >= Date.parse
 if (config.production && config.pseudonymSecret === 'dev-only-pseudonym-secret') {
   throw new Error('PSEUDONYM_SECRET must be set in production');
 }
+
+// Production needs a way to deliver sign-in codes: an email provider, or the preview password.
+if (config.production && !config.brevoApiKey && !config.previewPassword) {
+  throw new Error('Set BREVO_API_KEY (with MAIL_FROM) or PREVIEW_PASSWORD in production');
+}
+if (config.brevoApiKey && !config.mailFrom) throw new Error('MAIL_FROM must be set when BREVO_API_KEY is set');

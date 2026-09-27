@@ -1,0 +1,21 @@
+<!-- From design/Rientro 05 Account e Privacy v2 · artboards 41a (passo 1) and 41b (passo 2). -->
+<div style="width:560px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<sc-if value="{{ step1 }}">
+<span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.06em;color:#B42318">1 DI 2</span>
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Eliminare il tuo account?</h2>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.5"><sc-for list="{{ delEffects }}" as="d"><div style="display:flex;gap:12px"><span aria-hidden="true" style="width:22px;height:22px;border-radius:50%;background:#FDE8E8;color:#B42318;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">×</span>{{ d }}</div></sc-for></div>
+<sc-if value="{{ canPause }}"><div class="r-stack" style="padding:14px 18px;border-radius:22px;background:#EFEBFF;color:#3E2BA8;font-size:14px;line-height:1.5;display:flex;justify-content:space-between;gap:16px;align-items:center"><span>Vuoi solo una pausa? Puoi nascondere il profilo senza perdere nulla.</span><dc-import name="UI Button" label="Metti in pausa" variant="light" size="sm" on-click="{{ pause }}"></dc-import></div></sc-if>
+<button type="button" onClick="{{ exportFirst }}" style="align-self:flex-start;border:none;background:none;padding:0;font:14px 'Geist',sans-serif;text-decoration:underline;color:#6B6680;cursor:pointer">Scarica prima i miei dati</button>
+<div style="display:flex;justify-content:flex-end;gap:8px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Continua" variant="danger" on-click="{{ next }}"></dc-import></div>
+</sc-if>
+<sc-if value="{{ step2 }}">
+<span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.06em;color:#B42318">2 DI 2</span>
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Conferma l'eliminazione</h2>
+<dc-import name="App Select" label="Perché te ne vai?" optional="{{ true }}" placeholder="Scegli un motivo" options="{{ reasons }}" value="{{ reason }}" field="del-reason" dc-props="{{ reasonProps }}"></dc-import>
+<span style="font-size:12px;color:#8C84AE;margin-top:-10px">La risposta resta anonima e non è collegata al tuo account.</span>
+<div style="display:flex;flex-direction:column;gap:6px"><label for="del-confirm" style="font-size:13px;font-weight:500">Scrivi <span style="font-family:'Geist Mono',monospace;background:#F1EFF8;padding:1px 6px;border-radius:6px">ELIMINA</span> per confermare</label><dc-import name="App Field" field="del-confirm" value="{{ confirm }}" autocomplete="off" dc-props="{{ confirmProps }}"></dc-import></div>
+<sc-if value="{{ error }}"><span role="alert" style="font-size:13px;color:#B42318">{{ error }}</span></sc-if>
+<dc-import name="UI Button" label="Elimina definitivamente" variant="destructive" size="lg" full="{{ true }}" on-click="{{ doDelete }}" host-aria-disabled="{{ cantDelete }}"></dc-import>
+<dc-import name="UI Button" label="Annulla" variant="ghost" full="{{ true }}" on-click="{{ cancel }}"></dc-import>
+</sc-if>
+</div>

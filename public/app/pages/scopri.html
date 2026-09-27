@@ -1,0 +1,50 @@
+<!-- From design/Rientro 03 Scopri e Profilo v2 · artboards 26a (filtri laterali), 26b (mobile), 27a (comuni), 28a (ricerca), 28b (nessun risultato). -->
+<div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
+<dc-import name="App Nav" active="scopri" me="{{ me }}" q="{{ f.q }}"></dc-import>
+<sc-if value="{{ loading }}"><div style="height:60vh"></div></sc-if>
+
+<div class="r-page">
+<div class="r-show-sm" style="padding:18px 16px 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
+<dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import>
+<sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
+</div></div>
+
+<div class="r-grid-1 r-pad" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px 24px 0">
+<aside aria-label="Filtri" class="{{ filterClass }}" style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Azzera</button></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vuole vivere"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" dc-props="{{ desiredProps }}"></dc-import>
+<sc-if value="{{ hasDesired }}"><dc-import name="UI Checkbox" label="Includi chi ha scelto “Non lo so ancora”" checked="{{ includeUnknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ includeUnknown }}"></dc-import></sc-if></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vive"></dc-import><dc-import name="App Segmented" label="Dove vive" options="{{ livesOpts }}" value="{{ lives }}" onWhite="{{ true }}" dc-props="{{ livesProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Obiettivo"></dc-import><sc-for list="{{ intents }}" as="i"><dc-import name="UI Checkbox" label="{{ i.l }}" count="{{ i.count }}" checked="{{ i.on }}" on-click="{{ i.fn }}" host-role="checkbox" host-aria-checked="{{ i.on }}"></dc-import></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Background"></dc-import><sc-for list="{{ bgs }}" as="i"><dc-import name="UI Checkbox" label="{{ i.l }}" count="{{ i.count }}" checked="{{ i.on }}" on-click="{{ i.fn }}" host-role="checkbox" host-aria-checked="{{ i.on }}"></dc-import></sc-for><button type="button" onClick="{{ toggleMoreBg }}" style="align-self:flex-start;border:none;background:none;padding:4px 0 0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">{{ moreBgLabel }}</button></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Settori"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for><sc-if value="{{ hasMoreSectors }}"><dc-import name="UI Chip" label="{{ moreSectorsLabel }}" tone="dashed" size="sm" on-click="{{ toggleMoreSectors }}"></dc-import></sc-if></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Tempo"></dc-import><dc-import name="App Segmented" label="Tempo" options="{{ timeOpts }}" value="{{ time }}" clearable="{{ true }}" dc-props="{{ timeProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Fascia d'età"></dc-import><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" clearable="{{ true }}" dc-props="{{ ageProps }}"></dc-import></div>
+<div style="height:1px;background:#E4E0F2"></div>
+<dc-import name="UI Toggle" label="Cerca anche lavoro in Italia" on="{{ job }}" on-click="{{ toggleJob }}" host-role="switch" host-aria-checked="{{ job }}"></dc-import>
+</aside>
+
+<main style="display:flex;flex-direction:column;gap:22px;padding-right:8px;min-width:0">
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
+<sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
+
+<sc-if value="{{ isGrid }}"><div class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+<sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>
+</div></sc-if>
+
+<sc-if value="{{ isSearch }}"><div style="background:#FFFFFF;border-radius:24px;padding:4px 20px 16px;display:flex;flex-direction:column">
+<sc-for list="{{ rows }}" as="r">
+<div class="r-grid-1" style="display:grid;grid-template-columns:48px 1fr 260px auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid #ECE8F7"><dc-import name="App Photo" size="48" src="{{ r.photo }}" initials="{{ r.ini }}"></dc-import><div style="display:flex;flex-direction:column;gap:3px"><a href="{{ r.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:13px;color:#6B6680">{{ r.a }}<sc-if value="{{ r.has1 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m1 }}</mark></sc-if>{{ r.b }}</span></div><span style="font-size:13px;color:#6B6680">{{ r.c }}<sc-if value="{{ r.has2 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m2 }}</mark></sc-if>{{ r.d }}</span><a href="{{ r.href }}" style="text-decoration:none"><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm"></dc-import></a></div>
+</sc-for>
+</div></sc-if>
+
+<sc-if value="{{ isEmpty }}"><div style="border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:60px 20px;box-sizing:border-box">
+<sc-if value="{{ hasActive }}"><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"><sc-for list="{{ offChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="off" size="sm"></dc-import></sc-for></div></sc-if>
+<span style="font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.03em;margin-top:8px;max-width:440px">Non abbiamo trovato persone con questi filtri.</span>
+<sc-if value="{{ relax }}"><span style="font-size:15px;color:#6B6680">{{ relaxText }}</span></sc-if>
+<sc-if value="{{ hasActive }}"><div class="r-stack" style="display:flex;gap:8px;margin-top:6px"><dc-import name="UI Button" label="Rimuovi filtri" on-click="{{ clearAll }}"></dc-import><sc-if value="{{ relax }}"><dc-import name="UI Button" label="{{ relaxLabel }}" variant="light" on-click="{{ applyRelax }}"></dc-import></sc-if></div></sc-if>
+</div></sc-if>
+</main>
+</div></div>
+<dc-import name="App TabBar" active="scopri" me="{{ me }}"></dc-import>
+</div>

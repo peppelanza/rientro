@@ -1,0 +1,31 @@
+<!-- From design/Rientro 06 Admin v2 · artboard 49a (analytics). -->
+<div class="admin-layout">
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<main class="admin-main">
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Analytics</h1><div style="width:240px;max-width:100%"><dc-import name="App Segmented" label="Periodo" options="{{ periodOpts }}" value="{{ period }}" dc-props="{{ periodProps }}"></dc-import></div></div>
+<sc-if value="{{ total }}">
+<div class="r-grid-2 r-grid-md-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<dc-import name="UI Stat" label="Utenti totali" value="{{ total }}" delta="{{ newIn }}" size="lg"></dc-import>
+<dc-import name="UI Stat" label="Tasso richieste" value="{{ rate }}" delta="richieste / utente attivo / mese" tone="neutral" size="lg"></dc-import>
+<dc-import name="UI Stat" label="Tasso accettazione" value="{{ acceptance }}" delta="sulle richieste con risposta" tone="neutral" size="lg"></dc-import>
+<div style="background:#FFFFFF;border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:#6B6680">Estero / Italia</span><span style="font-family:'Unbounded',sans-serif;font-size:30px;font-weight:600;letter-spacing:-.04em;line-height:1">{{ split }}</span><div style="display:flex;height:8px;border-radius:999px;overflow:hidden;background:#F1EFF8"><div style="width:{{ abroadW }};background:#1A1726"></div><div style="width:{{ italyW }};background:#6C4DF5"></div></div></div>
+</div>
+<div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-size:14px;font-weight:600">Iscrizioni per metodo</span>
+<sc-for list="{{ methods }}" as="m"><dc-import name="UI Bar Row" label="{{ m.l }}" value="{{ m.v }}" pct="{{ m.w }}" tone="ink" thick="{{ true }}"></dc-import></sc-for>
+<span style="font-size:12px;color:#8C84AE">LinkedIn e Google non sono ancora attivi.</span>
+<div style="height:1px;background:#ECE8F7"></div><span style="font-size:13px;font-weight:600">Come ci hanno conosciuto</span>
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{ sources }}" as="x"><div style="display:flex;justify-content:space-between;gap:10px"><span>{{ x.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ x.v }}</span></div></sc-for></div></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-size:14px;font-weight:600">Comuni più scelti</span>
+<div style="display:grid;grid-template-columns:24px 1fr 40px 50px;gap:8px 10px;font-size:13px;align-items:center"><sc-for list="{{ topCities }}" as="c"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ c.i }}</span><span>{{ c.n }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ c.p }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;text-align:right">{{ c.v }}</span></sc-for></div>
+<sc-if value="{{ noCities }}"><span style="font-size:13px;color:#8C84AE">Ancora nessun dato.</span></sc-if>
+<span style="font-size:12px;color:#8C84AE">{{ comuniNote }}</span></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:14px"><span style="font-size:14px;font-weight:600">Composizione</span>
+<sc-for list="{{ comp }}" as="c"><div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:10px;font-size:13px"><span>{{ c.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ c.v }}</span></div><div style="display:flex;height:10px;border-radius:999px;overflow:hidden;background:#F1EFF8"><sc-for list="{{ c.segs }}" as="x"><div style="width:{{ x.w }};background:{{ x.c }}"></div></sc-for></div></div></sc-for>
+<div style="height:1px;background:#ECE8F7"></div><span style="font-size:13px;font-weight:600">Background professionali</span>
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{ bgs }}" as="b"><div style="display:flex;justify-content:space-between;gap:10px"><span>{{ b.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ b.v }}</span></div></sc-for></div></div>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span style="font-size:14px;font-weight:600">Richieste e accettazioni per settimana</span><span style="font-size:12px;color:#6B6680">Barre: richieste · segmento accento: accettate</span></div>
+<div role="img" aria-label="Richieste e accettazioni nelle ultime 13 settimane" style="height:160px;display:flex;align-items:flex-end;gap:10px;border-bottom:1px solid #ECE8F7"><sc-for list="{{ weeks }}" as="w"><div title="{{ w.title }}" style="flex:1;height:{{ w.r }};background:#F1EFF8;border-radius:8px 8px 0 0;display:flex;align-items:flex-end;overflow:hidden"><div style="width:100%;height:{{ w.a }};background:#6C4DF5;border-radius:8px 8px 0 0"></div></div></sc-for></div></div>
+</sc-if>
+</main></div>

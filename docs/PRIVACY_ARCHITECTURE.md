@@ -32,7 +32,7 @@ and re-versioned. Bumping `LEGAL_VERSIONS.job_seeking_notice` then makes it visi
 
 | # | Requirement | Implementation |
 |---|---|---|
-| 1–3 | Privacy / Terms / Cookie policy | `public/legal/*.html`: summary first (design 43b), placeholders marked. Only a technical session cookie is set, so there's no banner. The cookie policy says so, and the design's 43c banner is kept for when analytics arrive. |
+| 1–3 | Privacy / Terms / Cookie policy | `public/app/pages/legal.js` (served at `/legal/privacy`, `/legal/termini`, `/legal/cookie`): summary first (design 43b), placeholders marked. Only a technical session cookie is set, so there's no banner. The cookie policy says so, and the design's 43c banner is kept for when analytics arrive. |
 | 4 | Consent where it's the right basis | Only genuinely optional choices are recorded as preferences (job-seeking, newsletter). Terms and the privacy notice are recorded as **acknowledgements** (`legal_acknowledgements`), not consents. |
 | 5 | Separate marketing consent | `communication_preferences`, off by default. |
 | 6–8 | Job-seeking record, versions, timestamps | See §1. |

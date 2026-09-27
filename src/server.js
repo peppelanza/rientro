@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -37,6 +38,31 @@ const SECURITY_HEADERS = {
 function parseCookies(header = '') {
   return Object.fromEntries(header.split(';').map(c => c.trim().split('=')).filter(([k]) => k).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
 }
+
+// Behind Render's proxy every connection comes from the proxy; the visitor is the first
+// X-Forwarded-For entry. A forged header only dodges the per-IP limit: the per-email limit and
+// the per-code attempt limit still apply.
+function clientIp(req) {
+  if (config.trustProxy) {
+    const first = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    if (first) return first;
+  }
+  return req.socket.remoteAddress;
+}
+
+// Preview gate (HTTP Basic auth, any username). Constant-time compare of the password.
+function previewAllowed(req) {
+  const m = /^Basic (.+)$/.exec(req.headers.authorization || '');
+  if (!m) return false;
+  const pass = Buffer.from(m[1], 'base64').toString('utf8').split(':').slice(1).join(':');
+  const a = crypto.createHash('sha256').update(pass).digest();
+  const b = crypto.createHash('sha256').update(config.previewPassword).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+// The sign-in code is returned to the page in development, and in a password-protected preview
+// when no email provider is configured.
+const showCodeOnPage = () => !config.production || (!!config.previewPassword && !config.brevoApiKey);
 
 function sessionCookie(value, maxAgeSeconds) {
   return [`${SESSION_COOKIE}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
@@ -130,16 +156,16 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // ---- auth (2a, 5a, 5b)
   route('POST', '/api/auth/request-code', async ({ req }) => {
     const body = await readJson(req);
-    limitIp(req.socket.remoteAddress);
+    limitIp(clientIp(req));
     const { email, code } = auth.requestCode(db, body);
     limitEmail(email);
     await sendLoginCode(email, code);
-    return { ok: true, ...(config.production ? {} : { dev_code: code }) };
+    return { ok: true, ...(showCodeOnPage() ? { dev_code: code } : {}) };
   }, pub);
 
   route('POST', '/api/auth/verify-code', async ({ req, res }) => {
     const body = await readJson(req);
-    limitVerify(`v:${req.socket.remoteAddress}`);
+    limitVerify(`v:${clientIp(req)}`);
     const { sessionToken, user } = auth.verifyCode(db, body, req.headers['user-agent']);
     if (user.status === 'suspended') {
       auth.logout(db, sessionToken);
@@ -295,6 +321,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     const cookies = parseCookies(req.headers.cookie);
     const p = url.pathname;
     try {
+      // Health check for the host (no data, never behind the preview password)
+      if (p === '/healthz') { send(res, 200, { ok: true }); return; }
+      if (config.previewPassword && !previewAllowed(req)) {
+        res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Rientro anteprima", charset="UTF-8"', 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end('Anteprima riservata. Chiedi la password al team Rientro.');
+        return;
+      }
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
@@ -342,14 +375,32 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 }
 
 async function defaultSendLoginCode(email, code) {
-  if (config.production) {
-    // TODO: wire a transactional email provider (EU region, DPA in place) before launch.
-    throw new Error('No email provider configured');
+  if (config.brevoApiKey) return sendWithBrevo(email, code);
+  if (showCodeOnPage()) { if (!config.production) console.log(`\n[dev] Codice di accesso per ${email}: ${code}\n`); return; }
+  throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.');
+}
+
+// Brevo transactional API (EU). https://developers.brevo.com/reference/sendtransacemail
+async function sendWithBrevo(email, code) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': config.brevoApiKey, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { email: config.mailFrom, name: 'Rientro' },
+      to: [{ email }],
+      subject: `${code} è il tuo codice Rientro`,
+      textContent: `Il tuo codice di accesso a Rientro è ${code}.\n\nScade tra ${config.loginCodeTtlMinutes} minuti. Se non l'hai richiesto tu, ignora questa email.`,
+      htmlContent: `<p>Il tuo codice di accesso a Rientro è</p><p style="font-size:28px;font-weight:600;letter-spacing:4px;font-family:monospace">${code}</p><p>Scade tra ${config.loginCodeTtlMinutes} minuti. Se non l'hai richiesto tu, ignora questa email.</p>`,
+    }),
+    signal: AbortSignal.timeout(10_000),
+  }).catch(() => null);
+  if (!res?.ok) {
+    console.error('[email] Brevo error', res?.status, res ? await res.text().catch(() => '') : 'network');
+    throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.');
   }
-  console.log(`\n[dev] Codice di accesso per ${email}: ${code}\n`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { server } = createApp();
-  server.listen(config.port, () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
+  server.listen(config.port, '0.0.0.0', () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
 }

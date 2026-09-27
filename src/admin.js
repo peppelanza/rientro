@@ -62,7 +62,7 @@ export function dashboard(db, admin, query) {
 
   const chartDays = Math.min(days, 30);
   const signups = Array.from({ length: chartDays }, (_, i) => {
-    const d0 = new Date(Date.now() - (chartDays - i) * DAY).toISOString().slice(0, 10);
+    const d0 = new Date(Date.now() - (chartDays - 1 - i) * DAY).toISOString().slice(0, 10);
     return { day: d0, signups: users.filter(u => u.created_at.slice(0, 10) === d0).length, approved: users.filter(u => (u.approved_at || '').slice(0, 10) === d0).length };
   });
   const approvedUsers = users.filter(u => u.status === 'approved');

@@ -1,0 +1,30 @@
+<!-- From design/Rientro 04 Connessioni e Chat v2 · artboards 36a (centro notifiche), 36b (mobile). -->
+<div style="min-height:100vh;background:#E9E6F5">
+<dc-import name="App Nav" active="notifiche" me="{{ me }}"></dc-import>
+<main style="display:flex;justify-content:center;padding:24px 16px 56px">
+<div style="width:560px;max-width:100%;background:#FFFFFF;border-radius:28px;box-shadow:0 24px 60px rgba(80,60,160,.22);padding:8px;box-sizing:border-box">
+<div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:baseline"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.03em">Notifiche</h1></div>
+<sc-if value="{{ empty }}"><div style="padding:32px 14px;text-align:center;font-size:14px;color:#8C84AE">Nessuna notifica per ora.</div></sc-if>
+<sc-if value="{{ hasFresh }}"><div style="padding:4px 14px 8px"><dc-import name="UI Eyebrow" text="Nuove"></dc-import></div></sc-if>
+<sc-for list="{{ fresh }}" as="n">
+<div onClick="{{ n.open }}" style="display:flex;gap:12px;padding:12px 14px;border-radius:20px;background:{{ n.bg }};margin-top:4px;cursor:pointer">
+<sc-if value="{{ n.isPerson }}"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></sc-if>
+<sc-if value="{{ n.isIcon }}"><div aria-hidden="true" style="width:40px;height:40px;border-radius:50%;flex:none;background:{{ n.ibg }};color:{{ n.ifg }};font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.icon }}</div></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.4;flex:1;min-width:0;color:{{ n.fg }}"><span><sc-if value="{{ n.hasWho }}"><b style="font-weight:600">{{ n.who }}</b>{{ n.rest }}</sc-if><sc-if value="{{ n.hasText }}">{{ n.text }}</sc-if></span>
+<sc-if value="{{ n.isRequest }}"><div style="display:flex;gap:6px"><dc-import name="UI Button" label="Accetta" variant="accent" size="sm" on-click="{{ n.accept }}"></dc-import><dc-import name="UI Button" label="Vedi profilo" variant="light" size="sm" on-click="{{ n.profile }}"></dc-import></div></sc-if>
+<span style="font-size:12px;color:#6B6680">{{ n.when }}</span></div>
+<span aria-label="Nuova" style="width:8px;height:8px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>
+</div>
+</sc-for>
+<sc-if value="{{ hasOld }}"><div style="padding:14px 14px 4px"><dc-import name="UI Eyebrow" text="Precedenti"></dc-import></div></sc-if>
+<sc-for list="{{ old }}" as="n">
+<div onClick="{{ n.open }}" style="display:flex;gap:12px;padding:12px 14px;border-radius:20px;cursor:pointer">
+<sc-if value="{{ n.isPerson }}"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></sc-if>
+<sc-if value="{{ n.isIcon }}"><div aria-hidden="true" style="width:40px;height:40px;border-radius:50%;flex:none;background:{{ n.ibg }};color:{{ n.ifg }};font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.icon }}</div></sc-if>
+<div style="display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.4;color:#4A4560;min-width:0"><span><sc-if value="{{ n.hasWho }}"><b style="font-weight:600">{{ n.who }}</b>{{ n.rest }}</sc-if><sc-if value="{{ n.hasText }}">{{ n.text }}</sc-if></span><span style="font-size:12px;color:#8C84AE">{{ n.when }}</span></div>
+</div>
+</sc-for>
+<a href="/impostazioni#notifiche" style="display:block;padding:10px;margin-top:4px;border-top:1px solid #ECE8F7;font-size:13px;text-align:center;color:#6B6680">Preferenze notifiche</a>
+</div></main>
+<dc-import name="App TabBar" active="notifiche" me="{{ me }}"></dc-import>
+</div>

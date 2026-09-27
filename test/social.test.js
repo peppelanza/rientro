@@ -98,6 +98,10 @@ test('dashboard and analytics compute without errors', async () => {
   const d = await admin.get('/api/admin/dashboard?period=30');
   assert.equal(d.status, 200);
   assert.equal(d.body.kpis.length, 7);
+  // The signup chart ends today, so members who joined today are counted
+  const today = new Date().toISOString().slice(0, 10);
+  assert.equal(d.body.signups.at(-1).day, today);
+  assert.ok(d.body.signups.at(-1).signups > 0);
   const a = await admin.get('/api/admin/analytics?period=90');
   assert.equal(a.status, 200);
   assert.equal(a.body.weeks.length, 13);

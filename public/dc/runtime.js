@@ -261,6 +261,9 @@ function makeActivatable(el) {
   });
 }
 
+const FOCUS_EVENTS = new Set(['focus', 'blur', 'focusin', 'focusout']);
+let swapping = 0;
+
 const BOOLEAN_ATTRS = new Set(['disabled', 'checked', 'selected', 'readonly', 'required', 'hidden', 'multiple', 'autofocus', 'open']);
 const PROPERTY_ATTRS = new Set(['value', 'checked']);
 
@@ -292,7 +295,11 @@ function walkElement(el) {
     }
     for (const [ev, g] of events) {
       const fn = g(vals);
-      if (typeof fn === 'function') out.addEventListener(ev === 'doubleclick' ? 'dblclick' : ev, fn);
+      if (typeof fn !== 'function') continue;
+      const type = ev === 'doubleclick' ? 'dblclick' : ev;
+      // Focus moves caused by the renderer itself (removing a focused input, restoring focus
+      // afterwards) aren't user actions; handling them would trigger render loops.
+      out.addEventListener(type, FOCUS_EVENTS.has(type) ? e => { if (!swapping) fn(e); } : fn);
     }
     if (hover) out.classList.add(hoverClass(hover(vals)));
     for (const b of kids) out.append(b(vals, ctx));
@@ -337,11 +344,47 @@ export function renderComponent(name, props = {}, ctx) {
   const draw = () => {
     let vals;
     try { vals = logic.renderVals ? logic.renderVals() : {}; } catch (err) { console.error(`[dc] ${name}`, err); vals = {}; }
-    host.replaceChildren(...e.compiled.map(b => b(vals, ctx)));
+    swap(host, e.compiled.map(b => b(vals, ctx)));
   };
-  logic.__rerender = draw;
+  logic.__rerender = serial(draw);
   draw();
   return host;
+}
+
+// A render requested while one is running (e.g. from an event fired mid-swap) runs right after.
+function serial(draw) {
+  let running = false;
+  let again = false;
+  return function rerender() {
+    if (running) { again = true; return; }
+    running = true;
+    try { draw(); } finally { running = false; }
+    if (again) { again = false; rerender(); }
+  };
+}
+
+function swap(root, nodes) {
+  swapping++;
+  try {
+    const restore = keepFocus(root);
+    root.replaceChildren(...nodes);
+    restore();
+  } finally { swapping--; }
+}
+
+// Keep focus and caret in real inputs across re-renders (inputs are keyed by data-key).
+function keepFocus(root) {
+  const active = document.activeElement;
+  const key = root.contains(active) ? active?.dataset?.key : null;
+  if (!key) return () => {};
+  let sel = null;
+  try { sel = active.selectionStart != null ? [active.selectionStart, active.selectionEnd] : null; } catch {}
+  return () => {
+    const next = root.querySelector(`[data-key="${CSS.escape(key)}"]`);
+    if (!next || next === document.activeElement) return;
+    next.focus();
+    if (sel) try { next.setSelectionRange(...sel); } catch {}
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -351,21 +394,13 @@ export function mountPage(el, { template, Logic, props = {} }) {
   const compiled = compile(template);
   const logic = new Logic(props);
   const draw = () => {
-    // Keep focus and caret in real inputs across re-renders (keyed by data-key).
-    const active = document.activeElement;
-    const key = active?.dataset?.key;
-    const sel = key && 'selectionStart' in active ? [active.selectionStart, active.selectionEnd] : null;
     let vals;
     try { vals = logic.renderVals(); } catch (err) { console.error('[page]', err); return; }
-    el.replaceChildren(...compiled.map(b => b(vals, logic)));
-    if (key) {
-      const next = el.querySelector(`[data-key="${CSS.escape(key)}"]`);
-      if (next) { next.focus(); if (sel) try { next.setSelectionRange(...sel); } catch {} }
-    }
+    swap(el, compiled.map(b => b(vals, logic)));
     logic.didRender?.(el);
   };
-  logic.__rerender = draw;
-  draw();
+  logic.__rerender = serial(draw);
+  logic.__rerender();
   logic.componentDidMount?.();
   return logic;
 }

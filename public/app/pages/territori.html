@@ -1,0 +1,71 @@
+<!-- From design/Rientro 07 Landing Territori v2 · artboards 51a (desktop), 51b (mobile).
+     Person cards are replaced by a members-only note: public pages show aggregates only. -->
+<sc-if value="{{ notFound }}"><main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.03em">Non conosciamo “{{ place }}”.</h1><a href="/" style="font-size:14px">← Torna a Rientro</a></main></sc-if>
+<sc-if value="{{ stats }}">
+<div class="r-page" style="background:#E9E6F5">
+<header class="r-pad" style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
+<a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
+<nav aria-label="Percorso" class="r-hide-sm" style="display:flex;gap:8px;color:#6B6680;font-family:'Geist Mono',monospace;font-size:12px;font-weight:400"><span>Italia</span><sc-if value="{{ isCity }}"><a href="{{ regionHref }}" style="color:#6B6680;text-decoration:none">/ {{ region }}</a></sc-if><span aria-current="page" style="color:#1A1726">/ {{ name }}</span></nav>
+<div style="flex:1"></div><a href="{{ loginHref }}" class="r-hide-sm" style="color:#1A1726;text-decoration:none">{{ loginLabel }}</a>
+<dc-import name="UI Button" label="Entra in Rientro" on-click="{{ enter }}"></dc-import>
+</div></header>
+
+<section class="r-grid-1 r-pad-lg" style="padding:72px 56px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:48px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:28px">
+<dc-import name="UI Eyebrow" text="{{ eyebrow }}"></dc-import>
+<h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-size:84px;line-height:.95;font-weight:600;letter-spacing:-.065em;text-wrap:balance">Tornare {{ prep }} {{ name }}, <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:96px">con qualcuno.</span></h1>
+<p class="r-lede" style="margin:0;font-size:21px;line-height:1.4;color:#4A4560;max-width:520px;text-wrap:pretty">{{ lede }}</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><dc-import name="UI Button" label="{{ cta }}" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
+</div>
+<div class="r-hide-sm"><dc-import name="UI Photo" ratio="4/5" radius="28px" label="{{ photoLabel }}" style="width:100%"></dc-import></div>
+</section>
+
+<section aria-label="In numeri" class="r-grid-1" style="margin:0 24px;padding:28px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+<sc-for list="{{ stats }}" as="s"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-size:44px;font-weight:600;letter-spacing:-.05em;line-height:1">{{ s.v }}</span><span style="font-size:14px;color:#6B6680">{{ s.l }}</span></div></sc-for>
+</section>
+
+<section class="r-pad-lg" style="padding:80px 56px 0;display:flex;flex-direction:column;gap:28px">
+<h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:44px;line-height:1;font-weight:600;letter-spacing:-.05em">Chi vuole vivere {{ prep }} {{ name }}</h2>
+<div class="r-stack" style="border-radius:28px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;gap:24px"><div style="display:flex;flex-direction:column;gap:8px;max-width:620px"><span style="font-size:18px;font-weight:600">I profili sono visibili solo ai membri.</span><span style="font-size:15px;line-height:1.5;color:#4A4560">Ogni profilo viene rivisto da una persona e non è indicizzato dai motori di ricerca. Entra per vedere chi vuole vivere {{ prep }} {{ name }} e cosa vuole costruire.</span></div><dc-import name="UI Button" label="Entra in Rientro" on-click="{{ enter }}"></dc-import></div>
+</section>
+
+<section class="r-grid-1 r-pad-lg" style="padding:80px 56px 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+<div style="border-radius:28px;background:#1A1726;color:#FFFFFF;padding:32px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.035em">Da dove arrivano</h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">ARRIVI · {{ nameUpper }}</span></div>
+<sc-if value="{{ hasOrigins }}"><div style="display:flex;flex-direction:column;font-family:'Geist Mono',monospace;font-size:13px"><sc-for list="{{ origins }}" as="o"><div style="display:grid;grid-template-columns:1fr 20px 1fr 60px;gap:12px;padding:14px 0;border-top:1px solid #3A3550"><span>{{ o.from }}</span><span style="color:#C9C0F0">→</span><span>{{ o.to }}</span><span style="text-align:right;color:#B7B0D4">{{ o.n }}</span></div></sc-for></div></sc-if>
+<sc-if value="{{ !hasOrigins }}"><span style="font-size:14px;color:#B7B0D4;line-height:1.5">Mostriamo le città di partenza quando ci sono almeno 5 persone per città.</span></sc-if>
+</div>
+<div style="border-radius:28px;background:#FFFFFF;padding:32px;display:flex;flex-direction:column;gap:20px">
+<h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.035em">Su cosa vogliono lavorare</h3>
+<sc-if value="{{ hasSectors }}"><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="x"><dc-import name="UI Chip" label="{{ x.l }}" count="{{ x.n }}" tone="tint"></dc-import></sc-for></div></sc-if>
+<sc-if value="{{ !hasSectors }}"><span style="font-size:14px;color:#6B6680;line-height:1.5">I settori compaiono quando almeno 5 persone li hanno scelti.</span></sc-if>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+<div style="border-radius:20px;background:#EFEBFF;min-width:0;padding:16px;display:flex;flex-direction:column;gap:8px"><div><dc-import name="UI Badge" kind="idea" label="Ha già un'idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.04em;color:#3E2BA8">{{ idea }}</span></div>
+<div style="border-radius:20px;background:#F1EFF8;min-width:0;padding:16px;display:flex;flex-direction:column;gap:8px"><div><dc-import name="UI Badge" kind="explore" label="Cerca un'idea insieme"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.04em">{{ explore }}</span></div>
+</div></div>
+</section>
+
+<section class="r-grid-1 r-pad-lg" style="padding:80px 56px 0;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px">
+<dc-import name="UI Eyebrow" text="{{ placesTitle }}"></dc-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+<sc-for list="{{ places }}" as="c"><a href="{{ c.href }}" style="border-radius:22px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;color:#1A1726;text-decoration:none" style-hover="background:#FFFFFF"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:600">{{ c.name }}</span><span style="font-size:13px;color:#6B6680">{{ c.n }}</span></div><span style="color:#6C4DF5">→</span></a></sc-for>
+</div></section>
+
+<section id="come-funziona" class="r-grid-1" style="margin:80px 24px 0;padding:56px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr));gap:24px">
+<dc-import name="UI Eyebrow" text="Come funziona"></dc-import>
+<sc-for list="{{ steps }}" as="x"><div style="display:flex;flex-direction:column;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:#6C4DF5;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:12px">{{ x.n }}</span><span style="font-size:18px;font-weight:600">{{ x.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ x.d }}</span></div></sc-for>
+</section>
+
+<section class="r-stack" style="margin:16px 24px 0;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:72px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:32px">
+<h2 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:56px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:760px">{{ closing }} {{ prep }} <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:66px">{{ name }}.</span></h2>
+<dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
+</section>
+
+<nav aria-label="Altre destinazioni" class="r-pad-lg" style="padding:56px 56px 24px;display:flex;flex-direction:column;gap:14px">
+<dc-import name="UI Eyebrow" text="Altre destinazioni"></dc-import>
+<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px"><sc-for list="{{ others }}" as="o"><a href="{{ o.href }}" style="color:#4A4560;text-underline-offset:3px;text-decoration-color:#C9C3DD">{{ o.label }}</a></sc-for></div>
+</nav>
+<footer class="r-wrap" style="padding:16px 0 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center;border-top:1px solid #DCD7EC;margin:0 56px"><span>© {{ year }} Rientro</span><div style="flex:1"></div><a href="/legal/privacy" style="color:#6B6680">Privacy Policy</a><a href="/legal/termini" style="color:#6B6680">Termini</a><a href="/legal/cookie" style="color:#6B6680">Cookie</a></footer>
+</div>
+</sc-if>

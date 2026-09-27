@@ -48,6 +48,7 @@ button { font: inherit; }
 
 @media (max-width: 1024px) {
   .r-grid-md-1 { grid-template-columns: minmax(0, 1fr) !important; }
+  .r-grid-md-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .r-hide-md { display: none !important; }
 }
 
@@ -71,4 +72,24 @@ button { font: inherit; }
   .r-gap-sm { gap: 16px !important; }
   .r-span-1 { grid-column: auto !important; }
   .admin-sidebar { display: none !important; }
+}
+.bare-input:focus-visible { outline: none; }
+
+/* Buttons hug their label unless full="true" (the design wraps them in a plain div for this). */
+.sc-host[data-sc-name="UI Button"] { display: flex; }
+
+/* Chat fills the viewport; on phones it sits above the tab bar */
+@media (max-width: 720px) {
+  .chat-page { height: calc(100vh - 96px) !important; }
+  .chat-grid { padding: 12px !important; }
+}
+
+/* Admin: sidebar on the left; on phones it becomes a scrolling row of links above the page */
+.admin-layout { display: flex; min-height: 100vh; background: #E9E6F5; }
+.admin-main { flex: 1; min-width: 0; padding: 28px 28px 28px 16px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+.admin-table { overflow-x: auto; }
+.admin-table > .admin-row, .admin-table > div > .admin-row { min-width: 880px; }
+@media (max-width: 720px) {
+  .admin-layout { flex-direction: column; }
+  .admin-main { padding: 16px 12px; }
 }

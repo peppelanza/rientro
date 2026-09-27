@@ -116,7 +116,8 @@ def('App Admin Sidebar', String.raw`
 <div style="flex:1"></div>
 <a href="/" style="padding:0 14px;font-size:13px;color:#8C84AE;text-decoration:none">← Torna al sito</a>
 <div style="border-top:1px solid #2E2A40;padding:14px 10px 0;display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);color:#1A1726;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">{{ initials }}</div><div style="display:flex;flex-direction:column;min-width:0"><span style="font-size:13px;font-weight:500;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ adminName }}</span><span style="font-size:12px;color:#B7B0D4">Moderazione</span></div></div>
-</div></div>`, class extends DCLogic {
+</div></div>
+<nav aria-label="Sezioni admin" class="r-show-sm" style="padding:12px 12px 0;font-family:'Geist',sans-serif"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ items }}" as="it"><a href="{{ it.href }}" aria-current="{{ it.current }}" style="flex:none;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;background:{{ it.mbg }};color:{{ it.mfg }};text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;opacity:.7">{{ it.count }}</span></sc-if></a></sc-for></div></nav>`, class extends DCLogic {
   renderVals() {
     const a = this.props.active ?? 'dashboard';
     const c = this.props.counts || {};
@@ -128,6 +129,7 @@ def('App Admin Sidebar', String.raw`
     ].map(([k, label, href, count]) => ({
       label, href, count, hasCount: !!count, current: k === a ? 'page' : false,
       bg: k === a ? '#FFFFFF' : 'transparent', fg: k === a ? '#1A1726' : '#C9C0F0', fw: k === a ? 600 : 400, mark: k === a ? '#6C4DF5' : '#3A3550', cc: k === a ? '#6B6680' : '#8C84AE',
+      mbg: k === a ? '#1A1726' : '#FFFFFF', mfg: k === a ? '#FFFFFF' : '#1A1726',
     }));
     return { items, adminName: email.split('@')[0], initials: email.slice(0, 2).toUpperCase() };
   }
@@ -206,7 +208,8 @@ def('App Field', String.raw`
   renderVals() {
     const p = this.props;
     const multi = !!p.rows;
-    const value = p.value ?? '';
+    // Parent pages don't re-render on every keystroke, so the field tracks its own text for the counter.
+    const value = this.state.v ?? p.value ?? '';
     const lg = p.size === 'lg';
     const counter = p.maxlength && p.counter !== false && multi ? `${String(value).length} / ${p.maxlength}` : '';
     return {
@@ -217,7 +220,10 @@ def('App Field', String.raw`
       radius: multi ? '20px' : '999px', pad: multi ? '14px 18px' : '0 18px', align: multi ? 'flex-start' : 'center', fs: lg ? 17 : 14,
       bd: p.error ? '1.5px solid #D92D20' : '1px solid #E4E0F2', invalid: p.error ? 'true' : false,
       foot: p.error || p.foot || '', hasFoot: !!(p.error || p.foot || counter), counter, footColor: p.error ? '#B42318' : '#8C84AE',
-      input: e => p.onInput?.(e.target.value),
+      input: e => {
+        p.onInput?.(e.target.value);
+        if (counter) { this.state.v = e.target.value; this.__rerender(); }
+      },
       keydown: e => { if (e.key === 'Enter' && p.onEnter) { e.preventDefault(); p.onEnter(e.target.value); } },
       blur: e => p.onBlur?.(e.target.value),
     };
@@ -360,6 +366,118 @@ def('App Tag Input', String.raw`
       suggestions: (this.props.suggestions || []).filter(s => !values.includes(s)).slice(0, 8).map(s => ({ l: `+ ${s}`, add: () => this.commit(s) })),
       hasSuggestions: values.length < max,
       fieldProps: { onInput: v => { this.state.draft = v; }, onEnter: v => this.commit(v), onBlur: v => { if (v.trim()) this.commit(v); } },
+    };
+  }
+});
+
+// ---------------------------------------------------------------------------------------------
+// App Photo — UI Photo with a real image or video when one exists (falls back to the design's
+// striped placeholder). Props: as UI Photo, plus src, video (url), alt, initials.
+
+def('App Photo', String.raw`
+<div style="position:relative;flex:none;width:{{ w }};height:{{ h }};aspect-ratio:{{ ratio }};border-radius:{{ radius }};background:{{ bg }};overflow:hidden;box-sizing:border-box">
+<sc-if value="{{ src }}"><img class="media-fill" src="{{ src }}" alt="{{ alt }}" loading="lazy"></sc-if>
+<sc-if value="{{ video }}"><video class="media-fill" src="{{ video }}" controls preload="metadata" playsinline aria-label="{{ alt }}"></video></sc-if>
+<sc-if value="{{ showInitials }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 {{ ifs }}px 'Geist',sans-serif;color:{{ ic }}">{{ initials }}</span></sc-if>
+<sc-if value="{{ showLabel }}"><span style="position:absolute;left:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.06em;color:#8C84AE">{{ label }}</span></sc-if>
+<sc-if value="{{ hasBadge }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badge }}" style="position:absolute;top:12px;left:12px"></dc-import></sc-if>
+<sc-if value="{{ hasDuration }}"><span style="position:absolute;right:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:11px;color:#FFFFFF">{{ duration }}</span></sc-if>
+</div>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const size = p.size ? Number(p.size) : 0;
+    const dark = b(p.dark);
+    const small = size && size < 90;
+    const media = !!(p.src || p.video);
+    return {
+      w: size ? `${size}px` : '100%', h: size ? `${size}px` : (p.height ? `${p.height}px` : 'auto'),
+      ratio: size || p.height ? 'auto' : (p.ratio ?? '4/3'), radius: p.radius ?? (size ? '50%' : '22px'),
+      bg: media ? '#1A1726' : dark ? 'repeating-linear-gradient(135deg,#2A2638 0 8px,#231F30 8px 16px)' : 'repeating-linear-gradient(135deg,#E3DEF5 0 8px,#DAD4F0 8px 16px)',
+      src: p.video ? null : p.src, video: p.video, alt: p.alt ?? '',
+      initials: p.initials, showInitials: !media && !!p.initials, ifs: size ? Math.max(11, Math.round(size / 3)) : 28, ic: dark ? '#B7B0D4' : '#6B6680',
+      label: p.label ?? 'FOTO', showLabel: !media && !p.initials && !small && p.label !== '',
+      hasBadge: !!p.badge, badge: p.badge, badgeKind: p.badgeKind ?? 'idea', duration: p.duration, hasDuration: !!p.duration && !media,
+    };
+  }
+});
+
+// ---------------------------------------------------------------------------------------------
+// App Person Card — from UI Person Card (+ real photo, profile link, connection-aware action).
+// Props: person (profiles.card shape), compact, ratio, onConnect(person)
+
+def('App Person Card', String.raw`
+<article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
+<a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">Vive a {{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="vuole trasferirsi a">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
+<sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
+<sc-if value="{{ job }}"><span style="font-size:12px;color:#6B6680">Sta anche cercando lavoro in Italia</span></sc-if>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
+<dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
+</div>
+</div></article>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props.person || {};
+    const c = p.connection?.status ?? 'none';
+    const go = href => () => { location.href = href; };
+    const action = {
+      none: { l: 'Connettiti', v: 'primary', fn: () => this.props.onConnect?.(p), off: false },
+      pending_sent: { l: 'In attesa', v: 'secondary', fn: null, off: true },
+      pending_received: { l: 'Rispondi', v: 'accent', fn: go(`/connessioni/${p.connection?.id}`), off: false },
+      connected: { l: 'Messaggio', v: 'primary', fn: go(`/messaggi/${p.id}`), off: false },
+    }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
+    return {
+      p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}`,
+      badge: p.idea ? "Ha già un'idea" : "Cerca un'idea insieme", badgeKind: p.idea ? 'idea' : 'explore',
+      hasComp: !!p.comp, job: !!p.job, action,
+      secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',
+    };
+  }
+});
+
+
+// ---------------------------------------------------------------------------------------------
+// App Job Details — "Che tipo di opportunità cerchi in Italia?" (spec §10). Used in onboarding
+// and in Impostazioni → Privacy. Props: job (job_preferences), catalog, desired[], onChange(patch)
+
+const ROLE_SUGGESTIONS = ['Product Manager', 'Software Engineer', 'Designer', 'Data Scientist', 'Sales Manager', 'Marketing Manager', 'Operations Manager', 'Consulente'];
+const SKILL_SUGGESTIONS = ['Leadership', 'Gestione team', 'Strategia', 'Analisi dati', 'Sviluppo software', 'Vendite B2B', 'Ricerca utenti', 'Finanza'];
+
+def('App Job Details', String.raw`
+<div style="background:#FFFFFF;border-radius:26px;padding:22px;display:flex;flex-direction:column;gap:22px">
+<dc-import name="App Tag Input" label="Ruoli che ti interessano" values="{{ jobRoles }}" suggestions="{{ roleSuggestions }}" max="8" field="job-roles" placeholder="Scrivi un ruolo e premi Invio" dc-props="{{ rolesProps }}"></dc-import>
+<dc-import name="App Tag Input" label="Competenze principali" values="{{ jobSkills }}" suggestions="{{ skillSuggestions }}" max="20" field="job-skills" placeholder="Scrivi una competenza e premi Invio" dc-props="{{ skillsProps }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline"><dc-import name="UI Eyebrow" text="Settori"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ jobSectorCount }}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ jobSectors }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" size="sm" on-click="{{ s.fn }}" host-role="checkbox" host-aria-checked="{{ s.aria }}"></dc-import></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><dc-import name="UI Eyebrow" text="Dove"></dc-import><sc-if value="{{ canCopyPlaces }}"><button type="button" onClick="{{ copyPlaces }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6C4DF5;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Usa i comuni dove vorresti vivere</button></sc-if></div>
+<dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ jobPlaces }}" max="10" field="job-places" dc-props="{{ jobPlacesProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Modalità di lavoro</span><dc-import name="App Segmented" label="Modalità di lavoro" options="{{ workOpts }}" value="{{ work }}" clearable="{{ true }}" dc-props="{{ workProps }}"></dc-import></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Tipo di impiego</span><dc-import name="App Segmented" label="Tipo di impiego" options="{{ empOpts }}" value="{{ emp }}" clearable="{{ true }}" dc-props="{{ empProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Disponibilità</span><dc-import name="App Segmented" label="Disponibilità" options="{{ availOpts }}" value="{{ avail }}" clearable="{{ true }}" dc-props="{{ availProps }}"></dc-import></div>
+</div></div>`, class extends DCLogic {
+  renderVals() {
+    const j = this.props.job;
+    const cat = this.props.catalog;
+    const desired = this.props.desired || [];
+    const set = patch => this.props.onChange?.(patch);
+    const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
+    const toggle = s => (j.sectors.includes(s) ? j.sectors.filter(x => x !== s) : j.sectors.length >= 5 ? j.sectors : [...j.sectors, s]);
+    return {
+      comuni: cat.comuni,
+      jobRoles: j.roles, roleSuggestions: ROLE_SUGGESTIONS, rolesProps: { onChange: v => set({ roles: v }) },
+      jobSkills: j.skills, skillSuggestions: SKILL_SUGGESTIONS, skillsProps: { onChange: v => set({ skills: v }) },
+      jobSectorCount: `${j.sectors.length} / 5`,
+      jobSectors: cat.sectors.map(l => { const on = j.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : j.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => set({ sectors: toggle(l) }) }; }),
+      jobPlaces: j.preferred_locations, jobPlacesProps: { onChange: v => set({ preferred_locations: v }) },
+      canCopyPlaces: desired.length > 0 && !j.preferred_locations.length, copyPlaces: () => set({ preferred_locations: desired.slice(0, 10) }),
+      workOpts: opts(cat.workArrangements), work: j.work_arrangement, workProps: { onSelect: v => set({ work_arrangement: v || null }) },
+      empOpts: opts(cat.employmentTypes), emp: j.employment_type, empProps: { onSelect: v => set({ employment_type: v || null }) },
+      availOpts: opts(cat.availability), avail: j.availability, availProps: { onSelect: v => set({ availability: v || null }) },
     };
   }
 });
