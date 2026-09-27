@@ -1,0 +1,70 @@
+<!-- From design/Rientro 04 Connessioni e Chat v2 · artboards 35a (inbox + chat), 34a (inbox vuota), 35b/35c (mobile). -->
+<div style="height:100vh;background:#E9E6F5;display:flex;flex-direction:column" class="chat-page">
+<dc-import name="App Nav" active="messaggi" me="{{ me }}"></dc-import>
+
+<sc-if value="{{ noThreads }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px;box-sizing:border-box">
+<div aria-hidden="true" style="display:flex;gap:6px;flex-direction:column;width:150px"><div style="height:22px;width:100px;border-radius:12px 12px 12px 4px;background:#FFFFFF"></div><div style="height:22px;width:76px;border-radius:12px 12px 4px 12px;background:#6C4DF5;align-self:flex-end"></div></div>
+<h1 style="margin:8px 0 0;font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.04em">Nessun messaggio</h1>
+<span style="font-size:15px;color:#4A4560;max-width:400px;line-height:1.5">Quando una connessione accetta la tua richiesta, potrete iniziare a parlare.</span>
+<div style="margin-top:6px"><dc-import name="UI Button" label="Vedi richieste inviate" variant="light" on-click="{{ sentRequests }}"></dc-import></div>
+</main></sc-if>
+
+<sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px 24px 24px;min-height:0">
+<nav aria-label="Conversazioni" class="{{ listClass }}" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto">
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">Messaggi</h1><dc-import name="App Field" placeholder="Cerca" search="{{ true }}" field="thread-search" value="{{ query }}" dc-props="{{ searchProps }}"></dc-import></div>
+<sc-for list="{{ threads }}" as="t"><a href="/messaggi/{{ t.id }}" onClick="{{ t.open }}" aria-current="{{ t.active }}" style="text-decoration:none">
+<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:22px;background:{{ t.bg }};box-shadow:{{ t.sh }};font-family:'Geist',sans-serif;color:#1A1726;cursor:pointer">
+<dc-import name="App Photo" size="44" src="{{ t.photo }}" initials="{{ t.ini }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:14px;font-weight:{{ t.w }}">{{ t.name }}</span><span style="font-size:11px;color:#8C84AE;font-family:'Geist Mono',monospace">{{ t.time }}</span></div>
+<span style="font-size:12px;color:#8C84AE">{{ t.role }}</span>
+<div style="display:flex;gap:8px;align-items:center"><span style="font-size:13px;color:{{ t.c }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ t.last }}</span><sc-if value="{{ t.unread }}"><span aria-label="Non letto" style="width:9px;height:9px;border-radius:50%;background:#6C4DF5;flex:none"></span></sc-if></div>
+</div></div></a></sc-for>
+<sc-if value="{{ noMatch }}"><span style="padding:12px;font-size:13px;color:#8C84AE">Nessuna conversazione trovata.</span></sc-if>
+</nav>
+
+<section aria-label="Chat" class="{{ chatClass }}" style="background:#FFFFFF;border-radius:28px;display:flex;flex-direction:column;min-height:0;overflow:hidden">
+<sc-if value="{{ noActive }}"><div style="flex:1;display:flex;align-items:center;justify-content:center;color:#8C84AE;font-size:15px;background:#F6F4FC">Scegli una conversazione.</div></sc-if>
+<sc-if value="{{ closed }}"><div style="flex:1;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:#6B6680;font-size:15px;background:#F6F4FC;padding:20px;text-align:center">Questa conversazione non è più disponibile.<a href="/messaggi" style="font-size:14px">← Messaggi</a></div></sc-if>
+<sc-if value="{{ hasActive }}">
+<div style="height:68px;border-bottom:1px solid #ECE8F7;padding:0 20px;display:flex;align-items:center;gap:12px;flex:none;position:relative">
+<button type="button" class="r-show-sm" onClick="{{ back }}" aria-label="Torna ai messaggi" style="border:none;background:none;font-size:20px;width:28px;padding:0;cursor:pointer">←</button>
+<dc-import name="App Photo" size="40" src="{{ photo }}" initials="{{ ini }}"></dc-import><div style="display:flex;flex-direction:column;min-width:0"><a href="{{ profileHref }}" style="font-weight:600;font-size:15px;color:#1A1726;text-decoration:none">{{ name }}</a><span style="font-size:12px;color:#6B6680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sub }}</span></div><div style="flex:1"></div>
+<span class="r-hide-sm"><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm" on-click="{{ goProfile }}"></dc-import></span>
+<button type="button" onClick="{{ toggleMenu }}" aria-label="Altre azioni" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" style="border:none;background:none;letter-spacing:1px;color:#6B6680;font-size:16px;padding:8px;cursor:pointer">···</button>
+<sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:16px;top:60px;z-index:10;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:200px">
+<button type="button" role="menuitem" onClick="{{ doReport }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#1A1726;cursor:pointer">Segnala {{ first }}</button>
+<button type="button" role="menuitem" onClick="{{ doBlock }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#B42318;cursor:pointer">Blocca {{ first }}</button>
+</div></sc-if>
+</div>
+<div id="chat-scroll" role="log" aria-live="polite" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:#F6F4FC">
+<div style="flex:1"></div>
+<sc-if value="{{ noteHeader }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:6px 0;text-align:center">{{ noteHeader }}</span></sc-if>
+<sc-if value="{{ note }}"><dc-import name="UI Bubble" from="note" text="{{ note }}"></dc-import></sc-if>
+<sc-if value="{{ empty }}"><span style="align-self:center;font-size:13px;color:#8C84AE;padding:10px 0">Scrivi il primo messaggio.</span></sc-if>
+<sc-for list="{{ items }}" as="m">
+<sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
+<sc-if value="{{ m.msg }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.text }}"></dc-import><sc-if value="{{ m.time }}"><span style="align-self:{{ m.align }};font-size:11px;color:#8C84AE;padding:0 4px">{{ m.time }}</span></sc-if></sc-if>
+</sc-for>
+</div>
+<form onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center">
+<div class="dc-field" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:14px 18px;display:flex;align-items:center;font-size:16px"><textarea data-key="compose" class="bare-input" rows="1" maxlength="4000" aria-label="{{ placeholder }}" placeholder="{{ placeholder }}" value="{{ draft }}" onInput="{{ composeInput }}" onKeyDown="{{ composeKey }}" style="resize:none;max-height:120px;line-height:1.4"></textarea></div>
+<dc-import name="UI Button" label="Invia" variant="accent" size="lg" on-click="{{ send }}"></dc-import>
+</form>
+</sc-if>
+</section>
+
+<aside class="r-hide-md" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:14px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto">
+<sc-if value="{{ hasActive }}">
+<dc-import name="App Photo" ratio="1/1" src="{{ photo }}" alt="{{ name }}"></dc-import>
+<div style="padding:0 6px;display:flex;flex-direction:column;gap:14px">
+<span style="font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em">{{ name }}</span>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px"><span style="color:#8C84AE">Cerca</span><span style="text-align:right">{{ seeks }}</span></div><div style="display:flex;justify-content:space-between;gap:8px"><span style="color:#8C84AE">Tempo</span><span>{{ time }}</span></div></div>
+<sc-if value="{{ hasLinks }}"><div style="height:1px;background:#DCD7EC"></div>
+<dc-import name="UI Eyebrow" text="Contatti"></dc-import>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" target="_blank" rel="noopener noreferrer" style="color:#3E2BA8">{{ l.l }}</a></sc-for></div></sc-if>
+</div></sc-if>
+</aside>
+</div></sc-if>
+<dc-import name="App TabBar" active="messaggi" me="{{ me }}"></dc-import>
+</div>

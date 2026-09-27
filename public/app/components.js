@@ -206,7 +206,8 @@ def('App Field', String.raw`
   renderVals() {
     const p = this.props;
     const multi = !!p.rows;
-    const value = p.value ?? '';
+    // Parent pages don't re-render on every keystroke, so the field tracks its own text for the counter.
+    const value = this.state.v ?? p.value ?? '';
     const lg = p.size === 'lg';
     const counter = p.maxlength && p.counter !== false && multi ? `${String(value).length} / ${p.maxlength}` : '';
     return {
@@ -217,7 +218,10 @@ def('App Field', String.raw`
       radius: multi ? '20px' : '999px', pad: multi ? '14px 18px' : '0 18px', align: multi ? 'flex-start' : 'center', fs: lg ? 17 : 14,
       bd: p.error ? '1.5px solid #D92D20' : '1px solid #E4E0F2', invalid: p.error ? 'true' : false,
       foot: p.error || p.foot || '', hasFoot: !!(p.error || p.foot || counter), counter, footColor: p.error ? '#B42318' : '#8C84AE',
-      input: e => p.onInput?.(e.target.value),
+      input: e => {
+        p.onInput?.(e.target.value);
+        if (counter) { this.state.v = e.target.value; this.__rerender(); }
+      },
       keydown: e => { if (e.key === 'Enter' && p.onEnter) { e.preventDefault(); p.onEnter(e.target.value); } },
       blur: e => p.onBlur?.(e.target.value),
     };
@@ -391,6 +395,44 @@ def('App Photo', String.raw`
       initials: p.initials, showInitials: !media && !!p.initials, ifs: size ? Math.max(11, Math.round(size / 3)) : 28, ic: dark ? '#B7B0D4' : '#6B6680',
       label: p.label ?? 'FOTO', showLabel: !media && !p.initials && !small && p.label !== '',
       hasBadge: !!p.badge, badge: p.badge, badgeKind: p.badgeKind ?? 'idea', duration: p.duration, hasDuration: !!p.duration && !media,
+    };
+  }
+});
+
+// ---------------------------------------------------------------------------------------------
+// App Person Card — from UI Person Card (+ real photo, profile link, connection-aware action).
+// Props: person (profiles.card shape), compact, ratio, onConnect(person)
+
+def('App Person Card', String.raw`
+<article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
+<a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
+<div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">Vive a {{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="vuole trasferirsi a">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
+<sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
+<sc-if value="{{ job }}"><span style="font-size:12px;color:#6B6680">Sta anche cercando lavoro in Italia</span></sc-if>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
+<dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
+</div>
+</div></article>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props.person || {};
+    const c = p.connection?.status ?? 'none';
+    const go = href => () => { location.href = href; };
+    const action = {
+      none: { l: 'Connettiti', v: 'primary', fn: () => this.props.onConnect?.(p), off: false },
+      pending_sent: { l: 'In attesa', v: 'secondary', fn: null, off: true },
+      pending_received: { l: 'Rispondi', v: 'accent', fn: go(`/connessioni/${p.connection?.id}`), off: false },
+      connected: { l: 'Messaggio', v: 'primary', fn: go(`/messaggi/${p.id}`), off: false },
+    }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
+    return {
+      p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}`,
+      badge: p.idea ? "Ha già un'idea" : "Cerca un'idea insieme", badgeKind: p.idea ? 'idea' : 'explore',
+      hasComp: !!p.comp, job: !!p.job, action,
+      secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',
     };
   }
 });
