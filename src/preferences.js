@@ -120,12 +120,29 @@ export function updateJobDetails(db, userId, body) {
 
 const COMMUNICATION_PREFS = ['marketing_email'];
 
+const NOTIFY_FIELDS = ['notify_requests_email', 'notify_requests_app', 'notify_messages_email', 'notify_messages_app', 'notify_status_email', 'notify_status_app'];
+const NOTIFY_DEFAULTS = { notify_requests_email: 1, notify_requests_app: 1, notify_messages_email: 0, notify_messages_app: 1, notify_status_email: 1, notify_status_app: 1 };
+
 export function getCommunicationPreferences(db, userId) {
   const row = db.prepare('SELECT * FROM communication_preferences WHERE user_id = ?').get(userId);
   return {
     marketing_email: row?.marketing_email === 1,
+    ...Object.fromEntries(NOTIFY_FIELDS.map(f => [f, (row ? row[f] : NOTIFY_DEFAULTS[f]) === 1])),
     updated_at: row?.updated_at ?? null,
   };
+}
+
+// Notification settings (design 38a) are service settings, not consents: no ledger entry.
+export function updateNotificationSettings(db, userId, body) {
+  only(body, NOTIFY_FIELDS);
+  const current = getCommunicationPreferences(db, userId);
+  const next = Object.fromEntries(NOTIFY_FIELDS.map(f => [f, (body[f] === undefined ? current[f] : bool(body[f], f)) ? 1 : 0]));
+  db.prepare(
+    `INSERT INTO communication_preferences (user_id, marketing_email, ${NOTIFY_FIELDS.join(', ')}, updated_at)
+     VALUES ($user_id, $marketing, ${NOTIFY_FIELDS.map(f => `$${f}`).join(', ')}, $ts)
+     ON CONFLICT(user_id) DO UPDATE SET ${NOTIFY_FIELDS.map(f => `${f} = excluded.${f}`).join(', ')}, updated_at = excluded.updated_at`,
+  ).run({ $user_id: userId, $marketing: current.marketing_email ? 1 : 0, ...Object.fromEntries(NOTIFY_FIELDS.map(f => [`$${f}`, next[f]])), $ts: now() });
+  return getCommunicationPreferences(db, userId);
 }
 
 export function setCommunicationPreference(db, userId, body, source) {

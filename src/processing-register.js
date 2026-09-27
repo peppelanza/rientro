@@ -51,6 +51,22 @@ export const PROCESSING_REGISTER = [
     recipients: 'Eventuale fornitore di invio email (responsabile del trattamento)',
   },
   {
+    purpose: 'messaging',
+    description: 'Richieste di connessione con nota, chat 1-a-1 tra connessioni, notifiche in app.',
+    data_categories: 'note, messaggi, stato di lettura, notifiche',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b) — DA CONFERMARE',
+    retention: 'Fino alla cancellazione di uno dei due account — DA CONFERMARE',
+    recipients: 'Solo i due partecipanti; moderatori solo in caso di segnalazione (vedi moderation_and_admin)',
+  },
+  {
+    purpose: 'safety_reports',
+    description: 'Segnalazioni e blocchi. In caso di segnalazione, un moderatore può leggere la chat tra chi segnala e la persona segnalata; ogni accesso è registrato.',
+    data_categories: 'motivo, dettagli, chat tra segnalante e segnalato',
+    proposed_basis: 'Legittimo interesse alla sicurezza della community (art. 6.1.f) — DA CONFERMARE con bilanciamento documentato',
+    retention: 'DA DEFINIRE (proposta: 24 mesi dalla chiusura)',
+    recipients: 'Personale Rientro autorizzato con ruolo admin',
+  },
+  {
     purpose: 'moderation_and_admin',
     description: 'Revisione dei profili, gestione segnalazioni, sicurezza della community.',
     data_categories: 'dati del profilo, segnalazioni, note admin, registro accessi admin',

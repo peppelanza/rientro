@@ -4,12 +4,15 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
 import * as auth from './auth.js';
-import { config, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
+import { catalog } from './catalog.js';
+import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb } from './db.js';
-import { readFileFor, saveProfilePhoto } from './files.js';
+import { attachUpload, readFileFor, receiveUpload, removeVideo } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import * as profiles from './profiles.js';
+import { territory } from './public.js';
+import * as social from './social.js';
 import { HttpError } from './validate.js';
 
 const SESSION_COOKIE = config.production ? '__Host-rientro_session' : 'rientro_session';
@@ -18,26 +21,25 @@ const JSON_LIMIT = 64 * 1024;
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'", "script-src 'self'", "style-src 'self' https://fonts.googleapis.com",
-    "font-src https://fonts.gstatic.com", "img-src 'self' data:", "connect-src 'self'",
+    "font-src https://fonts.gstatic.com", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Permissions-Policy': 'geolocation=(), microphone=(self), camera=(self)',
   'Cross-Origin-Opener-Policy': 'same-origin',
   ...(config.production ? { 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains' } : {}),
 };
 
-// --- tiny helpers --------------------------------------------------------------------------
+// --- helpers -------------------------------------------------------------------------------
 
 function parseCookies(header = '') {
   return Object.fromEntries(header.split(';').map(c => c.trim().split('=')).filter(([k]) => k).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
 }
 
 function sessionCookie(value, maxAgeSeconds) {
-  return [`${SESSION_COOKIE}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`,
-    ...(config.production ? ['Secure'] : [])].join('; ');
+  return [`${SESSION_COOKIE}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
 }
 
 function readBody(req, limit) {
@@ -65,7 +67,6 @@ function send(res, status, body, headers = {}) {
   res.end(body === undefined ? '' : JSON.stringify(body));
 }
 
-// In-memory fixed-window limiter; swap for Redis when running more than one instance.
 function rateLimiter(max, windowMs) {
   const hits = new Map();
   return key => {
@@ -76,178 +77,257 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
-function serveStatic(req, res, pathname) {
-  let rel = pathname === '/' ? '/index.html' : pathname;
-  if (!path.extname(rel)) rel += '.html';
-  const file = path.normalize(path.join(config.publicDir, rel));
-  if (!file.startsWith(config.publicDir + path.sep) || !fs.existsSync(file)) return false;
+function serveFile(res, file) {
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
   res.end(fs.readFileSync(file));
+}
+
+function serveStatic(res, pathname) {
+  const file = path.normalize(path.join(config.publicDir, pathname));
+  if (!file.startsWith(config.publicDir + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
+  serveFile(res, file);
   return true;
 }
 
+// Stream a stored file, with Range support so videos can be scrubbed (Safari requires it).
+function streamFile(req, res, f) {
+  const headers = { 'Content-Type': f.mime, 'Cache-Control': 'private, max-age=300', 'Content-Disposition': 'inline', 'Accept-Ranges': 'bytes' };
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+  if (range) {
+    const start = range[1] ? Number(range[1]) : Math.max(0, f.size - Number(range[2]));
+    const end = range[1] && range[2] ? Math.min(Number(range[2]), f.size - 1) : f.size - 1;
+    if (start > end || start >= f.size) { res.writeHead(416, { 'Content-Range': `bytes */${f.size}` }); res.end(); return; }
+    res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${f.size}`, 'Content-Length': end - start + 1 });
+    fs.createReadStream(f.path, { start, end }).pipe(res);
+    return;
+  }
+  res.writeHead(200, { ...headers, 'Content-Length': f.size });
+  fs.createReadStream(f.path).pipe(res);
+}
+
+// --- pages ---------------------------------------------------------------------------------
+
+const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
+const MEMBER_PAGES = [/^\/onboarding$/, /^\/stato$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
+  /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|segnalazioni|analytics|esportazioni|registro))?$/];
+
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginLink = defaultSendLoginLink, loginLimits = { ip: 10, email: 5 } } = {}) {
-  const limitLoginIp = rateLimiter(loginLimits.ip, 15 * 60_000);
-  const limitLoginEmail = rateLimiter(loginLimits.email, 15 * 60_000);
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 } } = {}) {
+  const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
+  const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
+  const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
 
   const routes = [];
   const route = (method, pattern, handler, opts = {}) =>
     routes.push({ method, re: new RegExp(`^${pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)')}$`), handler, ...opts });
+  const pub = { public: true };
+  const adm = { admin: true };
 
-  // ---- auth
-  route('POST', '/api/auth/request-link', async ({ req }) => {
+  // ---- auth (2a, 5a, 5b)
+  route('POST', '/api/auth/request-code', async ({ req }) => {
     const body = await readJson(req);
-    limitLoginIp(req.socket.remoteAddress);
-    const { email, token } = auth.requestLogin(db, body);
-    limitLoginEmail(email);
-    const link = `${config.baseUrl}/auth/callback?token=${token}`;
-    await sendLoginLink(email, link);
-    // Same answer whether or not the account exists (no user enumeration).
-    return { ok: true, ...(config.production ? {} : { dev_link: link }) };
-  }, { public: true });
+    limitIp(req.socket.remoteAddress);
+    const { email, code } = auth.requestCode(db, body);
+    limitEmail(email);
+    await sendLoginCode(email, code);
+    return { ok: true, ...(config.production ? {} : { dev_code: code }) };
+  }, pub);
 
-  route('GET', '/auth/callback', ({ req, res, url }) => {
-    try {
-      const { sessionToken } = auth.consumeLogin(db, url.searchParams.get('token'), req.headers['user-agent']);
-      res.writeHead(302, { Location: '/onboarding', 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400), 'Cache-Control': 'no-store' });
-    } catch {
-      res.writeHead(302, { Location: '/?link=expired' });
+  route('POST', '/api/auth/verify-code', async ({ req, res }) => {
+    const body = await readJson(req);
+    limitVerify(`v:${req.socket.remoteAddress}`);
+    const { sessionToken, user } = auth.verifyCode(db, body, req.headers['user-agent']);
+    if (user.status === 'suspended') {
+      auth.logout(db, sessionToken);
+      throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
     }
-    res.end();
-  }, { public: true, raw: true });
+    const next = user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato';
+    send(res, 200, { ok: true, next }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
+  }, { ...pub, raw: true });
 
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
     auth.logout(db, cookies[SESSION_COOKIE]);
     send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
-  }, { raw: true });
+  }, { raw: true, allowSuspended: true });
 
   route('POST', '/api/auth/logout-all', ({ user, res }) => {
     auth.logoutEverywhere(db, user.id);
     send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true });
 
-  // ---- legal (public, no personal data)
+  // ---- public
+  route('GET', '/api/catalog', () => catalog, pub);
   route('GET', '/api/legal', () => ({
-    versions: LEGAL_VERSIONS,
-    job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
-    processing_register: admin.processingRegister(db),
-    review_status: 'draft_pending_legal_review',
-  }), { public: true });
+    versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
+    processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
+  }), pub);
+  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt }), pub);
+  route('GET', '/api/public/territory/:name', ({ params }) => {
+    const t = territory(db, decodeURIComponent(params.name));
+    if (!t) throw new HttpError(404, 'not_found');
+    return t;
+  }, pub);
 
   // ---- me
-  route('GET', '/api/me', ({ user }) => ({
-    user: { id: user.id, email: user.email, role: user.role, status: user.status },
+  const me = user => ({
+    user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at },
     legal: auth.legalStatus(db, user.id),
-    profile: profiles.getOwnProfile(db, user.id),
+    profile: profiles.effectiveProfile(db, user.id),
+    missing: profiles.missingForSubmit(profiles.effectiveProfile(db, user.id)),
     job_seeking: prefs.getJobPreferences(db, user.id),
     communication: prefs.getCommunicationPreferences(db, user.id),
     job_seeking_notice: { text: JOB_SEEKING_NOTICE_TEXT, version: LEGAL_VERSIONS.job_seeking_notice },
-  }));
-
+    counts: social.badgeCounts(db, user),
+    launched: isLaunched(),
+  });
+  route('GET', '/api/me', ({ user }) => me(user));
+  // Public pages ask who's signed in without triggering a 401.
+  route('GET', '/api/session', ({ cookies }) => {
+    const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
+    return user && user.status !== 'suspended' ? me(user) : null;
+  }, pub);
   route('POST', '/api/me/legal', async ({ user, req }) => auth.acknowledgeLegal(db, user.id, await readJson(req)));
 
-  route('PATCH', '/api/me/profile', async ({ user, req }) => {
-    auth.requireLegal(db, user.id);
-    return profiles.updateProfile(db, user.id, await readJson(req));
-  });
+  const legal = user => auth.requireLegal(db, user.id);
+  route('PATCH', '/api/me/profile', async ({ user, req }) => { legal(user); return profiles.updateProfile(db, user, await readJson(req)); });
+  route('POST', '/api/me/education', async ({ user, req }) => { legal(user); return profiles.saveEducation(db, user.id, await readJson(req)); });
+  route('PATCH', '/api/me/education/:id', async ({ user, req, params }) => profiles.saveEducation(db, user.id, await readJson(req), params.id));
+  route('DELETE', '/api/me/education/:id', ({ user, params }) => profiles.deleteRow(db, 'education', user.id, params.id));
+  route('POST', '/api/me/experiences', async ({ user, req }) => { legal(user); return profiles.saveExperience(db, user.id, await readJson(req)); });
+  route('PATCH', '/api/me/experiences/:id', async ({ user, req, params }) => profiles.saveExperience(db, user.id, await readJson(req), params.id));
+  route('DELETE', '/api/me/experiences/:id', ({ user, params }) => profiles.deleteRow(db, 'experiences', user.id, params.id));
+  route('POST', '/api/me/photo', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo')); });
+  route('POST', '/api/me/video', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_video', await receiveUpload(req, 'profile_video')); });
+  route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
+  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
-    auth.requireLegal(db, user.id);
+    legal(user);
     const source = url.searchParams.get('source') === 'onboarding' ? 'onboarding' : 'settings';
     return prefs.setJobSeeking(db, user.id, await readJson(req), source);
   });
-
-  route('PATCH', '/api/me/job-preferences', async ({ user, req }) => {
-    auth.requireLegal(db, user.id);
-    return prefs.updateJobDetails(db, user.id, await readJson(req));
-  });
-
+  route('PATCH', '/api/me/job-preferences', async ({ user, req }) => { legal(user); return prefs.updateJobDetails(db, user.id, await readJson(req)); });
   route('PUT', '/api/me/communication', async ({ user, req, url }) => {
     const source = url.searchParams.get('source') === 'onboarding' ? 'onboarding' : 'settings';
     return prefs.setCommunicationPreference(db, user.id, await readJson(req), source);
   });
-
+  route('PATCH', '/api/me/notifications', async ({ user, req }) => prefs.updateNotificationSettings(db, user.id, await readJson(req)));
   route('GET', '/api/me/preference-history', ({ user }) => prefs.preferenceHistory(db, user.id));
-
-  route('POST', '/api/me/photo', async ({ user, req }) => {
-    auth.requireLegal(db, user.id);
-    return saveProfilePhoto(db, user.id, await readBody(req, config.maxPhotoBytes + 1));
-  });
-
-  route('POST', '/api/me/submit', ({ user }) => {
-    auth.requireLegal(db, user.id);
-    profiles.submitForReview(db, user.id);
-    return { ok: true };
-  });
-
+  route('GET', '/api/me/sessions', ({ user, cookies }) => auth.listSessions(db, user.id, cookies[SESSION_COOKIE]));
+  route('GET', '/api/me/blocks', ({ user }) => social.listBlocked(db, user));
   route('GET', '/api/me/export', ({ user, res }) => {
-    const data = exportData(db, user);
-    send(res, 200, data, { 'Content-Disposition': 'attachment; filename="rientro-i-miei-dati.json"' });
-  }, { raw: true });
-
+    send(res, 200, exportData(db, user), { 'Content-Disposition': 'attachment; filename="rientro-i-miei-dati.json"' });
+  }, { raw: true, allowSuspended: true });
   route('DELETE', '/api/me', async ({ user, req, res }) => {
-    const out = deleteAccount(db, user, await readJson(req));
-    send(res, 200, out, { 'Set-Cookie': sessionCookie('', 0) });
-  }, { raw: true });
+    send(res, 200, deleteAccount(db, user, await readJson(req)), { 'Set-Cookie': sessionCookie('', 0) });
+  }, { raw: true, allowSuspended: true });
 
   // ---- members
-  route('GET', '/api/profiles', ({ user }) => profiles.listProfiles(db, user));
-  route('GET', '/api/profiles/:id', ({ user, params }) => profiles.publicProfile(db, user, params.id));
-  route('POST', '/api/connections/:id', ({ user, params }) => { profiles.requestConnection(db, user, params.id); return { ok: true }; });
-  route('POST', '/api/connections/:id/accept', ({ user, params }) => { profiles.respondConnection(db, user, params.id, true); return { ok: true }; });
-  route('POST', '/api/connections/:id/decline', ({ user, params }) => { profiles.respondConnection(db, user, params.id, false); return { ok: true }; });
+  route('GET', '/api/profiles', ({ user, url }) => {
+    social.requireLaunched(user);
+    if (user.status !== 'approved' && user.role !== 'admin') throw new HttpError(403, 'not_approved', 'Potrai scoprire altre persone quando il tuo profilo sarà approvato.');
+    return profiles.discover(db, user, profiles.parseDiscoverQuery(url.searchParams));
+  });
+  route('GET', '/api/profiles/:id', ({ user, params }) => {
+    if (user.id !== params.id) {
+      social.requireLaunched(user);
+      if (user.status !== 'approved' && user.role !== 'admin') throw new HttpError(403, 'not_approved');
+    }
+    return profiles.publicProfile(db, user, params.id);
+  });
+  route('GET', '/api/comuni/counts', () => profiles.comuneCounts(db));
 
-  route('GET', '/api/files/:id', ({ user, params, res }) => {
-    const f = readFileFor(db, user, params.id);
-    res.writeHead(200, { 'Content-Type': f.mime, 'Cache-Control': 'private, max-age=300', 'Content-Disposition': 'inline' });
-    res.end(f.body);
+  route('GET', '/api/connections', ({ user }) => social.listConnections(db, user));
+  route('POST', '/api/connections', async ({ user, req }) => social.requestConnection(db, user, await readJson(req)));
+  route('GET', '/api/connections/:id', ({ user, params }) => social.getRequest(db, user, params.id));
+  route('POST', '/api/connections/:id/:action', ({ user, params }) => {
+    if (!['accept', 'decline', 'withdraw'].includes(params.action)) throw new HttpError(404, 'not_found');
+    return social.respondConnection(db, user, params.id, params.action);
+  });
+
+  route('GET', '/api/threads', ({ user }) => social.listThreads(db, user));
+  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, Number(url.searchParams.get('after')) || 0));
+  route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
+
+  route('GET', '/api/notifications', ({ user }) => social.listNotifications(db, user));
+  route('POST', '/api/notifications/read', ({ user }) => { social.markNotificationsRead(db, user); return { ok: true }; });
+
+  route('POST', '/api/blocks/:id', ({ user, params }) => { social.block(db, user, params.id); return { ok: true }; });
+  route('DELETE', '/api/blocks/:id', ({ user, params }) => { social.unblock(db, user, params.id); return { ok: true }; });
+  route('POST', '/api/reports', async ({ user, req }) => social.report(db, user, await readJson(req)));
+
+  route('GET', '/api/files/:id', ({ user, params, req, res }) => {
+    const f = readFileFor(db, user, params.id, ownerId => profiles.connectionState(db, user.id, ownerId).status === 'connected');
+    streamFile(req, res, f);
   }, { raw: true });
 
   // ---- admin (role checked server-side on every request)
-  route('GET', '/api/admin/users', ({ user, url }) => admin.listUsers(db, user, url.searchParams), { admin: true });
-  route('GET', '/api/admin/users/:id', ({ user, params }) => admin.getUser(db, user, params.id), { admin: true });
-  route('POST', '/api/admin/users/:id/status', async ({ user, params, req }) =>
-    admin.setUserStatus(db, user, params.id, await readJson(req)), { admin: true });
-  route('GET', '/api/admin/audit', ({ user }) => admin.auditLog(db, user), { admin: true });
-
-  const PAGES_REQUIRING_LOGIN = ['/onboarding', '/settings', '/admin'];
+  route('GET', '/api/admin/sidebar', () => admin.sidebarCounts(db), adm);
+  route('GET', '/api/admin/dashboard', ({ user, url }) => admin.dashboard(db, user, url.searchParams), adm);
+  route('GET', '/api/admin/users', ({ user, url }) => admin.listUsers(db, user, url.searchParams), adm);
+  route('GET', '/api/admin/users/:id', ({ user, params }) => {
+    const d = admin.getUser(db, user, params.id);
+    return { ...d, checks: admin.reviewChecks(d.profile) };
+  }, adm);
+  route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
+  route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
+  route('GET', '/api/admin/approvals', ({ user }) => admin.approvals(db, user), adm);
+  route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
+  route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
+  route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
+  route('GET', '/api/admin/analytics', ({ user, url }) => admin.analytics(db, user, url.searchParams), adm);
+  route('POST', '/api/admin/exports', async ({ user, req, res }) => {
+    const out = admin.exportCsv(db, user, await readJson(req));
+    res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Disposition': `attachment; filename="${out.filename}"`, 'X-Rows': String(out.rows) });
+    res.end(out.csv);
+  }, { ...adm, raw: true });
+  route('GET', '/api/admin/exports/recent', () => admin.recentExports(db), adm);
+  route('GET', '/api/admin/audit', ({ user }) => admin.auditLog(db, user), adm);
+  route('GET', '/api/admin/processing', () => admin.processingRegister(db), adm);
 
   async function handle(req, res) {
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
     const url = new URL(req.url, config.baseUrl);
     const cookies = parseCookies(req.headers.cookie);
+    const p = url.pathname;
     try {
-      const isApi = url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/');
-      if (!isApi) {
-        if (req.method !== 'GET') throw new HttpError(405, 'method_not_allowed');
-        if (PAGES_REQUIRING_LOGIN.includes(url.pathname) && !auth.userForSession(db, cookies[SESSION_COOKIE])) {
-          res.writeHead(302, { Location: '/' }); res.end(); return;
+      if (!p.startsWith('/api/')) {
+        if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
+        const appPage = file => serveFile(res, path.join(config.publicDir, file));
+        if (PUBLIC_PAGES.some(re => re.test(p))) return appPage('app.html');
+        const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
+        if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {
+          const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
+          if (!user || (needsAdmin && user.role !== 'admin')) {
+            res.writeHead(302, { Location: user ? '/' : `/accedi?next=${encodeURIComponent(p)}` });
+            res.end();
+            return;
+          }
+          return appPage('app.html');
         }
-        if (!serveStatic(req, res, url.pathname)) throw new HttpError(404, 'not_found');
+        if ((p === '/design' || p.startsWith('/design/')) && !config.production) return appPage('design.html');
+        if (p.startsWith('/dc/gen/') && config.production && /\/rientro-/.test(p)) throw new HttpError(404, 'not_found');
+        if (!serveStatic(res, p)) throw new HttpError(404, 'not_found');
         return;
       }
 
-      const r = routes.find(x => x.method === req.method && x.re.test(url.pathname));
+      const r = routes.find(x => x.method === req.method && x.re.test(p));
       if (!r) throw new HttpError(404, 'not_found');
 
-      // CSRF: state-changing API calls must carry a custom header, which a cross-site
-      // form or simple request cannot set without a CORS preflight (which we never allow).
-      if (req.method !== 'GET' && req.headers['x-requested-with'] !== 'rientro') {
-        throw new HttpError(403, 'csrf', 'Richiesta non valida.');
-      }
+      // CSRF: state-changing calls need a custom header, which cross-site requests can't set
+      // without a CORS preflight (never granted).
+      if (req.method !== 'GET' && req.headers['x-requested-with'] !== 'rientro') throw new HttpError(403, 'csrf', 'Richiesta non valida.');
 
       const user = r.public ? null : auth.userForSession(db, cookies[SESSION_COOKIE]);
       if (!r.public && !user) throw new HttpError(401, 'unauthenticated', 'Accedi per continuare.');
-      if (user && ['suspended'].includes(user.status) && !url.pathname.startsWith('/api/me')) {
-        throw new HttpError(403, 'suspended');
-      }
+      if (user?.status === 'suspended' && !r.allowSuspended) throw new HttpError(403, 'suspended', 'Questo account è sospeso.');
       if (r.admin && user.role !== 'admin') throw new HttpError(403, 'forbidden');
 
-      const ctx = { req, res, url, cookies, user, params: url.pathname.match(r.re).groups || {} };
+      const ctx = { req, res, url, cookies, user, params: Object.fromEntries(Object.entries(p.match(r.re).groups || {}).map(([k, v]) => [k, decodeURIComponent(v)])) };
       const out = await r.handler(ctx);
       if (!r.raw) send(res, 200, out);
     } catch (err) {
@@ -261,12 +341,12 @@ export function createApp({ db = openDb(), sendLoginLink = defaultSendLoginLink,
   return { db, handle, server: http.createServer(handle) };
 }
 
-async function defaultSendLoginLink(email, link) {
+async function defaultSendLoginCode(email, code) {
   if (config.production) {
-    // TODO: wire a transactional email provider (DPA in place, EU region) before launch.
+    // TODO: wire a transactional email provider (EU region, DPA in place) before launch.
     throw new Error('No email provider configured');
   }
-  console.log(`\n[dev] Link di accesso per ${email}:\n  ${link}\n`);
+  console.log(`\n[dev] Codice di accesso per ${email}: ${code}\n`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

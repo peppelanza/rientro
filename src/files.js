@@ -3,54 +3,122 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { config } from './config.js';
 import { newId, now, tx } from './db.js';
+import { rawProfile } from './profiles.js';
 import { HttpError } from './validate.js';
 
-// Detect type from the bytes, never from the client-supplied header or filename.
+// Detect type from the bytes, never from client-supplied headers or filenames.
 function sniff(buf) {
   if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
   if (buf.length > 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
   if (buf.length > 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  if (buf.length > 12 && buf.toString('ascii', 4, 8) === 'ftyp') return buf.toString('ascii', 8, 12) === 'qt  ' ? 'video/quicktime' : 'video/mp4';
   return null;
 }
 
 const diskPath = key => path.join(config.uploadDir, key);
+const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes };
+const TYPES = { profile_photo: /^image\//, profile_video: /^video\// };
 
-export function saveProfilePhoto(db, userId, buf) {
-  if (!buf.length) throw new HttpError(400, 'empty_file');
-  if (buf.length > config.maxPhotoBytes) throw new HttpError(413, 'too_large', 'La foto supera 5 MB.');
-  const mime = sniff(buf);
-  if (!mime) throw new HttpError(415, 'unsupported_type', 'Usa una foto JPG, PNG o WebP.');
-
-  fs.mkdirSync(config.uploadDir, { recursive: true, mode: 0o700 });
-  const id = newId();
-  const key = crypto.randomBytes(24).toString('hex');
-  fs.writeFileSync(diskPath(key), buf, { mode: 0o600 });
-
-  const old = db.prepare(
-    `SELECT f.* FROM profiles p JOIN files f ON f.id = p.photo_file_id WHERE p.user_id = ?`,
-  ).get(userId);
-  tx(db, () => {
-    db.prepare(
-      `INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at)
-       VALUES (?, ?, 'profile_photo', ?, ?, ?, ?, ?)`,
-    ).run(id, userId, key, mime, buf.length, crypto.createHash('sha256').update(buf).digest('hex'), now());
-    db.prepare('INSERT OR IGNORE INTO profiles (user_id, updated_at) VALUES (?, ?)').run(userId, now());
-    db.prepare('UPDATE profiles SET photo_file_id = ?, updated_at = ? WHERE user_id = ?').run(id, now(), userId);
-    if (old) db.prepare('DELETE FROM files WHERE id = ?').run(old.id);
+// Streams the request body to disk (videos can be 200 MB), checking size and type as it goes.
+export function receiveUpload(req, kind) {
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(config.uploadDir, { recursive: true, mode: 0o700 });
+    const key = crypto.randomBytes(24).toString('hex');
+    const file = diskPath(key);
+    const out = fs.createWriteStream(file, { mode: 0o600 });
+    const hash = crypto.createHash('sha256');
+    let size = 0;
+    let head = Buffer.alloc(0);
+    let failed = false;
+    const fail = err => {
+      if (failed) return;
+      failed = true;
+      req.unpipe?.(out);
+      out.destroy();
+      fs.rmSync(file, { force: true });
+      reject(err);
+    };
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > LIMITS[kind]) {
+        fail(new HttpError(413, 'too_large', kind === 'profile_video' ? 'Il video supera i 200 MB. Carica un file più leggero.' : 'La foto supera 5 MB.'));
+        req.destroy();
+        return;
+      }
+      if (head.length < 16) head = Buffer.concat([head, chunk]).subarray(0, 16);
+      hash.update(chunk);
+      out.write(chunk);
+    });
+    req.on('end', () => {
+      if (failed) return;
+      out.end(() => {
+        const mime = sniff(head);
+        if (!size) return fail(new HttpError(400, 'empty_file'));
+        if (!mime || !TYPES[kind].test(mime)) {
+          return fail(new HttpError(415, 'unsupported_type', kind === 'profile_video' ? 'Formato non supportato. Usa MP4 o MOV.' : 'Usa una foto JPG, PNG o WebP.'));
+        }
+        resolve({ key, mime, size, sha256: hash.digest('hex') });
+      });
+    });
+    req.on('error', fail);
   });
-  if (old) fs.rmSync(diskPath(old.storage_key), { force: true });
-  return { id, url: `/api/files/${id}` };
 }
 
-// Owner and admins always; other members only if both are approved.
-export function readFileFor(db, viewer, fileId) {
+const fileRow = (db, id) => (id ? db.prepare('SELECT * FROM files WHERE id = ?').get(id) : null);
+
+function removeFile(db, id) {
+  const f = fileRow(db, id);
+  if (!f) return;
+  db.prepare('DELETE FROM files WHERE id = ?').run(id);
+  fs.rmSync(diskPath(f.storage_key), { force: true });
+}
+
+// Photo: for approved members the new photo waits in pending_changes until a moderator approves it.
+export function attachUpload(db, user, kind, upload) {
+  const id = newId();
+  const p = rawProfile(db, user.id);
+  const column = kind === 'profile_photo' ? 'photo_file_id' : 'video_file_id';
+  const reviewed = kind === 'profile_photo' && user.status === 'approved';
+  const replaced = reviewed ? p.pending_changes.photo_file_id : p[column];
+  tx(db, () => {
+    db.prepare('INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(id, user.id, kind, upload.key, upload.mime, upload.size, upload.sha256, now());
+    if (reviewed) {
+      const pending = { ...p.pending_changes, photo_file_id: id };
+      db.prepare('UPDATE profiles SET pending_changes = ?, updated_at = ? WHERE user_id = ?').run(JSON.stringify(pending), now(), user.id);
+    } else {
+      db.prepare(`UPDATE profiles SET ${column} = ?, updated_at = ? WHERE user_id = ?`).run(id, now(), user.id);
+    }
+  });
+  if (replaced && replaced !== id) removeFile(db, replaced);
+  return { id, url: `/api/files/${id}`, pending_review: reviewed };
+}
+
+export function removeVideo(db, userId) {
+  const p = rawProfile(db, userId);
+  if (!p.video_file_id) return;
+  db.prepare('UPDATE profiles SET video_file_id = NULL, updated_at = ? WHERE user_id = ?').run(now(), userId);
+  removeFile(db, p.video_file_id);
+}
+
+// Called after moderation applies a pending photo: drop the previous live one.
+export function cleanupReplacedPhoto(db, oldId, newId) {
+  if (oldId && oldId !== newId) removeFile(db, oldId);
+}
+
+// Owner and admins always; approved members see approved members' files, except
+// connections-only videos, which need an accepted connection.
+export function readFileFor(db, viewer, fileId, canSeeConnectionsOnly) {
   const f = db.prepare(
-    `SELECT f.*, u.status AS owner_status FROM files f JOIN users u ON u.id = f.owner_id WHERE f.id = ?`,
+    `SELECT f.*, u.status AS owner_status, p.video_connections_only, p.visible
+     FROM files f JOIN users u ON u.id = f.owner_id LEFT JOIN profiles p ON p.user_id = f.owner_id WHERE f.id = ?`,
   ).get(fileId);
-  const allowed = f && (f.owner_id === viewer.id || viewer.role === 'admin'
-    || (viewer.status === 'approved' && f.owner_status === 'approved'));
-  if (!allowed) throw new HttpError(404, 'not_found');
-  return { mime: f.mime_type, body: fs.readFileSync(diskPath(f.storage_key)) };
+  if (!f) throw new HttpError(404, 'not_found');
+  const own = f.owner_id === viewer.id || viewer.role === 'admin';
+  const memberVisible = viewer.status === 'approved' && f.owner_status === 'approved' && f.visible === 1
+    && !(f.kind === 'profile_video' && f.video_connections_only === 1 && !canSeeConnectionsOnly(f.owner_id));
+  if (!own && !memberVisible) throw new HttpError(404, 'not_found');
+  return { mime: f.mime_type, size: f.size_bytes, path: diskPath(f.storage_key) };
 }
 
 export function deleteFilesOf(db, userId) {

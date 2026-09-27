@@ -1,0 +1,6 @@
+/* Base styles every design file sets in its <helmet>. */
+html, body { margin: 0; }
+body { background: #E9E6F5; font-family: 'Geist', system-ui, sans-serif; color: #1A1726; -webkit-font-smoothing: antialiased; }
+body.dc-canvas { background: #DAD6E8; }
+a { color: #1A1726; text-underline-offset: 3px; }
+a:hover { color: #6C4DF5; }

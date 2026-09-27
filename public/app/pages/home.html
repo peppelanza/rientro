@@ -1,0 +1,58 @@
+<!-- From design/Rientro 01 Landing e Accesso v2 · artboard 1a (desktop), 1b (mobile) -->
+<div class="r-page" style="background:#E9E6F5;min-height:100vh;overflow:hidden">
+<header class="r-pad" style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
+<a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
+<nav class="r-hide-md" style="display:flex;gap:26px;color:#6B6680"><a href="#come-funziona" style="color:#6B6680;text-decoration:none">Come funziona</a><a href="#per-chi" style="color:#6B6680;text-decoration:none">Per chi è</a><a href="/rientro-dei-cervelli" style="color:#6B6680;text-decoration:none">Rientro dei cervelli</a><a href="#principi" style="color:#6B6680;text-decoration:none">Domande</a></nav>
+<div style="flex:1"></div><a href="{{ loginHref }}" style="color:#1A1726;text-decoration:none">{{ loginLabel }}</a>
+<span class="r-hide-sm"><dc-import name="UI Button" label="Entra in Rientro" on-click="{{ enter }}"></dc-import></span>
+</div></header>
+<section class="r-pad-lg" style="padding:96px 56px 72px;display:flex;flex-direction:column;gap:36px">
+<dc-import name="UI Eyebrow" text="Per chi torna, chi arriva, chi ci sta pensando"></dc-import>
+<h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(56px,8.4vw,112px);line-height:.95;font-weight:600;letter-spacing:-.065em;max-width:1140px">Non tornare in Italia <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:clamp(64px,9.6vw,128px)">da solo.</span></h1>
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+<p class="r-lede" style="margin:0;font-size:24px;line-height:1.35;letter-spacing:-.01em;max-width:520px;color:#4A4560;text-wrap:pretty">Trova le persone con cui costruire qualcosa in Italia. Un co-founder, un progetto, una ragione in più per tornare.</p>
+<div class="r-stack" style="display:flex;gap:10px"><dc-import name="UI Button" label="Entra in Rientro →" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
+</div></section>
+<div class="r-pad-lg r-grid-2" style="padding:0 56px 88px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+<sc-for list="{{ heroPeople }}" as="h">
+<div style="margin-top:{{ h.mt }};background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:12px">
+<dc-import name="UI Photo" ratio="4/3" label="FOTO PROFILO" style="width:100%"></dc-import>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:15px;letter-spacing:-.03em">{{ h.n }}</span><span style="font-size:13px;color:#6B6680">{{ h.r }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#4A4560;margin-top:6px">{{ h.a }} <span style="color:#6C4DF5">→</span> {{ h.b }}</span></div>
+</div>
+</sc-for>
+</div>
+<section class="r-grid-1 r-pad-lg" style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
+<dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
+<p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Un luogo dove chi torna in Italia, o ci arriva per la prima volta, incontra persone ambiziose con cui fondare un'azienda o un progetto. <span style="color:#8C84AE">Profili veri, rivisti uno a uno. Gratuito.</span></p>
+</section>
+<section id="per-chi" class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:16px">
+<dc-import name="UI Eyebrow" text="Per chi è"></dc-import>
+<sc-for list="{{ forWho }}" as="f">
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div>
+</sc-for>
+</section>
+<section id="come-funziona" class="r-pad-lg" style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2><span style="font-size:15px;color:#C9C0F0">Circa 10 minuti per il profilo.</span></div>
+<ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ steps }}" as="s">
+<li style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px;box-sizing:border-box"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></li>
+</sc-for>
+</ol></section>
+<section class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px 1fr 1fr;gap:16px">
+<dc-import name="UI Eyebrow" text="Due modi di iniziare"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma sai con chi vorresti lavorare.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span></div>
+<span class="r-hide-sm"></span>
+<div class="r-span-1" style="grid-column:span 2;display:flex;gap:14px;align-items:center;padding:18px 22px;border-radius:22px;background:#EFEBFF;font-size:15px;color:#3E2BA8"><span style="width:22px;height:22px;border-radius:7px;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">✓</span><span><b style="font-weight:600">In più:</b> se stai anche cercando lavoro in un'azienda italiana, puoi indicarlo nel profilo.</span></div>
+</section>
+<section id="principi" class="r-grid-1 r-pad-lg" style="padding:0 56px 88px;display:grid;grid-template-columns:280px repeat(4,1fr);gap:24px">
+<dc-import name="UI Eyebrow" text="Principi"></dc-import>
+<sc-for list="{{ principles }}" as="p"><div style="display:flex;flex-direction:column;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:#6C4DF5"></span><span style="font-size:17px;font-weight:600">{{ p.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ p.d }}</span></div></sc-for>
+</section>
+<section class="r-stack r-pad-lg" style="margin:0 24px 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<h2 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:720px">Trova qualcuno con cui <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">costruire.</span></h2>
+<dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
+</section>
+<footer class="r-wrap r-pad-lg" style="padding:8px 56px 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center"><span>© 2026 Rientro · rientro.it</span><div style="flex:1"></div><a href="/legal/privacy" style="color:#6B6680;text-decoration:none">Privacy Policy</a><a href="/legal/termini" style="color:#6B6680;text-decoration:none">Termini</a><a href="/legal/cookie" style="color:#6B6680;text-decoration:none">Cookie Policy</a><a href="mailto:ciao@rientro.it" style="color:#6B6680;text-decoration:none">Contatti</a></footer>
+<div class="r-show-sm" style="position:sticky;bottom:0;padding:12px 20px 24px;background:linear-gradient(transparent,#E9E6F5 30%)"><dc-import name="UI Button" label="Entra in Rientro" variant="accent" size="lg" full="{{ true }}" on-click="{{ enter }}"></dc-import></div>
+</div>

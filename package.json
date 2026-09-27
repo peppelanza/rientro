@@ -9,6 +9,7 @@
     "start": "node --experimental-sqlite --no-warnings=ExperimentalWarning src/server.js",
     "test": "node --experimental-sqlite --no-warnings=ExperimentalWarning --test test/*.test.js",
     "purge": "node --experimental-sqlite --no-warnings=ExperimentalWarning scripts/purge.js",
-    "dev": "ADMIN_EMAILS=admin@rientro.local node --experimental-sqlite --no-warnings=ExperimentalWarning --watch src/server.js"
+    "dev": "ADMIN_EMAILS=admin@rientro.local LAUNCHED=1 node --experimental-sqlite --no-warnings=ExperimentalWarning --watch src/server.js",
+    "build:design": "node scripts/build-design.js"
   }
 }

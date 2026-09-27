@@ -1,0 +1,53 @@
+<!-- From design/Rientro 01 Landing e Accesso v2 · artboards 2a (registrazione), 2b (accesso), 5a/5b/5c (email + codice) -->
+<div class="r-grid-1" style="min-height:100vh;background:#E9E6F5;display:grid;grid-template-columns:1fr 1fr;padding:12px;box-sizing:border-box;gap:12px">
+<div class="r-hide-sm" style="border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between;min-height:calc(100vh - 24px);box-sizing:border-box">
+<a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28" tone="light"></dc-import></a>
+<div style="display:flex;flex-direction:column;gap:20px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.055em">Il tuo profilo è la tua presentazione.</span><span style="font-size:16px;line-height:1.5;color:#E6E0FF;max-width:420px">Chi lo legge deve capire in un minuto chi sei, da dove vieni e cosa vuoi costruire.</span></div>
+<div style="display:flex;gap:8px;font-size:13px;flex-wrap:wrap"><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Gratuito</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Rivisto a mano</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Nessun messaggio senza consenso</span></div>
+</div>
+<main style="display:flex;align-items:center;justify-content:center;padding:48px 20px">
+<div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:22px">
+<a href="/" class="r-show-sm" aria-label="Rientro, home" style="text-decoration:none;margin-bottom:12px"><dc-import name="UI Logo" size="25"></dc-import></a>
+
+<sc-if value="{{ stepChoose }}">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;font-weight:600;letter-spacing:-.05em">{{ title }}</h1><span style="font-size:15px;color:#6B6680">{{ subtitle }}</span></div>
+<sc-if value="{{ expired }}"><div role="alert" style="border-radius:20px;background:#FDE8E8;color:#912018;padding:12px 16px;font-size:14px;line-height:1.45">La sessione è scaduta. Accedi di nuovo.</div></sc-if>
+<div style="border-radius:26px;padding:6px;background:#FFFFFF;box-shadow:0 14px 40px rgba(80,60,160,.14);display:flex;flex-direction:column">
+<dc-import name="UI Button" label="in  Continua con LinkedIn" size="lg" full="{{ true }}" on-click="{{ linkedin }}"></dc-import>
+<div style="padding:10px 12px 6px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:#6B6680"><span>Ti aiuteremo a compilare automaticamente il tuo profilo.</span><dc-import name="UI Eyebrow" text="Consigliato" tone="accent"></dc-import></div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#8C84AE"><div style="flex:1;height:1px;background:#DCD7EC"></div>oppure<div style="flex:1;height:1px;background:#DCD7EC"></div></div>
+<dc-import name="UI Button" label="G  Continua con Google" variant="light" size="lg" full="{{ true }}" on-click="{{ google }}"></dc-import>
+<dc-import name="UI Button" label="✉  Continua con email" variant="light" size="lg" full="{{ true }}" on-click="{{ toEmail }}"></dc-import>
+<sc-if value="{{ oauthNote }}"><div role="status" style="border-radius:20px;background:#EFEBFF;color:#3E2BA8;padding:12px 16px;font-size:14px;line-height:1.45">{{ oauthNote }}</div></sc-if>
+<span style="font-size:12px;line-height:1.55;color:#6B6680;text-wrap:pretty">Continuando accetti i <a href="/legal/termini" style="color:#6B6680">Termini</a> e confermi di aver letto la <a href="/legal/privacy" style="color:#6B6680">Privacy Policy</a>. Non pubblichiamo nulla sul tuo LinkedIn.</span>
+<div style="height:1px;background:#DCD7EC"></div>
+<span style="font-size:14px;color:#6B6680">{{ switchText }} <a href="{{ switchHref }}" style="font-weight:600;color:#1A1726;text-underline-offset:3px">{{ switchLink }}</a></span>
+</sc-if>
+
+<sc-if value="{{ stepEmail }}">
+<button type="button" onClick="{{ toChoose }}" style="align-self:flex-start;border:none;background:none;padding:0;font:14px 'Geist',sans-serif;color:#6B6680;cursor:pointer">← Altri metodi</button>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Continua con email</h1>
+<span style="font-size:15px;color:#4A4560;line-height:1.5">Ti mandiamo un codice di 6 cifre. Niente password da ricordare.</span>
+<form onSubmit="{{ sendCode }}" style="display:flex;flex-direction:column;gap:18px">
+<dc-import name="App Field" label="Email" type="email" size="lg" field="email" value="{{ email }}" autocomplete="email" inputmode="email" placeholder="nome@esempio.it" error="{{ emailError }}" dc-props="{{ emailProps }}"></dc-import>
+<label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:#6B6680;cursor:pointer"><input type="checkbox" class="sr-only" checked="{{ marketing }}" onChange="{{ toggleMarketing }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;border:{{ mBorder }};box-sizing:border-box;flex:none;background:{{ mBg }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ mMark }}</span>Voglio ricevere aggiornamenti su Rientro via email. Facoltativo, puoi cambiare idea quando vuoi.</label>
+<button type="submit" class="sr-only">Invia codice</button>
+<dc-import name="UI Button" label="{{ sendLabel }}" size="lg" full="{{ true }}" on-click="{{ sendCode }}" host-aria-disabled="{{ busy }}"></dc-import>
+</form>
+</sc-if>
+
+<sc-if value="{{ stepCode }}">
+<button type="button" onClick="{{ toEmail }}" style="align-self:flex-start;border:none;background:none;padding:0;font:14px 'Geist',sans-serif;color:#6B6680;cursor:pointer">← Cambia email</button>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Controlla la tua email</h1>
+<span style="font-size:15px;color:#4A4560;line-height:1.5">Abbiamo inviato un codice a <b style="font-weight:600;color:#1A1726">{{ email }}</b></span>
+<div role="group" aria-label="Codice di 6 cifre" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+<sc-for list="{{ digits }}" as="d"><input data-key="{{ d.key }}" value="{{ d.v }}" inputmode="numeric" autocomplete="{{ d.ac }}" maxlength="6" aria-label="{{ d.aria }}" onInput="{{ d.input }}" onKeyDown="{{ d.keydown }}" onPaste="{{ d.paste }}" style="height:60px;min-width:0;border-radius:18px;border:{{ d.bd }};box-shadow:{{ d.sh }};background:#FFFFFF;text-align:center;font-size:24px;font-family:'Geist Mono',monospace;color:#1A1726;outline:none;box-sizing:border-box"></sc-for>
+</div>
+<sc-if value="{{ codeError }}"><span role="alert" style="font-size:13px;color:#B42318">{{ codeError }}</span></sc-if>
+<sc-if value="{{ devCode }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">SOLO IN SVILUPPO · CODICE {{ devCode }}</span></sc-if>
+<div style="display:flex;justify-content:space-between;font-size:14px;color:#6B6680"><span>Non è arrivato? <button type="button" onClick="{{ resend }}" disabled="{{ cantResend }}" style="border:none;background:none;padding:0;font:inherit;color:{{ resendColor }};text-decoration:underline;cursor:pointer">Invia di nuovo</button></span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ countdown }}</span></div>
+<dc-import name="UI Button" label="{{ verifyLabel }}" size="lg" full="{{ true }}" variant="{{ verifyVariant }}" on-click="{{ verify }}" host-aria-disabled="{{ cantVerify }}"></dc-import>
+</sc-if>
+</div></main>
+</div>

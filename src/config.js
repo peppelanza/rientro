@@ -15,8 +15,17 @@ export const config = {
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   sessionTtlDays: 30,
-  loginTokenTtlMinutes: 15,
+  loginCodeTtlMinutes: 10,
+  loginCodeMaxAttempts: 5,
   maxPhotoBytes: 5 * 1024 * 1024,
+  maxVideoBytes: 200 * 1024 * 1024,
+  // Discovery and connections open on launch day (design 01 pre-lancio). LAUNCHED=1 opens them early (dev).
+  launchAt: process.env.LAUNCH_AT || '2027-01-01T00:00:00+01:00',
+  forceLaunched: process.env.LAUNCHED === '1',
+  // Territory pages hide any count below this, so small groups can't be singled out.
+  publicStatsMinCount: 5,
+  connectionRequestTtlDays: 30,
+  moderationSlaHours: 24,
   // How long preference/consent proof is kept after account deletion. PLACEHOLDER: confirm with counsel.
   ledgerRetentionMonthsAfterDeletion: 36,
   exportCooldownHours: 24,
@@ -36,6 +45,8 @@ export const JOB_SEEKING_NOTICE_TEXT =
   'Sul tuo profilo comparirà “Sta anche cercando lavoro in Italia”. ' +
   'Questa scelta indica che sei interessato a opportunità da aziende italiane. ' +
   'Puoi toglierla quando vuoi da Impostazioni → Privacy.';
+
+export const isLaunched = () => config.forceLaunched || Date.now() >= Date.parse(config.launchAt);
 
 if (config.production && config.pseudonymSecret === 'dev-only-pseudonym-secret') {
   throw new Error('PSEUDONYM_SECRET must be set in production');

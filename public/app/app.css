@@ -1,0 +1,74 @@
+/* App-level CSS. The design's own styles are inline in the templates; this file only adds
+   what inline styles can't express: focus states, placeholders, responsive overrides,
+   overlays, and accessibility helpers. */
+
+html { scroll-behavior: smooth; }
+body { min-height: 100vh; }
+#app { min-height: 100vh; }
+.sc-host { min-width: 0; }
+
+/* Real inputs rendered inside UI Input-styled boxes */
+.bare-input { border: none; background: transparent; outline: none; font: inherit; color: inherit; flex: 1; min-width: 0; width: 100%; padding: 0; }
+.bare-input::placeholder { color: #8C84AE; opacity: 1; }
+.dc-field:focus-within { border: 1.5px solid #6C4DF5 !important; box-shadow: 0 0 0 4px rgba(108,77,245,.15) !important; }
+
+/* Keyboard focus, matching design 00 "FOCUS" states */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; border-radius: 999px; }
+[role="button"]:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
+[role="button"] { cursor: pointer; }
+[aria-disabled="true"] { cursor: not-allowed; }
+button { font: inherit; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Photo/video placeholders get real media when available */
+.media-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Toasts (design 00 · Feedback) */
+#toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast { pointer-events: auto; background: #1A1726; color: #fff; border-radius: 999px; padding: 10px 14px 10px 10px; display: flex; gap: 10px; align-items: center; font: 14px 'Geist', sans-serif; box-shadow: 0 12px 30px rgba(26,23,38,.22); max-width: min(560px, calc(100vw - 32px)); }
+.toast-icon { width: 22px; height: 22px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; flex: none; }
+.toast-icon.ok { background: #1F7A4F; }
+.toast-icon.err { background: #D92D20; }
+.toast-action { margin-left: 8px; background: none; border: none; color: #A8A2C2; cursor: pointer; font-size: 13px; }
+
+/* Modals */
+.modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.modal-box { max-width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: 32px; }
+@media (max-width: 720px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box { width: 100%; max-height: 92vh; border-radius: 32px 32px 0 0; }
+  .modal-box > * > div:first-child { width: 100% !important; border-radius: 32px 32px 0 0 !important; }
+}
+
+/* Layout helpers used by page templates */
+.r-page { width: 100%; max-width: 1440px; margin: 0 auto; }
+.r-show-sm { display: none !important; }
+
+@media (max-width: 1024px) {
+  .r-grid-md-1 { grid-template-columns: minmax(0, 1fr) !important; }
+  .r-hide-md { display: none !important; }
+}
+
+@media (max-width: 720px) {
+  body.has-tabbar { padding-bottom: 96px; }
+  .r-show-sm { display: block !important; }
+  .r-hide-sm { display: none !important; }
+  .r-pad { padding-left: 12px !important; padding-right: 12px !important; }
+  .r-pad-lg { padding-left: 20px !important; padding-right: 20px !important; }
+  .r-grid-1 { grid-template-columns: minmax(0, 1fr) !important; }
+  .r-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .r-stack { flex-direction: column !important; align-items: stretch !important; }
+  .r-wrap { flex-wrap: wrap !important; }
+  .r-full { width: 100% !important; max-width: 100% !important; }
+  .r-h1 { font-size: 34px !important; line-height: 1.02 !important; }
+  .r-h1 .r-serif { font-size: 40px !important; }
+  .r-hero { font-size: 46px !important; line-height: .98 !important; }
+  .r-hero .r-serif { font-size: 54px !important; }
+  .r-h2 { font-size: 30px !important; }
+  .r-lede { font-size: 18px !important; }
+  .r-gap-sm { gap: 16px !important; }
+  .r-span-1 { grid-column: auto !important; }
+  .admin-sidebar { display: none !important; }
+}
