@@ -83,3 +83,13 @@ button { font: inherit; }
   .chat-page { height: calc(100vh - 96px) !important; }
   .chat-grid { padding: 12px !important; }
 }
+
+/* Admin: sidebar on the left; on phones it becomes a scrolling row of links above the page */
+.admin-layout { display: flex; min-height: 100vh; background: #E9E6F5; }
+.admin-main { flex: 1; min-width: 0; padding: 28px 28px 28px 16px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+.admin-table { overflow-x: auto; }
+.admin-table > .admin-row, .admin-table > div > .admin-row { min-width: 880px; }
+@media (max-width: 720px) {
+  .admin-layout { flex-direction: column; }
+  .admin-main { padding: 16px 12px; }
+}

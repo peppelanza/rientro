@@ -1,0 +1,24 @@
+<!-- From design/Rientro 06 Admin v2 · artboard 45a (tabella utenti). -->
+<div class="admin-layout">
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<main class="admin-main">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Utenti <span style="font-family:'Geist Mono',monospace;font-size:14px;color:#8C84AE;font-weight:400;letter-spacing:0">{{ total }}</span></h1><dc-import name="UI Button" label="Esporta CSV" variant="light" size="sm" on-click="{{ exportCsv }}"></dc-import></div>
+<sc-if value="{{ users }}">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><div style="width:300px;max-width:100%"><dc-import name="App Field" placeholder="Nome, email, città" search="{{ true }}" field="u-q" value="{{ q }}" dc-props="{{ qProps }}"></dc-import></div>
+<sc-for list="{{ filters }}" as="x"><div style="width:170px"><dc-import name="App Select" options="{{ x.options }}" value="{{ x.value }}" placeholder="{{ x.placeholder }}" field="{{ x.label }}" dc-props="{{ x.props }}"></dc-import></div></sc-for></div>
+<div class="admin-table" style="background:#FFFFFF;border-radius:24px">
+<div class="admin-row" style="display:grid;grid-template-columns:44px 1.4fr 1.1fr 1.2fr 1fr 70px 120px 90px;gap:12px;padding:12px 18px;border-bottom:1px solid #ECE8F7;background:#F6F4FC;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.05em;color:#6B6680;align-items:center;border-radius:24px 24px 0 0"><span>FOTO</span><span>NOME ↓</span><span>VIVE A</span><span>VUOLE VIVERE A</span><span>INTENTO</span><span>LAVORO</span><span>STATO</span><span>ISCRITTO</span></div>
+<sc-for list="{{ users }}" as="u">
+<a href="{{ u.href }}" class="admin-row" style="display:grid;grid-template-columns:44px 1.4fr 1.1fr 1.2fr 1fr 70px 120px 90px;gap:12px;padding:8px 18px;border-bottom:1px solid #ECE8F7;font-size:13px;align-items:center;color:#1A1726;text-decoration:none">
+<dc-import name="App Photo" size="34" src="{{ u.photo_url }}" initials="{{ u.ini }}"></dc-import>
+<div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600">{{ u.name }}</span><span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.email }}</span></div>
+<span>{{ u.from }}</span><span>{{ u.to }}</span><span style="color:#6B6680">{{ u.intent }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ u.job }}</span>
+<div><dc-import name="UI Badge" kind="{{ u.kind }}" label="{{ u.status_label }}"></dc-import></div>
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#6B6680">{{ u.joined }}</span>
+</a>
+</sc-for>
+<sc-if value="{{ empty }}"><div style="padding:24px 18px;font-size:14px;color:#8C84AE">Nessun utente con questi filtri.</div></sc-if>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;font-size:13px;min-width:0"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ range }}</span><nav aria-label="Pagine" style="display:flex;gap:4px"><sc-for list="{{ pages }}" as="p"><sc-if value="{{ p.cur }}"><span aria-current="page" style="width:32px;height:32px;border-radius:50%;background:#1A1726;color:#FFFFFF;display:flex;align-items:center;justify-content:center">{{ p.l }}</span></sc-if><sc-if value="{{ p.notCur }}"><button type="button" onClick="{{ p.go }}" style="width:32px;height:32px;border:none;border-radius:50%;background:transparent;font:13px 'Geist',sans-serif;cursor:pointer">{{ p.l }}</button></sc-if><sc-if value="{{ p.gap }}"><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#8C84AE">…</span></sc-if></sc-for></nav></div>
+</div>
+</sc-if>
+</main></div>

@@ -29,10 +29,14 @@ src/preferences.js          job-seeking flag (only writer), job details, marketi
 src/profiles.js             allowlisted public profile, connections gate
 src/privacy.js              export, deletion, retention purge
 src/admin.js                audited admin reads/writes
-src/auth.js                 magic-link auth, sessions, terms acknowledgement
+src/auth.js                 6-digit email code auth, sessions, terms acknowledgement
 src/files.js                photo storage
 src/processing-register.js  purpose ↔ data ↔ proposed basis ↔ retention (pending legal review)
-public/                     onboarding, settings, admin, legal drafts
+design/                     Claude Design source files (reference copies, don't edit)
+public/dc/runtime.js        dependency-free renderer for the design templates
+public/app/main.js          router: URL → pages/<name>.js + pages/<name>.html
+public/app/components.js    app variants of the design components (real links, data, inputs)
+public/app/pages/           one page per screen; templates copied from the design artboards
 ```
 
 ## API (member)
