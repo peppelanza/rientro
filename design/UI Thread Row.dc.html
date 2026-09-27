@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:22px;background:{{ bg }};box-shadow:{{ sh }};font-family:'Geist',sans-serif;color:#1A1726;cursor:pointer">
+<dc-import name="UI Photo" size="{{ avatar }}" hint-size="48px,48px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:{{ nfs }}px;font-weight:{{ w }}">{{ t.name }}</span><span style="font-size:11px;color:#8C84AE;font-family:'Geist Mono',monospace">{{ t.time }}</span></div>
+<span style="font-size:12px;color:#8C84AE">{{ t.role }}</span>
+<div style="display:flex;gap:8px;align-items:center"><span style="font-size:{{ lfs }}px;color:{{ c }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ t.last }}</span><sc-if value="{{ unread }}" hint-placeholder-val="{{ false }}"><span style="width:9px;height:9px;border-radius:50%;background:#6C4DF5;flex:none"></span></sc-if></div>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:340,&quot;height&quot;:80},&quot;thread&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{name,role,time,last,unread}&quot;},&quot;active&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const t = this.props.thread ?? { name: 'Marco Deiana', role: 'Software Engineer', time: '10:42', last: 'Ti va una call giovedì?', unread: true };
+    const active = this.props.active === true || this.props.active === 'true', lg = this.props.size === 'lg';
+    return {
+      t, unread: !!t.unread, w: t.unread ? 600 : 500, c: t.unread ? '#1A1726' : '#8C84AE',
+      bg: active ? '#FFFFFF' : 'transparent', sh: active ? '0 8px 24px rgba(80,60,160,.10)' : 'none',
+      avatar: lg ? 52 : 44, nfs: lg ? 16 : 14, lfs: lg ? 14 : 13
+    };
+  }
+}
+</script>
+</body>
+</html>

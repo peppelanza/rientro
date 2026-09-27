@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t26" data-screen-label="26 Scopri persone" style="padding:56px 64px 48px;border-bottom:1px solid rgba(26,23,38,.08)">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t26" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">26</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Scopri persone · stile S2d</span><span style="font-size:14px;color:#6B6680">Costruita con i componenti UI condivisi.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="26a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#26a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">26a</a>Desktop · filtri laterali</div>
+<div style="width:1440px;background:#E9E6F5;border-radius:28px;overflow:hidden;padding-bottom:40px">
+<dc-import name="UI Nav" active="scopri" hint-size="100%,82px"></dc-import>
+<div style="display:grid;grid-template-columns:300px 1fr;gap:28px;padding:28px 24px 0">
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</span><span style="font-size:13px;color:#6B6680;text-decoration:underline">Azzera</span></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vuole vivere" hint-size="140px,14px"></dc-import><dc-import name="UI Input" placeholder="Cerca un comune" search="{{ true }}" hint-size="100%,44px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="Milano" tone="selected" size="sm" removable="{{ true }}" hint-size="90px,32px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vive" hint-size="80px,14px"></dc-import><dc-import name="UI Segmented" options="Ovunque,Italia,Estero" active="Ovunque" hint-size="100%,40px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Obiettivo" hint-size="80px,14px"></dc-import><dc-import name="UI Checkbox" label="Ha già un'idea" count="112" hint-size="100%,32px"></dc-import><dc-import name="UI Checkbox" label="Cerca un'idea insieme" count="136" hint-size="100%,32px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Background" hint-size="80px,14px"></dc-import><dc-import name="UI Checkbox" label="Tech / Engineering" count="74" checked="{{ true }}" hint-size="100%,32px"></dc-import><dc-import name="UI Checkbox" label="Business / Sales" count="41" hint-size="100%,32px"></dc-import><dc-import name="UI Checkbox" label="Design" count="29" hint-size="100%,32px"></dc-import><span style="font-size:13px;color:#6B6680;text-decoration:underline;padding-top:4px">Mostra altri 5</span></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Settori" hint-size="80px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="AI" tone="tint" size="sm" hint-size="44px,32px"></dc-import><dc-import name="UI Chip" label="SaaS" size="sm" hint-size="60px,32px"></dc-import><dc-import name="UI Chip" label="Fintech" size="sm" hint-size="70px,32px"></dc-import><dc-import name="UI Chip" label="Climate" size="sm" hint-size="70px,32px"></dc-import><dc-import name="UI Chip" label="+ 12" tone="dashed" size="sm" hint-size="50px,32px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Tempo" hint-size="60px,14px"></dc-import><dc-import name="UI Segmented" options="Full-time,Part-time" active="" hint-size="100%,40px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Fascia d'età" hint-size="90px,14px"></dc-import><dc-import name="UI Segmented" options="25–29,30–34,35–39,40+" active="" hint-size="100%,40px"></dc-import></div>
+<div style="height:1px;background:#E4E0F2"></div>
+<dc-import name="UI Toggle" label="Cerca anche lavoro in Italia" hint-size="100%,32px"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:22px;padding-right:8px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">Scopri persone</h1><span style="font-size:15px;color:#6B6680">86 persone con questi filtri</span></div><dc-import name="UI Button" label="Ordina: Più recenti ▾" variant="glass" size="sm" hint-size="180px,36px"></dc-import></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">3 filtri attivi</span><dc-import name="UI Chip" label="Milano" size="sm" removable="{{ true }}" hint-size="90px,32px"></dc-import><dc-import name="UI Chip" label="AI" size="sm" removable="{{ true }}" hint-size="60px,32px"></dc-import><dc-import name="UI Chip" label="Tech" size="sm" removable="{{ true }}" hint-size="70px,32px"></dc-import><span style="font-size:13px;color:#6B6680;text-decoration:underline;margin-left:4px">Rimuovi tutti</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+<sc-for list="{{ people }}" as="p" hint-placeholder-count="6">
+<dc-import name="UI Person Card" person="{{ p }}" hint-size="100%,600px"></dc-import>
+</sc-for>
+</div>
+</div></div></div></div>
+
+<div id="26b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#26b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">26b</a>Mobile · lista con filtri</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column;position:relative">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:6px 20px 14px;display:flex;flex-direction:column;gap:14px;flex:none">
+<div style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:26px;letter-spacing:-.04em">Scopri persone</h1><div style="width:44px;height:44px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><span style="width:12px;height:12px;border:1.8px solid #1A1726;border-radius:50%"></span></div></div>
+<div style="display:flex;gap:6px;overflow:hidden"><dc-import name="UI Chip" label="Filtri" tone="selected" count="3" hint-size="90px,40px"></dc-import><dc-import name="UI Chip" label="Milano" removable="{{ true }}" hint-size="100px,40px"></dc-import><dc-import name="UI Chip" label="AI" removable="{{ true }}" hint-size="70px,40px"></dc-import><dc-import name="UI Chip" label="Tech" removable="{{ true }}" hint-size="80px,40px"></dc-import></div>
+</div>
+<div style="flex:1;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;gap:14px">
+<dc-import name="UI Person Card" person="{{ first }}" ratio="16/11" compact="{{ true }}" hint-size="100%,560px"></dc-import>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0"><dc-import name="UI TabBar" active="scopri" hint-size="100%,86px"></dc-import></div>
+</div></div>
+
+<div id="26c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#26c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">26c</a>Variante card B · riga densa, per chi scorre molti profili</div>
+<div style="width:1000px;background:#E9E6F5;border-radius:28px;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ rows }}" as="p" hint-placeholder-count="4">
+<div style="background:#FFFFFF;border-radius:24px;padding:12px 14px 12px 12px;display:grid;grid-template-columns:72px 1.3fr 1fr 1fr auto;gap:20px;align-items:center">
+<dc-import name="UI Photo" size="72" radius="18px" hint-size="72px,72px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:600;letter-spacing:-.03em">{{ p.name }} <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;font-weight:400;letter-spacing:0">{{ p.age }}</span></span><span style="font-size:13px;color:#6B6680">{{ p.role }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#4A4560">{{ p.from }} → {{ p.to }}</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:13px"><dc-import name="UI Eyebrow" text="Cerca" hint-size="50px,14px"></dc-import>{{ p.seeks }}</div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:13px"><dc-import name="UI Eyebrow" text="Interessi" hint-size="70px,14px"></dc-import>{{ p.tags }}</div>
+<div style="display:flex;gap:6px"><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm" hint-size="80px,36px"></dc-import><dc-import name="UI Button" label="Connettiti" size="sm" hint-size="100px,36px"></dc-import></div>
+</div>
+</sc-for>
+</div></div>
+
+<div id="26d" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#26d" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">26d</a>Variante card C · “dossier”, l'idea in primo piano</div>
+<div style="width:1000px;background:#E9E6F5;border-radius:28px;padding:20px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:26px;box-shadow:0 14px 40px rgba(80,60,160,.10);display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;gap:12px;align-items:center"><dc-import name="UI Photo" size="44" hint-size="44px,44px"></dc-import><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Luca Maranzano · 40–44</span><span style="font-size:13px;color:#6B6680">New York → Napoli, Roma</span></div></div>
+<dc-import name="UI Eyebrow" text="Quello che sta costruendo" tone="accent" hint-size="180px,14px"></dc-import>
+<span style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1">“Un gestionale per le strutture ricettive dei borghi del Cilento.”</span>
+<div style="display:flex;justify-content:space-between;font-size:13px;color:#6B6680;padding-top:14px;border-top:1px solid #ECE8F7"><span>Cerca Tech / Engineering</span><span>Prototipo · Full-time</span></div>
+</div>
+<div style="background:#1A1726;color:#FFFFFF;border-radius:28px;padding:26px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;gap:12px;align-items:center"><dc-import name="UI Photo" size="44" dark="{{ true }}" hint-size="44px,44px"></dc-import><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Marco Deiana · 35–39</span><span style="font-size:13px;color:#B7B0D4">Berlino → Bologna, Cagliari</span></div></div>
+<dc-import name="UI Eyebrow" text="Quello che vorrebbe costruire" tone="light" hint-size="200px,14px"></dc-import>
+<span style="font-family:'Instrument Serif',serif;font-size:32px;line-height:1.1">“Qualcosa nel fintech per le PMI. Cerco chi sa vendere.”</span>
+<div style="display:flex;justify-content:space-between;font-size:13px;color:#B7B0D4;padding-top:14px;border-top:1px solid #2E2A40"><span>Cerca Business / Sales</span><span>Full-time</span></div>
+</div>
+</div></div>
+
+<div id="27a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#27a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">27a</a>Filtri aperti · desktop, selettore comuni in popover</div>
+<div style="width:760px;height:560px;position:relative;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="position:absolute;left:16px;top:16px;bottom:16px;width:272px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px"><span style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</span><div style="height:8px"></div><dc-import name="UI Eyebrow" text="Dove vuole vivere" hint-size="140px,14px"></dc-import><dc-import name="UI Input" value="Pa" focused="{{ true }}" search="{{ true }}" hint-size="100%,44px"></dc-import></div>
+<div style="position:absolute;left:304px;top:92px;width:400px;background:#FFFFFF;border-radius:24px;box-shadow:0 24px 60px rgba(80,60,160,.22);padding:10px;box-sizing:border-box;display:flex;flex-direction:column">
+<div style="padding:10px 12px"><dc-import name="UI Eyebrow" text="Comuni · 23 risultati" hint-size="150px,14px"></dc-import></div>
+<sc-for list="{{ cities }}" as="c" hint-placeholder-count="4"><div style="padding:4px 12px;border-radius:14px;background:{{ c.bg }}"><dc-import name="UI Checkbox" label="{{ c.l }}" count="{{ c.c }}" checked="{{ c.on }}" hint-size="100%,32px"></dc-import></div></sc-for>
+<div style="padding:4px 12px;opacity:.5"><dc-import name="UI Checkbox" label="Pantelleria" count="0 persone" hint-size="100%,32px"></dc-import></div>
+<div style="padding:8px 12px;border-top:1px solid #ECE8F7;margin-top:6px"><dc-import name="UI Checkbox" label="Includi chi ha scelto “Non lo so ancora”" hint-size="100%,32px"></dc-import></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 6px 4px 12px"><span style="font-size:13px;color:#6B6680;text-decoration:underline">Deseleziona</span><dc-import name="UI Button" label="Applica" size="sm" hint-size="90px,36px"></dc-import></div>
+</div></div></div>
+
+<div id="27b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#27b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">27b</a>Filtri aperti · mobile, bottom sheet</div>
+<div style="width:390px;height:844px;background:#9D96B8;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="flex:1"></div>
+<div style="background:#FFFFFF;border-radius:32px 32px 0 0;height:740px;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:center;padding:10px 0 4px"><span style="width:40px;height:5px;border-radius:3px;background:#DCD7EC"></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 20px 14px;border-bottom:1px solid #ECE8F7"><span style="font-size:14px;color:#6B6680">Azzera</span><span style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri · 3</span><span style="width:36px;height:36px;border-radius:50%;background:#F1EFF8;display:flex;align-items:center;justify-content:center;color:#6B6680">×</span></div>
+<div style="flex:1;overflow:hidden;padding:18px 20px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vuole vivere" hint-size="140px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="Milano" tone="selected" removable="{{ true }}" hint-size="100px,40px"></dc-import><dc-import name="UI Chip" label="+ Aggiungi" tone="dashed" hint-size="110px,40px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Obiettivo" hint-size="80px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="Ha già un'idea" hint-size="130px,40px"></dc-import><dc-import name="UI Chip" label="Cerca un'idea" hint-size="130px,40px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Background" hint-size="80px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="✓ Tech" tone="tint" hint-size="80px,40px"></dc-import><dc-import name="UI Chip" label="Business" hint-size="90px,40px"></dc-import><dc-import name="UI Chip" label="Design" hint-size="80px,40px"></dc-import><dc-import name="UI Chip" label="Prodotto" hint-size="90px,40px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Settori" hint-size="60px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="✓ AI" tone="tint" hint-size="60px,40px"></dc-import><dc-import name="UI Chip" label="SaaS" hint-size="70px,40px"></dc-import><dc-import name="UI Chip" label="Climate" hint-size="80px,40px"></dc-import></div></div>
+<dc-import name="UI Toggle" label="Cerca anche lavoro in Italia" hint-size="100%,32px"></dc-import>
+</div>
+<div style="padding:12px 20px 34px;border-top:1px solid #ECE8F7"><dc-import name="UI Button" label="Mostra 86 persone" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+</div></div></div>
+
+<div id="28a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#28a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">28a</a>Risultati di ricerca</div>
+<div style="width:1100px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="padding:28px 40px 0;display:flex;flex-direction:column;gap:18px">
+<dc-import name="UI Input" value="fintech bologna" search="{{ true }}" focused="{{ true }}" size="lg" hint="Esc per chiudere" hint-size="100%,52px"></dc-import>
+<div style="display:flex;gap:6px"><dc-import name="UI Chip" label="Persone · 12" tone="selected" size="sm" hint-size="110px,32px"></dc-import><dc-import name="UI Chip" label="Città · 1" size="sm" hint-size="80px,32px"></dc-import><dc-import name="UI Chip" label="Settori · 1" size="sm" hint-size="90px,32px"></dc-import></div></div>
+<div style="margin:20px 24px 24px;background:#FFFFFF;border-radius:24px;padding:4px 20px 16px;display:flex;flex-direction:column">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:48px 1fr 260px auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid #ECE8F7"><dc-import name="UI Photo" size="48" hint-size="48px,48px"></dc-import><div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600">{{ r.name }}</span><span style="font-size:13px;color:#6B6680">{{ r.a }}<mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m1 }}</mark>{{ r.b }}</span></div><span style="font-size:13px;color:#6B6680">{{ r.c }}<mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m2 }}</mark>{{ r.d }}</span><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm" hint-size="80px,36px"></dc-import></div>
+</sc-for>
+<span style="font-size:13px;color:#6B6680;padding-top:16px">Mostra tutte le 12 persone →</span>
+</div></div></div>
+
+<div id="28b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#28b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">28b</a>Nessun risultato</div>
+<div style="width:640px;height:420px;background:#E9E6F5;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px;box-sizing:border-box">
+<div style="display:flex;gap:6px"><dc-import name="UI Chip" label="Matera" tone="off" size="sm" hint-size="80px,32px"></dc-import><dc-import name="UI Chip" label="Hardware" tone="off" size="sm" hint-size="90px,32px"></dc-import><dc-import name="UI Chip" label="Part-time" tone="off" size="sm" hint-size="90px,32px"></dc-import></div>
+<span style="font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.03em;margin-top:8px;max-width:440px">Non abbiamo trovato persone con questi filtri.</span>
+<span style="font-size:15px;color:#6B6680">Senza “Part-time” ci sono 4 persone.</span>
+<div style="display:flex;gap:8px;margin-top:6px"><dc-import name="UI Button" label="Rimuovi filtri" hint-size="140px,44px"></dc-import><dc-import name="UI Button" label="Togli solo “Part-time”" variant="light" hint-size="190px,44px"></dc-import></div>
+</div></div>
+
+</div>
+</section>
+
+<section id="t29" data-screen-label="29-30 Profilo e connessione" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t29" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">29–30</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Profilo e richiesta di connessione</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="29a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#29a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">29a</a>Profilo completo</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden;padding-bottom:56px">
+<dc-import name="UI Nav" active="scopri" hint-size="100%,82px"></dc-import>
+<div style="padding:28px 56px 0;font-size:14px;color:#6B6680">← Scopri persone</div>
+<div style="padding:24px 56px 0;display:grid;grid-template-columns:360px 1fr;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<dc-import name="UI Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" style="width:100%" hint-size="100%,450px"></dc-import>
+<div style="height:4px"></div>
+<dc-import name="UI Button" label="Invia richiesta di connessione" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<div style="display:grid;grid-template-columns:1fr 44px;gap:8px"><dc-import name="UI Button" label="Condividi profilo" variant="glass" full="{{ true }}" hint-size="100%,44px"></dc-import><dc-import name="UI Button" label="···" variant="glass" size="md" hint-size="44px,44px"></dc-import></div>
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:22px;padding:4px 18px;display:flex;flex-direction:column;font-size:14px;margin-top:6px">
+<sc-for list="{{ facts }}" as="f" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-top:{{ f.bt }};color:{{ f.fg }}"><span style="color:#8C84AE">{{ f.k }}</span><span style="text-align:right">{{ f.v }}</span></div></sc-for>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:14px;padding-bottom:8px">
+<div style="display:flex;gap:8px"><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import><dc-import name="UI Badge" kind="neutral" label="Sta anche cercando lavoro in Italia" hint-size="240px,28px"></dc-import></div>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:64px;line-height:1;letter-spacing:-.05em">Giulia Ferri</h1>
+<span style="font-size:20px;color:#1A1726">Head of Growth · ex Deliveroo</span>
+<span style="font-size:17px;color:#6B6680">Vive a Londra <span style="color:#6C4DF5">→</span> vuole trasferirsi a <b style="font-weight:600;color:#1A1726">Milano, Bologna</b></span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="padding:18px 20px;border-radius:22px;background:#FFFFFF;display:flex;flex-direction:column;gap:6px"><dc-import name="UI Eyebrow" text="Giulia cerca" hint-size="100px,14px"></dc-import><span style="font-size:16px;font-weight:500">Prodotto, Tech / Engineering</span></div>
+<div style="padding:18px 20px;border-radius:22px;background:#EFEBFF;display:flex;flex-direction:column;gap:6px"><dc-import name="UI Eyebrow" text="Il tuo background" tone="accent" hint-size="130px,14px"></dc-import><span style="font-size:16px;font-weight:500;color:#3E2BA8">Prodotto · 8–12 anni</span></div>
+</div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px 32px">
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0"><dc-import name="UI Eyebrow" text="Su di me" hint-size="80px,14px"></dc-import><p style="margin:0;font-size:19px;line-height:1.55;text-wrap:pretty">Ho passato otto anni a Londra a far crescere prodotti di delivery, da 3 a 40 città. Voglio tornare in Italia e applicare quello che ho imparato a un settore che conosco da quando sono nata: il cibo.</p></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Video" hint-size="60px,14px"></dc-import><div style="max-width:560px"><dc-import name="UI Photo" ratio="16/9" dark="{{ true }}" play="{{ true }}" duration="1:32" style="width:100%" hint-size="100%,300px"></dc-import></div></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Quello che sto costruendo" tone="accent" hint-size="180px,14px"></dc-import><div style="display:flex;flex-direction:column;gap:12px"><span style="font-family:'Unbounded',sans-serif;font-size:24px;line-height:1.25;font-weight:500;letter-spacing:-.03em">Una rete logistica condivisa per i piccoli produttori alimentari del Nord Italia.</span><span style="font-size:16px;line-height:1.6;color:#4A4560">Oggi un caseificio in Valtellina spende il 30% del margine per spedire a Milano. Voglio aggregare le consegne per farle costare un terzo.</span><div style="display:flex;gap:6px"><dc-import name="UI Badge" kind="neutral" label="Fase: prototipo" hint-size="120px,28px"></dc-import><dc-import name="UI Badge" kind="neutral" label="Food & Agritech" hint-size="120px,28px"></dc-import></div></div></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Chi sto cercando" hint-size="120px,14px"></dc-import><span style="font-size:17px;line-height:1.55">Una persona di prodotto o un CTO che voglia costruire da zero, possibilmente con esperienza su marketplace.</span></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Il mio percorso" hint-size="110px,14px"></dc-import><div style="display:flex;flex-direction:column;gap:14px;font-size:15px"><sc-for list="{{ career }}" as="c" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:110px 1fr;gap:12px"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ c.y }}</span><span><b style="font-weight:600">{{ c.r }}</b>, {{ c.o }}</span></div></sc-for></div></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Formazione" hint-size="90px,14px"></dc-import><span style="font-size:15px"><b style="font-weight:600">Università Bocconi</b>, Economia e Management · 2014</span></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Interessi" hint-size="80px,14px"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="Food & Agritech" tone="tint" size="sm" hint-size="130px,32px"></dc-import><dc-import name="UI Chip" label="AI" tone="tint" size="sm" hint-size="44px,32px"></dc-import><dc-import name="UI Chip" label="Climate" tone="tint" size="sm" hint-size="80px,32px"></dc-import></div></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Un risultato di cui vado fiera" hint-size="180px,14px"></dc-import><span style="font-size:17px;line-height:1.55">Ho aperto Deliveroo in 11 città europee in 18 mesi, con un budget marketing dimezzato rispetto al piano.</span></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Cosa mi manca dell'Italia" hint-size="170px,14px"></dc-import><span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:30px;line-height:1.2">“Il mercato del sabato a Porta Palazzo, e sapere il nome di chi mi vende il pane.”</span></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Sta anche cercando lavoro in Italia" hint-size="200px,14px"></dc-import><span style="font-size:15px;color:#4A4560">Sì, aperta a ruoli di growth in aziende italiane.</span></div>
+</div>
+</div></div></div></div>
+
+<div id="30a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#30a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">30a</a>Modale richiesta di connessione</div>
+<div style="width:1280px;height:720px;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 30% 20%,#C9C0F0,transparent 50%),#9D96B8;display:flex;align-items:center;justify-content:center">
+<div style="width:540px;background:#FFFFFF;border-radius:32px;box-shadow:0 30px 80px rgba(26,23,38,.3);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:14px;align-items:center"><dc-import name="UI Photo" size="56" hint-size="56px,56px"></dc-import><div style="display:flex;flex-direction:column;gap:3px;flex:1"><span style="font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.03em">Connettiti con Giulia</span><span style="font-size:13px;color:#6B6680">Head of Growth · Londra → Milano</span></div><span style="width:40px;height:40px;border-radius:50%;background:#F1EFF8;display:flex;align-items:center;justify-content:center;font-size:18px;color:#6B6680;align-self:flex-start">×</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:500">Vuoi aggiungere una nota?</span><span style="font-size:13px;color:#8C84AE">Facoltativa</span></div>
+<dc-import name="UI Input" rows="4" focused="{{ true }}" value="Ciao Giulia, anch'io torno a Milano l'anno prossimo. Ho lavorato su marketplace per 8 anni, mi piacerebbe sentire com'è la logistica dal tuo lato." hint-size="100%,124px"></dc-import>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#8C84AE"><span>Giulia vedrà la nota insieme al tuo profilo.</span><span style="font-family:'Geist Mono',monospace">148 / 300</span></div></div>
+<div style="display:flex;gap:8px;justify-content:flex-end"><dc-import name="UI Button" label="Annulla" variant="ghost" hint-size="90px,44px"></dc-import><dc-import name="UI Button" label="Invia richiesta" variant="accent" hint-size="150px,44px"></dc-import></div>
+</div></div></div>
+
+<div id="29b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#29b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">29b</a>Layout B · editoriale, foto a tutta larghezza</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="position:relative">
+<dc-import name="UI Photo" height="480" radius="0" label="FOTO PROFILO · ORIZZONTALE" style="width:100%" hint-size="100%,480px"></dc-import>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:48px 56px 40px;background:linear-gradient(transparent,rgba(26,23,38,.7));color:#FFFFFF;display:flex;justify-content:space-between;align-items:flex-end">
+<div style="display:flex;flex-direction:column;gap:12px"><span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.06em">LONDRA → MILANO, BOLOGNA · 30–34</span><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:88px;line-height:.9;letter-spacing:-.055em">Giulia Ferri</h1><span style="font-size:20px">Head of Growth · ex Deliveroo</span></div>
+<div style="display:flex;gap:8px"><dc-import name="UI Button" label="Invia richiesta di connessione" variant="light" size="lg" hint-size="270px,52px"></dc-import><dc-import name="UI Button" label="Condividi" variant="onDark" size="lg" hint-size="120px,52px"></dc-import></div>
+</div></div>
+<div style="margin:24px 24px 0;background:#FFFFFF;border-radius:28px;padding:36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px">
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Eyebrow" text="Sta costruendo" tone="accent" hint-size="110px,14px"></dc-import><span style="font-family:'Unbounded',sans-serif;font-size:18px;line-height:1.3;font-weight:500;letter-spacing:-.02em">Logistica condivisa per piccoli produttori alimentari</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Eyebrow" text="Cerca" hint-size="50px,14px"></dc-import><span style="font-family:'Unbounded',sans-serif;font-size:18px;line-height:1.3;font-weight:500;letter-spacing:-.02em">Prodotto, Tech / Engineering</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Eyebrow" text="Tempo" hint-size="50px,14px"></dc-import><span style="font-family:'Unbounded',sans-serif;font-size:18px;line-height:1.3;font-weight:500;letter-spacing:-.02em">Full-time, entro 6 mesi</span></div>
+</div>
+<div style="padding:48px 56px 56px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center">
+<p style="margin:0;font-size:26px;line-height:1.4;letter-spacing:-.015em;text-wrap:pretty">Ho passato otto anni a Londra a far crescere prodotti di delivery, da 3 a 40 città. Voglio tornare e applicarlo al cibo.</p>
+<dc-import name="UI Photo" ratio="16/9" dark="{{ true }}" play="{{ true }}" style="width:100%" hint-size="100%,320px"></dc-import>
+</div></div></div>
+
+<div id="29c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#29c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">29c</a>Profilo · mobile, CTA fissa</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column;position:relative">
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+<div style="position:relative;flex:none"><dc-import name="UI Photo" height="360" radius="0 0 32px 32px" style="width:100%" hint-size="100%,360px"></dc-import><span style="position:absolute;top:52px;left:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center">←</span><span style="position:absolute;top:52px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;letter-spacing:1px">···</span></div>
+<div style="padding:18px 20px;display:flex;flex-direction:column;gap:10px">
+<div><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div>
+<span style="font-family:'Unbounded',sans-serif;font-size:30px;font-weight:600;letter-spacing:-.05em;line-height:1">Giulia Ferri</span>
+<span style="font-size:15px;color:#6B6680">Head of Growth · 30–34</span>
+<span style="font-size:14px">Londra <span style="color:#6C4DF5">→</span> <b style="font-weight:600">Milano, Bologna</b></span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"><div style="padding:12px 14px;border-radius:18px;background:#FFFFFF;display:flex;flex-direction:column;gap:3px"><dc-import name="UI Eyebrow" text="Cerca" hint-size="50px,14px"></dc-import><span style="font-size:13px;font-weight:500">Prodotto, Tech</span></div><div style="padding:12px 14px;border-radius:18px;background:#EFEBFF;display:flex;flex-direction:column;gap:3px"><dc-import name="UI Eyebrow" text="Tu sei" tone="accent" hint-size="50px,14px"></dc-import><span style="font-size:13px;font-weight:500;color:#3E2BA8">Prodotto</span></div></div>
+<div style="margin-top:10px"><dc-import name="UI Eyebrow" text="Su di me" hint-size="70px,14px"></dc-import></div>
+<p style="margin:0;font-size:15px;line-height:1.55">Ho passato otto anni a Londra a far crescere prodotti di delivery, da 3 a 40 città…</p>
+</div></div>
+<div style="padding:12px 16px 30px;background:rgba(255,255,255,.85);border-top:1px solid #FFFFFF;display:grid;grid-template-columns:1fr 52px;gap:8px"><dc-import name="UI Button" label="Invia richiesta di connessione" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import><dc-import name="UI Button" label="↗" variant="secondary" size="lg" hint-size="52px,52px"></dc-import></div>
+</div></div>
+
+<div id="29d" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#29d" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">29d</a>Dopo l'accettazione · contatti sbloccati</div>
+<div style="width:420px;background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+<dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" hint-size="100%,44px"></dc-import>
+<dc-import name="UI Button" label="Apri chat" full="{{ true }}" hint-size="100%,44px"></dc-import>
+<div style="display:flex;flex-direction:column;font-size:14px;margin-top:8px"><sc-for list="{{ unlocked }}" as="u" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;padding:13px 0;border-top:{{ u.bt }}"><span style="color:#8C84AE">{{ u.k }}</span><span style="text-decoration:underline;color:#3E2BA8">{{ u.v }}</span></div></sc-for></div>
+<span style="font-size:12px;color:#8C84AE">Visibili solo perché avete accettato la connessione.</span>
+</div></div>
+
+<div id="30b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#30b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">30b</a>Mobile · sheet + conferma inviata</div>
+<div style="width:390px;height:844px;background:#9D96B8;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:52px;flex:none"></div>
+<div style="margin:0 14px;background:#1A1726;color:#FFFFFF;border-radius:999px;padding:12px 18px 12px 12px;display:flex;gap:10px;align-items:center;font-size:14px"><span style="width:24px;height:24px;border-radius:50%;background:#2FA36B;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span>Richiesta inviata a Marco<span style="margin-left:auto;color:#C9C0F0">Annulla</span></div>
+<span style="font-family:'Geist Mono',monospace;font-size:10px;color:#FFFFFF;text-align:center;padding:10px">↑ STATO DOPO L'INVIO</span>
+<div style="flex:1"></div>
+<div style="background:#FFFFFF;border-radius:32px 32px 0 0;padding:10px 20px 34px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:center"><span style="width:40px;height:5px;border-radius:3px;background:#DCD7EC"></span></div>
+<span style="font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.03em">Connettiti con Marco</span>
+<span style="font-size:14px;font-weight:500">Vuoi aggiungere una nota?</span>
+<dc-import name="UI Input" rows="3" placeholder="Scrivi un breve messaggio..." hint-size="100%,100px"></dc-import>
+<dc-import name="UI Button" label="Invia richiesta" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<dc-import name="UI Button" label="Annulla" variant="ghost" full="{{ true }}" hint-size="100%,44px"></dc-import>
+</div></div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const people = [
+      { name: 'Giulia Ferri', age: '30–34', role: 'Head of Growth · ex Deliveroo', from: 'Londra', to: 'Milano', idea: true, seeks: 'Prodotto, Tech', tags: 'Food · AI · Climate', time: 'Full-time', job: true, comp: 'Cerca Prodotto, il tuo background' },
+      { name: 'Marco Deiana', age: '35–39', role: 'Software Engineer · Zalando', from: 'Berlino', to: 'Milano, Cagliari', idea: false, seeks: 'Business / Sales', tags: 'Fintech · AI · Dev tools', time: 'Full-time', comp: 'Tu cerchi Tech / Engineering, Marco è Software Engineer' },
+      { name: 'Sara Bianchi', age: '25–29', role: 'ML Engineer · Booking.com', from: 'Amsterdam', to: 'Milano, Torino', idea: false, seeks: 'Prodotto', tags: 'AI · HealthTech', time: 'Part-time', job: true, comp: 'Cerca Prodotto, il tuo background' },
+      { name: 'Luca Maranzano', age: '40–44', role: 'Ex consulente · BCG', from: 'New York', to: 'Milano, Napoli', idea: true, seeks: 'Tech / Engineering', tags: 'AI · PropTech · Turismo', time: 'Full-time', comp: 'Ha scelto PropTech e Turismo, come te' },
+      { name: 'Elena Rossetti', age: '35–39', role: 'Ricercatrice · ETH Zurigo', from: 'Zurigo', to: 'Milano, Padova', idea: true, seeks: 'Business / Sales', tags: 'AI · Biotech', time: 'Da definire' },
+      { name: 'Tommaso Greco', age: '30–34', role: 'Backend Engineer · Monzo', from: 'Londra', to: 'Milano', idea: false, seeks: 'Prodotto', tags: 'Fintech · AI', time: 'Full-time', comp: 'Tu cerchi Tech / Engineering, Tommaso è Backend Engineer' }
+    ];
+    const facts = [['Età', '30–34'], ['Vive a', 'Londra, Regno Unito'], ['Tempo', 'Full-time · entro 6 mesi'], ['LinkedIn', 'giuliaferri ↗'], ['Instagram, X, calendario', '🔒 Dopo la connessione']]
+      .map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none', fg: i === 4 ? '#8C84AE' : '#1A1726' }));
+    const career = [
+      { y: '2019 – OGGI', r: 'Head of Growth', o: 'Deliveroo · Londra' },
+      { y: '2016 – 2019', r: 'Growth Manager', o: 'Just Eat · Londra' },
+      { y: '2014 – 2016', r: 'Analyst', o: 'Accenture · Milano' }
+    ];
+    const unlocked = [['LinkedIn', 'giuliaferri ↗'], ['Instagram', '@giuliaferri ↗'], ['X', '@gferri ↗'], ['Calendario', 'Prenota 30 min ↗']].map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
+    const cities = [['Palermo', '31 persone', false, true], ['Padova', '14 persone', true, false], ['Parma', '9 persone', false, false], ['Pavia', '3 persone', false, false]].map(([l, c, on, hl]) => ({ l, c, on, bg: hl ? '#F1EFF8' : 'transparent' }));
+    const results = [
+      { name: 'Marco Deiana', a: 'Software Engineer · interessi ', m1: 'Fintech', b: ', Dev tools', c: 'Berlino → ', m2: 'Bologna', d: ', Cagliari' },
+      { name: 'Chiara Venturi', a: 'Risk Analyst · Revolut · idea nel ', m1: 'fintech', b: '', c: 'Vive a ', m2: 'Bologna', d: '' },
+      { name: 'Pietro Sanna', a: 'Founder in exit · ', m1: 'Fintech', b: ', SaaS', c: 'Dublino → ', m2: 'Bologna', d: '' }
+    ];
+    return { people, first: people[0], rows: people.slice(0, 4), facts, career, unlocked, cities, results };
+  }
+}
+</script>
+</body>
+</html>

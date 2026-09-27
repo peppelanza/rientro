@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t6" data-screen-label="06-22 Onboarding" style="padding:56px 64px 48px;border-bottom:1px solid rgba(26,23,38,.08)">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t6" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">06–22</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Onboarding</span><span style="font-size:14px;color:#6B6680">16 passi in 5 capitoli. Una domanda per schermata, salvataggio automatico, sempre possibile tornare indietro.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="6a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#6a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">6a</a>Benvenuto</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 420px;padding:12px;box-sizing:border-box;gap:12px">
+<div style="padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between">
+<dc-import name="UI Logo" size="26" hint-size="100px,26px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:24px"><dc-import name="UI Eyebrow" text="Benvenuto, Alessandro" hint-size="160px,14px"></dc-import><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Costruiamo il profilo che <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:60px;letter-spacing:-.02em">ti presenta.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#4A4560;max-width:500px">Ti faremo 16 domande. Le risposte salvano da sole, puoi uscire e riprendere quando vuoi.</p>
+<div style="display:flex;gap:14px;align-items:center"><dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" hint-size="130px,52px"></dc-import><span style="font-size:14px;color:#6B6680">Circa 10 minuti</span></div></div>
+<span></span></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:center;gap:6px">
+<sc-for list="{{ chapters }}" as="c" hint-placeholder-count="5"><div style="display:flex;gap:16px;align-items:center;padding:14px;border-radius:18px;background:#F6F4FC"><span style="width:36px;height:36px;border-radius:50%;background:#EFEBFF;color:#3E2BA8;font-family:'Geist Mono',monospace;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">{{ c.n }}</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ c.t }}</span><span style="font-size:13px;color:#6B6680">{{ c.d }}</span></div></div></sc-for>
+</div></div></div>
+
+<div id="7a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#7a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">7a</a>Posizione attuale · estero selezionato</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="1" section="Luogo" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:56px 40px 0"><div style="width:640px;display:flex;flex-direction:column;gap:26px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivi attualmente?</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><dc-import name="UI Option Card" title="Vivo già in Italia" hint-size="100%,120px"></dc-import><dc-import name="UI Option Card" title="Vivo all'estero" selected="{{ true }}" hint-size="100%,120px"></dc-import></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Paese</span><dc-import name="UI Input" value="Svezia ▾" size="lg" hint-size="100%,52px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Città</span><dc-import name="UI Input" value="Stoccolma" focused="{{ true }}" size="lg" hint-size="100%,52px"></dc-import></div>
+</div>
+<span style="font-size:13px;color:#8C84AE">Se vivi in Italia, ti chiederemo il comune.</span>
+</div></div>
+<dc-import name="UI Step Footer" status="Salvato · 14:32" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="7b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#7b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">7b</a>Mobile · vivo in Italia, ricerca comune</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680"><span>LUOGO</span><span style="color:#1A1726">1 di 16</span></div><div style="height:6px;border-radius:3px;background:#DCD7EC"><div style="width:6%;height:6px;border-radius:3px;background:#6C4DF5"></div></div></div>
+<div style="padding:26px 20px 0;display:flex;flex-direction:column;gap:16px;flex:1">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivi attualmente?</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><dc-import name="UI Option Card" title="In Italia" selected="{{ true }}" control="none" size="sm" layout="row" hint-size="100%,56px"></dc-import><dc-import name="UI Option Card" title="All'estero" control="none" size="sm" layout="row" hint-size="100%,56px"></dc-import></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:6px;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(80,60,160,.12)">
+<dc-import name="UI Input" value="San Gio" search="{{ true }}" focused="{{ true }}" hint-size="100%,44px"></dc-import>
+<sc-for list="{{ comuni }}" as="c" hint-placeholder-count="5"><div style="padding:12px 14px;display:flex;justify-content:space-between;font-size:15px;border-radius:14px;background:{{ c.bg }}"><span><b style="font-weight:600">San Gio</b>{{ c.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ c.p }}</span></div></sc-for>
+</div>
+<div style="flex:1"></div></div>
+<div style="padding:12px 20px 34px;display:grid;grid-template-columns:52px 1fr;gap:10px"><dc-import name="UI Button" label="←" variant="glass" size="lg" hint-size="52px,52px"></dc-import><dc-import name="UI Button" label="Continua" variant="secondary" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+</div></div>
+
+<div id="8a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#8a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">8a</a>Dove vorresti vivere · multi-selezione su tutti i comuni</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="2" section="Luogo" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:52px 40px 0"><div style="width:640px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vorresti vivere in Italia?</h2><span style="font-size:16px;color:#6B6680">Puoi sceglierne più di uno. Cerca tra tutti i comuni italiani.</span></div>
+<div style="background:#FFFFFF;border-radius:26px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:4px">
+<div style="min-height:48px;border-radius:20px;border:1.5px solid #6C4DF5;box-shadow:0 0 0 4px rgba(108,77,245,.15);padding:6px;box-sizing:border-box;display:flex;flex-wrap:wrap;gap:6px;align-items:center"><dc-import name="UI Chip" label="Milano" tone="selected" size="sm" removable="{{ true }}" hint-size="90px,32px"></dc-import><dc-import name="UI Chip" label="Bologna" tone="selected" size="sm" removable="{{ true }}" hint-size="100px,32px"></dc-import><dc-import name="UI Chip" label="Catania" tone="selected" size="sm" removable="{{ true }}" hint-size="100px,32px"></dc-import><span style="font-size:15px;padding-left:6px">Lec|</span></div>
+<sc-for list="{{ lec }}" as="c" hint-placeholder-count="3"><div style="padding:11px 14px;border-radius:14px;background:{{ c.bg }};display:flex;justify-content:space-between;font-size:15px"><span><b style="font-weight:600">Lec</b>{{ c.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ c.p }}</span></div></sc-for>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:13px;color:#6B6680;margin-right:4px">Scelte frequenti</span><dc-import name="UI Chip" label="+ Roma" size="sm" hint-size="80px,32px"></dc-import><dc-import name="UI Chip" label="+ Torino" size="sm" hint-size="80px,32px"></dc-import><dc-import name="UI Chip" label="+ Napoli" size="sm" hint-size="80px,32px"></dc-import><dc-import name="UI Chip" label="+ Firenze" size="sm" hint-size="90px,32px"></dc-import></div>
+<div style="height:1px;background:#DCD7EC"></div>
+<dc-import name="UI Checkbox" label="Non lo so ancora" hint-size="100%,32px"></dc-import>
+</div></div>
+<dc-import name="UI Step Footer" status="3 selezionati" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="9a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#9a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">9a</a>Intento principale + opzione lavoro separata</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="3" section="Obiettivo" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:44px 40px 0"><div style="width:760px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Cosa stai cercando su Rientro?</h2><span style="font-size:16px;color:#6B6680">Scegline una. Potrai cambiarla in seguito.</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><dc-import name="UI Option Card" letter="A" size="lg" selected="{{ true }}" title="Ho già un'idea e cerco un co-founder" desc="Racconterai il progetto e le competenze che ti mancano." hint-size="100%,220px"></dc-import><dc-import name="UI Option Card" letter="B" size="lg" title="Non ho ancora un'idea e voglio trovare qualcuno con cui crearne una" desc="Racconterai cosa ti interessa e con chi vorresti lavorare." hint-size="100%,220px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><dc-import name="UI Eyebrow" text="In più, facoltativo" hint-size="130px,14px"></dc-import>
+<div style="display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:22px;border:1.5px dashed #B9B2D6"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #CFC8E8;box-sizing:border-box;background:#FFFFFF;flex:none"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#6B6680">Stai cercando anche un'opportunità di lavoro?</span><span style="font-size:16px;font-weight:500">Sto anche cercando lavoro in Italia per un'azienda italiana</span></div></div></div>
+</div></div>
+<dc-import name="UI Step Footer" status="Salvato · 14:34" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="10a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#10a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">10a</a>Opzione lavoro attivata · spiegazione inline</div>
+<div style="width:760px;background:#E9E6F5;border-radius:28px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+<dc-import name="UI Eyebrow" text="In più, facoltativo" hint-size="130px,14px"></dc-import>
+<div style="border-radius:24px;border:1.5px solid #6C4DF5;background:#FFFFFF;overflow:hidden">
+<div style="display:flex;gap:14px;align-items:center;padding:16px 18px"><span style="width:22px;height:22px;border-radius:7px;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">✓</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#6B6680">Stai cercando anche un'opportunità di lavoro?</span><span style="font-size:16px;font-weight:500">Sto anche cercando lavoro in Italia per un'azienda italiana</span></div></div>
+<div style="padding:16px 18px 18px 54px;background:#EFEBFF;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.55;color:#3E2BA8">
+<span>Sul tuo profilo comparirà “Sta anche cercando lavoro in Italia”. Questa scelta indica che sei interessato a opportunità da aziende italiane.</span>
+<span>Resta secondaria rispetto alla ricerca del co-founder. Puoi toglierla quando vuoi da <u>Impostazioni → Privacy</u>.</span>
+</div></div>
+</div></div>
+
+<div id="9b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#9b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">9b</a>Passo condizionale · la tua idea</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="4" section="Obiettivo" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:48px 40px 0"><div style="width:640px;display:flex;flex-direction:column;gap:20px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Raccontaci la tua idea</h2>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">In una frase</span><dc-import name="UI Input" value="Software per gestire gli affitti brevi nei borghi" size="lg" hint-size="100%,52px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Descrizione</span><dc-import name="UI Input" rows="4" value="I comuni sotto i 5.000 abitanti hanno case vuote e nessuno strumento per gestirle. Voglio costruire una piattaforma per proprietari e comuni…" hint-size="100%,124px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="UI Segmented" options="Solo un'idea,Validazione,Prototipo,Primi clienti,Ricavi" active="Validazione" hint-size="100%,40px"></dc-import></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="9c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#9c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">9c</a>Mobile · intento, pollice-friendly</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680"><span>OBIETTIVO</span><span style="color:#1A1726">3 di 16</span></div><div style="height:6px;border-radius:3px;background:#DCD7EC"><div style="width:18%;height:6px;border-radius:3px;background:#6C4DF5"></div></div></div>
+<div style="padding:26px 20px 0;display:flex;flex-direction:column;gap:10px;flex:1">
+<h2 style="margin:0 0 8px;font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Cosa stai cercando su Rientro?</h2>
+<dc-import name="UI Option Card" layout="row" size="sm" selected="{{ true }}" title="Ho già un'idea e cerco un co-founder" hint-size="100%,72px"></dc-import>
+<dc-import name="UI Option Card" layout="row" size="sm" title="Non ho ancora un'idea e voglio trovare qualcuno con cui crearne una" hint-size="100%,88px"></dc-import>
+<div style="flex:1"></div>
+<div style="padding:10px 0;border-top:1px solid #DCD7EC"><dc-import name="UI Checkbox" label="Sto anche cercando lavoro in Italia per un'azienda italiana" checked="{{ true }}" hint-size="100%,40px"></dc-import></div>
+</div>
+<div style="padding:12px 20px 34px;display:grid;grid-template-columns:52px 1fr;gap:10px"><dc-import name="UI Button" label="←" variant="glass" size="lg" hint-size="52px,52px"></dc-import><dc-import name="UI Button" label="Continua" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+</div></div>
+
+<div id="9d" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#9d" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">9d</a>Variante onboarding · anteprima profilo dal vivo</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 400px;padding:12px;box-sizing:border-box;gap:12px">
+<div style="display:flex;flex-direction:column">
+<div style="padding:16px 24px;display:flex;align-items:center;gap:14px"><dc-import name="UI Logo" size="24" hint-size="100px,24px"></dc-import><div style="flex:1"></div><span style="font-family:'Geist Mono',monospace;font-size:12px">03 / 16</span></div>
+<div style="flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:20px">
+<dc-import name="UI Eyebrow" text="Obiettivo" tone="accent" hint-size="80px,14px"></dc-import>
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:38px;line-height:1.05;font-weight:600;letter-spacing:-.055em">Cosa stai cercando su Rientro?</h2>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:18px;align-items:center;padding:20px 22px;border-radius:24px;background:#FFFFFF;border:1.5px solid #6C4DF5"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#6C4DF5;width:20px">A</span><span style="font-size:19px;font-weight:600;flex:1">Ho già un'idea e cerco un co-founder</span><span style="width:30px;height:30px;border-radius:50%;background:#6C4DF5;color:#FFFFFF;font-size:14px;display:flex;align-items:center;justify-content:center">✓</span></div>
+<div style="display:flex;gap:18px;align-items:center;padding:20px 22px;border-radius:24px;background:rgba(255,255,255,.6);color:#4A4560"><span style="font-family:'Geist Mono',monospace;font-size:12px;width:20px">B</span><span style="font-size:19px;flex:1">Non ho ancora un'idea e voglio trovare qualcuno con cui crearne una</span><span style="width:30px;height:30px;border-radius:50%;border:1.5px solid #CFC8E8;box-sizing:border-box"></span></div>
+</div>
+<dc-import name="UI Checkbox" label="Sto anche cercando lavoro in Italia per un'azienda italiana" hint-size="100%,32px"></dc-import>
+<div style="flex:1"></div>
+<span style="font-size:13px;color:#6B6680">Premi <span style="font-family:'Geist Mono',monospace;padding:2px 7px;background:#FFFFFF;border-radius:6px">A</span> o <span style="font-family:'Geist Mono',monospace;padding:2px 7px;background:#FFFFFF;border-radius:6px">B</span>, poi <span style="font-family:'Geist Mono',monospace;padding:2px 7px;background:#FFFFFF;border-radius:6px">Invio ↵</span></span>
+</div></div>
+<div style="background:#1A1726;border-radius:24px;padding:32px 28px;display:flex;flex-direction:column;gap:16px">
+<dc-import name="UI Eyebrow" text="Il tuo profilo, mentre lo scrivi" tone="light" hint-size="220px,14px"></dc-import>
+<div style="background:#FFFFFF;border-radius:24px;padding:8px;display:flex;flex-direction:column;gap:12px">
+<dc-import name="UI Photo" height="170" radius="18px" label="FOTO · AL PASSO 5" style="width:100%" hint-size="100%,170px"></dc-import>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:10px">
+<span style="font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em">Alessandro Ricci</span>
+<span style="font-size:13px;color:#6B6680">Stoccolma <span style="color:#6C4DF5">→</span> Milano, Bologna, Catania</span>
+<div style="border-radius:999px;box-shadow:0 0 0 4px rgba(108,77,245,.25);align-self:flex-start"><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div>
+<div style="height:10px;width:70%;border-radius:5px;background:#F1EFF8"></div><div style="height:10px;width:45%;border-radius:5px;background:#F1EFF8"></div>
+</div></div>
+<span style="font-size:13px;color:#B7B0D4;line-height:1.5">Ogni risposta aggiunge un pezzo al profilo che vedranno gli altri.</span>
+</div>
+</div></div>
+
+<div id="11a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#11a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">11a</a>Presentazione · foto obbligatoria</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="5" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:36px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:20px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Presentati</h2>
+<div style="display:grid;grid-template-columns:160px 1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:10px;align-items:center"><div style="width:148px;height:148px;border-radius:50%;border:2px dashed #D92D20;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:13px"><span style="font-size:22px;color:#6C4DF5">+</span><span style="font-weight:600">Carica foto</span></div><span style="font-size:12px;color:#B42318;text-align:center">Obbligatoria · si deve vedere il tuo volto</span></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Nome</span><dc-import name="UI Input" value="Alessandro" hint-size="100%,44px"></dc-import></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Cognome</span><dc-import name="UI Input" value="Ricci" hint-size="100%,44px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fascia d'età</span><dc-import name="UI Segmented" options="25–29,30–34,35–39,40–44,45–50+" active="35–39" hint-size="100%,40px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Su di me</span><dc-import name="UI Input" rows="3" value="Sono cresciuto a Bologna, vivo a Stoccolma da nove anni. Ho lanciato prodotti usati da milioni di persone e ora voglio farlo per qualcosa che sia mio." hint-size="100%,100px"></dc-import><div style="display:flex;justify-content:space-between;font-size:12px;color:#8C84AE"><span>Chi sei, cosa ti muove, perché ora</span><span style="font-family:'Geist Mono',monospace">162 / 600</span></div></div>
+</div></div>
+</div></div>
+<dc-import name="UI Step Footer" status="Aggiungi una foto per continuare" error="{{ true }}" disabled="{{ true }}" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="12a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#12a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">12a</a>Background professionale</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="6" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:44px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Qual è il tuo background?</h2><span style="font-size:16px;color:#6B6680">Scegli l'area principale. Serve agli altri per capire cosa porti.</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ areas }}" as="a" hint-placeholder-count="8"><dc-import name="UI Option Card" title="{{ a.t }}" selected="{{ a.on }}" control="none" size="sm" layout="row" hint-size="100%,64px"></dc-import></sc-for></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Ruolo attuale</span><dc-import name="UI Input" value="Senior Product Manager" hint="DA LINKEDIN" hint-size="100%,44px"></dc-import></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Anni di esperienza</span><dc-import name="UI Segmented" options="0–3,4–7,8–12,13+" active="8–12" hint-size="100%,40px"></dc-import></div></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="13a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#13a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">13a</a>Formazione</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="7" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:44px 40px 0"><div style="width:640px;display:flex;flex-direction:column;gap:18px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Formazione</h2>
+<div style="background:#FFFFFF;border-radius:24px;padding:4px 18px">
+<sc-for list="{{ edu }}" as="e" hint-placeholder-count="2"><div style="display:flex;gap:16px;padding:16px 0;align-items:flex-start;border-top:{{ e.bt }}"><div style="width:44px;height:44px;border-radius:14px;background:#EFEBFF;flex:none"></div><div style="display:flex;flex-direction:column;gap:3px;flex:1"><span style="font-weight:600">{{ e.s }}</span><span style="font-size:14px;color:#6B6680">{{ e.d }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ e.y }}</span></div><dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" hint-size="80px,36px"></dc-import></div></sc-for>
+</div>
+<dc-import name="UI Button" label="+ Aggiungi formazione" variant="outline" full="{{ true }}" hint-size="100%,44px"></dc-import>
+<span style="font-size:13px;color:#8C84AE">Importato da LinkedIn. Includi anche corsi e programmi, se contano per te.</span>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="14a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#14a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">14a</a>Esperienze lavorative · voce in modifica</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="8" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:36px 40px 0;overflow:hidden"><div style="width:640px;display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove hai lavorato</h2>
+<div style="display:flex;flex-direction:column;border-left:2px solid #DCD7EC;margin-left:6px;padding-left:22px;gap:14px">
+<div style="position:relative;background:#FFFFFF;border:1.5px solid #6C4DF5;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px"><span style="position:absolute;left:-31px;top:22px;width:14px;height:14px;border-radius:50%;background:#6C4DF5;border:3px solid #E9E6F5"></span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><dc-import name="UI Input" value="Spotify" hint-size="100%,44px"></dc-import><dc-import name="UI Input" value="Senior Product Manager" hint-size="100%,44px"></dc-import><dc-import name="UI Input" value="Mar 2019 ▾" hint-size="100%,44px"></dc-import><div style="height:44px;border-radius:999px;border:1px solid #E4E0F2;padding:0 14px;display:flex;align-items:center"><dc-import name="UI Checkbox" label="Lavoro qui" checked="{{ true }}" hint-size="100%,32px"></dc-import></div></div>
+<div style="display:flex;justify-content:flex-end;gap:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" size="sm" hint-size="80px,36px"></dc-import><dc-import name="UI Button" label="Salva" size="sm" hint-size="70px,36px"></dc-import></div></div>
+<sc-for list="{{ jobs }}" as="j" hint-placeholder-count="2"><div style="position:relative;display:flex;flex-direction:column;gap:2px"><span style="position:absolute;left:-29px;top:5px;width:10px;height:10px;border-radius:50%;background:#CFC8E8;border:2px solid #E9E6F5"></span><span style="font-weight:600">{{ j.t }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ j.m }}</span></div></sc-for>
+</div>
+<dc-import name="UI Button" label="+ Aggiungi esperienza" variant="outline" full="{{ true }}" hint-size="100%,44px"></dc-import>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="15a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#15a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">15a</a>Un risultato di cui vai fiero/a</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="9" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:48px 40px 0"><div style="width:680px;display:flex;flex-direction:column;gap:18px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Raccontaci un risultato di cui vai <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:42px;letter-spacing:-.02em">fiero/a.</span></h2>
+<span style="font-size:16px;color:#6B6680;line-height:1.5">Lavoro, sport, un progetto personale. Sii concreto: contesto, il tuo ruolo, cosa è cambiato.</span>
+<dc-import name="UI Input" rows="6" focused="{{ true }}" value="Ho guidato il lancio dei podcast in 12 nuovi mercati in otto mesi, con un team di sei persone distribuito su tre fusi orari." hint-size="100%,172px"></dc-import>
+<div style="display:flex;justify-content:space-between;font-size:12px;color:#8C84AE"><span>Facoltativo, ma è una delle sezioni che le persone leggono per prime.</span><span style="font-family:'Geist Mono',monospace">118 / 400</span></div>
+</div></div>
+<dc-import name="UI Step Footer" skip="Salta" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="16a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#16a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">16a</a>Video · caricamento in corso</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="10" section="Su di te" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:40px 40px 0"><div style="width:820px;display:grid;grid-template-columns:1fr 260px;gap:28px">
+<div style="display:flex;flex-direction:column;gap:16px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Un video di presentazione</h2><span style="font-size:16px;color:#6B6680">Chi guarda un video capisce in un minuto quello che un profilo spiega in dieci.</span>
+<div style="position:relative"><dc-import name="UI Photo" ratio="16/9" dark="{{ true }}" label="ANTEPRIMA VIDEO" radius="24px" style="width:100%" hint-size="100%,300px"></dc-import>
+<div style="position:absolute;left:18px;right:18px;bottom:16px;display:flex;flex-direction:column;gap:10px;color:#FFFFFF"><div style="display:flex;justify-content:space-between;font-size:13px"><span>presentazione_alessandro.mov</span><span style="font-family:'Geist Mono',monospace">62%</span></div><div style="height:6px;border-radius:3px;background:#3A3550"><div style="width:62%;height:6px;border-radius:3px;background:#C9C0F0"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#B7B0D4"><span>84 MB di 136 MB · 48 s</span><span style="text-decoration:underline">Annulla</span></div></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;padding:20px;margin-top:100px;background:#FFFFFF;border-radius:24px;align-self:start"><dc-import name="UI Eyebrow" text="Cosa dire" hint-size="70px,14px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45"><span>Chi sei e cosa hai fatto finora</span><span>Cosa vuoi costruire, o con chi</span><span>Perché l'Italia, perché adesso</span></div>
+<div style="height:1px;background:#ECE8F7"></div>
+<span style="font-size:13px;color:#8C84AE;line-height:1.5">60–120 secondi · MP4 o MOV · max 200 MB. Facoltativo.</span></div>
+</div></div>
+<dc-import name="UI Step Footer" skip="Lo aggiungo dopo" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="16b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#16b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">16b</a>Mobile · registra o carica</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680"><span>SU DI TE</span><span style="color:#1A1726">10 di 16</span></div><div style="height:6px;border-radius:3px;background:#DCD7EC"><div style="width:62%;height:6px;border-radius:3px;background:#6C4DF5"></div></div></div>
+<div style="padding:26px 20px 0;display:flex;flex-direction:column;gap:14px;flex:1">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Un video di presentazione</h2>
+<span style="font-size:15px;color:#6B6680">60–120 secondi. Chi sei, cosa vuoi costruire, perché l'Italia.</span>
+<div style="flex:1;display:flex;margin:8px 0"><dc-import name="UI Photo" dark="{{ true }}" label="FOTOCAMERA FRONTALE" radius="28px" style="width:100%;height:100%" hint-size="100%,100%"></dc-import></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><dc-import name="UI Button" label="● Registra" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import><dc-import name="UI Button" label="Dalla galleria" variant="light" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+<div style="padding:0 0 26px"><dc-import name="UI Button" label="Lo aggiungo dopo" variant="ghost" full="{{ true }}" hint-size="100%,44px"></dc-import></div>
+</div></div></div>
+
+<div id="17a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#17a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">17a</a>Settori e interessi</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="11" section="Cosa cerchi" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:44px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Quali settori ti interessano?</h2><span style="font-size:16px;color:#6B6680">Fino a 5.</span></div><span style="font-family:'Geist Mono',monospace;font-size:13px;padding:6px 12px;border-radius:999px;background:#EFEBFF;color:#3E2BA8">3 / 5</span></div>
+<dc-import name="UI Input" placeholder="Cerca un settore" search="{{ true }}" hint-size="100%,44px"></dc-import>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="s" hint-placeholder-count="16"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" hint-size="100px,40px"></dc-import></sc-for></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="18a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#18a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">18a</a>Chi stai cercando</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="12" section="Cosa cerchi" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:40px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:10px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Chi stai cercando?</h2><span style="font-size:16px;color:#6B6680">Le competenze che completerebbero le tue. Fino a 2.</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><dc-import name="UI Option Card" title="Tech / Engineering" selected="{{ true }}" control="check" size="sm" layout="row" hint-size="100%,64px"></dc-import><dc-import name="UI Option Card" title="Prodotto" desc="È il tuo background" disabled="{{ true }}" control="none" size="sm" layout="row" hint-size="100%,64px"></dc-import><dc-import name="UI Option Card" title="Design" control="check" size="sm" layout="row" hint-size="100%,64px"></dc-import><dc-import name="UI Option Card" title="Business / Sales" selected="{{ true }}" control="check" size="sm" layout="row" hint-size="100%,64px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Descrivi la persona che cerchi</span><dc-import name="UI Input" rows="3" value="Un CTO che abbia già costruito un marketplace e che non abbia paura di parlare con i sindaci." hint-size="100%,100px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Dove dovrebbe vivere?</span><div style="width:480px"><dc-import name="UI Segmented" options="Indifferente,Nella mia stessa città,In Italia" active="Indifferente" hint-size="100%,40px"></dc-import></div></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="19a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#19a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">19a</a>Tempo da dedicare</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="13" section="Cosa cerchi" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:48px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:22px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Quanto tempo vuoi dedicare?</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"><dc-import name="UI Option Card" title="Full-time" desc="È il mio progetto principale" selected="{{ true }}" hint-size="100%,150px"></dc-import><dc-import name="UI Option Card" title="Part-time" desc="Accanto al lavoro attuale" hint-size="100%,150px"></dc-import><dc-import name="UI Option Card" title="Da definire" desc="Dipende dal progetto" hint-size="100%,150px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando potresti iniziare?</span><div style="width:480px"><dc-import name="UI Segmented" options="Subito,Entro 6 mesi,Entro un anno,Più avanti" active="Entro 6 mesi" hint-size="100%,40px"></dc-import></div></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="20a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#20a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">20a</a>Cosa ti manca dell'Italia?</div>
+<div style="width:1100px;height:720px;background:#1A1726;color:#FFFFFF;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="14" section="Ultimi dettagli" dark="{{ true }}" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:64px 40px 0"><div style="width:720px;display:flex;flex-direction:column;gap:24px">
+<h2 style="margin:0;font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px;line-height:1;letter-spacing:-.02em">Cosa ti manca dell'Italia?</h2>
+<div style="border-radius:24px;background:#2A2638;padding:20px 24px;font-size:22px;line-height:1.45">Le cene che finiscono all'una senza che nessuno guardi l'orologio. E i portici di Bologna quando piove.<span style="display:inline-block;width:2px;height:24px;background:#C9C0F0;vertical-align:middle"></span></div>
+<span style="font-size:14px;color:#B7B0D4">Una riga o due. Comparirà sul tuo profilo.</span>
+</div></div>
+<dc-import name="UI Step Footer" dark="{{ true }}" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="21a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#21a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">21a</a>Link social e calendario · visibilità chiara</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="15" section="Ultimi dettagli" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:36px 40px 0"><div style="width:680px;display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove trovarti</h2>
+<dc-import name="UI Eyebrow" text="Visibile a tutti i membri" hint-size="170px,14px"></dc-import>
+<div style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center"><span style="font-size:14px;font-weight:500">LinkedIn</span><dc-import name="UI Input" value="linkedin.com/in/aricci" hint="✓" hint-size="100%,44px"></dc-import><span style="font-size:14px;font-weight:500">Sito</span><dc-import name="UI Input" placeholder="https://" hint-size="100%,44px"></dc-import></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><dc-import name="UI Eyebrow" text="Visibile solo alle tue connessioni" tone="accent" hint-size="220px,14px"></dc-import><span style="font-size:12px;color:#6B6680">🔒 Nascosto finché non accetti</span></div>
+<div style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;padding:16px;border-radius:24px;background:#EFEBFF"><span style="font-size:14px;font-weight:500">Instagram</span><dc-import name="UI Input" value="@ale.ricci" hint-size="100%,44px"></dc-import><span style="font-size:14px;font-weight:500">X / Twitter</span><dc-import name="UI Input" placeholder="@nome" hint-size="100%,44px"></dc-import><span style="font-size:14px;font-weight:500">Link calendario</span><dc-import name="UI Input" value="cal.com/aricci/30min" hint-size="100%,44px"></dc-import></div>
+</div></div>
+<dc-import name="UI Step Footer" hint-size="100%,80px"></dc-import>
+</div></div>
+
+<div id="22a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#22a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">22a</a>Come hai conosciuto Rientro · ultimo passo</div>
+<div style="width:1100px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<dc-import name="UI Onboarding Bar" step="16" section="Ultimi dettagli" hint-size="100%,80px"></dc-import>
+<div style="flex:1;display:flex;justify-content:center;padding:44px 40px 0"><div style="width:560px;display:flex;flex-direction:column;gap:18px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Come hai conosciuto Rientro?</h2>
+<div style="display:flex;flex-direction:column;gap:6px"><sc-for list="{{ sources }}" as="s" hint-placeholder-count="6"><dc-import name="UI Option Card" title="{{ s.t }}" selected="{{ s.on }}" size="sm" layout="row" hint-size="100%,56px"></dc-import></sc-for></div>
+</div></div>
+<dc-import name="UI Step Footer" primary="Vedi l'anteprima del profilo →" accent="{{ true }}" hint-size="100%,80px"></dc-import>
+</div></div>
+
+</div>
+</section>
+
+<section id="t23" data-screen-label="23-25 Anteprima e approvazione" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t23" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">23–25</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Anteprima, invio, approvazione</span><span style="font-size:14px;color:#6B6680">Il profilo non va online finché non lo rivediamo.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="23a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#23a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">23a</a>Anteprima profilo · desktop</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="margin:18px 24px 0;border-radius:999px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light" hint-size="80px,14px"></dc-import><span>Così ti vedranno gli altri membri. Instagram, X e calendario restano nascosti fino all'accettazione.</span><div style="flex:1"></div><span style="color:#C9C0F0">Torna alle domande</span><dc-import name="UI Button" label="Invia per la revisione" variant="light" size="sm" hint-size="190px,36px"></dc-import></div>
+<div style="padding:40px 56px 56px;display:grid;grid-template-columns:340px 1fr;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<dc-import name="UI Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" style="width:100%" hint-size="100%,425px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.045em">Alessandro Ricci</span><span style="font-size:15px;color:#6B6680">Senior Product Manager · Spotify</span></div>
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:22px;padding:4px 18px;font-size:14px"><sc-for list="{{ pvFacts }}" as="f" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:{{ f.bt }}"><span style="color:#8C84AE">{{ f.k }}</span><span style="text-align:right">{{ f.v }}</span></div></sc-for></div>
+</div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px 32px 28px;display:flex;flex-direction:column;align-self:start">
+<div style="display:flex;flex-direction:column;gap:10px;padding:24px 0;border-bottom:1px solid #ECE8F7"><div style="display:flex;justify-content:space-between"><dc-import name="UI Eyebrow" text="Su di me" hint-size="70px,14px"></dc-import><span style="font-size:13px;color:#6B6680;text-decoration:underline">Modifica</span></div><p style="margin:0;font-size:20px;line-height:1.5;text-wrap:pretty">Sono cresciuto a Bologna, vivo a Stoccolma da nove anni. Ho lanciato prodotti usati da milioni di persone e ora voglio farlo per qualcosa che sia mio.</p></div>
+<div style="display:flex;flex-direction:column;gap:12px;padding:24px 0;border-bottom:1px solid #ECE8F7"><div style="display:flex;justify-content:space-between"><dc-import name="UI Eyebrow" text="Quello che sto costruendo" tone="accent" hint-size="180px,14px"></dc-import><span style="font-size:13px;color:#6B6680;text-decoration:underline">Modifica</span></div><span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:500;letter-spacing:-.03em">Software per gestire gli affitti brevi nei borghi</span><span style="font-size:15px;line-height:1.55;color:#4A4560">I comuni sotto i 5.000 abitanti hanno case vuote e nessuno strumento per gestirle…</span><div><dc-import name="UI Badge" kind="neutral" label="Fase: validazione" hint-size="130px,28px"></dc-import></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:24px 0">
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Eyebrow" text="Chi sto cercando" hint-size="120px,14px"></dc-import><span style="font-size:16px;font-weight:600">Tech / Engineering, Business / Sales</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Eyebrow" text="Tempo" hint-size="50px,14px"></dc-import><span style="font-size:16px;font-weight:600">Full-time · entro 6 mesi</span></div>
+</div>
+<div style="display:flex;gap:12px;align-items:center;padding:16px 20px;border-radius:20px;background:#FFF4DC;font-size:14px;color:#7A4E00"><span style="width:8px;height:8px;border-radius:50%;background:#D49A1A"></span><span><b style="font-weight:600">Manca il video.</b> Non è obbligatorio, ma aiuta chi legge.</span><span style="margin-left:auto;text-decoration:underline">Aggiungi</span></div>
+</div></div>
+</div></div>
+
+<div id="23b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#23b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">23b</a>Anteprima · mobile</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:8px 20px 12px;display:flex;justify-content:space-between;align-items:center;flex:none"><span style="font-size:18px">←</span><dc-import name="UI Eyebrow" text="Anteprima" tone="accent" hint-size="80px,14px"></dc-import><span style="font-size:14px;color:#6B6680">Modifica</span></div>
+<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:0 12px">
+<dc-import name="UI Photo" height="290" radius="28px" style="width:100%" hint-size="100%,290px"></dc-import>
+<div style="padding:18px 8px;display:flex;flex-direction:column;gap:10px"><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.045em">Alessandro Ricci</span><span style="font-size:14px;color:#6B6680">Senior Product Manager · 35–39</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#4A4560">STOCCOLMA <span style="color:#6C4DF5">→</span> MILANO, BOLOGNA, CATANIA</span><div><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div><p style="margin:6px 0 0;font-size:15px;line-height:1.5">Sono cresciuto a Bologna, vivo a Stoccolma da nove anni…</p></div>
+</div>
+<div style="padding:12px 20px 34px;flex:none"><dc-import name="UI Button" label="Invia per la revisione" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+</div></div>
+
+<div id="24a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#24a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">24a</a>Profilo inviato · in revisione</div>
+<div style="width:1100px;height:680px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:flex;flex-direction:column">
+<div style="padding:18px 24px 0"><div style="height:60px;padding:0 8px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;display:flex;align-items:center"><dc-import name="UI Logo" size="26" hint-size="100px,26px"></dc-import><div style="flex:1"></div><div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">AR</div></div></div>
+<div style="flex:1;display:grid;grid-template-columns:1fr 360px;gap:48px;padding:56px 64px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<span style="height:28px;align-self:flex-start;padding:0 12px;border-radius:999px;background:#FFF4DC;color:#7A4E00;font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>In revisione</span>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:46px;line-height:1.05;font-weight:600;letter-spacing:-.055em">Il tuo profilo è in revisione.</h1>
+<p style="margin:0;font-size:19px;line-height:1.5;color:#4A4560;max-width:520px">Ti avviseremo quando sarà online. Di solito ci vogliono meno di 48 ore.</p>
+<div style="display:flex;flex-direction:column;margin-top:12px;max-width:480px;background:#FFFFFF;border-radius:24px;padding:4px 20px">
+<div style="display:flex;gap:14px;align-items:center;padding:14px 0"><span style="width:24px;height:24px;border-radius:50%;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span><span style="font-size:15px">Profilo inviato</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">OGGI 14:41</span></div>
+<div style="display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid #ECE8F7"><span style="width:24px;height:24px;border-radius:50%;border:2px solid #D49A1A;box-sizing:border-box;background:#FFF4DC"></span><span style="font-size:15px;font-weight:600">Revisione di una persona del team</span></div>
+<div style="display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid #ECE8F7;color:#8C84AE"><span style="width:24px;height:24px;border-radius:50%;border:1.5px solid #DCD7EC;box-sizing:border-box"></span><span style="font-size:15px">Online e visibile ai membri</span></div>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:40px"><dc-import name="UI Eyebrow" text="Nel frattempo" hint-size="100px,14px"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 30px rgba(80,60,160,.08)"><span style="font-weight:600">Aggiungi il video</span><span style="font-size:14px;color:#6B6680">Puoi farlo anche durante la revisione.</span></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:6px;box-shadow:0 10px 30px rgba(80,60,160,.08)"><span style="font-weight:600">Rivedi il profilo</span><span style="font-size:14px;color:#6B6680">Le modifiche non ritardano la revisione.</span></div>
+</div></div></div></div>
+
+<div id="24b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#24b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">24b</a>Stato · modifiche richieste</div>
+<div style="width:560px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<div><dc-import name="UI Badge" kind="neutral" label="Modifiche richieste" hint-size="150px,28px"></dc-import></div>
+<span style="font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.15;font-weight:600;letter-spacing:-.045em">Manca poco. Ci serve una piccola modifica.</span>
+<div style="border-radius:22px;background:#EFEBFF;padding:16px 18px;font-size:15px;line-height:1.55;color:#3E2BA8">“Aggiungi una foto in cui si veda bene il tuo volto. Quella attuale è di spalle.”<div style="font-size:13px;color:#6B6680;margin-top:6px">Chiara, team Rientro</div></div>
+<dc-import name="UI Button" label="Cambia foto e reinvia" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+</div></div>
+
+<div id="25a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#25a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">25a</a>Profilo approvato</div>
+<div style="width:1100px;height:680px;background:radial-gradient(circle at 20% 90%,#3A2F7A,transparent 50%),#1A1726;color:#FFFFFF;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr">
+<div style="padding:56px;display:flex;flex-direction:column;justify-content:space-between">
+<dc-import name="UI Logo" size="26" tone="light" hint-size="100px,26px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:22px"><div><dc-import name="UI Badge" kind="success" label="Approvato" hint-size="110px,28px"></dc-import></div><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:54px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Sei online, <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#C9C0F0;font-size:62px;letter-spacing:-.02em">Alessandro.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#C9C0F0;max-width:420px">Da ora gli altri membri possono vedere il tuo profilo, e tu puoi scoprire il loro.</p><div><dc-import name="UI Button" label="Scopri persone →" variant="light" size="lg" hint-size="170px,52px"></dc-import></div></div>
+<span></span></div>
+<div style="padding:56px 56px 56px 0;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<div style="margin-bottom:6px"><dc-import name="UI Eyebrow" text="Cercano Tech o Business e vogliono vivere a Milano o Bologna" tone="light" hint-size="400px,14px"></dc-import></div>
+<sc-for list="{{ suggested }}" as="s" hint-placeholder-count="3"><div style="display:flex;gap:14px;align-items:center;padding:12px;border-radius:24px;background:#2A2638"><dc-import name="UI Photo" size="48" dark="{{ true }}" hint-size="48px,48px"></dc-import><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ s.n }}</span><span style="font-size:13px;color:#B7B0D4">{{ s.d }}</span></div></div></sc-for>
+</div></div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const chapters = [['01', 'Luogo', 'Dove sei, dove vuoi andare'], ['02', 'Obiettivo', "Hai un'idea o la cerchi insieme"], ['03', 'Su di te', 'Percorso, formazione, un video'], ['04', 'Cosa cerchi', 'Settori, persone, tempo'], ['05', 'Ultimi dettagli', "Link e un pensiero sull'Italia"]].map(([n, t, d]) => ({ n, t, d }));
+    const comuni = [['vanni in Persiceto', 'BO'], ['vanni Rotondo', 'FG'], ['vanni Valdarno', 'AR'], ['rgio a Cremano', 'NA'], ['rgio Canavese', 'TO']].map(([rest, p], i) => ({ rest, p, bg: i ? 'transparent' : '#F1EFF8' }));
+    const lec = [['ce', 'LE · PUGLIA'], ['co', 'LC · LOMBARDIA'], ['ce nei Marsi', 'AQ · ABRUZZO']].map(([rest, p], i) => ({ rest, p, bg: i ? 'transparent' : '#F1EFF8' }));
+    const areas = ['Tech / Engineering', 'Prodotto', 'Design', 'Business / Sales', 'Marketing / Growth', 'Operations', 'Finanza', 'Ricerca / Scienza'].map(t => ({ t, on: t === 'Prodotto' }));
+    const edu = [['Politecnico di Milano', 'Laurea magistrale, Ingegneria gestionale', '2010 – 2013'], ['KTH Royal Institute of Technology', 'Erasmus, Human-Computer Interaction', '2012']].map(([s, d, y], i) => ({ s, d, y, bt: i ? '1px solid #ECE8F7' : 'none' }));
+    const jobs = [{ t: 'Product Manager · Klarna', m: '2016 – 2019 · STOCCOLMA' }, { t: 'Associate · Bain & Company', m: '2013 – 2016 · MILANO' }];
+    const on = ['AI', 'PropTech', 'Turismo'];
+    const sectors = ['AI', 'SaaS', 'PropTech', 'Fintech', 'Climate', 'Turismo', 'Food & Agritech', 'HealthTech', 'Education', 'Dev tools', 'Moda & Design', 'Manifattura', 'Mobilità', 'Media', 'Impact / Non profit', 'Hardware'].map(l => ({ l: on.includes(l) ? '✓ ' + l : l, tone: on.includes(l) ? 'tint' : 'default' }));
+    const sources = ['Passaparola, un amico o collega', 'LinkedIn', 'Instagram', 'Articolo, podcast o newsletter', 'Un evento', 'Altro'].map((t, i) => ({ t, on: i === 0 }));
+    const pvFacts = [['Età', '35–39'], ['Vive a', 'Stoccolma, Svezia'], ['Vuole vivere a', 'Milano, Bologna, Catania'], ['LinkedIn', 'aricci ↗']].map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
+    const suggested = [{ n: 'Marco Deiana', d: 'Software Engineer · Berlino → Bologna' }, { n: 'Francesca Lai', d: 'Sales lead · Vive a Milano' }, { n: 'Tommaso Greco', d: 'Backend Engineer · Londra → Milano' }];
+    return { chapters, comuni, lec, areas, edu, jobs, sectors, sources, pvFacts, suggested };
+  }
+}
+</script>
+</body>
+</html>

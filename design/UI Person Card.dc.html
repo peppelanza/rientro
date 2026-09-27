@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
+<dc-import name="UI Photo" ratio="{{ ratio }}" label="FOTO PROFILO" badge="{{ badge }}" badge-kind="{{ badgeKind }}" style="width:100%" hint-size="100%,220px"></dc-import>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1">
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em">{{ p.name }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
+<div style="display:flex;align-items:center;gap:8px;font-size:14px"><span style="color:#6B6680">Vive a {{ p.from }}</span><span style="color:#6C4DF5">→</span><span style="font-weight:500">{{ p.to }}</span></div>
+<div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
+<sc-if value="{{ hasComp }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
+<sc-if value="{{ job }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6B6680">Sta anche cercando lavoro in Italia</span></sc-if>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}" hint-size="100%,44px"></dc-import>
+<dc-import name="UI Button" label="Connettiti" variant="primary" full="{{ true }}" hint-size="100%,44px"></dc-import>
+</div>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:640},&quot;person&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{name,age,role,from,to,idea,seeks,tags,time,comp,job}&quot;},&quot;ratio&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;5/4&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;compact&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props.person ?? { name: 'Giulia Ferri', age: '30–34', role: 'Head of Growth · ex Deliveroo', from: 'Londra', to: 'Milano', idea: true, seeks: 'Prodotto, Tech', tags: 'Food · AI · Climate', time: 'Full-time', job: true, comp: 'Cerca Prodotto, il tuo background' };
+    return {
+      p, ratio: this.props.ratio ?? '5/4',
+      badge: p.idea ? "Ha già un'idea" : "Cerca un'idea insieme", badgeKind: p.idea ? 'idea' : 'explore',
+      hasComp: !!p.comp, job: !!p.job,
+      secondaryLabel: this.props.compact ? 'Profilo' : 'Scopri il profilo'
+    };
+  }
+}
+</script>
+</body>
+</html>

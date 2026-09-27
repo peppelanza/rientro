@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#E9E6F5;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-decoration:none}a:hover{color:#6C4DF5}</style>
+</helmet>
+<div style="max-width:1100px;margin:0 auto;padding:64px 32px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<dc-import name="UI Logo" size="36" hint-size="140px,36px"></dc-import>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(36px,5.5vw,64px);line-height:1;font-weight:600;letter-spacing:-.055em">Concept UI <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;letter-spacing:-.02em">v2 · Soft chrome.</span></h1>
+<p style="margin:0;font-size:17px;line-height:1.55;color:#4A4560;max-width:640px;text-wrap:pretty">50 schermate, desktop e mobile, costruite con i componenti UI condivisi. Ogni schermata ha un codice (es. 26a) che puoi citare in chat. Le foto sono segnaposto.</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="7">
+<a href="{{ f.href }}" style="background:#FFFFFF;border-radius:28px;padding:26px;display:flex;flex-direction:column;gap:10px;min-height:150px;box-sizing:border-box;box-shadow:0 10px 30px rgba(80,60,160,.08)"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#6C4DF5">{{ f.n }}</span><span style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">{{ f.t }}</span><span style="font-size:14px;color:#6B6680;line-height:1.5">{{ f.d }}</span></a>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const files = [
+      ['00', 'Sistema di design', 'Colori, tipografia, componenti UI e architettura', 'Rientro 00 Sistema v2.dc.html'],
+      ['01–05', 'Landing e accesso', 'Landing, 3 varianti hero, LinkedIn, Google, email', 'Rientro 01 Landing e Accesso v2.dc.html'],
+      ['06–25', 'Onboarding e approvazione', '16 passi, variante con anteprima dal vivo, revisione', 'Rientro 02 Onboarding v2.dc.html'],
+      ['26–30', 'Scopri persone e profilo', 'Filtri, ricerca, 3 card, 2 layout profilo, richiesta', 'Rientro 03 Scopri e Profilo v2.dc.html'],
+      ['31–36', 'Connessioni, chat, notifiche', 'Richieste, accettazione, inbox, notifiche', 'Rientro 04 Connessioni e Chat v2.dc.html'],
+      ['37–43', 'Account e privacy', 'Modifica profilo, impostazioni, GDPR, segnalazioni', 'Rientro 05 Account e Privacy v2.dc.html'],
+      ['44–50', 'Admin', 'Dashboard, utenti, approvazioni, analytics, CSV', 'Rientro 06 Admin v2.dc.html'],
+      ['01', 'Landing pre-lancio', 'Iscrizioni aperte, senza persone · lancio 1° gennaio 2027', 'Rientro 01 Landing Pre-lancio v2.dc.html'],
+      ['51', 'Landing territori', 'Template per regioni e città · top 10 + top 10', 'Rientro 07 Landing Territori v2.dc.html'],
+      ['52', 'Rientro dei cervelli', 'Pagina SEO · guida al regime impatriati 2027', 'Rientro 08 Rientro dei Cervelli v2.dc.html']
+    ].map(([n, t, d, href]) => ({ n, t, d, href }));
+    return { files };
+  }
+}
+</script>
+</body>
+</html>

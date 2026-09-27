@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="height:100%;box-sizing:border-box;background:#FFFFFF;border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;font-family:'Geist',sans-serif;color:#1A1726">
+<span style="font-size:12px;color:#6B6680">{{ label }}</span>
+<span style="font-family:'Unbounded',sans-serif;font-size:{{ fs }}px;font-weight:600;letter-spacing:-.04em;line-height:1">{{ value }}</span>
+<sc-if value="{{ hasDelta }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:{{ dc }}">{{ delta }}</span></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:200,&quot;height&quot;:110},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Utenti&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;1.284&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;delta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+312&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;positive&quot;,&quot;neutral&quot;],&quot;default&quot;:&quot;positive&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return { label: p.label ?? 'Utenti', value: p.value ?? '1.284', delta: p.delta, hasDelta: !!p.delta, dc: p.tone === 'neutral' ? '#6B6680' : '#1F7A4F', fs: p.size === 'lg' ? 30 : 22 };
+  }
+}
+</script>
+</body>
+</html>

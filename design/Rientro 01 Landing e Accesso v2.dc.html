@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t1" data-screen-label="01 Landing" style="padding:56px 64px 48px;border-bottom:1px solid rgba(26,23,38,.08)">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t1" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">01</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Landing page</span><span style="font-size:14px;color:#6B6680">Il co-founder è la promessa; il lavoro è un'opportunità in più, in basso.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="1a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1a</a>Desktop · hero A tipografico (direzione principale)</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
+<dc-import name="UI Logo" size="28" hint-size="110px,28px"></dc-import>
+<div style="display:flex;gap:26px;color:#6B6680"><span>Come funziona</span><span>Per chi è</span><a href="Rientro 08 Rientro dei Cervelli v2.dc.html" style="color:#6B6680;text-decoration:none">Rientro dei cervelli</a><span>Domande</span></div>
+<div style="flex:1"></div><span>Accedi</span>
+<dc-import name="UI Button" label="Entra in Rientro" hint-size="150px,44px"></dc-import>
+</div></div>
+<div style="padding:96px 56px 72px;display:flex;flex-direction:column;gap:36px">
+<dc-import name="UI Eyebrow" text="Per chi torna, chi arriva, chi ci sta pensando" hint-size="340px,14px"></dc-import>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:112px;line-height:.95;font-weight:600;letter-spacing:-.065em;max-width:1140px">Non tornare in Italia <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:128px">da solo.</span></h1>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+<p style="margin:0;font-size:24px;line-height:1.35;letter-spacing:-.01em;max-width:520px;color:#4A4560;text-wrap:pretty">Trova le persone con cui costruire qualcosa in Italia. Un co-founder, un progetto, una ragione in più per tornare.</p>
+<div style="display:flex;gap:10px"><dc-import name="UI Button" label="Entra in Rientro →" variant="accent" size="lg" hint-size="190px,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" hint-size="210px,52px"></dc-import></div>
+</div></div>
+<div style="padding:0 56px 88px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+<sc-for list="{{ heroPeople }}" as="h" hint-placeholder-count="4">
+<div style="margin-top:{{ h.mt }};background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:12px">
+<dc-import name="UI Photo" ratio="4/3" label="FOTO PROFILO" style="width:100%" hint-size="100%,200px"></dc-import>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:15px;letter-spacing:-.03em">{{ h.n }}</span><span style="font-size:13px;color:#6B6680">{{ h.r }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#4A4560;margin-top:6px">{{ h.a }} <span style="color:#6C4DF5">→</span> {{ h.b }}</span></div>
+</div>
+</sc-for>
+</div>
+<div style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
+<dc-import name="UI Eyebrow" text="Cos'è Rientro" hint-size="110px,14px"></dc-import>
+<p style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Un luogo dove chi torna in Italia, o ci arriva per la prima volta, incontra persone ambiziose con cui fondare un'azienda o un progetto. <span style="color:#8C84AE">Profili veri, rivisti uno a uno. Gratuito.</span></p>
+</div>
+<div style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:0 16px">
+<dc-import name="UI Eyebrow" text="Per chi è" hint-size="80px,14px"></dc-import>
+<sc-for list="{{ forWho }}" as="f" hint-placeholder-count="3">
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px"><span style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</span><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div>
+</sc-for>
+</div>
+<div style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2><span style="font-size:15px;color:#C9C0F0">Circa 10 minuti per il profilo.</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+<div style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></div>
+</sc-for>
+</div></div>
+<div style="padding:88px 56px;display:grid;grid-template-columns:280px 1fr 1fr;gap:16px">
+<dc-import name="UI Eyebrow" text="Due modi di iniziare" hint-size="150px,14px"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore" hint-size="160px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma sai con chi vorresti lavorare.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span></div>
+<span></span>
+<div style="grid-column:span 2;display:flex;gap:14px;align-items:center;padding:18px 22px;border-radius:22px;background:#EFEBFF;font-size:15px;color:#3E2BA8"><span style="width:22px;height:22px;border-radius:7px;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">✓</span><span><b style="font-weight:600">In più:</b> se stai anche cercando lavoro in un'azienda italiana, puoi indicarlo nel profilo.</span></div>
+</div>
+<div style="padding:0 56px 88px;display:grid;grid-template-columns:280px repeat(4,1fr);gap:24px">
+<dc-import name="UI Eyebrow" text="Principi" hint-size="70px,14px"></dc-import>
+<sc-for list="{{ principles }}" as="p" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:#6C4DF5"></span><span style="font-size:17px;font-weight:600">{{ p.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ p.d }}</span></div></sc-for>
+</div>
+<div style="margin:0 24px 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:720px">Trova qualcuno con cui <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">costruire.</span></h2>
+<dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" hint-size="170px,52px"></dc-import>
+</div>
+<div style="padding:8px 56px 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center"><span>© 2026 Rientro · rientro.it</span><div style="flex:1"></div><span>Privacy Policy</span><span>Termini</span><span>Cookie Policy</span><span>Contatti</span></div>
+</div></div>
+
+<div id="1b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1b</a>Mobile</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="height:52px;display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex:none"><dc-import name="UI Logo" size="25" hint-size="100px,25px"></dc-import><span style="font-size:14px;font-weight:500">Accedi</span></div>
+<div style="padding:36px 20px 0;display:flex;flex-direction:column;gap:22px;flex:1">
+<dc-import name="UI Eyebrow" text="Per chi torna, chi arriva, chi ci pensa" hint-size="280px,14px"></dc-import>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:46px;line-height:.98;font-weight:600;letter-spacing:-.06em">Non tornare in Italia <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:54px;letter-spacing:-.02em">da solo.</span></h1>
+<p style="margin:0;font-size:18px;line-height:1.4;color:#4A4560">Trova le persone con cui costruire qualcosa in Italia.</p>
+<div style="display:flex;gap:10px;overflow:hidden;margin:6px -20px 0;padding:0 20px">
+<sc-for list="{{ heroPeople }}" as="h" hint-placeholder-count="3"><div style="flex:none;width:150px;background:#FFFFFF;border-radius:22px;padding:6px;display:flex;flex-direction:column;gap:8px"><dc-import name="UI Photo" height="110" radius="16px" label="" style="width:100%" hint-size="100%,110px"></dc-import><div style="padding:0 6px 6px;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:14px">{{ h.first }}</span><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#6B6680">{{ h.a }} → {{ h.b }}</span></div></div></sc-for>
+</div>
+<div style="flex:1"></div>
+</div>
+<div style="padding:16px 20px 34px;display:flex;flex-direction:column;gap:8px;flex:none"><dc-import name="UI Button" label="Entra in Rientro" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona ↓" variant="ghost" full="{{ true }}" hint-size="100%,44px"></dc-import></div>
+</div></div>
+
+<div id="1c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1c</a>Variante hero B · ritratti a mosaico</div>
+<div style="width:1280px;height:720px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr">
+<div style="padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between">
+<dc-import name="UI Logo" size="28" hint-size="110px,28px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:28px">
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:66px;line-height:1;font-weight:600;letter-spacing:-.06em">Non tornare in Italia da solo.</h1>
+<p style="margin:0;font-size:20px;line-height:1.4;color:#4A4560;max-width:440px">Trova le persone con cui costruire qualcosa in Italia.</p>
+<div style="display:flex;gap:10px"><dc-import name="UI Button" label="Entra in Rientro" variant="accent" size="lg" hint-size="170px,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" hint-size="210px,52px"></dc-import></div>
+</div>
+<span style="font-size:13px;color:#6B6680">Gratuito · Profili rivisti uno a uno</span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1.3fr 1fr;gap:8px;padding:12px">
+<div style="grid-row:span 2;position:relative;display:flex"><dc-import name="UI Photo" radius="24px" label="" style="width:100%;height:100%" hint-size="100%,100%"></dc-import><div style="position:absolute;left:14px;bottom:14px;right:14px;background:rgba(255,255,255,.9);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:14px">Elena · Biotech</span><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#6B6680">ZURIGO → PADOVA · HA GIÀ UN'IDEA</span></div></div>
+<dc-import name="UI Photo" radius="24px" label="FOTO · MARCO" style="width:100%;height:100%" hint-size="100%,100%"></dc-import>
+<dc-import name="UI Photo" radius="24px" label="FOTO · SARA" style="width:100%;height:100%" hint-size="100%,100%"></dc-import>
+</div>
+</div></div>
+
+<div id="1d" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1d" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1d</a>Variante hero C · tabellone “Arrivi”</div>
+<div style="width:1280px;height:720px;background:#1A1726;color:#FFFFFF;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 560px">
+<div style="padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between">
+<dc-import name="UI Logo" size="28" tone="light" hint-size="110px,28px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:28px">
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:72px;line-height:.98;font-weight:600;letter-spacing:-.06em">Non tornare in Italia <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#C9C0F0;font-size:84px;letter-spacing:-.02em">da solo.</span></h1>
+<p style="margin:0;font-size:20px;line-height:1.4;color:#C9C0F0;max-width:460px">Trova le persone con cui costruire qualcosa in Italia.</p>
+<div style="display:flex;gap:10px"><dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" hint-size="170px,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="onDark" size="lg" hint-size="210px,52px"></dc-import></div>
+</div><span></span></div>
+<div style="margin:40px 40px 40px 0;border-radius:28px;background:#2A2638;padding:28px 32px;display:flex;flex-direction:column;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">
+<div style="display:grid;grid-template-columns:1.2fr 20px 1fr 1.2fr;gap:12px;padding:0 0 12px;color:#8C84AE;font-size:11px;letter-spacing:.08em;border-bottom:1px solid #3A3550"><span>DA</span><span></span><span>A</span><span>CERCA</span></div>
+<sc-for list="{{ board }}" as="b" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:1.2fr 20px 1fr 1.2fr;gap:12px;padding:16px 0;border-bottom:{{ b.bb }};color:{{ b.fg }}"><span>{{ b.a }}</span><span style="color:{{ b.ac }}">{{ b.arrow }}</span><span>{{ b.b }}</span><span style="color:{{ b.sc }}">{{ b.c }}</span></div></sc-for>
+</div>
+</div></div>
+
+</div>
+</section>
+
+<section id="t2" data-screen-label="02-05 Accesso" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t2" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">02–05</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Registrazione e autenticazione</span><span style="font-size:14px;color:#6B6680">LinkedIn consigliato perché compila il profilo, senza oscurare le alternative.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="2a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#2a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">2a</a>Registrazione · desktop</div>
+<div style="width:1280px;height:800px;background:#E9E6F5;border-radius:28px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;padding:12px;box-sizing:border-box;gap:12px">
+<div style="border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between">
+<dc-import name="UI Logo" size="28" tone="light" hint-size="110px,28px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:20px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.055em">Il tuo profilo è la tua presentazione.</span><span style="font-size:16px;line-height:1.5;color:#E6E0FF;max-width:420px">Chi lo legge deve capire in un minuto chi sei, da dove vieni e cosa vuoi costruire.</span></div>
+<div style="display:flex;gap:8px;font-size:13px"><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Gratuito</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Rivisto a mano</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Nessun messaggio senza consenso</span></div>
+</div>
+<div style="display:flex;align-items:center;justify-content:center;padding:48px">
+<div style="width:400px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;font-weight:600;letter-spacing:-.05em">Entra in Rientro</h1><span style="font-size:15px;color:#6B6680">Crea il tuo profilo. Ci vogliono circa 10 minuti.</span></div>
+<div style="border-radius:26px;padding:6px;background:#FFFFFF;box-shadow:0 14px 40px rgba(80,60,160,.14);display:flex;flex-direction:column">
+<dc-import name="UI Button" label="in  Continua con LinkedIn" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<div style="padding:10px 12px 6px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:#6B6680"><span>Ti aiuteremo a compilare automaticamente il tuo profilo.</span><dc-import name="UI Eyebrow" text="Consigliato" tone="accent" hint-size="90px,14px"></dc-import></div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#8C84AE"><div style="flex:1;height:1px;background:#DCD7EC"></div>oppure<div style="flex:1;height:1px;background:#DCD7EC"></div></div>
+<dc-import name="UI Button" label="G  Continua con Google" variant="light" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<dc-import name="UI Button" label="✉  Continua con email" variant="light" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<span style="font-size:12px;line-height:1.55;color:#6B6680;text-wrap:pretty">Continuando accetti i <u>Termini</u> e confermi di aver letto la <u>Privacy Policy</u>. Non pubblichiamo nulla sul tuo LinkedIn.</span>
+<div style="height:1px;background:#DCD7EC"></div>
+<span style="font-size:14px;color:#6B6680">Hai già un account? <b style="font-weight:600;color:#1A1726;text-decoration:underline;text-underline-offset:3px">Accedi</b></span>
+</div></div>
+</div></div>
+
+<div id="2b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#2b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">2b</a>Accesso · mobile</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="height:52px;display:flex;align-items:center;padding:0 16px;flex:none"><span style="width:44px;height:44px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:18px">←</span></div>
+<div style="padding:24px 20px;display:flex;flex-direction:column;gap:10px;flex:1">
+<h1 style="margin:0 0 4px;font-family:'Unbounded',sans-serif;font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Bentornato su Rientro</h1>
+<span style="font-size:15px;color:#6B6680;margin-bottom:24px">Accedi con il metodo che hai usato alla registrazione.</span>
+<dc-import name="UI Button" label="in  Continua con LinkedIn" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<dc-import name="UI Button" label="Continua con Google" variant="light" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<dc-import name="UI Button" label="Continua con email" variant="light" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<div style="flex:1"></div>
+<span style="font-size:14px;color:#6B6680;text-align:center;padding-bottom:30px">Non hai un account? <b style="font-weight:600;color:#1A1726;text-decoration:underline">Registrati</b></span>
+</div></div></div>
+
+<div id="3a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#3a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">3a</a>LinkedIn · connessione in corso</div>
+<div style="width:560px;height:520px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:40px;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:14px"><div style="width:56px;height:56px;border-radius:18px;background:#6C4DF5;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-family:'Instrument Serif',serif;font-style:italic;font-size:30px">R</div><div style="display:flex;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5"></span><span style="width:7px;height:7px;border-radius:50%;background:#B9ACF7"></span><span style="width:7px;height:7px;border-radius:50%;background:#DCD7EC"></span></div><div style="width:56px;height:56px;border-radius:18px;background:#F1EFF8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px">in</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.035em">Stiamo leggendo il tuo profilo LinkedIn</span><span style="font-size:15px;color:#6B6680;line-height:1.5">Importiamo nome, foto, esperienze e formazione. Potrai controllare tutto prima di continuare.</span></div>
+<div style="width:280px;height:8px;border-radius:4px;background:#F1EFF8"><div style="width:58%;height:8px;border-radius:4px;background:#6C4DF5"></div></div>
+<span style="font-size:13px;color:#8C84AE">Richiede pochi secondi</span>
+</div></div>
+
+<div id="3b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#3b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">3b</a>LinkedIn · controlla i dati importati</div>
+<div style="width:640px;background:#E9E6F5;border-radius:32px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px">
+<div><dc-import name="UI Badge" kind="success" label="Collegato a LinkedIn" hint-size="170px,28px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Ecco cosa abbiamo importato</span><span style="font-size:15px;color:#6B6680">Deseleziona quello che non vuoi usare. Puoi modificarlo nei prossimi passi.</span></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:4px 18px;display:flex;flex-direction:column">
+<div style="display:flex;gap:14px;align-items:center;padding:14px 0"><dc-import name="UI Checkbox" label="" checked="{{ true }}" hint-size="20px,32px"></dc-import><dc-import name="UI Photo" size="44" hint-size="44px,44px"></dc-import><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Alessandro Ricci</span><span style="font-size:13px;color:#6B6680">Nome e foto profilo</span></div></div>
+<sc-for list="{{ imported }}" as="i" hint-placeholder-count="4"><div style="display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Checkbox" label="" checked="{{ i.on }}" hint-size="20px,32px"></dc-import><div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-weight:500">{{ i.t }}</span><span style="font-size:13px;color:#6B6680">{{ i.d }}</span></div><sc-if value="{{ i.more }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#6B6680;text-decoration:underline">Vedi</span></sc-if></div></sc-for>
+</div>
+<div style="display:flex;justify-content:flex-end;gap:8px"><dc-import name="UI Button" label="Non usare LinkedIn" variant="ghost" hint-size="170px,44px"></dc-import><dc-import name="UI Button" label="Continua con questi dati" hint-size="210px,44px"></dc-import></div>
+</div></div>
+
+<div id="4a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#4a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">4a</a>Google · accesso riuscito</div>
+<div style="width:560px;background:#E9E6F5;border-radius:32px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;gap:12px;align-items:center;padding:12px 16px 12px 12px;border-radius:999px;background:#FFFFFF"><div style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">AR</div><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:500">alessandro.ricci@gmail.com</span><span style="font-size:12px;color:#8C84AE">Accesso con Google</span></div><span style="margin-left:auto;color:#1F7A4F;font-size:14px">✓</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Ciao Alessandro.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Costruiamo il tuo profilo. Da Google abbiamo solo nome ed email: il resto lo scrivi tu, in circa 10 minuti.</span></div>
+<div style="border-radius:22px;background:#EFEBFF;padding:16px 16px 16px 20px;display:flex;gap:14px;align-items:center"><div style="display:flex;flex-direction:column;gap:3px;flex:1"><span style="font-size:14px;font-weight:600;color:#3E2BA8">Vuoi fare prima?</span><span style="font-size:13px;color:#3E2BA8">Collega LinkedIn per importare esperienze e formazione.</span></div><dc-import name="UI Button" label="Collega" variant="light" size="sm" hint-size="80px,36px"></dc-import></div>
+<dc-import name="UI Button" label="Inizia il profilo" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+</div></div>
+
+<div id="5a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#5a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">5a</a>Email · inserimento</div>
+<div style="width:480px;background:#E9E6F5;border-radius:32px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<span style="font-size:14px;color:#6B6680">← Altri metodi</span>
+<span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Continua con email</span>
+<span style="font-size:15px;color:#4A4560;line-height:1.5">Ti mandiamo un codice di 6 cifre. Niente password da ricordare.</span>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Email</span><dc-import name="UI Input" value="alessandro@ricci.studio" focused="{{ true }}" size="lg" hint-size="100%,52px"></dc-import></div>
+<div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:#6B6680"><span style="width:20px;height:20px;border-radius:7px;border:1.5px solid #CFC8E8;box-sizing:border-box;flex:none;background:#FFFFFF"></span>Voglio ricevere aggiornamenti su Rientro via email. Facoltativo, puoi cambiare idea quando vuoi.</div>
+<dc-import name="UI Button" label="Invia codice" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+</div></div>
+
+<div id="5b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#5b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">5b</a>Email · codice (stato errore)</div>
+<div style="width:480px;background:#E9E6F5;border-radius:32px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Controlla la tua email</span>
+<span style="font-size:15px;color:#4A4560;line-height:1.5">Abbiamo inviato un codice a <b style="font-weight:600;color:#1A1726">alessandro@ricci.studio</b></span>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px"><sc-for list="{{ codeErr }}" as="d" hint-placeholder-count="6"><div style="height:60px;border-radius:18px;border:1.5px solid #D92D20;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:'Geist Mono',monospace">{{ d }}</div></sc-for></div>
+<span style="font-size:13px;color:#B42318">Codice non valido. Controlla l'ultima email ricevuta.</span>
+<div style="display:flex;justify-content:space-between;font-size:14px;color:#6B6680"><span>Non è arrivato? <u>Invia di nuovo</u></span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">0:42</span></div>
+</div></div>
+
+<div id="5c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#5c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">5c</a>Email · mobile, tastiera numerica</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="height:52px;display:flex;align-items:center;padding:0 16px;flex:none"><span style="width:44px;height:44px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:18px">←</span></div>
+<div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:600;letter-spacing:-.05em">Inserisci il codice</h1>
+<span style="font-size:15px;color:#6B6680">Inviato a alessandro@ricci.studio</span>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:8px"><sc-for list="{{ codeMob }}" as="d" hint-placeholder-count="6"><div style="height:56px;border-radius:16px;border:{{ d.bd }};box-shadow:{{ d.sh }};background:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:22px;font-family:'Geist Mono',monospace">{{ d.v }}</div></sc-for></div>
+</div>
+<div style="flex:1"></div>
+<div style="background:#D6D2E3;padding:8px 6px 34px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><sc-for list="{{ keys }}" as="k" hint-placeholder-count="12"><div style="height:46px;border-radius:8px;background:{{ k.bg }};display:flex;align-items:center;justify-content:center;font-size:22px">{{ k.l }}</div></sc-for></div>
+</div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
+      .map(([n, r, a, b], i) => ({ n, r, a, b, first: n.split(',')[0], mt: i % 2 ? '36px' : '0' }));
+    const forWho = [
+      { t: 'Chi sta tornando', d: "Anni all'estero, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
+      { t: 'Chi si trasferisce', d: "Non sei italiano ma hai scelto l'Italia. Ti serve qualcuno che conosca il contesto." },
+      { t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' }
+    ];
+    const steps = [
+      { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
+      { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
+      { n: '03', t: 'Scopri persone', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
+      { n: '04', t: 'Connettiti e parla', d: "Invii una richiesta. Se viene accettata, si apre la chat." }
+    ];
+    const principles = [
+      { t: 'Profili rivisti a mano', d: 'Niente account vuoti o anonimi.' },
+      { t: 'Nessun punteggio', d: 'Ti mostriamo cosa si completa, non percentuali.' },
+      { t: 'Messaggi solo con consenso', d: "La chat si apre dopo l'accettazione." },
+      { t: 'Gratuito', d: 'Al lancio, per tutti.' }
+    ];
+    const board = [['LONDRA', 'MILANO', 'TECH'], ['BERLINO', 'CAGLIARI', 'BUSINESS'], ['ZURIGO', 'PADOVA', 'PRODOTTO'], ['NEW YORK', 'NAPOLI', 'TECH'], ['AMSTERDAM', 'TORINO', 'DESIGN'], ['MILANO', 'RESTA', 'OPERATIONS']]
+      .map(([a, b, c], i, arr) => { const last = i === arr.length - 1; return { a, b, c, arrow: last ? '·' : '→', ac: last ? '#6B6680' : '#C9C0F0', fg: last ? '#6B6680' : '#FFFFFF', sc: last ? '#6B6680' : '#B7B0D4', bb: last ? 'none' : '1px solid #3A3550' }; });
+    const imported = [
+      { t: 'Ruolo attuale', d: 'Senior Product Manager · Spotify, Stoccolma', on: true },
+      { t: 'Esperienze', d: '4 posizioni, dal 2014', on: true, more: true },
+      { t: 'Formazione', d: 'Politecnico di Milano · KTH', on: true },
+      { t: 'Riepilogo LinkedIn', d: 'Preferisco scrivere la presentazione da zero', on: false }
+    ];
+    const codeErr = ['4', '8', '1', '0', '7', '2'];
+    const codeMob = ['4', '8', '', '', '', ''].map((v, i) => ({ v: i === 2 ? '|' : v, bd: i === 2 ? '1.5px solid #6C4DF5' : '1px solid #E4E0F2', sh: i === 2 ? '0 0 0 4px rgba(108,77,245,.15)' : 'none' }));
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(l => ({ l, bg: l && l !== '⌫' ? '#FFFFFF' : 'transparent' }));
+    return { heroPeople, forWho, steps, principles, board, imported, codeErr, codeMob, keys };
+  }
+}
+</script>
+</body>
+</html>

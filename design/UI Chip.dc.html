@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="height:{{ h }}px;padding:0 {{ pr }}px 0 {{ pl }}px;border-radius:999px;background:{{ bg }};color:{{ fg }};border:{{ bd }};box-sizing:border-box;font-family:'Geist',sans-serif;font-size:{{ fs }}px;font-weight:500;text-decoration:{{ td }};display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer">{{ label }}<sc-if value="{{ removable }}" hint-placeholder-val="{{ false }}"><span style="opacity:.6;font-size:{{ fs }}px;padding:0 2px">×</span></sc-if><sc-if value="{{ hasCount }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#6C4DF5;color:#FFFFFF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ count }}</span></sc-if></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:200,&quot;height&quot;:56},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Milano&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;selected&quot;,&quot;tint&quot;,&quot;dashed&quot;,&quot;off&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;removable&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;count&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const b = v => v === true || v === 'true';
+    const V = {
+      default: ['#FFFFFF', '#1A1726', '1px solid #FFFFFF'],
+      selected: ['#1A1726', '#FFFFFF', '1px solid #1A1726'],
+      tint: ['#EFEBFF', '#3E2BA8', '1px solid #DCD3FF'],
+      dashed: ['transparent', '#6B6680', '1.5px dashed #B9B2D6'],
+      off: ['#FFFFFF', '#8C84AE', '1px solid #FFFFFF']
+    };
+    const S = { sm: [32, 13], md: [40, 14] };
+    const tone = this.props.tone ?? 'default';
+    const [bg, fg, bd] = V[tone] || V.default;
+    const [h, fs] = S[this.props.size] || S.md;
+    const removable = b(this.props.removable);
+    const count = this.props.count;
+    return { label: this.props.label ?? 'Milano', bg, fg, bd, h, fs, removable, count, hasCount: !!count, pl: h === 32 ? 12 : 16, pr: removable ? 10 : (h === 32 ? 12 : 16), td: tone === 'off' ? 'line-through' : 'none' };
+  }
+}
+</script>
+</body>
+</html>

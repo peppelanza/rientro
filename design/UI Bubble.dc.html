@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="display:flex;justify-content:{{ jc }};width:100%"><div style="max-width:{{ mw }};background:{{ bg }};color:{{ fg }};border-radius:{{ radius }};padding:11px 16px;font-family:'Geist',sans-serif;font-size:15px;line-height:1.45;font-style:{{ fst }};box-shadow:{{ sh }}">{{ text }}</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:80},&quot;text&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Messaggio&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;from&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;me&quot;,&quot;them&quot;,&quot;note&quot;],&quot;default&quot;:&quot;them&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;wide&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const f = this.props.from ?? 'them';
+    const V = {
+      me: ['flex-end', '#6C4DF5', '#FFFFFF', '22px 22px 6px 22px', 'normal', 'none'],
+      them: ['flex-start', '#FFFFFF', '#1A1726', '22px 22px 22px 6px', 'normal', '0 4px 14px rgba(80,60,160,.06)'],
+      note: ['flex-start', '#EFEBFF', '#3E2BA8', '22px 22px 22px 6px', 'italic', 'none']
+    };
+    const [jc, bg, fg, radius, fst, sh] = V[f] || V.them;
+    return { jc, bg, fg, radius, fst, sh, text: this.props.text ?? 'Messaggio', mw: this.props.wide ? '78%' : '62%' };
+  }
+}
+</script>
+</body>
+</html>

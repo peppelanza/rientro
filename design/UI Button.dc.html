@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="height:{{ h }}px;padding:0 {{ px }}px;width:{{ w }};border-radius:999px;background:{{ bg }};color:{{ fg }};border:{{ bd }};box-shadow:{{ sh }};box-sizing:border-box;font-family:'Geist',sans-serif;font-size:{{ fs }}px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;cursor:pointer">{{ label }}</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:220,&quot;height&quot;:60},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Connettiti&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;primary&quot;,&quot;accent&quot;,&quot;secondary&quot;,&quot;outline&quot;,&quot;ghost&quot;,&quot;glass&quot;,&quot;light&quot;,&quot;onDark&quot;,&quot;success&quot;,&quot;danger&quot;,&quot;destructive&quot;],&quot;default&quot;:&quot;primary&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;full&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const V = {
+      primary: ['#1A1726', '#FFFFFF', 'none', 'none'],
+      accent: ['#6C4DF5', '#FFFFFF', 'none', '0 8px 20px rgba(108,77,245,.28)'],
+      secondary: ['#F1EFF8', '#1A1726', 'none', 'none'],
+      outline: ['transparent', '#1A1726', '1.5px solid #1A1726', 'none'],
+      ghost: ['transparent', '#6B6680', 'none', 'none'],
+      glass: ['rgba(255,255,255,.72)', '#1A1726', '1px solid #FFFFFF', '0 6px 18px rgba(80,60,160,.08)'],
+      light: ['#FFFFFF', '#1A1726', 'none', 'none'],
+      onDark: ['transparent', '#FFFFFF', '1.5px solid rgba(255,255,255,.5)', 'none'],
+      success: ['#E3F5EC', '#1F7A4F', 'none', 'none'],
+      danger: ['#FDE8E8', '#B42318', 'none', 'none'],
+      destructive: ['#D92D20', '#FFFFFF', 'none', 'none']
+    };
+    const S = { sm: [36, 14, 13], md: [44, 18, 14], lg: [52, 22, 16] };
+    const [bg, fg, bd, sh] = V[this.props.variant] || V.primary;
+    const [h, px, fs] = S[this.props.size] || S.md;
+    const full = this.props.full === true || this.props.full === 'true';
+    return { label: this.props.label ?? 'Connettiti', bg, fg, bd, sh, h, px, fs, w: full ? '100%' : 'auto' };
+  }
+}
+</script>
+</body>
+</html>

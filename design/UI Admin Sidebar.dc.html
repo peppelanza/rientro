@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="width:240px;height:100%;box-sizing:border-box;padding:12px;font-family:'Geist',sans-serif;color:#1A1726">
+<div style="height:100%;box-sizing:border-box;background:#1A1726;border-radius:24px;padding:20px 10px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;align-items:center;gap:8px;padding:0 10px"><dc-import name="UI Logo" size="22" tone="light" hint-size="90px,22px"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:10px;padding:3px 7px;border-radius:999px;background:#6C4DF5;color:#FFFFFF;letter-spacing:.04em">ADMIN</span></div>
+<div style="display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+<div style="height:40px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:14px;color:{{ it.fg }};background:{{ it.bg }};font-weight:{{ it.fw }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ it.mark }}"></span>{{ it.label }}<sc-if value="{{ it.hasCount }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:{{ it.cc }}">{{ it.count }}</span></sc-if></div>
+</sc-for>
+</div>
+<div style="flex:1"></div>
+<div style="border-top:1px solid #2E2A40;padding:14px 10px 0;display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);color:#1A1726;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">CM</div><div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:500;color:#FFFFFF">Chiara M.</span><span style="font-size:12px;color:#B7B0D4">Moderazione</span></div></div>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:240,&quot;height&quot;:800},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;utenti&quot;,&quot;approvazioni&quot;,&quot;segnalazioni&quot;,&quot;analytics&quot;,&quot;esportazioni&quot;],&quot;default&quot;:&quot;dashboard&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? 'dashboard';
+    const items = [['dashboard', 'Dashboard', ''], ['utenti', 'Utenti', '1.284'], ['approvazioni', 'Approvazioni', '37'], ['segnalazioni', 'Segnalazioni', '4'], ['analytics', 'Analytics', ''], ['esportazioni', 'Esportazioni', '']].map(([k, label, count]) => ({
+      label, count, hasCount: !!count, bg: k === a ? '#FFFFFF' : 'transparent', fg: k === a ? '#1A1726' : '#C9C0F0', fw: k === a ? 600 : 400, mark: k === a ? '#6C4DF5' : '#3A3550', cc: k === a ? '#6B6680' : '#8C84AE'
+    }));
+    return { items };
+  }
+}
+</script>
+</body>
+</html>

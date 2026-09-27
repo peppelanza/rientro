@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t1p" data-screen-label="01 Landing pre-lancio" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t1p" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">01</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Landing page · pre-lancio</span><span style="font-size:14px;color:#6B6680">Come la landing principale, senza persone. Iscrizioni aperte, piattaforma dal 1° gennaio 2027.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+<div id="1e" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1e" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1e</a>Pre-lancio · desktop</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
+<dc-import name="UI Logo" size="28" hint-size="110px,28px"></dc-import>
+<div style="display:flex;gap:26px;color:#6B6680"><span>Come funziona</span><span>Per chi è</span><a href="Rientro 08 Rientro dei Cervelli v2.dc.html" style="color:#6B6680;text-decoration:none">Rientro dei cervelli</a><span>Domande</span></div>
+<div style="flex:1"></div><span>Accedi</span>
+<dc-import name="UI Button" label="Iscriviti" hint-size="110px,44px"></dc-import>
+</div></div>
+<div style="padding:96px 56px 96px;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;align-items:center;gap:8px;align-self:flex-start;height:36px;padding:0 16px 0 12px;border-radius:999px;background:#FFFFFF;font-size:14px;font-weight:500"><span style="width:8px;height:8px;border-radius:50%;background:#6C4DF5"></span>Apre il 1° gennaio 2027</div>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:112px;line-height:.95;font-weight:600;letter-spacing:-.065em;max-width:1140px">Non tornare in Italia <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:128px">da solo.</span></h1>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:40px">
+<p style="margin:0;font-size:24px;line-height:1.35;letter-spacing:-.01em;max-width:520px;color:#4A4560;text-wrap:pretty">Trova le persone con cui costruire qualcosa in Italia. Un co-founder, un progetto, una ragione in più per tornare. <span style="color:#1A1726">Iscriviti ora e prepara il profilo: dal 1° gennaio 2027 potrai scoprire le persone e connetterti.</span></p>
+<div style="display:flex;gap:10px"><dc-import name="UI Button" label="Iscriviti ora →" variant="accent" size="lg" hint-size="170px,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" hint-size="210px,52px"></dc-import></div>
+</div></div>
+<div style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
+<dc-import name="UI Eyebrow" text="Cos'è Rientro" hint-size="110px,14px"></dc-import>
+<p style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Un luogo dove chi torna in Italia, o ci arriva per la prima volta, incontra persone ambiziose con cui fondare un'azienda o un progetto. <span style="color:#8C84AE">Profili veri, rivisti uno a uno. Gratuito.</span></p>
+</div>
+<div style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:0 16px">
+<dc-import name="UI Eyebrow" text="Per chi è" hint-size="80px,14px"></dc-import>
+<sc-for list="{{ forWho }}" as="f" hint-placeholder-count="3">
+<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px"><span style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</span><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div>
+</sc-for>
+</div>
+<div style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2><span style="font-size:15px;color:#C9C0F0">I passi 3 e 4 si aprono il 1° gennaio 2027.</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+<div style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></div>
+</sc-for>
+</div></div>
+<div style="padding:88px 56px;display:grid;grid-template-columns:280px 1fr 1fr;gap:16px">
+<dc-import name="UI Eyebrow" text="Due modi di iniziare" hint-size="150px,14px"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore" hint-size="160px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma sai con chi vorresti lavorare.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span></div>
+<span></span>
+<div style="grid-column:span 2;display:flex;gap:14px;align-items:center;padding:18px 22px;border-radius:22px;background:#EFEBFF;font-size:15px;color:#3E2BA8"><span style="width:22px;height:22px;border-radius:7px;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">✓</span><span><b style="font-weight:600">In più:</b> se stai anche cercando lavoro in un'azienda italiana, puoi indicarlo nel profilo.</span></div>
+</div>
+<div style="padding:0 56px 88px;display:grid;grid-template-columns:280px repeat(4,1fr);gap:24px">
+<dc-import name="UI Eyebrow" text="Principi" hint-size="70px,14px"></dc-import>
+<sc-for list="{{ principles }}" as="p" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:#6C4DF5"></span><span style="font-size:17px;font-weight:600">{{ p.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ p.d }}</span></div></sc-for>
+</div>
+<div style="margin:0 24px 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:720px">Ci vediamo il <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">1° gennaio.</span></h2>
+<dc-import name="UI Button" label="Iscriviti ora" variant="light" size="lg" hint-size="150px,52px"></dc-import>
+</div>
+<div style="padding:8px 56px 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center"><span>© 2026 Rientro · rientro.it</span><div style="flex:1"></div><span>Privacy Policy</span><span>Termini</span><span>Cookie Policy</span><span>Contatti</span></div>
+</div></div>
+
+<div id="1f" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#1f" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">1f</a>Pre-lancio · mobile</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="height:52px;display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex:none"><dc-import name="UI Logo" size="25" hint-size="100px,25px"></dc-import><span style="font-size:14px;font-weight:500">Accedi</span></div>
+<div style="padding:36px 20px 0;display:flex;flex-direction:column;gap:22px;flex:1">
+<div style="display:flex;align-items:center;gap:8px;align-self:flex-start;height:32px;padding:0 16px 0 12px;border-radius:999px;background:#FFFFFF;font-size:13px;font-weight:500"><span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5"></span>Apre il 1° gennaio 2027</div>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:46px;line-height:.98;font-weight:600;letter-spacing:-.06em">Non tornare in Italia <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:54px;letter-spacing:-.02em">da solo.</span></h1>
+<p style="margin:0;font-size:18px;line-height:1.4;color:#4A4560">Trova le persone con cui costruire qualcosa in Italia. Iscriviti ora e prepara il profilo per il lancio.</p>
+<div style="flex:1"></div>
+</div>
+<div style="padding:16px 20px 34px;display:flex;flex-direction:column;gap:8px;flex:none"><dc-import name="UI Button" label="Iscriviti ora" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import><dc-import name="UI Button" label="Scopri come funziona ↓" variant="ghost" full="{{ true }}" hint-size="100%,44px"></dc-import></div>
+</div></div>
+
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
+      .map(([n, r, a, b], i) => ({ n, r, a, b, first: n.split(',')[0], mt: i % 2 ? '36px' : '0' }));
+    const forWho = [
+      { t: 'Chi sta tornando', d: "Anni all'estero, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
+      { t: 'Chi si trasferisce', d: "Non sei italiano ma hai scelto l'Italia. Ti serve qualcuno che conosca il contesto." },
+      { t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' }
+    ];
+    const steps = [
+      { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
+      { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
+      { n: '03', t: 'Scopri persone', d: 'Dal 1° gennaio 2027. Filtra per città, settori, competenze e tempo.' },
+      { n: '04', t: 'Connettiti e parla', d: "Dal 1° gennaio 2027. Se la richiesta viene accettata, si apre la chat." }
+    ];
+    const principles = [
+      { t: 'Profili rivisti a mano', d: 'Niente account vuoti o anonimi.' },
+      { t: 'Nessun punteggio', d: 'Ti mostriamo cosa si completa, non percentuali.' },
+      { t: 'Messaggi solo con consenso', d: "La chat si apre dopo l'accettazione." },
+      { t: 'Gratuito', d: 'Al lancio, per tutti.' }
+    ];
+    const board = [['LONDRA', 'MILANO', 'TECH'], ['BERLINO', 'CAGLIARI', 'BUSINESS'], ['ZURIGO', 'PADOVA', 'PRODOTTO'], ['NEW YORK', 'NAPOLI', 'TECH'], ['AMSTERDAM', 'TORINO', 'DESIGN'], ['MILANO', 'RESTA', 'OPERATIONS']]
+      .map(([a, b, c], i, arr) => { const last = i === arr.length - 1; return { a, b, c, arrow: last ? '·' : '→', ac: last ? '#6B6680' : '#C9C0F0', fg: last ? '#6B6680' : '#FFFFFF', sc: last ? '#6B6680' : '#B7B0D4', bb: last ? 'none' : '1px solid #3A3550' }; });
+    const imported = [
+      { t: 'Ruolo attuale', d: 'Senior Product Manager · Spotify, Stoccolma', on: true },
+      { t: 'Esperienze', d: '4 posizioni, dal 2014', on: true, more: true },
+      { t: 'Formazione', d: 'Politecnico di Milano · KTH', on: true },
+      { t: 'Riepilogo LinkedIn', d: 'Preferisco scrivere la presentazione da zero', on: false }
+    ];
+    const codeErr = ['4', '8', '1', '0', '7', '2'];
+    const codeMob = ['4', '8', '', '', '', ''].map((v, i) => ({ v: i === 2 ? '|' : v, bd: i === 2 ? '1.5px solid #6C4DF5' : '1px solid #E4E0F2', sh: i === 2 ? '0 0 0 4px rgba(108,77,245,.15)' : 'none' }));
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(l => ({ l, bg: l && l !== '⌫' ? '#FFFFFF' : 'transparent' }));
+    return { forWho, steps, principles };
+  }
+}
+</script>
+</body>
+</html>

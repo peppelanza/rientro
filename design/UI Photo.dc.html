@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="position:relative;flex:none;width:{{ w }};height:{{ h }};aspect-ratio:{{ ratio }};border-radius:{{ radius }};background:{{ bg }};overflow:hidden;box-sizing:border-box">
+<sc-if value="{{ showLabel }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.06em;color:{{ lc }}">{{ label }}</span></sc-if>
+<sc-if value="{{ hasBadge }}" hint-placeholder-val="{{ false }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badge }}" style="position:absolute;top:12px;left:12px" hint-size="140px,28px"></dc-import></sc-if>
+<sc-if value="{{ play }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-size:16px;color:#1A1726">▶</span></div></sc-if>
+<sc-if value="{{ hasDuration }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;right:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:11px;color:#FFFFFF">{{ duration }}</span></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:260},&quot;ratio&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;4/3&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;height&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;radius&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;22px&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;FOTO&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;badge&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;badgeKind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;idea&quot;,&quot;explore&quot;,&quot;neutral&quot;,&quot;success&quot;],&quot;default&quot;:&quot;idea&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;play&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;duration&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, b = v => v === true || v === 'true';
+    const size = p.size ? Number(p.size) : 0;
+    const dark = b(p.dark);
+    const small = size && size < 90;
+    return {
+      w: size ? size + 'px' : '100%',
+      h: size ? size + 'px' : (p.height ? p.height + 'px' : 'auto'),
+      ratio: size || p.height ? 'auto' : (p.ratio ?? '4/3'),
+      radius: p.radius ?? (size ? '50%' : '22px'),
+      bg: dark ? 'repeating-linear-gradient(135deg,#2A2638 0 8px,#231F30 8px 16px)' : 'repeating-linear-gradient(135deg,#E3DEF5 0 8px,#DAD4F0 8px 16px)',
+      lc: dark ? '#8C84AE' : '#8C84AE',
+      label: p.label ?? 'FOTO',
+      showLabel: !small && !b(p.play) && p.label !== '',
+      hasBadge: !!p.badge, badge: p.badge, badgeKind: p.badgeKind ?? 'idea',
+      play: b(p.play), duration: p.duration, hasDuration: !!p.duration
+    };
+  }
+}
+</script>
+</body>
+</html>

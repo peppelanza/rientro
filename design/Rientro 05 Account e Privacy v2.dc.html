@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t37" data-screen-label="37-41 Profilo e impostazioni" style="padding:56px 64px 48px;border-bottom:1px solid rgba(26,23,38,.08)">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t37" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">37–41</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Modifica profilo e impostazioni</span><span style="font-size:14px;color:#6B6680">Privacy spiegata con esempi concreti, non con testo legale. La preferenza lavoro si modifica qui, una sola volta.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="37a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#37a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">37a</a>Modifica profilo · editor a sezioni</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<dc-import name="UI Nav" active="none" hint-size="100%,82px"></dc-import>
+<div style="display:grid;grid-template-columns:250px 1fr 300px;gap:28px;padding:28px 24px 40px">
+<dc-import name="UI Side Menu" eyebrow="Il tuo profilo" items="Intestazione,Su di me e video,Obiettivo e idea,Percorso e formazione,Chi cerco,Interessi e tempo,Cosa mi manca dell'Italia,Link" active="Intestazione" hint-size="100%,420px"></dc-import>
+<div style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;justify-content:space-between;align-items:center"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:600;letter-spacing:-.05em">Intestazione</h1><dc-import name="UI Badge" kind="success" label="Online" hint-size="80px,28px"></dc-import></div>
+<div style="display:flex;gap:20px;align-items:center"><dc-import name="UI Photo" size="96" hint-size="96px,96px"></dc-import><dc-import name="UI Button" label="Cambia foto" variant="secondary" size="sm" hint-size="110px,36px"></dc-import><span style="font-size:12px;color:#8C84AE">La foto è obbligatoria</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<sc-for list="{{ fields }}" as="f" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">{{ f.l }}</span><dc-import name="UI Input" value="{{ f.v }}" focused="{{ f.focus }}" hint-size="100%,44px"></dc-import></div></sc-for>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Vuole vivere a</span><div style="min-height:44px;border-radius:22px;border:1px solid #E4E0F2;padding:5px;box-sizing:border-box;display:flex;gap:5px;align-items:center;flex-wrap:wrap"><dc-import name="UI Chip" label="Milano" tone="selected" size="sm" removable="{{ true }}" hint-size="90px,32px"></dc-import><dc-import name="UI Chip" label="Bologna" tone="selected" size="sm" removable="{{ true }}" hint-size="100px,32px"></dc-import></div></div>
+</div>
+<div style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:20px;background:#FFF4DC;font-size:14px;line-height:1.5;color:#7A4E00"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A;margin-top:7px;flex:none"></span>Le modifiche a foto, nome e idea vengono riviste prima di essere pubblicate. Il resto è subito online.</div>
+<div style="display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid #ECE8F7"><dc-import name="UI Button" label="Annulla" variant="ghost" hint-size="90px,44px"></dc-import><dc-import name="UI Button" label="Salva modifiche" hint-size="150px,44px"></dc-import></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px"><dc-import name="UI Eyebrow" text="Come ti vedono" hint-size="110px,14px"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:12px"><dc-import name="UI Photo" height="150" radius="20px" style="width:100%" hint-size="100%,150px"></dc-import><div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:16px;letter-spacing:-.03em">Alessandro Ricci</span><span style="font-size:13px"><mark style="background:#EFEBFF;color:#3E2BA8;padding:1px 4px;border-radius:4px">Senior Product Manager · Spotify</mark></span><span style="font-size:13px">Stoccolma <span style="color:#6C4DF5">→</span> Milano, Bologna</span></div></div>
+<span style="font-size:13px;color:#6B6680;text-decoration:underline">Apri anteprima completa</span></div>
+</div></div></div>
+
+<div id="38a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#38a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">38a</a>Impostazioni · account</div>
+<div style="width:1100px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<dc-import name="UI Nav" active="none" hint-size="100%,82px"></dc-import>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:28px;padding:28px 24px 40px">
+<dc-import name="UI Side Menu" title="Impostazioni" active="Account" hint-size="100%,380px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:12px;max-width:700px">
+<div style="background:#FFFFFF;border-radius:28px;padding:4px 24px">
+<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;padding:18px 0;align-items:center"><span style="font-size:14px;color:#6B6680">Email</span><span style="font-size:15px">alessandro@ricci.studio</span><dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" hint-size="80px,36px"></dc-import></div>
+<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;padding:18px 0;border-top:1px solid #ECE8F7;align-items:center"><span style="font-size:14px;color:#6B6680">Metodi di accesso</span><div style="display:flex;flex-direction:column;gap:6px;font-size:15px"><span>LinkedIn <span style="color:#1F7A4F;font-size:13px">· collegato</span></span><span style="color:#8C84AE">Google · non collegato</span></div><dc-import name="UI Button" label="Gestisci" variant="ghost" size="sm" hint-size="80px,36px"></dc-import></div>
+<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;padding:18px 0;border-top:1px solid #ECE8F7;align-items:center"><span style="font-size:14px;color:#6B6680">Lingua</span><span style="font-size:15px">Italiano</span><dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" hint-size="80px,36px"></dc-import></div>
+<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;padding:18px 0;border-top:1px solid #ECE8F7;align-items:center"><span style="font-size:14px;color:#6B6680">Visibilità profilo</span><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:15px">Visibile</span><span style="font-size:13px;color:#8C84AE">Mettilo in pausa se hai già trovato chi cercavi.</span></div><dc-import name="UI Toggle" label="" on="{{ true }}" hint-size="44px,32px"></dc-import></div>
+</div>
+<div style="background:#FFFFFF;border-radius:28px;padding:18px 24px">
+<dc-import name="UI Eyebrow" text="Notifiche" hint-size="70px,14px"></dc-import>
+<div style="display:grid;grid-template-columns:1fr 60px 60px;font-size:14px;margin-top:6px"><span></span><span style="padding:10px 0;color:#8C84AE;font-size:12px;text-align:center">Email</span><span style="padding:10px 0;color:#8C84AE;font-size:12px;text-align:center">App</span>
+<sc-for list="{{ notif }}" as="n" hint-placeholder-count="4"><span style="padding:10px 0;border-top:1px solid #ECE8F7;display:flex;flex-direction:column;gap:2px;justify-content:center">{{ n.t }}<sc-if value="{{ n.hasD }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#8C84AE">{{ n.d }}</span></sc-if></span><span style="padding:10px 0;border-top:1px solid #ECE8F7;display:flex;justify-content:center;align-items:center"><dc-import name="UI Checkbox" label="" checked="{{ n.e }}" hint-size="20px,32px"></dc-import></span><span style="padding:10px 0;border-top:1px solid #ECE8F7;display:flex;justify-content:center;align-items:center;color:#B9B2D6"><sc-if value="{{ n.hasApp }}" hint-placeholder-val="{{ true }}"><dc-import name="UI Checkbox" label="" checked="{{ n.a }}" hint-size="20px,32px"></dc-import></sc-if><sc-if value="{{ n.noApp }}" hint-placeholder-val="{{ false }}"><span>—</span></sc-if></span></sc-for>
+</div></div>
+<div style="background:#FFFFFF;border-radius:28px;padding:18px 24px;display:flex;flex-direction:column;gap:10px">
+<dc-import name="UI Eyebrow" text="Sicurezza" hint-size="70px,14px"></dc-import>
+<div style="display:grid;grid-template-columns:180px 1fr auto;gap:20px;align-items:center"><span style="font-size:14px;color:#6B6680">Sessioni attive</span><span style="font-size:15px">MacBook · Stoccolma · ora<br><span style="color:#8C84AE;font-size:13px">iPhone · Stoccolma · 2 ore fa</span></span><dc-import name="UI Button" label="Esci ovunque" variant="secondary" size="sm" hint-size="110px,36px"></dc-import></div>
+</div>
+</div></div></div></div>
+
+<div id="39a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#39a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">39a</a>Privacy · chi vede cosa</div>
+<div style="width:1100px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<dc-import name="UI Nav" active="none" hint-size="100%,82px"></dc-import>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:28px;padding:28px 24px 40px">
+<dc-import name="UI Side Menu" title="Impostazioni" active="Privacy" hint-size="100%,380px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:18px;max-width:740px">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:30px;font-weight:600;letter-spacing:-.05em">Chi vede cosa</h1><span style="font-size:15px;color:#4A4560;line-height:1.5">Il tuo profilo è visibile solo ai membri approvati di Rientro. Non è indicizzato dai motori di ricerca.</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:#FFFFFF;border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:12px"><dc-import name="UI Eyebrow" text="Tutti i membri" hint-size="100px,14px"></dc-import><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ publicFields }}" as="f" hint-placeholder-count="10"><dc-import name="UI Badge" kind="neutral" label="{{ f }}" hint-size="90px,28px"></dc-import></sc-for></div></div>
+<div style="background:#1A1726;color:#FFFFFF;border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:12px"><dc-import name="UI Eyebrow" text="Solo le tue connessioni" tone="light" hint-size="160px,14px"></dc-import><div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px"><sc-for list="{{ privateFields }}" as="f" hint-placeholder-count="4"><span style="height:28px;padding:0 12px;border-radius:999px;background:#2A2638;display:flex;align-items:center">🔒 {{ f }}</span></sc-for></div><span style="font-size:13px;color:#C9C0F0;line-height:1.5">Si sbloccano solo quando accetti una richiesta, o quando la tua viene accettata.</span></div>
+</div>
+<div style="background:#FFFFFF;border-radius:28px;padding:4px 24px">
+<div style="display:flex;gap:20px;padding:18px 0;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:4px;flex:1"><span style="font-size:15px;font-weight:600">Sto anche cercando lavoro in Italia per un'azienda italiana</span><span style="font-size:13px;color:#6B6680;line-height:1.5">Attivo: sul profilo compare “Sta anche cercando lavoro in Italia”. È l'indicazione che sei interessato a opportunità da aziende italiane.</span></div><dc-import name="UI Toggle" label="" on="{{ true }}" hint-size="44px,32px"></dc-import></div>
+<div style="display:flex;gap:20px;padding:18px 0;border-top:1px solid #ECE8F7;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:4px;flex:1"><span style="font-size:15px;font-weight:600">Mostra il video solo alle connessioni</span><span style="font-size:13px;color:#6B6680">Di default è visibile a tutti i membri.</span></div><dc-import name="UI Toggle" label="" hint-size="44px,32px"></dc-import></div>
+<div style="display:flex;gap:20px;padding:18px 0;border-top:1px solid #ECE8F7;align-items:center"><div style="display:flex;flex-direction:column;gap:4px;flex:1"><span style="font-size:15px;font-weight:600">Persone bloccate</span><span style="font-size:13px;color:#6B6680">1 persona</span></div><dc-import name="UI Button" label="Gestisci" variant="secondary" size="sm" hint-size="90px,36px"></dc-import></div>
+</div>
+<div style="display:flex;gap:16px;font-size:13px;color:#6B6680"><span style="text-decoration:underline">Privacy Policy</span><span style="text-decoration:underline">Cookie Policy</span><span style="text-decoration:underline">Termini</span></div>
+</div></div></div></div>
+
+<div id="39b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#39b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">39b</a>Impostazioni · mobile</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column;position:relative">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="padding:6px 20px 16px;flex:none"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Impostazioni</h1></div>
+<div style="flex:1;padding:0 14px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#FFFFFF;border-radius:24px;display:flex;flex-direction:column;font-size:16px"><sc-for list="{{ mobMenu }}" as="m" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;padding:0 18px;height:54px;align-items:center;border-top:{{ m.bt }}">{{ m.l }}<span style="color:#B9B2D6">›</span></div></sc-for></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:10px 18px"><dc-import name="UI Toggle" label="Cerco anche lavoro in Italia" on="{{ true }}" hint-size="100%,40px"></dc-import></div>
+<div style="background:#FFFFFF;border-radius:24px;display:flex;flex-direction:column;font-size:16px"><div style="display:flex;justify-content:space-between;padding:0 18px;height:54px;align-items:center">Scarica i miei dati<span style="color:#B9B2D6">›</span></div><div style="display:flex;justify-content:space-between;padding:0 18px;height:54px;align-items:center;border-top:1px solid #ECE8F7;color:#B42318">Elimina il mio account<span style="color:#B9B2D6">›</span></div></div>
+<span style="font-size:14px;color:#6B6680;text-align:center;padding-top:8px">Esci</span>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0"><dc-import name="UI TabBar" active="profilo" hint-size="100%,86px"></dc-import></div>
+</div></div>
+
+<div id="40a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#40a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">40a</a>I tuoi dati · export</div>
+<div style="width:640px;background:#E9E6F5;border-radius:32px;padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Scarica i miei dati</h1>
+<span style="font-size:15px;color:#4A4560;line-height:1.55">Ricevi un archivio con tutto quello che Rientro conserva su di te: profilo, foto, video, connessioni e messaggi.</span>
+<div style="background:#FFFFFF;border-radius:24px;padding:4px 18px;display:flex;flex-direction:column"><sc-for list="{{ exportItems }}" as="e" hint-placeholder-count="4"><div style="display:flex;gap:12px;padding:10px 0;align-items:center;border-top:{{ e.bt }}"><div style="flex:1"><dc-import name="UI Checkbox" label="{{ e.l }}" checked="{{ true }}" count="{{ e.f }}" hint-size="100%,32px"></dc-import></div></div></sc-for></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-radius:22px;background:#EFEBFF;font-size:14px"><div style="display:flex;flex-direction:column;gap:2px;color:#3E2BA8"><span style="font-weight:600">Archivio in preparazione</span><span style="font-size:13px">Ti mandiamo il link via email, valido 7 giorni.</span></div><span style="width:18px;height:18px;border-radius:50%;border:2.5px solid #C9C0F0;border-top-color:#6C4DF5"></span></div>
+<dc-import name="UI Button" label="Richiedi archivio" variant="secondary" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<span style="font-size:12px;color:#8C84AE">Ultima richiesta: 2 min fa. Puoi richiederne uno ogni 24 ore.</span>
+</div></div>
+
+<div id="41a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#41a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">41a</a>Elimina account · passo 1, cosa succede</div>
+<div style="width:560px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.06em;color:#B42318">1 DI 2</span>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Eliminare il tuo account?</h1>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.5"><sc-for list="{{ delEffects }}" as="d" hint-placeholder-count="3"><div style="display:flex;gap:12px"><span style="width:22px;height:22px;border-radius:50%;background:#FDE8E8;color:#B42318;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">×</span>{{ d }}</div></sc-for></div>
+<div style="padding:14px 18px;border-radius:22px;background:#EFEBFF;color:#3E2BA8;font-size:14px;line-height:1.5;display:flex;justify-content:space-between;gap:16px;align-items:center"><span>Vuoi solo una pausa? Puoi nascondere il profilo senza perdere nulla.</span><dc-import name="UI Button" label="Metti in pausa" variant="light" size="sm" hint-size="130px,36px"></dc-import></div>
+<span style="font-size:14px;text-decoration:underline;color:#6B6680">Scarica prima i miei dati</span>
+<div style="display:flex;justify-content:flex-end;gap:8px"><dc-import name="UI Button" label="Annulla" variant="ghost" hint-size="90px,44px"></dc-import><dc-import name="UI Button" label="Continua" variant="danger" hint-size="110px,44px"></dc-import></div>
+</div></div>
+
+<div id="41b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#41b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">41b</a>Passo 2, conferma esplicita</div>
+<div style="width:560px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.06em;color:#B42318">2 DI 2</span>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Conferma l'eliminazione</h1>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Perché te ne vai? <span style="color:#8C84AE;font-weight:400">Facoltativo</span></span><dc-import name="UI Input" value="Ho trovato un co-founder ▾" hint-size="100%,44px"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Scrivi <span style="font-family:'Geist Mono',monospace;background:#F1EFF8;padding:1px 6px;border-radius:6px">ELIMINA</span> per confermare</span><dc-import name="UI Input" value="ELIMINA" focused="{{ true }}" hint-size="100%,44px"></dc-import></div>
+<dc-import name="UI Button" label="Elimina definitivamente" variant="destructive" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import>
+<dc-import name="UI Button" label="Annulla" variant="ghost" full="{{ true }}" hint-size="100%,44px"></dc-import>
+</div></div>
+
+</div>
+</section>
+
+<section id="t42" data-screen-label="42-43 Sicurezza e legale" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 28px"><a href="#t42" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">42–43</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em">Segnalazioni, blocchi, pagine legali</span><span style="font-size:14px;color:#6B6680">Azioni serie con conseguenze chiare. Le pagine legali partono da un riassunto leggibile.</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="42a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#42a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">42a</a>Segnala utente</div>
+<div style="width:520px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'Unbounded',sans-serif;font-size:19px;font-weight:600;letter-spacing:-.035em">Segnala Luca Maranzano</span><span style="width:36px;height:36px;border-radius:50%;background:#F1EFF8;display:flex;align-items:center;justify-content:center;color:#6B6680">×</span></div>
+<span style="font-size:14px;color:#6B6680">La segnalazione è anonima. Il team la legge entro 24 ore.</span>
+<div style="display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:24px;background:#F6F4FC"><sc-for list="{{ reasons }}" as="r" hint-placeholder-count="4"><dc-import name="UI Option Card" title="{{ r.t }}" selected="{{ r.on }}" size="sm" layout="row" hint-size="100%,52px"></dc-import></sc-for></div>
+<dc-import name="UI Input" rows="2" placeholder="Aggiungi dettagli (facoltativo)" hint-size="100%,76px"></dc-import>
+<dc-import name="UI Checkbox" label="Blocca anche Luca" checked="{{ true }}" hint-size="100%,32px"></dc-import>
+<div style="display:flex;justify-content:flex-end;gap:8px"><dc-import name="UI Button" label="Annulla" variant="ghost" hint-size="90px,44px"></dc-import><dc-import name="UI Button" label="Invia segnalazione" hint-size="170px,44px"></dc-import></div>
+</div></div>
+
+<div id="43a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#43a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">43a</a>Conferma blocco</div>
+<div style="width:440px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Bloccare Luca?</span>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non vedrà più il tuo profilo e tu non vedrai il suo.</span><span>· La connessione e la chat vengono chiuse.</span><span>· Non riceverà alcuna notifica.</span></div>
+<span style="font-size:13px;color:#8C84AE">Puoi sbloccarlo da Impostazioni → Privacy.</span>
+<div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" hint-size="90px,44px"></dc-import><dc-import name="UI Button" label="Blocca" variant="destructive" hint-size="90px,44px"></dc-import></div>
+</div></div>
+
+<div id="43b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#43b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">43b</a>Privacy Policy · riassunto prima del testo</div>
+<div style="width:1100px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+<div style="padding:18px 24px 0"><div style="height:60px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:500"><dc-import name="UI Logo" size="26" hint-size="100px,26px"></dc-import><div style="flex:1"></div><span style="padding:9px 16px;border-radius:999px;background:#1A1726;color:#FFFFFF">Privacy Policy</span><span style="padding:9px 16px;color:#6B6680">Termini</span><span style="padding:9px 16px;color:#6B6680">Cookie Policy</span></div></div>
+<div style="display:grid;grid-template-columns:230px 1fr;gap:28px;padding:32px 24px 48px">
+<dc-import name="UI Side Menu" eyebrow="Indice" items="In breve,1. Titolare del trattamento,2. Dati che raccogliamo,3. Perché li usiamo,4. Chi li vede,5. Per quanto tempo,6. I tuoi diritti,7. Contatti" active="In breve" hint-size="100%,420px"></dc-import>
+<div style="display:flex;flex-direction:column;gap:24px;max-width:700px">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:40px;font-weight:600;letter-spacing:-.055em">Privacy Policy</h1><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">AGGIORNATA IL 1 SETTEMBRE 2026</span></div>
+<div style="background:#FFFFFF;border-radius:28px;padding:26px;display:grid;grid-template-columns:1fr 1fr;gap:22px"><sc-for list="{{ summary }}" as="s" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#6C4DF5"></span><span style="font-weight:600">{{ s.t }}</span><span style="font-size:14px;color:#6B6680;line-height:1.5">{{ s.d }}</span></div></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:12px"><span style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">1. Titolare del trattamento</span><div style="height:10px;border-radius:5px;background:#DCD7EC;width:100%"></div><div style="height:10px;border-radius:5px;background:#DCD7EC;width:92%"></div><div style="height:10px;border-radius:5px;background:#DCD7EC;width:70%"></div><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#8C84AE">TESTO LEGALE DA FORNIRE</span></div>
+</div></div></div></div>
+
+<div id="43c" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#43c" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">43c</a>Banner cookie · scelta equivalente</div>
+<div style="width:560px;background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.14);padding:22px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<span style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.03em">Cookie</span>
+<span style="font-size:14px;line-height:1.55;color:#4A4560">Usiamo cookie tecnici per farti accedere. Con il tuo permesso, anche cookie di analisi anonima per capire cosa migliorare. <u>Cookie Policy</u></span>
+<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px"><dc-import name="UI Button" label="Rifiuta" variant="secondary" full="{{ true }}" hint-size="100%,44px"></dc-import><dc-import name="UI Button" label="Accetta" variant="secondary" full="{{ true }}" hint-size="100%,44px"></dc-import><dc-import name="UI Button" label="Personalizza" variant="ghost" hint-size="120px,44px"></dc-import></div>
+</div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const fields = [['Nome', 'Alessandro'], ['Cognome', 'Ricci'], ['Ruolo attuale', 'Senior Product Manager · Spotify', true], ["Fascia d'età", '35–39 ▾'], ['Vive a', 'Stoccolma, Svezia']].map(([l, v, focus]) => ({ l, v, focus: !!focus }));
+    const notif = [
+      { t: 'Nuove richieste di connessione', e: true, a: true },
+      { t: 'Nuovi messaggi', e: false, a: true },
+      { t: 'Stato del profilo', e: true, a: true },
+      { t: 'Novità e comunicazioni di Rientro', d: 'Consenso marketing, separato e facoltativo', e: false, a: null }
+    ].map(n => ({ ...n, hasD: !!n.d, hasApp: n.a !== null, noApp: n.a === null }));
+    const publicFields = ['Nome e foto', "Fascia d'età", 'Luoghi', 'Percorso', 'Formazione', 'Idea', 'Video', 'Interessi', 'LinkedIn', '+ 4'];
+    const privateFields = ['Instagram', 'X / Twitter', 'Link calendario', 'Chat'];
+    const mobMenu = ['Account', 'Privacy', 'Notifiche', 'Sicurezza'].map((l, i) => ({ l, bt: i ? '1px solid #ECE8F7' : 'none' }));
+    const exportItems = [["Profilo e risposte all'onboarding", 'JSON'], ['Foto e video', 'JPG · MP4'], ['Connessioni e richieste', 'CSV'], ['Messaggi', 'JSON']].map(([l, f], i) => ({ l, f, bt: i ? '1px solid #ECE8F7' : 'none' }));
+    const delEffects = ['Il profilo sparisce subito da Rientro.', 'Connessioni e conversazioni vengono eliminate anche per gli altri.', 'Foto, video e dati vengono cancellati entro 30 giorni.'];
+    const reasons = ['Profilo falso o foto non sua', 'Messaggi inappropriati o molesti', 'Spam o vendita di servizi', 'Altro'].map((t, i) => ({ t, on: i === 1 }));
+    const summary = [
+      { t: 'Cosa raccogliamo', d: 'Quello che scrivi nel profilo, i messaggi, e dati tecnici minimi.' },
+      { t: 'Chi lo vede', d: 'Solo membri approvati. Alcuni contatti solo le tue connessioni.' },
+      { t: 'Cosa non facciamo', d: 'Non vendiamo i tuoi dati. Non pubblichiamo nulla sui tuoi social.' },
+      { t: 'Il controllo è tuo', d: 'Scarica o elimina tutto dalle impostazioni, quando vuoi.' }
+    ];
+    return { fields, notif, publicFields, privateFields, mobMenu, exportItems, delEffects, reasons, summary };
+  }
+}
+</script>
+</body>
+</html>

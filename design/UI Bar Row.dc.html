@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="display:grid;grid-template-columns:{{ lw }}px 1fr 48px;gap:10px;align-items:center;font-family:'Geist',sans-serif;font-size:13px;color:#1A1726">
+<span>{{ label }}</span>
+<div style="height:{{ h }}px;border-radius:999px;background:#F1EFF8"><div style="width:{{ pct }};height:{{ h }}px;border-radius:999px;background:{{ color }}"></div></div>
+<span style="font-family:'Geist Mono',monospace;font-size:11px;text-align:right;color:#4A4560">{{ value }}</span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:300,&quot;height&quot;:30},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Milano&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;512&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pct&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;60%&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;accent&quot;,&quot;ink&quot;,&quot;soft&quot;,&quot;success&quot;],&quot;default&quot;:&quot;accent&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;thick&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;labelWidth&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:80,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const C = { accent: '#6C4DF5', ink: '#1A1726', soft: '#B9ACF7', success: '#2FA36B' };
+    return { label: this.props.label ?? 'Milano', value: this.props.value ?? '512', pct: this.props.pct ?? '60%', color: C[this.props.tone] || C.accent, h: this.props.thick ? 16 : 8, lw: Number(this.props.labelWidth ?? 80) };
+  }
+}
+</script>
+</body>
+</html>

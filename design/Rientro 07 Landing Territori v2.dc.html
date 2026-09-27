@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DAD6E8;font-family:'Geist',system-ui,sans-serif;color:#1A1726;-webkit-font-smoothing:antialiased}a{color:#1A1726;text-underline-offset:3px}a:hover{color:#6C4DF5}</style>
+</helmet>
+
+<section id="t51" data-screen-label="51 Landing territori" style="padding:56px 64px 48px">
+<div style="display:flex;align-items:baseline;gap:12px;margin:0 0 20px;flex-wrap:wrap"><a href="#t51" style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;background:#1A1726;color:#FFFFFF;border-radius:4px;text-decoration:none">51</a><span style="font:600 24px/1.2 'Geist',sans-serif;letter-spacing:-.02em;flex:none">Landing territori</span><span style="font-size:14px;color:#6B6680">Un solo template per regioni e città. Cambia i dati, non il layout.</span></div>
+
+<div style="display:flex;flex-direction:column;gap:10px;margin:0 0 32px;max-width:1280px">
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;width:70px">REGIONI</span><sc-for list="{{ regionTabs }}" as="r" hint-placeholder-count="10"><span onClick="{{ r.go }}" style="height:32px;padding:0 14px;border-radius:999px;background:{{ r.bg }};color:{{ r.fg }};font-size:13px;font-weight:500;display:flex;align-items:center;cursor:pointer">{{ r.name }}</span></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;width:70px">CITTÀ</span><sc-for list="{{ cityTabs }}" as="r" hint-placeholder-count="10"><span onClick="{{ r.go }}" style="height:32px;padding:0 14px;border-radius:999px;background:{{ r.bg }};color:{{ r.fg }};font-size:13px;font-weight:500;display:flex;align-items:center;cursor:pointer">{{ r.name }}</span></sc-for></div>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+
+<div id="51a" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#51a" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">51a</a>Desktop · {{ p.kindLabel }} · {{ p.name }}</div>
+<div style="width:1280px;background:#E9E6F5;border-radius:28px;overflow:hidden">
+
+<div style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
+<dc-import name="UI Logo" size="28" hint-size="110px,28px"></dc-import>
+<div style="display:flex;gap:8px;color:#6B6680;font-family:'Geist Mono',monospace;font-size:12px;font-weight:400"><span>Italia</span><sc-if value="{{ p.isCity }}" hint-placeholder-val="{{ false }}"><span>/ {{ p.region }}</span></sc-if><span style="color:#1A1726">/ {{ p.name }}</span></div>
+<div style="flex:1"></div><span>Accedi</span>
+<dc-import name="UI Button" label="Entra in Rientro" hint-size="150px,44px"></dc-import>
+</div></div>
+
+<div style="padding:72px 56px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:48px;align-items:end">
+<div style="display:flex;flex-direction:column;gap:28px">
+<dc-import name="UI Eyebrow" text="{{ p.eyebrow }}" hint-size="220px,14px"></dc-import>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:84px;line-height:.95;font-weight:600;letter-spacing:-.065em;text-wrap:balance">Tornare {{ p.prep }} {{ p.name }}, <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:96px">con qualcuno.</span></h1>
+<p style="margin:0;font-size:21px;line-height:1.4;color:#4A4560;max-width:520px;text-wrap:pretty">{{ p.lede }}</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><dc-import name="UI Button" label="{{ p.cta }}" variant="accent" size="lg" hint-size="260px,52px"></dc-import><dc-import name="UI Button" label="Come funziona" variant="glass" size="lg" hint-size="160px,52px"></dc-import></div>
+</div>
+<dc-import name="UI Photo" ratio="4/5" radius="28px" label="{{ p.photoLabel }}" style="width:100%" hint-size="100%,560px"></dc-import>
+</div>
+
+<div style="margin:0 24px;padding:28px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+<sc-for list="{{ p.stats }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-size:44px;font-weight:600;letter-spacing:-.05em;line-height:1">{{ s.v }}</span><span style="font-size:14px;color:#6B6680">{{ s.l }}</span></div></sc-for>
+</div>
+
+<div style="padding:80px 56px 0;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:44px;line-height:1;font-weight:600;letter-spacing:-.05em">Chi vuole vivere {{ p.prep }} {{ p.name }}</h2><span style="font-size:15px;font-weight:500;text-decoration:underline;text-underline-offset:3px;white-space:nowrap">Vedi tutte le {{ p.count }} persone →</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+<sc-for list="{{ p.people }}" as="person" hint-placeholder-count="3"><dc-import name="UI Person Card" person="{{ person }}" compact="{{ true }}" hint-size="100%,600px"></dc-import></sc-for>
+</div>
+<span style="font-size:13px;color:#6B6680">Anteprima pubblica: nome e cognome completi dopo l'accesso.</span>
+</div>
+
+<div style="padding:80px 56px 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+<div style="border-radius:28px;background:#1A1726;color:#FFFFFF;padding:32px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.035em">Da dove arrivano</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">ARRIVI · {{ p.nameUpper }}</span></div>
+<div style="display:flex;flex-direction:column;font-family:'Geist Mono',monospace;font-size:13px">
+<sc-for list="{{ p.origins }}" as="o" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:1fr 20px 1fr 60px;gap:12px;padding:14px 0;border-top:1px solid #3A3550"><span>{{ o.from }}</span><span style="color:#C9C0F0">→</span><span>{{ o.to }}</span><span style="text-align:right;color:#B7B0D4">{{ o.n }}</span></div></sc-for>
+</div></div>
+<div style="border-radius:28px;background:#FFFFFF;padding:32px;display:flex;flex-direction:column;gap:20px">
+<span style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.035em">Su cosa vogliono lavorare</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ p.sectors }}" as="s" hint-placeholder-count="8"><dc-import name="UI Chip" label="{{ s.l }}" count="{{ s.n }}" tone="tint" hint-size="120px,40px"></dc-import></sc-for></div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="border-radius:20px;background:#EFEBFF;padding:16px;display:flex;flex-direction:column;gap:8px"><div><dc-import name="UI Badge" kind="idea" hint-size="120px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.04em;color:#3E2BA8">{{ p.idea }}</span></div>
+<div style="border-radius:20px;background:#F1EFF8;padding:16px;display:flex;flex-direction:column;gap:8px"><div><dc-import name="UI Badge" kind="explore" hint-size="160px,28px"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.04em">{{ p.explore }}</span></div>
+</div></div>
+</div>
+
+<div style="padding:80px 56px 0;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px">
+<dc-import name="UI Eyebrow" text="{{ p.placesTitle }}" hint-size="160px,14px"></dc-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+<sc-for list="{{ p.places }}" as="c" hint-placeholder-count="6"><div onClick="{{ c.go }}" style="border-radius:22px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;cursor:{{ c.cursor }}" style-hover="background:#FFFFFF"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:600">{{ c.name }}</span><span style="font-size:13px;color:#6B6680">{{ c.n }} persone</span></div><span style="color:#6C4DF5">→</span></div></sc-for>
+</div></div>
+
+<div style="margin:80px 24px 0;padding:56px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr));gap:24px">
+<dc-import name="UI Eyebrow" text="Come funziona" hint-size="110px,14px"></dc-import>
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:#6C4DF5;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:12px">{{ s.n }}</span><span style="font-size:18px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ s.d }}</span></div></sc-for>
+</div>
+
+<div style="margin:16px 24px 0;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:72px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:32px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:56px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:760px">{{ p.count }} persone ti aspettano {{ p.prep }} <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:66px">{{ p.name }}.</span></h2>
+<dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" hint-size="170px,52px"></dc-import>
+</div>
+
+<div style="padding:56px 56px 24px;display:flex;flex-direction:column;gap:14px">
+<dc-import name="UI Eyebrow" text="Altre destinazioni" hint-size="140px,14px"></dc-import>
+<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px"><sc-for list="{{ others }}" as="o" hint-placeholder-count="19"><span onClick="{{ o.go }}" style="color:#4A4560;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#C9C3DD">{{ o.label }}</span></sc-for></div>
+</div>
+<div style="padding:16px 56px 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center;border-top:1px solid #DCD7EC;margin:0 56px;padding-left:0;padding-right:0"><span>© 2026 Rientro · rientro.it/{{ p.slug }}</span><div style="flex:1"></div><span>Privacy Policy</span><span>Termini</span><span>Contatti</span></div>
+</div></div>
+
+<div id="51b" style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;gap:8px;font-size:13px;color:#4A4560"><a href="#51b" style="font:500 11px 'Geist Mono',monospace;padding:3px 7px;background:rgba(26,23,38,.08);color:#1A1726;border-radius:4px;text-decoration:none">51b</a>Mobile · primo schermo</div>
+<div style="width:390px;height:844px;background:#E9E6F5;border:10px solid #1A1726;border-radius:52px;overflow:hidden;box-shadow:0 20px 50px rgba(26,23,38,.18);display:flex;flex-direction:column">
+<div style="height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;flex:none">9:41<span style="font-family:'Geist Mono',monospace;font-size:11px">●●● ▮</span></div>
+<div style="height:52px;display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex:none"><dc-import name="UI Logo" size="25" hint-size="100px,25px"></dc-import><span style="font-size:14px;font-weight:500">Accedi</span></div>
+<div style="padding:12px 20px 0;display:flex;flex-direction:column;gap:18px;flex:1;min-height:0">
+<dc-import name="UI Photo" ratio="16/10" radius="24px" label="{{ p.photoLabel }}" style="width:100%" hint-size="100%,220px"></dc-import>
+<dc-import name="UI Eyebrow" text="{{ p.eyebrow }}" hint-size="200px,14px"></dc-import>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:38px;line-height:.98;font-weight:600;letter-spacing:-.06em">Tornare {{ p.prep }} {{ p.name }}, <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:44px;letter-spacing:-.02em">con qualcuno.</span></h1>
+<div style="display:flex;gap:8px"><sc-for list="{{ p.statsShort }}" as="s" hint-placeholder-count="2"><div style="flex:1;border-radius:20px;background:#FFFFFF;padding:12px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.04em">{{ s.v }}</span><span style="font-size:12px;color:#6B6680;line-height:1.3">{{ s.l }}</span></div></sc-for></div>
+</div>
+<div style="padding:16px 20px 34px;display:flex;flex-direction:column;gap:8px;flex:none"><dc-import name="UI Button" label="{{ p.cta }}" variant="accent" size="lg" full="{{ true }}" hint-size="100%,52px"></dc-import></div>
+</div></div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;luogo&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Sicilia&quot;,&quot;Lombardia&quot;,&quot;Lazio&quot;,&quot;Campania&quot;,&quot;Veneto&quot;,&quot;Emilia-Romagna&quot;,&quot;Piemonte&quot;,&quot;Puglia&quot;,&quot;Toscana&quot;,&quot;Calabria&quot;,&quot;Roma&quot;,&quot;Milano&quot;,&quot;Napoli&quot;,&quot;Torino&quot;,&quot;Palermo&quot;,&quot;Genova&quot;,&quot;Bologna&quot;,&quot;Firenze&quot;,&quot;Bari&quot;,&quot;Catania&quot;],&quot;default&quot;:&quot;Sicilia&quot;,&quot;tsType&quot;:&quot;string&quot;}}">class Component extends DCLogic {
+  state = { sel: null };
+  renderVals() {
+    const R = {
+      Lombardia: ['Milano', 'Bergamo', 'Brescia', 'Como', 'Monza', 'Varese'],
+      Lazio: ['Roma', 'Latina', 'Viterbo', 'Frosinone', 'Rieti'],
+      Campania: ['Napoli', 'Salerno', 'Caserta', 'Avellino', 'Benevento'],
+      Sicilia: ['Palermo', 'Catania', 'Messina', 'Siracusa', 'Ragusa', 'Trapani', 'Agrigento', 'Noto'],
+      Veneto: ['Venezia', 'Padova', 'Verona', 'Vicenza', 'Treviso'],
+      'Emilia-Romagna': ['Bologna', 'Modena', 'Parma', 'Reggio Emilia', 'Rimini'],
+      Piemonte: ['Torino', 'Novara', 'Cuneo', 'Alba', 'Asti'],
+      Puglia: ['Bari', 'Lecce', 'Taranto', 'Brindisi', 'Monopoli'],
+      Toscana: ['Firenze', 'Pisa', 'Siena', 'Lucca', 'Livorno'],
+      Calabria: ['Reggio Calabria', 'Cosenza', 'Catanzaro', 'Tropea', 'Crotone']
+    };
+    const C = { Roma: 'Lazio', Milano: 'Lombardia', Napoli: 'Campania', Torino: 'Piemonte', Palermo: 'Sicilia', Genova: 'Liguria', Bologna: 'Emilia-Romagna', Firenze: 'Toscana', Bari: 'Puglia', Catania: 'Sicilia' };
+    const sel = this.state.sel ?? this.props.luogo ?? 'Sicilia';
+    const isCity = !!C[sel];
+    const h = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const seed = h(sel);
+    const n = (k, min, span) => min + (h(sel + k) % span);
+    const count = isCity ? n('c', 90, 260) : n('c', 180, 420);
+    const fmt = v => v.toLocaleString('it-IT');
+    const city = isCity ? [sel] : R[sel];
+    const lede = isCity
+      ? `Chi vive all'estero e vuole tornare a ${sel} è già qui. Trova le persone con cui costruire un'azienda o un progetto in città.`
+      : `Chi vive all'estero e vuole tornare in ${sel} è già qui. Trova le persone con cui costruire un'azienda o un progetto, da ${city[0]} a ${city[city.length - 1]}.`;
+    const pool = [['Giulia', '30–34', 'Head of Growth · ex Deliveroo', 'Londra', 'Food · AI', 'Prodotto, Tech', 'Full-time', true], ['Marco', '35–39', 'Software Engineer · Zalando', 'Berlino', 'Climate · Energia', 'Business', 'Full-time', false], ['Chiara', '25–29', 'Product Designer · Booking', 'Amsterdam', 'Turismo · Design', 'Tech', 'Part-time', true], ['Luca', '40–44', 'Ex consulente · McKinsey', 'New York', 'Agrifood · Supply chain', 'Tech, Prodotto', 'Full-time', true], ['Sara', '30–34', 'Data Scientist · Revolut', 'Dublino', 'Fintech · AI', 'Business, Design', 'Full-time', false], ['Davide', '35–39', 'Operations Lead · Glovo', 'Barcellona', 'Logistica · Retail', 'Tech', 'Part-time', false]];
+    const people = [0, 1, 2].map(i => { const q = pool[(seed + i * 2) % pool.length]; return { name: q[0], age: '', role: q[2], from: q[3], to: city[(i + seed) % city.length], tags: q[4], seeks: q[5], time: q[6], idea: q[7], job: i === 1, comp: i === 0 ? `Cerca ${q[5].split(',')[0]}, il tuo background` : '' }; });
+    const origins = ['Londra', 'Berlino', 'Milano', 'Parigi', 'New York', 'Zurigo', 'Amsterdam'].filter(o => o !== sel).slice(seed % 2, (seed % 2) + 5)
+      .map((o, i) => ({ from: o.toUpperCase(), to: city[i % city.length].toUpperCase(), n: String(n('o' + i, 8, 40)) }));
+    const sectors = ['Turismo', 'Agrifood', 'Tech', 'Energia', 'Design', 'Fintech', 'Salute', 'Cultura'].map((l, i) => ({ l, n: n('s' + i, 6, 60) })).sort((a, b) => b.n - a.n).map(s => ({ l: s.l, n: String(s.n) }));
+    const ideaN = Math.round(count * (0.35 + (seed % 20) / 100));
+    const nearby = isCity ? (R[C[sel]] ? R[C[sel]].filter(c => c !== sel) : ['Sanremo', 'La Spezia', 'Savona', 'Imperia']) : R[sel];
+    const places = nearby.map(c => ({ name: c, n: String(n('p' + c, 5, isCity ? 40 : 90)), cursor: C[c] ? 'pointer' : 'default', go: () => C[c] && this.setState({ sel: c }) }));
+    const pre = isCity ? 'a' : 'in';
+    const p = {
+      name: sel, nameUpper: sel.toUpperCase(), isCity, region: C[sel] ?? '', prep: pre,
+      kindLabel: isCity ? 'Città' : 'Regione', slug: (isCity ? 'citta/' : 'regioni/') + sel.toLowerCase().replace(/[^a-z]+/g, '-'),
+      eyebrow: `Rientro ${pre} ${sel}`,
+      lede, cta: `Scopri chi torna ${pre} ${sel} →`, photoLabel: `FOTO · ${sel.toUpperCase()}`,
+      count: fmt(count),
+      stats: [{ v: fmt(count), l: `persone vogliono vivere ${pre} ${sel}` }, { v: fmt(n('l', 30, 120)), l: 'ci vivono già e cercano soci' }, { v: fmt(ideaN), l: "hanno già un'idea da costruire" }],
+      people, origins, sectors, idea: fmt(ideaN), explore: fmt(count - ideaN),
+      places, placesTitle: isCity ? (C[sel] === 'Liguria' ? 'Altre città in Liguria' : `Altre città in ${C[sel]}`) : `Città in ${sel}`
+    };
+    p.statsShort = p.stats.slice(0, 2);
+    const tab = name => ({ name, bg: name === sel ? '#1A1726' : 'rgba(255,255,255,.7)', fg: name === sel ? '#FFFFFF' : '#1A1726', go: () => this.setState({ sel: name }) });
+    const others = [...Object.keys(R), ...Object.keys(C)].filter(x => x !== sel).map(x => ({ label: (C[x] ? 'Rientro a ' : 'Rientro in ') + x, go: () => this.setState({ sel: x }) }));
+    const steps = [
+      { n: '01', t: 'Crea il profilo', d: `Indica ${sel} tra i posti dove vuoi vivere. Con LinkedIn si compila quasi da solo.` },
+      { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
+      { n: '03', t: 'Connettiti', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' }
+    ];
+    return { p, regionTabs: Object.keys(R).map(tab), cityTabs: Object.keys(C).map(tab), others, steps };
+  }
+}</script>
+</body>
+</html>

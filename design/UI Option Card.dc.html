@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="height:100%;min-height:{{ minH }};box-sizing:border-box;border-radius:{{ radius }};background:{{ bg }};border:{{ bd }};box-shadow:{{ sh }};padding:{{ pad }};display:flex;flex-direction:{{ dir }};justify-content:{{ jc }};align-items:{{ ai }};gap:{{ gap }};font-family:'Geist',sans-serif;color:{{ fg }};cursor:pointer">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none">
+<sc-if value="{{ hasLetter }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:44px;line-height:1;color:{{ lc }}">{{ letter }}</span></sc-if>
+<sc-if value="{{ isRadio }}" hint-placeholder-val="{{ true }}"><span style="width:22px;height:22px;border-radius:50%;box-sizing:border-box;border:{{ cbd }};background:#FFFFFF;flex:none"></span></sc-if>
+<sc-if value="{{ isCheck }}" hint-placeholder-val="{{ false }}"><span style="width:22px;height:22px;border-radius:7px;box-sizing:border-box;border:{{ chk }};background:{{ chkBg }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">{{ mark }}</span></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:5px;flex:1;justify-content:{{ tjc }}">
+<span style="font-size:{{ tfs }}px;line-height:1.25;font-weight:{{ tfw }};letter-spacing:-.01em">{{ title }}</span>
+<sc-if value="{{ hasDesc }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:1.45;color:{{ dc }}">{{ desc }}</span></sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:340,&quot;height&quot;:220},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Opzione&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;desc&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;letter&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;selected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;disabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;control&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;radio&quot;,&quot;check&quot;,&quot;none&quot;],&quot;default&quot;:&quot;radio&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;stack&quot;,&quot;row&quot;],&quot;default&quot;:&quot;stack&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, b = v => v === true || v === 'true';
+    const on = b(p.selected), off = b(p.disabled);
+    const control = p.control ?? 'radio', stack = (p.layout ?? 'stack') === 'stack';
+    const S = { sm: [15, 500, '56px'], md: [18, 600, '120px'], lg: [21, 600, '200px'] };
+    const [tfs, tfw, minH] = S[p.size] || S.md;
+    return {
+      title: p.title ?? 'Opzione', desc: p.desc, hasDesc: !!p.desc, letter: p.letter, hasLetter: !!p.letter,
+      isRadio: control === 'radio', isCheck: control === 'check',
+      bg: off ? '#F1EFF8' : on ? '#EFEBFF' : '#FFFFFF', fg: off ? '#8C84AE' : on ? '#1A1726' : '#1A1726',
+      bd: on ? '1.5px solid #6C4DF5' : '1.5px solid #FFFFFF', sh: on ? '0 10px 26px rgba(108,77,245,.18)' : 'none',
+      cbd: on ? '7px solid #6C4DF5' : '1.5px solid #CFC8E8',
+      chk: on ? 'none' : '1.5px solid #CFC8E8', chkBg: on ? '#6C4DF5' : '#FFFFFF', mark: on ? '✓' : '',
+      lc: on ? '#6C4DF5' : '#B9B2D6', dc: off ? '#8C84AE' : '#6B6680',
+      radius: stack ? '24px' : '20px', pad: stack ? '22px' : '0 18px', minH: p.size === 'sm' ? '56px' : minH,
+      dir: stack ? 'column' : 'row-reverse', jc: stack ? 'space-between' : 'space-between', ai: stack ? 'stretch' : 'center',
+      gap: stack ? '14px' : '12px', tjc: stack ? 'flex-end' : 'center', tfs, tfw
+    };
+  }
+}
+</script>
+</body>
+</html>

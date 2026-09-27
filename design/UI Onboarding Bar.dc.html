@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="width:100%;box-sizing:border-box;padding:18px 24px 0;font-family:'Geist',sans-serif">
+<div style="border-radius:999px;background:{{ bg }};border:{{ bd }};padding:12px 24px 12px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:18px">
+<dc-import name="UI Logo" size="24" tone="{{ tone }}" hint-size="100px,24px"></dc-import>
+<div style="flex:1"></div>
+<span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:{{ muted }}">{{ section }}</span>
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ fg }}">{{ label }}</span>
+<span style="font-size:13px;color:{{ muted }};text-decoration:underline;text-underline-offset:3px">Salva ed esci</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(16,1fr);gap:4px">
+<sc-for list="{{ segs }}" as="s" hint-placeholder-count="16"><div style="height:5px;border-radius:3px;background:{{ s.c }}"></div></sc-for>
+</div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:100},&quot;step&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3,&quot;min&quot;:1,&quot;max&quot;:16,&quot;tsType&quot;:&quot;number&quot;},&quot;section&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Profilo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const step = Number(this.props.step ?? 1), total = 16, dark = this.props.dark === true || this.props.dark === 'true';
+    const segs = Array.from({ length: total }, (_, i) => ({ c: i < step - 1 ? (dark ? '#C9C0F0' : '#1A1726') : i === step - 1 ? '#6C4DF5' : (dark ? '#3A3550' : '#DCD7EC') }));
+    return {
+      segs, label: `${step} di ${total}`, section: this.props.section ?? 'Profilo',
+      bg: dark ? '#2A2638' : 'rgba(255,255,255,.72)', bd: dark ? '1px solid #3A3550' : '1px solid #FFFFFF',
+      fg: dark ? '#FFFFFF' : '#1A1726', muted: dark ? '#B7B0D4' : '#6B6680', tone: dark ? 'light' : 'dark'
+    };
+  }
+}
+</script>
+</body>
+</html>

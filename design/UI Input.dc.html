@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"></helmet>
+<div style="width:100%;height:{{ h }};min-height:44px;border-radius:{{ radius }};background:#FFFFFF;border:{{ bd }};box-shadow:{{ sh }};box-sizing:border-box;padding:{{ pad }};display:flex;align-items:{{ align }};gap:10px;font-family:'Geist',sans-serif;font-size:{{ fs }}px;line-height:1.5;color:{{ fg }}">
+<sc-if value="{{ search }}" hint-placeholder-val="{{ false }}"><span style="width:12px;height:12px;border:1.8px solid #8C84AE;border-radius:50%;flex:none"></span></sc-if>
+<span style="flex:1">{{ text }}</span>
+<sc-if value="{{ hasHint }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:2px 6px;border-radius:6px;background:#F1EFF8">{{ hint }}</span></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:340,&quot;height&quot;:60},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Cerca&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;search&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;focused&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;rows&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, b = v => v === true || v === 'true';
+    const multi = !!p.rows, focused = b(p.focused), hasValue = !!p.value;
+    return {
+      text: p.value || p.placeholder || 'Cerca', fg: hasValue ? '#1A1726' : '#8C84AE',
+      search: b(p.search), hint: p.hint, hasHint: !!p.hint,
+      h: multi ? (Number(p.rows) * 24 + 28) + 'px' : (p.size === 'lg' ? '52px' : '44px'),
+      radius: multi ? '20px' : '999px', pad: multi ? '14px 18px' : '0 18px', align: multi ? 'flex-start' : 'center',
+      fs: p.size === 'lg' ? 17 : 14,
+      bd: focused ? '1.5px solid #6C4DF5' : '1px solid #E4E0F2',
+      sh: focused ? '0 0 0 4px rgba(108,77,245,.15)' : 'none'
+    };
+  }
+}
+</script>
+</body>
+</html>
