@@ -1,0 +1,44 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# One web service in Frankfurt with a persistent disk for the SQLite database and uploads.
+# Scale up before launch day by changing `plan` (e.g. standard, pro) in the Render dashboard.
+services:
+  - type: web
+    name: rientro
+    runtime: node
+    region: frankfurt
+    plan: starter            # persistent disks need a paid plan
+    branch: master
+    autoDeploy: true
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DB_PATH
+        value: /var/data/rientro.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: PSEUDONYM_SECRET
+        generateValue: true
+      # Asked for when the Blueprint is created:
+      - key: BASE_URL             # e.g. https://rientro.onrender.com, later https://rientro.it
+        sync: false
+      - key: ADMIN_EMAILS         # your email: gets the admin role on first sign-in
+        sync: false
+      - key: PREVIEW_PASSWORD     # shared password for the preview; leave empty to go public
+        sync: false
+      - key: LAUNCHED             # "1" opens discovery and connections before launch day
+        sync: false
+      - key: BREVO_API_KEY        # sign-in emails; optional while PREVIEW_PASSWORD is set
+        sync: false
+      - key: MAIL_FROM            # verified sender in Brevo, e.g. accesso@rientro.it
+        sync: false

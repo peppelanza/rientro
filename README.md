@@ -51,3 +51,7 @@ public/app/pages/           one page per screen; templates copied from the desig
 | DELETE | `/api/me` | `{ "confirm": "ELIMINA" }` |
 
 All mutations need the `X-Requested-With: rientro` header.
+
+## Deploy
+
+See [docs/DEPLOY.md](docs/DEPLOY.md): Render, Frankfurt, persistent disk, preview password.

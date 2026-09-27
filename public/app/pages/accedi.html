@@ -45,7 +45,7 @@
 <sc-for list="{{ digits }}" as="d"><input data-key="{{ d.key }}" value="{{ d.v }}" inputmode="numeric" autocomplete="{{ d.ac }}" maxlength="6" aria-label="{{ d.aria }}" onInput="{{ d.input }}" onKeyDown="{{ d.keydown }}" onPaste="{{ d.paste }}" style="height:60px;min-width:0;border-radius:18px;border:{{ d.bd }};box-shadow:{{ d.sh }};background:#FFFFFF;text-align:center;font-size:24px;font-family:'Geist Mono',monospace;color:#1A1726;outline:none;box-sizing:border-box"></sc-for>
 </div>
 <sc-if value="{{ codeError }}"><span role="alert" style="font-size:13px;color:#B42318">{{ codeError }}</span></sc-if>
-<sc-if value="{{ devCode }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">SOLO IN SVILUPPO · CODICE {{ devCode }}</span></sc-if>
+<sc-if value="{{ devCode }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">ANTEPRIMA · IL TUO CODICE È {{ devCode }}</span></sc-if>
 <div style="display:flex;justify-content:space-between;font-size:14px;color:#6B6680"><span>Non è arrivato? <button type="button" onClick="{{ resend }}" disabled="{{ cantResend }}" style="border:none;background:none;padding:0;font:inherit;color:{{ resendColor }};text-decoration:underline;cursor:pointer">Invia di nuovo</button></span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ countdown }}</span></div>
 <dc-import name="UI Button" label="{{ verifyLabel }}" size="lg" full="{{ true }}" variant="{{ verifyVariant }}" on-click="{{ verify }}" host-aria-disabled="{{ cantVerify }}"></dc-import>
 </sc-if>
