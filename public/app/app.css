@@ -72,3 +72,4 @@ button { font: inherit; }
   .r-span-1 { grid-column: auto !important; }
   .admin-sidebar { display: none !important; }
 }
+.bare-input:focus-visible { outline: none; }

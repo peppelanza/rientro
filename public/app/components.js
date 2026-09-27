@@ -363,3 +363,34 @@ def('App Tag Input', String.raw`
     };
   }
 });
+
+// ---------------------------------------------------------------------------------------------
+// App Photo — UI Photo with a real image or video when one exists (falls back to the design's
+// striped placeholder). Props: as UI Photo, plus src, video (url), alt, initials.
+
+def('App Photo', String.raw`
+<div style="position:relative;flex:none;width:{{ w }};height:{{ h }};aspect-ratio:{{ ratio }};border-radius:{{ radius }};background:{{ bg }};overflow:hidden;box-sizing:border-box">
+<sc-if value="{{ src }}"><img class="media-fill" src="{{ src }}" alt="{{ alt }}" loading="lazy"></sc-if>
+<sc-if value="{{ video }}"><video class="media-fill" src="{{ video }}" controls preload="metadata" playsinline aria-label="{{ alt }}"></video></sc-if>
+<sc-if value="{{ showInitials }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 {{ ifs }}px 'Geist',sans-serif;color:{{ ic }}">{{ initials }}</span></sc-if>
+<sc-if value="{{ showLabel }}"><span style="position:absolute;left:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.06em;color:#8C84AE">{{ label }}</span></sc-if>
+<sc-if value="{{ hasBadge }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badge }}" style="position:absolute;top:12px;left:12px"></dc-import></sc-if>
+<sc-if value="{{ hasDuration }}"><span style="position:absolute;right:14px;bottom:12px;font-family:'Geist Mono',monospace;font-size:11px;color:#FFFFFF">{{ duration }}</span></sc-if>
+</div>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const size = p.size ? Number(p.size) : 0;
+    const dark = b(p.dark);
+    const small = size && size < 90;
+    const media = !!(p.src || p.video);
+    return {
+      w: size ? `${size}px` : '100%', h: size ? `${size}px` : (p.height ? `${p.height}px` : 'auto'),
+      ratio: size || p.height ? 'auto' : (p.ratio ?? '4/3'), radius: p.radius ?? (size ? '50%' : '22px'),
+      bg: media ? '#1A1726' : dark ? 'repeating-linear-gradient(135deg,#2A2638 0 8px,#231F30 8px 16px)' : 'repeating-linear-gradient(135deg,#E3DEF5 0 8px,#DAD4F0 8px 16px)',
+      src: p.video ? null : p.src, video: p.video, alt: p.alt ?? '',
+      initials: p.initials, showInitials: !media && !!p.initials, ifs: size ? Math.max(11, Math.round(size / 3)) : 28, ic: dark ? '#B7B0D4' : '#6B6680',
+      label: p.label ?? 'FOTO', showLabel: !media && !p.initials && !small && p.label !== '',
+      hasBadge: !!p.badge, badge: p.badge, badgeKind: p.badgeKind ?? 'idea', duration: p.duration, hasDuration: !!p.duration && !media,
+    };
+  }
+});
