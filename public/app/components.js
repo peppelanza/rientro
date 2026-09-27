@@ -436,3 +436,46 @@ def('App Person Card', String.raw`
     };
   }
 });
+
+
+// ---------------------------------------------------------------------------------------------
+// App Job Details — "Che tipo di opportunità cerchi in Italia?" (spec §10). Used in onboarding
+// and in Impostazioni → Privacy. Props: job (job_preferences), catalog, desired[], onChange(patch)
+
+const ROLE_SUGGESTIONS = ['Product Manager', 'Software Engineer', 'Designer', 'Data Scientist', 'Sales Manager', 'Marketing Manager', 'Operations Manager', 'Consulente'];
+const SKILL_SUGGESTIONS = ['Leadership', 'Gestione team', 'Strategia', 'Analisi dati', 'Sviluppo software', 'Vendite B2B', 'Ricerca utenti', 'Finanza'];
+
+def('App Job Details', String.raw`
+<div style="background:#FFFFFF;border-radius:26px;padding:22px;display:flex;flex-direction:column;gap:22px">
+<dc-import name="App Tag Input" label="Ruoli che ti interessano" values="{{ jobRoles }}" suggestions="{{ roleSuggestions }}" max="8" field="job-roles" placeholder="Scrivi un ruolo e premi Invio" dc-props="{{ rolesProps }}"></dc-import>
+<dc-import name="App Tag Input" label="Competenze principali" values="{{ jobSkills }}" suggestions="{{ skillSuggestions }}" max="20" field="job-skills" placeholder="Scrivi una competenza e premi Invio" dc-props="{{ skillsProps }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline"><dc-import name="UI Eyebrow" text="Settori"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ jobSectorCount }}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ jobSectors }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" size="sm" on-click="{{ s.fn }}" host-role="checkbox" host-aria-checked="{{ s.aria }}"></dc-import></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><dc-import name="UI Eyebrow" text="Dove"></dc-import><sc-if value="{{ canCopyPlaces }}"><button type="button" onClick="{{ copyPlaces }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6C4DF5;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Usa i comuni dove vorresti vivere</button></sc-if></div>
+<dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ jobPlaces }}" max="10" field="job-places" dc-props="{{ jobPlacesProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Modalità di lavoro</span><dc-import name="App Segmented" label="Modalità di lavoro" options="{{ workOpts }}" value="{{ work }}" clearable="{{ true }}" dc-props="{{ workProps }}"></dc-import></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Tipo di impiego</span><dc-import name="App Segmented" label="Tipo di impiego" options="{{ empOpts }}" value="{{ emp }}" clearable="{{ true }}" dc-props="{{ empProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Disponibilità</span><dc-import name="App Segmented" label="Disponibilità" options="{{ availOpts }}" value="{{ avail }}" clearable="{{ true }}" dc-props="{{ availProps }}"></dc-import></div>
+</div></div>`, class extends DCLogic {
+  renderVals() {
+    const j = this.props.job;
+    const cat = this.props.catalog;
+    const desired = this.props.desired || [];
+    const set = patch => this.props.onChange?.(patch);
+    const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
+    const toggle = s => (j.sectors.includes(s) ? j.sectors.filter(x => x !== s) : j.sectors.length >= 5 ? j.sectors : [...j.sectors, s]);
+    return {
+      comuni: cat.comuni,
+      jobRoles: j.roles, roleSuggestions: ROLE_SUGGESTIONS, rolesProps: { onChange: v => set({ roles: v }) },
+      jobSkills: j.skills, skillSuggestions: SKILL_SUGGESTIONS, skillsProps: { onChange: v => set({ skills: v }) },
+      jobSectorCount: `${j.sectors.length} / 5`,
+      jobSectors: cat.sectors.map(l => { const on = j.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : j.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => set({ sectors: toggle(l) }) }; }),
+      jobPlaces: j.preferred_locations, jobPlacesProps: { onChange: v => set({ preferred_locations: v }) },
+      canCopyPlaces: desired.length > 0 && !j.preferred_locations.length, copyPlaces: () => set({ preferred_locations: desired.slice(0, 10) }),
+      workOpts: opts(cat.workArrangements), work: j.work_arrangement, workProps: { onSelect: v => set({ work_arrangement: v || null }) },
+      empOpts: opts(cat.employmentTypes), emp: j.employment_type, empProps: { onSelect: v => set({ employment_type: v || null }) },
+      availOpts: opts(cat.availability), avail: j.availability, availProps: { onSelect: v => set({ availability: v || null }) },
+    };
+  }
+});

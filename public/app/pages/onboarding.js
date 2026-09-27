@@ -33,8 +33,6 @@ const FIELDS = {
 };
 const JOB_FIELDS = ['roles', 'skills', 'sectors', 'preferred_locations', 'work_arrangement', 'employment_type', 'availability'];
 
-const ROLE_SUGGESTIONS = ['Product Manager', 'Software Engineer', 'Designer', 'Data Scientist', 'Sales Manager', 'Marketing Manager', 'Operations Manager', 'Consulente'];
-const SKILL_SUGGESTIONS = ['Leadership', 'Gestione team', 'Strategia', 'Analisi dati', 'Sviluppo software', 'Vendite B2B', 'Ricerca utenti', 'Finanza'];
 const FREQUENT = ['Roma', 'Torino', 'Napoli', 'Firenze'];
 
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k] ?? null]));
@@ -238,11 +236,6 @@ export default class extends Page {
       footProps: { onNext: () => this.next(), onSkip: () => this.next(true), onBack: () => this.back() },
       cityPickerProps: { onChange: list => this.set({ lives_in_city: list.at(-1) ?? null }) },
       desiredProps: { onChange: list => this.set({ desired_comuni: list, desired_unknown: list.length ? false : p.desired_unknown }) },
-      rolesProps: { onChange: v => this.setJob({ roles: v }) }, skillsProps: { onChange: v => this.setJob({ skills: v }) },
-      jobPlacesProps: { onChange: v => this.setJob({ preferred_locations: v }) },
-      workProps: { onSelect: v => this.setJob({ work_arrangement: v || null }) },
-      empProps: { onSelect: v => this.setJob({ employment_type: v || null }) },
-      availProps: { onSelect: v => this.setJob({ availability: v || null }) },
       stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
       ageProps: { onSelect: v => this.set({ age_band: v || null }) },
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
@@ -277,17 +270,8 @@ export default class extends Page {
       jobOn: j.looking_for_italian_job, jobOff: !j.looking_for_italian_job, toggleJob: this.toggleJob,
       jobAria: j.looking_for_italian_job ? 'true' : 'false',
 
-      // Job details (§10)
-      jobRoles: j.roles, roleSuggestions: ROLE_SUGGESTIONS,
-      jobSkills: j.skills, skillSuggestions: SKILL_SUGGESTIONS,
-      jobSectorCount: `${j.sectors.length} / 5`,
-      jobSectors: cat.sectors.map(l => { const on = j.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : j.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.setJob({ sectors: toggleIn(j.sectors, l, 5) }) }; }),
-      jobPlaces: j.preferred_locations,
-      canCopyPlaces: p.desired_comuni.length > 0 && !j.preferred_locations.length,
-      copyPlaces: () => this.setJob({ preferred_locations: p.desired_comuni.slice(0, 10) }),
-      workOpts: opts(cat.workArrangements), work: j.work_arrangement,
-      empOpts: opts(cat.employmentTypes), emp: j.employment_type,
-      availOpts: opts(cat.availability), avail: j.availability,
+      // Job details (§10) — rendered by App Job Details
+      j, cat, jobProps: { onChange: patch => this.setJob(patch) },
 
       // 9b
       hasIdea: p.primary_intent === 'has_idea',

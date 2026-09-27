@@ -1,0 +1,15 @@
+<!-- Settings list in the style of design/Rientro 05 · 39a / 32b. -->
+<div style="min-height:100vh;background:#E9E6F5">
+<dc-import name="App Nav" active="none" me="{{ me }}"></dc-import>
+<div class="r-grid-1" style="display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px;padding:28px 24px 40px;max-width:1100px;box-sizing:border-box;margin:0 auto">
+<div class="r-hide-sm"><dc-import name="App Side Menu" title="Impostazioni" items="{{ menu }}" active="Persone bloccate"></dc-import></div>
+<main style="display:flex;flex-direction:column;gap:18px;max-width:640px;min-width:0">
+<a href="/impostazioni/privacy" style="font-size:14px;color:#6B6680;text-decoration:none">← Privacy</a>
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Persone bloccate</h1><span style="font-size:15px;color:#4A4560;line-height:1.5">Non vedono il tuo profilo e tu non vedi il loro. Non sanno di essere state bloccate.</span></div>
+<div style="background:#FFFFFF;border-radius:28px;padding:4px 24px">
+<sc-if value="{{ none }}"><span style="display:block;padding:18px 0;font-size:14px;color:#8C84AE">Non hai bloccato nessuno.</span></sc-if>
+<sc-for list="{{ blocks }}" as="b"><div style="display:flex;gap:16px;align-items:center;padding:16px 0;border-top:{{ b.bt }}"><div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-weight:600">{{ b.n }}</span><span style="font-size:13px;color:#8C84AE">{{ b.d }}</span></div><dc-import name="UI Button" label="Sblocca" variant="secondary" size="sm" on-click="{{ b.unblock }}"></dc-import></div></sc-for>
+</div>
+</main></div>
+<dc-import name="App TabBar" active="profilo" me="{{ me }}"></dc-import>
+</div>

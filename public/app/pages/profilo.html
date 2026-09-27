@@ -1,0 +1,108 @@
+<!-- From design/Rientro 05 Account e Privacy v2 · artboard 37a (modifica profilo · editor a sezioni).
+     Section bodies reuse the field patterns of design 02 (onboarding) so both edit the same data the same way. -->
+<div style="min-height:100vh;background:#E9E6F5">
+<dc-import name="App Nav" active="none" me="{{ me }}"></dc-import>
+<sc-if value="{{ cat }}">
+<div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:28px;padding:28px 24px 40px;max-width:1280px;box-sizing:border-box;margin:0 auto">
+<div><dc-import name="App Side Menu" eyebrow="Il tuo profilo" items="{{ menu }}" active="{{ activeLabel }}"></dc-import></div>
+
+<main style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:start" class="r-pad-lg">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:600;letter-spacing:-.05em">{{ heading }}</h1><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></div>
+
+<sc-if value="{{ isIntestazione }}">
+<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><dc-import name="App Photo" size="96" src="{{ photo }}" alt="La tua foto"></dc-import><label style="height:36px;padding:0 16px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;font-size:13px;font-weight:500;cursor:pointer"><input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" onChange="{{ pickPhoto }}">Cambia foto</label><span style="font-size:12px;color:#8C84AE">La foto è obbligatoria</span><sc-if value="{{ photoPct }}"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#6C4DF5">{{ photoPct }}</span></sc-if><sc-if value="{{ photoPending }}"><dc-import name="UI Badge" kind="neutral" label="Nuova foto in revisione"></dc-import></sc-if></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<dc-import name="App Field" label="Nome" field="first_name" value="{{ t.first_name.value }}" autocomplete="given-name" dc-props="{{ t.first_name.props }}"></dc-import>
+<dc-import name="App Field" label="Cognome" field="last_name" value="{{ t.last_name.value }}" autocomplete="family-name" dc-props="{{ t.last_name.props }}"></dc-import>
+<dc-import name="App Field" label="Ruolo attuale" field="current_role" value="{{ t.current_role.value }}" dc-props="{{ t.current_role.props }}"></dc-import>
+<dc-import name="App Field" label="Azienda" optional="{{ true }}" field="current_company" value="{{ t.current_company.value }}" dc-props="{{ t.current_company.props }}"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fascia d'età</span><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" dc-props="{{ ageProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Vive</span><div class="r-full" style="max-width:320px"><dc-import name="App Segmented" label="Dove vivi" options="{{ livesOpts }}" value="{{ lives }}" dc-props="{{ livesProps }}"></dc-import></div></div>
+<sc-if value="{{ isAbroad }}"><div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><dc-import name="App Field" label="Paese" field="lives_in_country" value="{{ t.lives_in_country.value }}" dc-props="{{ t.lives_in_country.props }}"></dc-import><dc-import name="App Field" label="Città" field="lives_in_city" value="{{ t.lives_in_city.value }}" dc-props="{{ t.lives_in_city.props }}"></dc-import></div></sc-if>
+<sc-if value="{{ isItaly }}"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Comune</span><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ cityComune }}" max="1" field="city-comune" dc-props="{{ cityProps }}"></dc-import></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Vuole vivere a</span><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" max="10" field="desired" dc-props="{{ desiredProps }}"></dc-import><dc-import name="UI Checkbox" label="Non lo so ancora" checked="{{ unknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ unknown }}"></dc-import></div>
+</sc-if>
+
+<sc-if value="{{ isSuDiMe }}">
+<dc-import name="App Field" label="Su di me" rows="4" field="bio" maxlength="600" value="{{ t.bio.value }}" foot="Chi sei, cosa ti muove, perché ora" dc-props="{{ t.bio.props }}"></dc-import>
+<div id="video" style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;font-weight:500">Video di presentazione <span style="color:#8C84AE;font-weight:400">Facoltativo · 60–120 s · MP4 o MOV · max 200 MB</span></span>
+<sc-if value="{{ video }}"><div style="max-width:480px"><dc-import name="App Photo" ratio="16/9" radius="20px" video="{{ video }}" alt="Il tuo video"></dc-import></div><div style="display:flex;gap:8px"><label style="height:36px;padding:0 16px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;font-size:13px;font-weight:500;cursor:pointer"><input type="file" accept="video/mp4,video/quicktime" class="sr-only" onChange="{{ pickVideo }}">Sostituisci</label><dc-import name="UI Button" label="Rimuovi" variant="ghost" size="sm" on-click="{{ removeVideo }}"></dc-import></div></sc-if>
+<sc-if value="{{ videoUploading }}"><div role="progressbar" aria-label="Caricamento video" aria-valuetext="{{ upPct }}" style="display:flex;align-items:center;gap:12px;font-size:13px;color:#6B6680"><div style="flex:1;height:6px;border-radius:3px;background:#ECE8F7"><div style="width:{{ upPct }};height:6px;border-radius:3px;background:#6C4DF5"></div></div><span style="font-family:'Geist Mono',monospace">{{ upPct }}</span><button type="button" onClick="{{ cancelUpload }}" style="border:none;background:none;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer">Annulla</button></div></sc-if>
+<sc-if value="{{ noVideo }}"><label style="align-self:flex-start;height:44px;padding:0 20px;border-radius:999px;border:1.5px solid #1A1726;display:flex;align-items:center;font-size:14px;font-weight:500;cursor:pointer"><input type="file" accept="video/mp4,video/quicktime" class="sr-only" onChange="{{ pickVideo }}">+ Carica un video</label></sc-if>
+<dc-import name="UI Checkbox" label="Mostralo solo alle mie connessioni" checked="{{ videoOnly }}" on-click="{{ toggleVideoOnly }}" host-role="checkbox" host-aria-checked="{{ videoOnly }}"></dc-import>
+</div>
+<dc-import name="App Field" label="Un risultato di cui vai fiero/a" optional="{{ true }}" rows="4" field="achievement" maxlength="400" value="{{ t.achievement.value }}" dc-props="{{ t.achievement.props }}"></dc-import>
+</sc-if>
+
+<sc-if value="{{ isObiettivo }}">
+<div role="radiogroup" aria-label="Obiettivo" class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><dc-import name="UI Option Card" letter="A" selected="{{ intentA.on }}" title="Ho già un'idea e cerco un co-founder" on-click="{{ intentA.fn }}" host-role="radio" host-aria-checked="{{ intentA.aria }}"></dc-import><dc-import name="UI Option Card" letter="B" selected="{{ intentB.on }}" title="Non ho ancora un'idea e voglio trovare qualcuno con cui crearne una" on-click="{{ intentB.fn }}" host-role="radio" host-aria-checked="{{ intentB.aria }}"></dc-import></div>
+<dc-import name="App Field" label="In una frase" field="idea_title" maxlength="140" value="{{ t.idea_title.value }}" dc-props="{{ t.idea_title.props }}"></dc-import>
+<dc-import name="App Field" label="Descrizione" rows="4" field="idea_description" maxlength="1000" value="{{ t.idea_description.value }}" dc-props="{{ t.idea_description.props }}"></dc-import>
+<sc-if value="{{ hasIdea }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="App Segmented" label="A che punto sei" options="{{ stageOpts }}" value="{{ stage }}" dc-props="{{ stageProps }}"></dc-import></div></sc-if>
+<div style="display:flex;gap:14px;align-items:center;padding:14px 18px;border-radius:20px;border:1.5px dashed #B9B2D6;font-size:14px;line-height:1.5;color:#4A4560"><span style="flex:1">Sto anche cercando lavoro in Italia per un'azienda italiana: <b style="font-weight:600">{{ jobLabel }}</b></span><a href="/impostazioni/privacy" style="font-size:13px;color:#6B6680">Gestisci in Privacy</a></div>
+</sc-if>
+
+<sc-if value="{{ isPercorso }}">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Background</span><div role="radiogroup" aria-label="Background" class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ areas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" selected="{{ a.on }}" control="none" size="sm" layout="row" on-click="{{ a.fn }}" host-role="radio" host-aria-checked="{{ a.aria }}"></dc-import></sc-for></div></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Anni di esperienza</span><div class="r-full" style="max-width:420px"><dc-import name="App Segmented" label="Anni di esperienza" options="{{ yearOpts }}" value="{{ years }}" dc-props="{{ yearsProps }}"></dc-import></div></div>
+<div style="height:1px;background:#ECE8F7"></div>
+<dc-import name="UI Eyebrow" text="Esperienze"></dc-import>
+<sc-if value="{{ expEditing }}"><div style="background:#FFFFFF;border:1.5px solid #6C4DF5;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<dc-import name="App Field" field="exp-company" value="{{ exp.company }}" placeholder="Azienda" dc-props="{{ expProps.company }}"></dc-import>
+<dc-import name="App Field" field="exp-role" value="{{ exp.role }}" placeholder="Ruolo" dc-props="{{ expProps.role }}"></dc-import>
+<dc-import name="App Field" field="exp-start" type="month" value="{{ exp.start_month }}" placeholder="Inizio (AAAA-MM)" dc-props="{{ expProps.start_month }}"></dc-import>
+<label style="height:44px;border-radius:999px;border:1px solid #E4E0F2;padding:0 14px;display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;box-sizing:border-box"><input type="checkbox" class="sr-only" checked="{{ exp.current }}" onChange="{{ toggleExpCur }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;flex:none;box-sizing:border-box;background:{{ expCurBg }};border:{{ expCurBd }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ expCurMark }}</span>Lavoro qui</label>
+<sc-if value="{{ expEnded }}"><dc-import name="App Field" field="exp-end" type="month" value="{{ exp.end_month }}" placeholder="Fine (AAAA-MM)" dc-props="{{ expProps.end_month }}"></dc-import></sc-if>
+<dc-import name="App Field" field="exp-city" value="{{ exp.city }}" placeholder="Città" dc-props="{{ expProps.city }}"></dc-import>
+</div>
+<div style="display:flex;gap:6px;align-items:center"><sc-if value="{{ expIsEdit }}"><dc-import name="UI Button" label="Elimina" variant="ghost" size="sm" on-click="{{ delExp }}"></dc-import></sc-if><div style="flex:1"></div><dc-import name="UI Button" label="Annulla" variant="ghost" size="sm" on-click="{{ cancelExp }}"></dc-import><dc-import name="UI Button" label="Salva" size="sm" on-click="{{ saveExp }}"></dc-import></div></div></sc-if>
+<sc-for list="{{ jobs }}" as="j"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ j.t }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ j.m }}</span></div><dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" on-click="{{ j.edit }}"></dc-import></div></sc-for>
+<sc-if value="{{ expNotEditing }}"><dc-import name="UI Button" label="+ Aggiungi esperienza" variant="outline" full="{{ true }}" on-click="{{ addExp }}"></dc-import></sc-if>
+<div style="height:1px;background:#ECE8F7"></div>
+<dc-import name="UI Eyebrow" text="Formazione"></dc-import>
+<sc-for list="{{ edu }}" as="e"><div style="display:flex;gap:16px;align-items:flex-start;border-top:{{ e.bt }};padding-top:10px"><div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><span style="font-weight:600">{{ e.s }}</span><span style="font-size:14px;color:#6B6680">{{ e.d }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ e.y }}</span></div><dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" on-click="{{ e.edit }}"></dc-import></div></sc-for>
+<sc-if value="{{ eduEditing }}"><div style="display:flex;flex-direction:column;gap:10px;border:1.5px solid #6C4DF5;border-radius:24px;padding:16px">
+<dc-import name="App Field" label="Istituto" field="edu-school" value="{{ eduForm.school }}" dc-props="{{ eduProps.school }}"></dc-import>
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 160px;gap:10px"><dc-import name="App Field" label="Titolo o programma" optional="{{ true }}" field="edu-degree" value="{{ eduForm.degree }}" dc-props="{{ eduProps.degree }}"></dc-import><dc-import name="App Field" label="Anni" optional="{{ true }}" field="edu-years" value="{{ eduForm.years }}" dc-props="{{ eduProps.years }}"></dc-import></div>
+<div style="display:flex;gap:6px;align-items:center"><sc-if value="{{ eduIsEdit }}"><dc-import name="UI Button" label="Elimina" variant="ghost" size="sm" on-click="{{ delEdu }}"></dc-import></sc-if><div style="flex:1"></div><dc-import name="UI Button" label="Annulla" variant="ghost" size="sm" on-click="{{ cancelEdu }}"></dc-import><dc-import name="UI Button" label="Salva" size="sm" on-click="{{ saveEdu }}"></dc-import></div>
+</div></sc-if>
+<sc-if value="{{ eduNotEditing }}"><dc-import name="UI Button" label="+ Aggiungi formazione" variant="outline" full="{{ true }}" on-click="{{ addEdu }}"></dc-import></sc-if>
+</sc-if>
+
+<sc-if value="{{ isChiCerco }}">
+<div class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ seekAreas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" desc="{{ a.desc }}" selected="{{ a.on }}" disabled="{{ a.off }}" control="{{ a.control }}" size="sm" layout="row" on-click="{{ a.fn }}" host-role="checkbox" host-aria-checked="{{ a.aria }}"></dc-import></sc-for></div>
+<dc-import name="App Field" label="Descrivi la persona che cerchi" optional="{{ true }}" rows="3" field="seeking_description" maxlength="400" value="{{ t.seeking_description.value }}" dc-props="{{ t.seeking_description.props }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Dove dovrebbe vivere?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Dove dovrebbe vivere" options="{{ locOpts }}" value="{{ loc }}" dc-props="{{ locProps }}"></dc-import></div></div>
+</sc-if>
+
+<sc-if value="{{ isInteressi }}">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:500">Settori · fino a 5</span><span style="font-family:'Geist Mono',monospace;font-size:12px;padding:4px 10px;border-radius:999px;background:#EFEBFF;color:#3E2BA8">{{ sectorCount }}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for></div>
+<div role="radiogroup" aria-label="Tempo" class="r-grid-1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><sc-for list="{{ times }}" as="x"><dc-import name="UI Option Card" title="{{ x.t }}" desc="{{ x.d }}" selected="{{ x.on }}" size="sm" on-click="{{ x.fn }}" host-role="radio" host-aria-checked="{{ x.aria }}"></dc-import></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando potresti iniziare?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Quando potresti iniziare" options="{{ startOpts }}" value="{{ startWhen }}" dc-props="{{ startProps }}"></dc-import></div></div>
+</sc-if>
+
+<sc-if value="{{ isItalia }}">
+<dc-import name="App Field" label="Cosa ti manca dell'Italia?" rows="3" field="misses_italy" maxlength="200" value="{{ t.misses_italy.value }}" foot="Una riga o due. Comparirà sul tuo profilo." dc-props="{{ t.misses_italy.props }}"></dc-import>
+</sc-if>
+
+<sc-if value="{{ isLink }}">
+<dc-import name="UI Eyebrow" text="Visibile a tutti i membri"></dc-import>
+<div class="r-grid-1" style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center"><span style="font-size:14px;font-weight:500">LinkedIn</span><dc-import name="App Field" field="linkedin_url" type="url" value="{{ t.linkedin_url.value }}" placeholder="https://linkedin.com/in/…" dc-props="{{ t.linkedin_url.props }}"></dc-import><span style="font-size:14px;font-weight:500">Sito</span><dc-import name="App Field" field="website_url" type="url" value="{{ t.website_url.value }}" placeholder="https://" dc-props="{{ t.website_url.props }}"></dc-import></div>
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px"><dc-import name="UI Eyebrow" text="Visibile solo alle tue connessioni" tone="accent"></dc-import><span style="font-size:12px;color:#6B6680">🔒 Nascosto finché non accetti</span></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;padding:16px;border-radius:24px;background:#EFEBFF"><span style="font-size:14px;font-weight:500">Instagram</span><dc-import name="App Field" field="instagram_handle" value="{{ t.instagram_handle.value }}" placeholder="@nome" dc-props="{{ t.instagram_handle.props }}"></dc-import><span style="font-size:14px;font-weight:500">X / Twitter</span><dc-import name="App Field" field="x_handle" value="{{ t.x_handle.value }}" placeholder="@nome" dc-props="{{ t.x_handle.props }}"></dc-import><span style="font-size:14px;font-weight:500">Link calendario</span><dc-import name="App Field" field="calendar_url" type="url" value="{{ t.calendar_url.value }}" placeholder="https://cal.com/…" dc-props="{{ t.calendar_url.props }}"></dc-import></div>
+</sc-if>
+
+<sc-if value="{{ showReviewNote }}"><div style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-radius:20px;background:#FFF4DC;font-size:14px;line-height:1.5;color:#7A4E00"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A;margin-top:7px;flex:none"></span>Le modifiche a foto, nome e idea vengono riviste prima di essere pubblicate. Il resto è subito online.</div></sc-if>
+<div style="display:flex;justify-content:flex-end;gap:8px;padding-top:8px;border-top:1px solid #ECE8F7"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}" host-aria-disabled="{{ !dirty }}"></dc-import><dc-import name="UI Button" label="Salva modifiche" variant="{{ saveVariant }}" on-click="{{ save }}" host-aria-disabled="{{ !dirty }}"></dc-import></div>
+</main>
+
+<aside class="r-hide-md" style="display:flex;flex-direction:column;gap:12px"><dc-import name="UI Eyebrow" text="Come ti vedono"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:12px"><dc-import name="App Photo" height="150" radius="20px" src="{{ photo }}"></dc-import><div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:16px;letter-spacing:-.03em">{{ pvName }}</span><span style="font-size:13px"><mark style="background:#EFEBFF;color:#3E2BA8;padding:1px 4px;border-radius:4px">{{ pvRole }}</mark></span><span style="font-size:13px">{{ pvFrom }}<sc-if value="{{ hasTo }}"> <span style="color:#6C4DF5">→</span> {{ pvTo }}</sc-if></span></div></div>
+<a href="{{ previewHref }}" style="font-size:13px;color:#6B6680">Apri anteprima completa</a></aside>
+</div>
+</sc-if>
+<dc-import name="App TabBar" active="profilo" me="{{ me }}"></dc-import>
+</div>

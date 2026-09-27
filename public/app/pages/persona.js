@@ -12,7 +12,8 @@ export default class extends Page {
   async load() {
     const me = await getMe();
     this.state.me = me;
-    if (me.user.id === this.props.params.id) return go('/profilo');
+    this.state.self = me.user.id === this.props.params.id;
+    if (this.state.self && !new URLSearchParams(location.search).has('anteprima')) return go('/profilo');
     this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}`);
     document.title = `${this.state.p.first_name} ${this.state.p.last_name} · Rientro`;
   }
@@ -46,7 +47,7 @@ export default class extends Page {
     const seeksMe = p.viewer_background && p.seeking.backgrounds.includes(p.viewer_background);
     const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.desired_comuni.join(', ') };
     return {
-      loading: false, notFound: false, ready: true, me: s.me, name, first: p.first_name, photo: p.photo_url,
+      loading: false, notFound: false, ready: true, me: s.me, name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city, places: p.places, hasPlaces: !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: p.desired_unknown,
       badgeKind: p.primary_intent === 'has_idea' ? 'idea' : 'explore', badgeLabel: p.primary_intent === 'has_idea' ? "Ha già un'idea" : "Cerca un'idea insieme",

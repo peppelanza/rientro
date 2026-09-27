@@ -55,18 +55,7 @@
 
 <sc-if value="{{ is_lavoro }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:22px">
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="In più, facoltativo" tone="accent"></dc-import><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Che tipo di opportunità cerchi in Italia?</h2><span style="font-size:16px;color:#6B6680;line-height:1.5">Tutto facoltativo. Questi dettagli non compaiono sul profilo: gli altri membri vedono solo “Sta anche cercando lavoro in Italia”.</span></div>
-<div style="background:#FFFFFF;border-radius:26px;padding:22px;display:flex;flex-direction:column;gap:22px">
-<dc-import name="App Tag Input" label="Ruoli che ti interessano" values="{{ jobRoles }}" suggestions="{{ roleSuggestions }}" max="8" field="job-roles" placeholder="Scrivi un ruolo e premi Invio" dc-props="{{ rolesProps }}"></dc-import>
-<dc-import name="App Tag Input" label="Competenze principali" values="{{ jobSkills }}" suggestions="{{ skillSuggestions }}" max="20" field="job-skills" placeholder="Scrivi una competenza e premi Invio" dc-props="{{ skillsProps }}"></dc-import>
-<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline"><dc-import name="UI Eyebrow" text="Settori"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ jobSectorCount }}</span></div>
-<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ jobSectors }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" size="sm" on-click="{{ s.fn }}" host-role="checkbox" host-aria-checked="{{ s.aria }}"></dc-import></sc-for></div></div>
-<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><dc-import name="UI Eyebrow" text="Dove"></dc-import><sc-if value="{{ canCopyPlaces }}"><button type="button" onClick="{{ copyPlaces }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6C4DF5;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Usa i comuni dove vorresti vivere</button></sc-if></div>
-<dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ jobPlaces }}" max="10" field="job-places" dc-props="{{ jobPlacesProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Modalità di lavoro</span><dc-import name="App Segmented" label="Modalità di lavoro" options="{{ workOpts }}" value="{{ work }}" clearable="{{ true }}" dc-props="{{ workProps }}"></dc-import></div>
-<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px">
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Tipo di impiego</span><dc-import name="App Segmented" label="Tipo di impiego" options="{{ empOpts }}" value="{{ emp }}" clearable="{{ true }}" dc-props="{{ empProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Disponibilità</span><dc-import name="App Segmented" label="Disponibilità" options="{{ availOpts }}" value="{{ avail }}" clearable="{{ true }}" dc-props="{{ availProps }}"></dc-import></div>
-</div></div>
+<dc-import name="App Job Details" job="{{ j }}" catalog="{{ cat }}" desired="{{ desired }}" dc-props="{{ jobProps }}"></dc-import>
 <span style="font-size:13px;color:#8C84AE;line-height:1.5">Puoi modificarli o cancellarli quando vuoi da <a href="/impostazioni/privacy" style="color:#6B6680">Impostazioni → Privacy</a>. Se togli la spunta, li cancelliamo.</span>
 </div></sc-if>
 
