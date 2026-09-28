@@ -33,7 +33,32 @@
 <section id="per-chi" class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:16px">
 <dc-import name="UI Eyebrow" text="Per chi è"></dc-import>
 <sc-for list="{{ forWho }}" as="f">
-<div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div>
+<div class="who-card"><div class="place-art who-art"><sc-if value="{{ f.torna }}"><svg viewBox="0 0 240 150" aria-hidden="true">
+<circle cx="150" cy="88" r="46" fill="#DCD4FF"/>
+<g fill="#6C4DF5" opacity=".85"><rect x="126" y="80" width="48" height="34" rx="7"/></g>
+<path d="M141 80v-7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v7" fill="none" stroke="#6C4DF5" stroke-width="3.5" stroke-linecap="round"/>
+<g fill="#DCD4FF"><rect x="136" y="80" width="4" height="34"/><rect x="160" y="80" width="4" height="34"/></g>
+<path class="place-route" d="M28 112 C 48 40, 110 26, 140 56" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"/>
+<circle cx="28" cy="112" r="4" fill="#1A1726"/>
+<g class="who-plane"><path d="M11 0C11-1.4 9.6-2 8-2H3L-3-10H-6.5L-3-2H-8L-10.5-5H-12.5L-11 0-12.5 5H-10.5L-8 2H-3L-6.5 10H-3L3 2H8C9.6 2 11 1.4 11 0Z" fill="#1A1726"/></g>
+</svg></sc-if><sc-if value="{{ f.pensa }}"><svg viewBox="0 0 240 150" aria-hidden="true">
+<circle cx="120" cy="88" r="46" fill="#DCD4FF"/>
+<path d="M100 60c0-14 13-24 30-24s30 10 30 24-13 24-30 24c-5 0-10-1-14-3-6 3-13 4-18 3 4-3 6-7 6-10-3-4-4-9-4-14z" fill="#FFFFFF"/>
+<g class="place-pin" transform="translate(120 70)"><path d="M0 0c-5-6-8-10-8-14a8 8 0 0 1 16 0c0 4-3 8-8 14z" fill="#6C4DF5"/><circle cy="-14" r="3" fill="#FFFFFF"/></g>
+<g class="who-dots" fill="#6C4DF5"><circle cx="134" cy="62" r="2.6"/><circle cx="142" cy="62" r="2.6"/><circle cx="150" cy="62" r="2.6"/></g>
+<g class="who-bubbles" fill="#FFFFFF"><circle cx="96" cy="96" r="5"/><circle cx="88" cy="106" r="3.2"/></g>
+<g fill="#6C4DF5" opacity=".85"><circle cx="82" cy="118" r="9"/><path d="M64 148c0-12 8-20 18-20s18 8 18 20z"/></g>
+</svg></sc-if><sc-if value="{{ f.tornato }}"><svg viewBox="0 0 240 150" aria-hidden="true">
+<defs><clipPath id="who-disc"><circle cx="120" cy="88" r="46"/></clipPath></defs>
+<circle cx="120" cy="88" r="46" fill="#DCD4FF"/>
+<g clip-path="url(#who-disc)">
+<rect x="60" y="116" width="120" height="30" fill="#B9A8FF"/>
+<path d="M92 116V94l20-16 20 16v22z" fill="#6C4DF5" opacity=".85"/>
+<g fill="#DCD4FF"><rect x="106" y="102" width="9" height="14" rx="4.5"/><rect x="119" y="96" width="7" height="7" rx="1.5"/></g>
+<g fill="#6C4DF5" opacity=".85"><circle cx="142" cy="96" r="5"/><path d="M134 116v-6a8 8 0 0 1 16 0v6z"/><circle cx="156" cy="99" r="4.5"/><path d="M149 116v-5a7 7 0 0 1 14 0v5z"/></g>
+</g>
+<g class="who-heart" transform="translate(112 60)"><path d="M0 8C-10 1-12-4-10-8s8-5 10 0c2-5 8-4 10 0s0 9-10 16z" fill="#6C4DF5"/></g>
+</svg></sc-if></div><div class="who-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div></div>
 </sc-for>
 </section>
 <section id="come-funziona" class="r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
