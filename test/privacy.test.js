@@ -32,7 +32,7 @@ test('public profile never exposes email, job details or connections-only links'
   }
   assert.equal(seen.status, undefined);
   assert.equal(seen.links.locked, true);
-  assert.equal(seen.is_looking_for_italian_job, true);
+  assert.equal(seen.is_looking_for_italian_job, undefined); // job seeking is no longer shown to others
   await t.connect(b, a);
   const after = (await b.get(`/api/profiles/${a.id}`)).body;
   assert.equal(after.links.instagram_handle, '@anna');
@@ -145,6 +145,20 @@ test('territory stats are aggregates with small counts suppressed', async () => 
   const small = await (await fetch(`${t.base}/api/public/territory/Matera`)).json();
   assert.equal(small.count, null);
   assert.ok(!JSON.stringify(r).includes('@x.it'));
+});
+
+test('territory pages answer to their slug in any case', async () => {
+  const get = async p => { const r = await fetch(`${t.base}/api/public/territory/${encodeURIComponent(p)}`); return r.ok ? (await r.json()) : r.status; };
+  for (const p of ['napoli', 'Napoli', 'NAPOLI']) assert.equal((await get(p)).name, 'Napoli');
+  assert.equal((await get('valle-d-aosta')).name, "Valle d'Aosta");
+  assert.equal((await get("Valle d'Aosta")).slug, 'valle-d-aosta');
+  assert.equal((await get('emilia-romagna')).kind, 'region');
+  assert.equal((await get('molise')).kind, 'region'); // also a comune: the region wins
+  assert.equal((await get('reggio-di-calabria')).name, 'Reggio di Calabria');
+  assert.equal(await get('atlantide'), 404);
+  // Listed cities: every regional capital and every comune over 100,000 inhabitants
+  const { cities } = await get('napoli');
+  for (const c of ['Aosta', 'Campobasso', "L'Aquila", 'Potenza', 'Cagliari', 'Trento', 'Verona', 'Salerno', 'Bergamo']) assert.ok(cities.includes(c), c);
 });
 
 test('login requests are rate limited', async () => {

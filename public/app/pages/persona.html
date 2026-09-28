@@ -30,7 +30,7 @@
 
 <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
 <div style="display:flex;flex-direction:column;gap:14px;padding-bottom:8px">
-<div style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import><sc-if value="{{ job }}"><dc-import name="UI Badge" kind="neutral" label="Sta anche cercando lavoro in Italia"></dc-import></sc-if></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></div>
 <h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:64px;line-height:1;letter-spacing:-.05em">{{ name }}</h1>
 <span style="font-size:20px;color:#1A1726">{{ role }}</span>
 <sc-if value="{{ hasPlaces }}"><span style="font-size:17px;color:#6B6680">Vive a {{ from }} <span style="color:#6C4DF5">→</span> vuole trasferirsi a <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
@@ -53,7 +53,6 @@
 <sc-if value="{{ hasSectors }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Interessi"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="tint" size="sm"></dc-import></sc-for></div></section></sc-if>
 <sc-if value="{{ achievement }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="{{ achEyebrow }}"></dc-import><span style="font-size:17px;line-height:1.55;white-space:pre-line">{{ achievement }}</span></section></sc-if>
 <sc-if value="{{ misses }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Cosa mi manca dell'Italia"></dc-import><span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:30px;line-height:1.2">{{ misses }}</span></section></sc-if>
-<sc-if value="{{ job }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Sta anche cercando lavoro in Italia"></dc-import><span style="font-size:15px;color:#4A4560">Sì, è aperto/a anche a opportunità di lavoro in aziende italiane.</span></section></sc-if>
 </div>
 </div></div></div>
 </sc-if>

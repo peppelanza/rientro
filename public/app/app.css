@@ -172,3 +172,26 @@ button { font: inherit; }
 @keyframes who-dot { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
 @keyframes who-beat { 0%, 100% { scale: 1; } 15% { scale: 1.18; } 30% { scale: 1; } 45% { scale: 1.1; } }
 @media (max-width: 720px) { .who-art svg { height: 130px; } }
+
+/* In-page video recorder (public/app/video.js) */
+.rec-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(26,23,38,.55); display: flex; align-items: center; justify-content: center; padding: 16px; font-family: 'Geist', sans-serif; }
+.rec-dialog { width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow: auto; background: #FFFFFF; border-radius: 28px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(26,23,38,.3); color: #1A1726; }
+.rec-title { margin: 0; font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.04em; }
+.rec-hint { margin: 0; font-size: 14px; line-height: 1.5; color: #6B6680; }
+.rec-stage { position: relative; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden; background: #1A1726; }
+.rec-live, .rec-review { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rec-review { object-fit: contain; background: #000; }
+.rec-live { transform: scaleX(-1); }
+.rec-live[hidden], .rec-review[hidden], .rec-btn[hidden] { display: none; }
+.rec-badge { position: absolute; top: 12px; left: 12px; padding: 6px 12px; border-radius: 999px; background: rgba(26,23,38,.7); color: #FFFFFF; font-family: 'Geist Mono', monospace; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.rec-badge.is-rec::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #FF4D4D; animation: live-pulse 1.2s ease-out infinite; }
+.rec-bar { position: relative; height: 6px; border-radius: 999px; background: #F1EFF8; overflow: hidden; }
+.rec-bar-fill { height: 100%; width: 0; background: #6C4DF5; border-radius: 999px; transition: width .2s linear; }
+.rec-bar-min { position: absolute; top: 0; bottom: 0; width: 2px; background: #1A1726; opacity: .35; }
+.rec-status { margin: 0; min-height: 20px; font-size: 14px; line-height: 1.45; color: #4A4560; }
+.rec-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.rec-btn { height: 44px; padding: 0 20px; border-radius: 999px; border: none; font: 500 15px 'Geist', sans-serif; cursor: pointer; }
+.rec-btn-main { background: #6C4DF5; color: #FFFFFF; box-shadow: 0 10px 24px rgba(108,77,245,.3); }
+.rec-btn-main:disabled { background: #CFC8E8; box-shadow: none; cursor: default; }
+.rec-btn-ghost { background: #F1EFF8; color: #1A1726; }
+@media (max-width: 720px) { .rec-stage { aspect-ratio: 3 / 4; } .rec-actions .rec-btn { flex: 1; } }

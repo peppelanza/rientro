@@ -29,7 +29,6 @@ export default class extends AdminPage {
       comp: [
         { l: 'Con idea / senza idea', v: `${c.idea} / ${100 - c.idea}`, segs: [{ w: `${c.idea}%`, c: '#6C4DF5' }, { w: `${100 - c.idea}%`, c: '#1A1726' }] },
         { l: 'Full-time / part-time / da definire', v: `${c.full_time} / ${c.part_time} / ${other}`, segs: [{ w: `${c.full_time}%`, c: '#1A1726' }, { w: `${c.part_time}%`, c: '#6C4DF5' }, { w: `${other}%`, c: '#B9ACF7' }] },
-        { l: 'Cercano lavoro in Italia', v: `${c.job}%`, segs: [{ w: `${c.job}%`, c: '#1A1726' }] },
       ],
       bgs: d.backgrounds.map(b => ({ l: b.l, v: `${b.v}%` })),
       weeks: d.weeks.map(w => ({ r: `${(w.requests / maxW) * 100}%`, a: w.requests ? `${(w.accepted / w.requests) * 100}%` : '0%', title: `${w.requests} richieste, ${w.accepted} accettate` })),

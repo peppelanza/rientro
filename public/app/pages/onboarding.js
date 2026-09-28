@@ -1,16 +1,16 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
-// come back. The job-seeking step (spec §10) only appears when the optional box in step 3 is
-// ticked; its answers live in job_preferences, never in the co-founder profile.
+// come back.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
 import { loadCitta, loadPaesi } from '../places.js';
+import { canRecord, durationProblem, recordVideo, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
 
 const STEPS = [
-  ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['lavoro', 'Obiettivo'], ['idea', 'Obiettivo'],
+  ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
   ['presentati', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
   ['risultato', 'Su di te'], ['video', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
   ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
@@ -34,7 +34,6 @@ const FIELDS = {
   link: ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url'],
   fonte: ['source'],
 };
-const JOB_FIELDS = ['roles', 'skills', 'sectors', 'preferred_locations', 'work_arrangement', 'employment_type', 'availability'];
 
 const FREQUENT = ['Roma', 'Torino', 'Napoli', 'Firenze'];
 
@@ -49,11 +48,10 @@ export default class extends Page {
     if (me.user.status === 'approved') return go('/profilo');
     if (me.user.status === 'in_review' || me.user.status === 'rejected') return go('/stato');
     const p = structuredClone(me.profile);
-    const j = structuredClone(me.job_seeking);
     const want = new URLSearchParams(location.search).get('passo');
     const known = [...STEPS.map(s => s[0]), 'anteprima'];
     Object.assign(this.state, {
-      me, cat, p, j, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
+      me, cat, p, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
       edu: null, exp: null, up: null, paesi, citta: [],
     });
@@ -84,7 +82,7 @@ export default class extends Page {
     this.next();
   };
 
-  get steps() { return STEPS.filter(([k]) => k !== 'lavoro' || this.state.j.looking_for_italian_job); }
+  get steps() { return STEPS; }
 
   goTo(step) {
     this.state.step = step;
@@ -98,7 +96,6 @@ export default class extends Page {
   touch() { if (this.blocker(this.state.step) !== this.lastBlocker) this.__rerender(); }
 
   set(patch) { Object.assign(this.state.p, patch); this.__rerender(); }
-  setJob(patch) { Object.assign(this.state.j, patch); this.__rerender(); }
 
   // Validation per step: null when the member can continue, else the footer message.
   blocker(step) {
@@ -119,9 +116,6 @@ export default class extends Page {
 
   async save(step, nextStep) {
     const s = this.state;
-    if (step === 'lavoro') {
-      s.j = await api('PATCH', '/api/me/job-preferences', pick(s.j, JOB_FIELDS));
-    }
     const body = pick(s.p, FIELDS[step] || []);
     for (const k of Object.keys(body)) body[k] = nz(body[k]);
     if ((step === 'luogo' || step === 'residenza') && s.p.lives_in === 'italy') delete body.lives_in_country;
@@ -153,20 +147,14 @@ export default class extends Page {
     this.goTo(i > 0 ? keys[i - 1] : 'benvenuto');
   }
 
-  toggleJob = this.act(async () => {
-    const s = this.state;
-    const turningOff = s.j.looking_for_italian_job;
-    const hadDetails = JOB_FIELDS.some(k => (Array.isArray(s.j[k]) ? s.j[k].length : s.j[k]));
-    if (turningOff && hadDetails && !confirm('Togliendo la spunta cancelliamo anche i dettagli sul lavoro che cerchi. Continuare?')) return;
-    s.j = await api('PUT', '/api/me/job-seeking?source=onboarding', { looking_for_italian_job: !turningOff });
-    if (turningOff && hadDetails) toast('Dettagli sul lavoro cancellati.');
-  });
-
-  uploadFile(kind, file) {
+  async uploadFile(kind, file, { recorded = false } = {}) {
     if (!file) return;
     const s = this.state;
     const isVideo = kind === 'video';
     if (isVideo && file.size > 200 * 1024 * 1024) { toast('Il video supera i 200 MB. Carica un file più leggero.', { tone: 'err' }); return; }
+    // Recordings are already 10–30 s; for picked files check now instead of after the upload
+    const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
+    if (problem) { toast(problem, { tone: 'err' }); return; }
     if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
@@ -219,7 +207,7 @@ export default class extends Page {
   renderVals() {
     const s = this.state;
     if (!s.ready || !s.p) return { loading: true };
-    const { p, j, cat } = s;
+    const { p, cat } = s;
     const steps = this.steps;
     const idx = steps.findIndex(x => x[0] === s.step);
     const is = k => s.step === k;
@@ -228,7 +216,7 @@ export default class extends Page {
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');
-    const optional = ['lavoro', 'formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
+    const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
     const up = s.up;
     const pct = up && up.total ? Math.round((up.loaded / up.total) * 100) : 0;
     const secs = up ? Math.max(0, Math.round(((Date.now() - up.started) / 1000) * (up.total / Math.max(up.loaded, 1) - 1))) : 0;
@@ -256,7 +244,7 @@ export default class extends Page {
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
       footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
-      is_luogo: is('luogo'), is_residenza: is('residenza'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_lavoro: is('lavoro'), is_idea: is('idea'),
+      is_luogo: is('luogo'), is_residenza: is('residenza'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'), is_tempo: is('tempo'),
       is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'),
@@ -270,7 +258,6 @@ export default class extends Page {
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
       locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
       startProps: { onSelect: v => this.set({ start_when: v || null }) },
-      jobKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggleJob(); } },
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
@@ -309,11 +296,8 @@ export default class extends Page {
       // 9a / 10a
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
       intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
-      jobOn: j.looking_for_italian_job, jobOff: !j.looking_for_italian_job, toggleJob: this.toggleJob,
-      jobAria: j.looking_for_italian_job ? 'true' : 'false',
 
-      // Job details (§10) — rendered by App Job Details
-      j, cat, jobProps: { onChange: patch => this.setJob(patch) },
+      cat,
 
       // 9b
       hasIdea: p.primary_intent === 'has_idea',
@@ -368,9 +352,10 @@ export default class extends Page {
 
       // 16a
       video: p.video_url, noVideo: !p.video_url && up?.kind !== 'video', videoUploading: up?.kind === 'video',
-      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? `${mb(up.loaded)} MB di ${mb(up.total)} MB${pct < 100 ? ` · ${secs} s` : ''}` : '',
+      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? (pct < 100 ? `${mb(up.loaded)} MB di ${mb(up.total)} MB · ${secs} s` : up.kind === 'video' ? 'Lo stiamo preparando, qualche secondo…' : '') : '',
       cancelUpload: () => upload.abort?.(),
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
+      canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); },
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; }),
       videoPrivate: p.video_connections_only, videoPrivBg: p.video_connections_only ? '#6C4DF5' : '#FFFFFF', videoPrivBd: p.video_connections_only ? 'none' : '1.5px solid #CFC8E8', videoPrivMark: p.video_connections_only ? '✓' : '',
       toggleVideoPrivate: e => this.set({ video_connections_only: e.target.checked }),
@@ -411,7 +396,7 @@ export default class extends Page {
       pvIdeaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',
       pvStage: p.idea_stage ? `Fase: ${cat.ideaStages.find(x => x[0] === p.idea_stage)[1].toLowerCase()}` : '',
       pvSeeks: p.seeking_backgrounds.join(', ') || '—', pvTime: timeLabel || '—',
-      pvJob: j.looking_for_italian_job, pvNoVideo: !p.video_url,
+      pvNoVideo: !p.video_url,
       pvMissing: [
         !p.lives_in_city && 'Dove vivi', !p.desired_comuni.length && !p.desired_unknown && 'Dove vorresti vivere', !p.primary_intent && 'Obiettivo',
         !p.photo_url && 'Foto', (!p.first_name || !p.last_name) && 'Nome e cognome', !p.background_area && 'Background',

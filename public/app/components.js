@@ -381,38 +381,6 @@ def('App Comune Picker', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Tag Input — free-text chips with suggestions (job-seeking step). values[], suggestions[], max
-
-def('App Tag Input', String.raw`
-<div style="display:flex;flex-direction:column;gap:10px;font-family:'Geist',sans-serif">
-<div style="display:flex;justify-content:space-between;align-items:baseline"><dc-import name="UI Eyebrow" text="{{ label }}"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ countLabel }}</span></div>
-<sc-if value="{{ hasChips }}"><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ chips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="selected" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for></div></sc-if>
-<dc-import name="App Field" placeholder="{{ placeholder }}" field="{{ field }}" value="{{ draft }}" dc-props="{{ fieldProps }}"></dc-import>
-<sc-if value="{{ hasSuggestions }}"><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ suggestions }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="dashed" size="sm" on-click="{{ s.add }}"></dc-import></sc-for></div></sc-if>
-</div>`, class extends DCLogic {
-  state = { draft: '' };
-  commit(raw) {
-    const values = this.props.values || [];
-    const v = String(raw || '').trim();
-    const max = Number(this.props.max || 10);
-    if (!v || values.length >= max || values.some(x => x.toLowerCase() === v.toLowerCase())) return;
-    this.state.draft = '';
-    this.props.onChange?.([...values, v]);
-  }
-  renderVals() {
-    const values = this.props.values || [];
-    const max = Number(this.props.max || 10);
-    return {
-      label: this.props.label, countLabel: `${values.length} / ${max}`, field: this.props.field, placeholder: this.props.placeholder, draft: this.state.draft,
-      chips: values.map(l => ({ l, aria: `Rimuovi ${l}`, remove: () => this.props.onChange?.(values.filter(x => x !== l)) })), hasChips: values.length > 0,
-      suggestions: (this.props.suggestions || []).filter(s => !values.includes(s)).slice(0, 8).map(s => ({ l: `+ ${s}`, add: () => this.commit(s) })),
-      hasSuggestions: values.length < max,
-      fieldProps: { onInput: v => { this.state.draft = v; }, onEnter: v => this.commit(v), onBlur: v => { if (v.trim()) this.commit(v); } },
-    };
-  }
-});
-
-// ---------------------------------------------------------------------------------------------
 // App Photo — UI Photo with a real image or video when one exists (falls back to the design's
 // striped placeholder). Props: as UI Photo, plus src, video (url), alt, initials.
 
@@ -455,7 +423,6 @@ def('App Person Card', String.raw`
 <div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">Vive a {{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="vuole trasferirsi a">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div>
 <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
-<sc-if value="{{ job }}"><span style="font-size:12px;color:#6B6680">Sta anche cercando lavoro in Italia</span></sc-if>
 <div style="flex:1"></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
@@ -475,51 +442,10 @@ def('App Person Card', String.raw`
     return {
       p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}`,
       badge: p.idea ? "Ha già un'idea" : "Cerca un'idea insieme", badgeKind: p.idea ? 'idea' : 'explore',
-      hasComp: !!p.comp, job: !!p.job, action,
+      hasComp: !!p.comp, action,
       secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',
     };
   }
 });
 
 
-// ---------------------------------------------------------------------------------------------
-// App Job Details — "Che tipo di opportunità cerchi in Italia?" (spec §10). Used in onboarding
-// and in Impostazioni → Privacy. Props: job (job_preferences), catalog, desired[], onChange(patch)
-
-const ROLE_SUGGESTIONS = ['Product Manager', 'Software Engineer', 'Designer', 'Data Scientist', 'Sales Manager', 'Marketing Manager', 'Operations Manager', 'Consulente'];
-const SKILL_SUGGESTIONS = ['Leadership', 'Gestione team', 'Strategia', 'Analisi dati', 'Sviluppo software', 'Vendite B2B', 'Ricerca utenti', 'Finanza'];
-
-def('App Job Details', String.raw`
-<div style="background:#FFFFFF;border-radius:26px;padding:22px;display:flex;flex-direction:column;gap:22px">
-<dc-import name="App Tag Input" label="Ruoli che ti interessano" values="{{ jobRoles }}" suggestions="{{ roleSuggestions }}" max="8" field="job-roles" placeholder="Scrivi un ruolo e premi Invio" dc-props="{{ rolesProps }}"></dc-import>
-<dc-import name="App Tag Input" label="Competenze principali" values="{{ jobSkills }}" suggestions="{{ skillSuggestions }}" max="20" field="job-skills" placeholder="Scrivi una competenza e premi Invio" dc-props="{{ skillsProps }}"></dc-import>
-<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline"><dc-import name="UI Eyebrow" text="Settori"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ jobSectorCount }}</span></div>
-<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ jobSectors }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" size="sm" on-click="{{ s.fn }}" host-role="checkbox" host-aria-checked="{{ s.aria }}"></dc-import></sc-for></div></div>
-<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><dc-import name="UI Eyebrow" text="Dove"></dc-import><sc-if value="{{ canCopyPlaces }}"><button type="button" onClick="{{ copyPlaces }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6C4DF5;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Usa i comuni dove vorresti vivere</button></sc-if></div>
-<dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ jobPlaces }}" max="10" field="job-places" dc-props="{{ jobPlacesProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Modalità di lavoro</span><dc-import name="App Segmented" label="Modalità di lavoro" options="{{ workOpts }}" value="{{ work }}" clearable="{{ true }}" dc-props="{{ workProps }}"></dc-import></div>
-<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px">
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Tipo di impiego</span><dc-import name="App Segmented" label="Tipo di impiego" options="{{ empOpts }}" value="{{ emp }}" clearable="{{ true }}" dc-props="{{ empProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Disponibilità</span><dc-import name="App Segmented" label="Disponibilità" options="{{ availOpts }}" value="{{ avail }}" clearable="{{ true }}" dc-props="{{ availProps }}"></dc-import></div>
-</div></div>`, class extends DCLogic {
-  renderVals() {
-    const j = this.props.job;
-    const cat = this.props.catalog;
-    const desired = this.props.desired || [];
-    const set = patch => this.props.onChange?.(patch);
-    const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
-    const toggle = s => (j.sectors.includes(s) ? j.sectors.filter(x => x !== s) : j.sectors.length >= 5 ? j.sectors : [...j.sectors, s]);
-    return {
-      comuni: cat.comuni,
-      jobRoles: j.roles, roleSuggestions: ROLE_SUGGESTIONS, rolesProps: { onChange: v => set({ roles: v }) },
-      jobSkills: j.skills, skillSuggestions: SKILL_SUGGESTIONS, skillsProps: { onChange: v => set({ skills: v }) },
-      jobSectorCount: `${j.sectors.length} / 5`,
-      jobSectors: cat.sectors.map(l => { const on = j.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : j.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => set({ sectors: toggle(l) }) }; }),
-      jobPlaces: j.preferred_locations, jobPlacesProps: { onChange: v => set({ preferred_locations: v }) },
-      canCopyPlaces: desired.length > 0 && !j.preferred_locations.length, copyPlaces: () => set({ preferred_locations: desired.slice(0, 10) }),
-      workOpts: opts(cat.workArrangements), work: j.work_arrangement, workProps: { onSelect: v => set({ work_arrangement: v || null }) },
-      empOpts: opts(cat.employmentTypes), emp: j.employment_type, empProps: { onSelect: v => set({ employment_type: v || null }) },
-      availOpts: opts(cat.availability), avail: j.availability, availProps: { onSelect: v => set({ availability: v || null }) },
-    };
-  }
-});

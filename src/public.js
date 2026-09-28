@@ -2,12 +2,34 @@
 // Only aggregates of approved, visible members; any count below publicStatsMinCount is
 // replaced by null ("meno di 5") so small groups can't be singled out. No person cards:
 // profiles are visible only to approved members (design 39a).
+import fs from 'node:fs';
+import path from 'node:path';
 import { COMUNI, REGIONS, TERRITORY_CITIES } from './catalog.js';
 import { config } from './config.js';
 
+// Photo of a territory: public/img/territori/<slug>.<ext> (regions use a photo of their capital).
+// "Valle d'Aosta" → valle-d-aosta, "Forlì" → forli.
+export const photoSlug = name => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const PHOTO_EXT = ['webp', 'jpg', 'jpeg', 'png', 'avif'];
+function photoFor(name) {
+  const slug = photoSlug(name);
+  const ext = PHOTO_EXT.find(e => fs.existsSync(path.join(config.publicDir, 'img', 'territori', `${slug}.${e}`)));
+  return ext ? `/img/territori/${slug}.${ext}` : null;
+}
+
 const regionOf = Object.fromEntries(COMUNI.map(c => [c[0], c[2]]));
 
-export function territory(db, place) {
+// URL → territory name: exact name ("Napoli", "Valle d'Aosta") or its slug ("napoli", "valle-d-aosta"),
+// any case. On a slug shared by two comuni the region wins, then the most populous comune.
+const bySlug = new Map();
+for (const name of [...REGIONS, ...[...COMUNI].sort((a, b) => b[3] - a[3]).map(c => c[0])]) {
+  if (!bySlug.has(photoSlug(name))) bySlug.set(photoSlug(name), name);
+}
+export const resolveTerritory = raw => bySlug.get(photoSlug(raw)) ?? null;
+
+export function territory(db, raw) {
+  const place = resolveTerritory(raw);
+  if (!place) return null;
   const isRegion = REGIONS.includes(place);
   const isCity = !isRegion && COMUNI.some(c => c[0] === place);
   if (!isRegion && !isCity) return null;
@@ -26,9 +48,11 @@ export function territory(db, place) {
   const withIdea = wants.filter(p => p.primary_intent === 'has_idea').length;
   return {
     name: place,
+    slug: photoSlug(place),
     kind: isRegion ? 'region' : 'city',
     region: isCity ? regionOf[place] ?? null : null,
     prep: isRegion ? 'in' : 'a',
+    photo: photoFor(place),
     count: k(wants.length),
     living: k(livesThere.length),
     idea: k(withIdea),

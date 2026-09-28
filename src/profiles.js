@@ -1,6 +1,5 @@
 import { AGE_BANDS, AREAS, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
 import { newId, now, tx } from './db.js';
-import { getJobPreferences } from './preferences.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
 const values = pairs => pairs.map(p => p[0]);
@@ -276,7 +275,6 @@ export function publicProfile(db, viewer, targetId) {
     photo_url: fileUrl(p.photo_file_id),
     video_url: p.video_connections_only && !connected ? null : fileUrl(p.video_file_id),
     video_locked: !!(p.video_file_id && p.video_connections_only && !connected),
-    is_looking_for_italian_job: getJobPreferences(db, targetId).looking_for_italian_job,
     links: {
       linkedin_url: p.linkedin_url, website_url: p.website_url,
       ...(connected ? { instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url } : { locked: true }),
@@ -287,7 +285,7 @@ export function publicProfile(db, viewer, targetId) {
   };
 }
 
-// Compact card for lists (UI Person Card shape: name, age, role, from, to, idea, seeks, tags, time, comp, job)
+// Compact card for lists (UI Person Card shape: name, age, role, from, to, idea, seeks, tags, time, comp)
 export function card(db, viewer, p, viewerP) {
   return {
     id: p.user_id,
@@ -303,7 +301,6 @@ export function card(db, viewer, p, viewerP) {
     tags: p.sectors.slice(0, 3).join(' · '),
     time: label(TIME, p.time_commitment) ?? '',
     comp: complement(viewerP, p),
-    job: getJobPreferences(db, p.user_id).looking_for_italian_job,
     photo_url: fileUrl(p.photo_file_id),
     connection: connectionState(db, viewer.id, p.user_id),
   };
@@ -319,7 +316,6 @@ const FACETS = {
   desired: (p, v, f) => !v.length || v.some(c => p.desired_comuni.includes(c)) || (f.include_unknown && p.desired_unknown === 1),
   time: (p, v) => !v || p.time_commitment === v,
   age: (p, v) => !v.length || v.includes(p.age_band),
-  job: (p, v, f, db) => !v || getJobPreferences(db, p.user_id).looking_for_italian_job,
   q: (p, v) => !v || [p.first_name, p.last_name, p.current_role, p.current_company, p.lives_in_city, p.idea_title, ...p.sectors, ...p.desired_comuni]
     .filter(Boolean).join(' ').toLowerCase().includes(v),
 };
@@ -335,7 +331,6 @@ export function parseDiscoverQuery(q) {
     include_unknown: q.get('include_unknown') === '1',
     time: ['full_time', 'part_time'].includes(q.get('time')) ? q.get('time') : '',
     age: arr('age').filter(x => values(AGE_BANDS).includes(x)),
-    job: q.get('job') === '1',
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
   };
 }

@@ -10,7 +10,7 @@ const toCard = p => ({
   id: p.id, name: `${p.first_name} ${p.last_name}`, first_name: p.first_name, age: p.age_band ?? '',
   role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city ?? '', to: p.desired_comuni.slice(0, 2).join(', '),
   idea: p.primary_intent === 'has_idea', seeks: p.seeking.backgrounds.join(', '), tags: p.sectors.slice(0, 3).join(' · '),
-  time: p.time.commitment ?? '', comp: p.complement, job: p.is_looking_for_italian_job, photo_url: p.photo_url, connection: p.connection,
+  time: p.time.commitment ?? '', comp: p.complement, photo_url: p.photo_url, connection: p.connection,
 });
 
 export default class extends Page {

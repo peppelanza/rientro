@@ -81,7 +81,7 @@ export default class extends AdminPage {
       name, photo: p?.photo_url, role: p ? [p.current_role, p.current_company, d.labels.age].filter(Boolean).join(' · ') : '',
       from: p?.lives_in_city ?? '—', to: p?.desired_comuni.join(', ') || (p?.desired_unknown ? 'Non lo sa ancora' : '—'),
       badgeKind: p?.primary_intent === 'has_idea' ? 'idea' : 'explore', badgeLabel: p?.primary_intent === 'has_idea' ? "Ha già un'idea" : "Cerca un'idea insieme",
-      time: d?.labels.time, job: d?.job_seeking.looking_for_italian_job,
+      time: d?.labels.time,
       meta: d ? `${d.user.email} · ${p.submitted_at ? `inviato ${fmtDate(p.submitted_at)} ${fmtTime(p.submitted_at)}` : ''} · ${d.reviews.length ? `${d.reviews.length + 1}ª revisione` : 'prima revisione'}` : '',
       isChanges: d?.user.status === 'approved', pendingKeys: d ? d.pending_keys.map(k => PENDING_LABEL[k] ?? k).join(', ') : '',
       checks: p ? checks(p) : [], answers,

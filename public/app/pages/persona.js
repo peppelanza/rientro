@@ -51,7 +51,6 @@ export default class extends Page {
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city, places: p.places, hasPlaces: !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: p.desired_unknown,
       badgeKind: p.primary_intent === 'has_idea' ? 'idea' : 'explore', badgeLabel: p.primary_intent === 'has_idea' ? "Ha già un'idea" : "Cerca un'idea insieme",
-      job: p.is_looking_for_italian_job,
       seeks: p.seeking.backgrounds.join(', ') || '—', seeksEyebrow: `${p.first_name} cerca`,
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',

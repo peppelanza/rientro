@@ -3,7 +3,7 @@ import { api, getCatalog, go } from '../../lib.js';
 import { AdminPage, STATUS_KIND, initials } from './_admin.js';
 
 export const title = 'Utenti · Admin';
-const KEYS = ['q', 'status', 'intent', 'job', 'place', 'source', 'page'];
+const KEYS = ['q', 'status', 'intent', 'place', 'source', 'page'];
 const two = n => String(n).padStart(2, '0');
 const short = iso => { const d = new Date(iso); return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`; };
 
@@ -36,7 +36,6 @@ export default class extends AdminPage {
       filters: [
         sel('Stato', 'status', [['onboarding', 'Bozza'], ['in_review', 'In revisione'], ['changes_requested', 'Modifiche'], ['approved', 'Approvato'], ['rejected', 'Rifiutato'], ['suspended', 'Sospeso']]),
         sel('Intento', 'intent', [['has_idea', "Ha già un'idea"], ['seeking_idea', "Cerca un'idea"]]),
-        sel('Lavoro', 'job', [['1', 'Cerca lavoro: sì'], ['0', 'Cerca lavoro: no']]),
         sel('Fonte', 'source', cat.sources.map(x => [x, x])),
       ].map(x => ({ ...x, options: x.options.map(([v, l]) => ({ v, l })), placeholder: `${x.label}: tutti` })),
       users: d.users.map(u => ({ ...u, ini: initials(u.name), kind: STATUS_KIND[u.status], joined: short(u.joined), href: `/admin/utenti/${u.id}`, open: () => go(`/admin/utenti/${u.id}`) })),
