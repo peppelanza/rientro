@@ -29,8 +29,9 @@ export default class extends Page {
     const isCity = t.kind === 'city';
     const enterHref = s.me ? homeFor(s.me) : '/accedi';
     const link = x => ({ label: x, href: `/territori/${slug(x)}` });
-    const otherRegions = t.regions.filter(x => x !== t.name).map(link);
-    const otherCities = t.cities.filter(x => x !== t.name).map(link);
+    const abc = list => list.filter(x => x !== t.name).sort((a, b) => a.localeCompare(b, 'it')).map(link);
+    const otherRegions = abc(t.regions);
+    const otherCities = abc(t.cities);
     return {
       loading: false, notFound: false, isCity, region: t.region, regionHref: t.region ? `/territori/${slug(t.region)}` : '#',
       name: t.name, prep: t.prep, nameUpper: t.name.toUpperCase(),
