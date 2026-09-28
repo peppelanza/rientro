@@ -1,14 +1,14 @@
 import { api, qs } from '../lib.js';
 import { Page } from './_base.js';
 
-export const title = 'Entra in Rientro';
+export const title = 'Accedi a Rientro';
 
 export default class extends Page {
   constructor(props) {
     super(props);
     Object.assign(this.state, {
       step: 'choose', email: '', marketing: false, code: ['', '', '', '', '', ''], codeError: null,
-      emailError: null, busy: false, devCode: null, oauthNote: null, resendAt: 0, login: qs().get('mode') === 'login',
+      emailError: null, busy: false, devCode: null, oauthNote: null, resendAt: 0,
     });
     this.timer = setInterval(() => { if (this.state.step === 'code') this.__rerender?.(); }, 1000);
   }
@@ -63,10 +63,10 @@ export default class extends Page {
     const error = !!s.codeError;
     return {
       stepChoose: s.step === 'choose', stepEmail: s.step === 'email', stepCode: s.step === 'code',
-      title: s.login ? 'Bentornato su Rientro' : 'Entra in Rientro',
-      subtitle: s.login ? 'Accedi con il metodo che hai usato alla registrazione.' : 'Crea il tuo profilo. Ci vogliono circa 10 minuti.',
-      switchText: s.login ? 'Non hai un account?' : 'Hai già un account?', switchLink: s.login ? 'Registrati' : 'Accedi', switchHref: s.login ? '/accedi' : '/accedi?mode=login',
-      expired: qs().get('next') && !s.login,
+      // One way in: a new email creates the account, a known one signs in
+      title: 'Accedi a Rientro',
+      subtitle: 'Se è la prima volta, creiamo il tuo profilo. Se hai già un account, entri.',
+      expired: !!qs().get('next'),
       linkedin: oauth('LinkedIn'), google: oauth('Google'), oauthNote: s.oauthNote,
       toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
       toChoose: () => { this.state.step = 'choose'; this.__rerender(); },

@@ -54,7 +54,7 @@ export default class extends Page {
         { n: '03', t: 'Connettiti', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
       ],
       closing: t.count == null ? 'Le prime persone ti aspettano' : `${t.count.toLocaleString('it-IT')} persone ti aspettano`,
-      otherRegions, otherCities, enterHref, loginLabel: s.me ? 'Il tuo spazio' : 'Accedi', loginHref: s.me ? homeFor(s.me) : '/accedi?mode=login',
+      otherRegions, otherCities, enterHref,
       enter: () => { location.href = enterHref; }, how: () => document.getElementById('come-funziona')?.scrollIntoView(),
       year: new Date().getFullYear(),
     };
