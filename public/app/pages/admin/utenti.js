@@ -37,13 +37,13 @@ export default class extends AdminPage {
         sel('Stato', 'status', [['onboarding', 'Bozza'], ['in_review', 'In revisione'], ['changes_requested', 'Modifiche'], ['approved', 'Approvato'], ['rejected', 'Rifiutato'], ['suspended', 'Sospeso']]),
         sel('Intento', 'intent', [['has_idea', "Ha già un'idea"], ['seeking_idea', "Cerca un'idea"]]),
         sel('Lavoro', 'job', [['1', 'Cerca lavoro: sì'], ['0', 'Cerca lavoro: no']]),
-        sel('Luogo', 'place', cat.comuni.map(c => [c[0], c[0]])),
         sel('Fonte', 'source', cat.sources.map(x => [x, x])),
       ].map(x => ({ ...x, options: x.options.map(([v, l]) => ({ v, l })), placeholder: `${x.label}: tutti` })),
       users: d.users.map(u => ({ ...u, ini: initials(u.name), kind: STATUS_KIND[u.status], joined: short(u.joined), href: `/admin/utenti/${u.id}`, open: () => go(`/admin/utenti/${u.id}`) })),
       empty: !d.users.length,
       range: d.total ? `${(d.page - 1) * 10 + 1}–${Math.min(d.page * 10, d.total)} DI ${d.total}` : '0 RISULTATI',
       pages: pages.map(p => ({ l: String(p), gap: p === '…', cur: p === d.page, notCur: p !== d.page && p !== '…', go: () => this.set({ page: String(p) }) })),
+      comuni: cat.comuni, place: f.place ? [f.place] : [], placeProps: { onChange: l => this.set({ place: l[0] ?? '' }) },
       exportCsv: () => go('/admin/esportazioni'),
     };
   }

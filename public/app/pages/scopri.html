@@ -4,7 +4,7 @@
 <sc-if value="{{ loading }}"><div style="height:60vh"></div></sc-if>
 
 <div class="r-page">
-<div class="r-show-sm" style="padding:18px 16px 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
+<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
 <dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import>
 <sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
 </div></div>

@@ -1,6 +1,7 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own; for approved
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
+import { loadCitta, loadPaesi } from '../places.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -22,14 +23,20 @@ const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 
 export default class extends Page {
   async load() {
-    const [me, cat] = await Promise.all([getMe(true), getCatalog()]);
+    const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
     if (me.user.role === 'admin') return go('/admin');
     if (me.user.status === 'onboarding') return go('/onboarding');
     const want = qs().get('sezione') || location.hash.slice(1);
     Object.assign(this.state, {
       me, cat, p: structuredClone(me.profile), section: SECTIONS.some(s => s[0] === want) ? want : want === 'video' ? 'su-di-me' : 'intestazione',
-      dirty: false, edu: null, exp: null, up: null,
+      dirty: false, edu: null, exp: null, up: null, paesi, citta: [],
     });
+    if (me.profile.lives_in === 'abroad' && me.profile.lives_in_country) this.loadCities();
+  }
+
+  async loadCities() {
+    this.state.citta = this.state.p.lives_in_country ? await loadCitta(this.state.p.lives_in_country) : [];
+    this.__rerender();
   }
 
   get sec() { return SECTIONS.find(s => s[0] === this.state.section); }
@@ -119,6 +126,11 @@ export default class extends Page {
       livesOpts: [{ v: 'italy', l: 'In Italia' }, { v: 'abroad', l: "All'estero" }], lives: p.lives_in,
       livesProps: { onSelect: v => this.set({ lives_in: v, lives_in_city: null, lives_in_country: v === 'italy' ? 'Italia' : '' }) },
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', comuni: cat.comuni,
+      paesi: s.paesi.map(x => [x[1]]), countrySel: p.lives_in === 'abroad' && p.lives_in_country ? [p.lives_in_country] : [],
+      countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
+      citta: s.citta.map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
+      cityPlaceholder: p.lives_in_country ? 'Cerca la città' : 'Prima scegli il paese',
+      cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [], cityProps: { onChange: l => this.set({ lives_in_city: l.at(-1) ?? null }) },
       desired: p.desired_comuni, desiredProps: { onChange: l => this.set({ desired_comuni: l, desired_unknown: l.length ? false : p.desired_unknown }) },
       unknown: p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),

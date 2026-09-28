@@ -108,6 +108,9 @@ export function updateProfile(db, user, body) {
   }
   const next = { ...current, ...live };
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
+  else if (next.lives_in === 'abroad' && next.lives_in_country?.trim().toLowerCase() === 'italia') {
+    throw bad('invalid_field', 'Se vivi in Italia, scegli «Vivo già in Italia».');
+  }
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
     throw bad('invalid_field', 'Cerca competenze diverse dal tuo background.');
   }

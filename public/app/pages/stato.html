@@ -39,7 +39,7 @@
 <sc-if value="{{ isChanges }}">
 <div style="min-height:100vh;background:#E9E6F5;display:flex;flex-direction:column">
 <dc-import name="App Nav" me="{{ me }}"></dc-import>
-<main style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px">
+<main style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px var(--gutter)">
 <div style="width:100%;max-width:560px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
 <div><dc-import name="UI Badge" kind="neutral" label="Modifiche richieste"></dc-import></div>
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.15;font-weight:600;letter-spacing:-.045em">Manca poco. Ci serve una piccola modifica.</h1>
@@ -51,7 +51,7 @@
 <sc-if value="{{ isRejected }}">
 <div style="min-height:100vh;background:#E9E6F5;display:flex;flex-direction:column">
 <dc-import name="App Nav" me="{{ me }}"></dc-import>
-<main style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px">
+<main style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px var(--gutter)">
 <div style="width:100%;max-width:560px;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;line-height:1.15;font-weight:600;letter-spacing:-.045em">Il tuo profilo non è stato approvato.</h1>
 <sc-if value="{{ hasNote }}"><div style="border-radius:22px;background:#F1EFF8;padding:16px 18px;font-size:15px;line-height:1.55;color:#4A4560">“{{ note }}”<div style="font-size:13px;color:#6B6680;margin-top:6px">Team Rientro</div></div></sc-if>

@@ -9,7 +9,7 @@
 <div style="margin-top:6px"><dc-import name="UI Button" label="Vedi richieste inviate" variant="light" on-click="{{ sentRequests }}"></dc-import></div>
 </main></sc-if>
 
-<sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px 24px 24px;min-height:0">
+<sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px var(--gutter) 24px;min-height:0">
 <nav aria-label="Conversazioni" class="{{ listClass }}" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto">
 <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">Messaggi</h1><dc-import name="App Field" placeholder="Cerca" search="{{ true }}" field="thread-search" value="{{ query }}" dc-props="{{ searchProps }}"></dc-import></div>
 <sc-for list="{{ threads }}" as="t"><a href="/messaggi/{{ t.id }}" onClick="{{ t.open }}" aria-current="{{ t.active }}" style="text-decoration:none">

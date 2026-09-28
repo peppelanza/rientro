@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
+import zlib from 'node:zlib';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
@@ -88,9 +89,19 @@ async function readJson(req) {
   try { return buf.length ? JSON.parse(buf.toString('utf8')) : {}; } catch { throw new HttpError(400, 'invalid_json'); }
 }
 
+// Gzip larger text responses when the browser accepts it (the comune list is ~300 KB raw).
+function reply(res, status, headers, buf) {
+  if (/\bgzip\b/.test(res.req?.headers['accept-encoding'] || '') && buf.length > 1024) {
+    res.writeHead(status, { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' });
+    res.end(zlib.gzipSync(buf));
+  } else {
+    res.writeHead(status, headers);
+    res.end(buf);
+  }
+}
+
 function send(res, status, body, headers = {}) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers });
-  res.end(body === undefined ? '' : JSON.stringify(body));
+  reply(res, status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers }, Buffer.from(body === undefined ? '' : JSON.stringify(body)));
 }
 
 function rateLimiter(max, windowMs) {
@@ -106,8 +117,9 @@ function rateLimiter(max, windowMs) {
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json' };
 
 function serveFile(res, file) {
-  res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-  res.end(fs.readFileSync(file));
+  // Place lists change only with a new build: cache them for a day.
+  const cache = file.includes(`${path.sep}data${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
+  reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
 }
 
 function serveStatic(res, pathname) {
@@ -186,7 +198,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { raw: true });
 
   // ---- public
-  route('GET', '/api/catalog', () => catalog, pub);
+  route('GET', '/api/catalog', ({ res }) => send(res, 200, catalog, { 'Cache-Control': 'public, max-age=3600' }), { ...pub, raw: true });
   route('GET', '/api/legal', () => ({
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
