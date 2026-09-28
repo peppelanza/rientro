@@ -65,6 +65,24 @@ export default class extends Page {
     this.__rerender();
   }
 
+  async componentDidMount() {
+    document.addEventListener('keydown', this.onKey);
+    await super.componentDidMount();
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this.onKey); }
+
+  // Enter moves on, like Continua, unless something focused uses Enter itself
+  onKey = e => {
+    if (e.key !== 'Enter' || e.defaultPrevented || e.isComposing || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest?.('textarea, button, a, select, [role=button], [role=radio], [role=checkbox], [role=option], [role=dialog]')) return;
+    const s = this.state;
+    if (!s.ready || s.edu || s.exp) return;
+    if (s.step === 'benvenuto') { if (s.legalOk) { e.preventDefault(); this.goTo(this.steps[0][0]); } return; }
+    if (!this.steps.some(([k]) => k === s.step)) return;
+    e.preventDefault();
+    this.next();
+  };
+
   get steps() { return STEPS.filter(([k]) => k !== 'lavoro' || this.state.j.looking_for_italian_job); }
 
   goTo(step) {
@@ -264,6 +282,8 @@ export default class extends Page {
       livesItaly: card(p.lives_in === 'italy', () => { this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null }); this.next(); }),
       livesAbroad: card(p.lives_in === 'abroad', () => { this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null }); this.next(); }),
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', noLives: !p.lives_in,
+      abroadClass: `place-card place-abroad${p.lives_in === 'abroad' ? ' is-on' : ''}`, italyClass: `place-card place-italy${p.lives_in === 'italy' ? ' is-on' : ''}`,
+      placeKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } },
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
       countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
