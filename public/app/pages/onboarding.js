@@ -282,6 +282,8 @@ export default class extends Page {
       livesItaly: card(p.lives_in === 'italy', () => { this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null }); this.next(); }),
       livesAbroad: card(p.lives_in === 'abroad', () => { this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null }); this.next(); }),
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', noLives: !p.lives_in,
+      abroadClass: `place-card place-abroad${p.lives_in === 'abroad' ? ' is-on' : ''}`, italyClass: `place-card place-italy${p.lives_in === 'italy' ? ' is-on' : ''}`,
+      placeKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } },
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
       countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },

@@ -20,9 +20,37 @@
 <dc-import name="App Onboarding Bar" step="{{ stepN }}" total="{{ total }}" section="{{ section }}" dark="{{ dark }}"></dc-import>
 <main class="r-pad-lg" style="flex:1;display:flex;justify-content:center;padding:44px 40px 24px">
 
-<sc-if value="{{ is_luogo }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:26px">
+<sc-if value="{{ is_luogo }}"><div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:26px">
 <h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivi attualmente?</h2>
-<div role="radiogroup" aria-label="Dove vivi" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><dc-import name="UI Option Card" title="Vivo all'estero" selected="{{ livesAbroad.on }}" on-click="{{ livesAbroad.fn }}" host-role="radio" host-aria-checked="{{ livesAbroad.aria }}"></dc-import><dc-import name="UI Option Card" title="Vivo già in Italia" selected="{{ livesItaly.on }}" on-click="{{ livesItaly.fn }}" host-role="radio" host-aria-checked="{{ livesItaly.aria }}"></dc-import></div>
+<div role="radiogroup" aria-label="Dove vivi" class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<div role="radio" tabindex="0" aria-checked="{{ livesAbroad.aria }}" class="{{ abroadClass }}" onClick="{{ livesAbroad.fn }}" onKeyDown="{{ placeKey }}">
+<div class="place-art"><svg viewBox="0 0 240 150" aria-hidden="true">
+<circle cx="120" cy="92" r="52" fill="#DCD4FF"/>
+<g fill="none" stroke="#6C4DF5" stroke-width="1.6" opacity=".45"><ellipse cx="120" cy="92" rx="22" ry="52"/><path d="M68 92h104M76 66h88M76 118h88"/></g>
+<path d="M92 62c10-6 22-4 26 4s-4 12-12 12-6 10-16 8-12-18 2-24zM132 96c8-4 20 0 22 8s-8 16-16 14-14-18-6-22z" fill="#6C4DF5" opacity=".75"/>
+<path class="place-route" d="M26 120 C 60 10, 180 10, 214 70" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"/>
+<circle cx="26" cy="120" r="4" fill="#1A1726"/>
+<g class="place-plane"><path d="M11 0C11-1.4 9.6-2 8-2H3L-3-10H-6.5L-3-2H-8L-10.5-5H-12.5L-11 0-12.5 5H-10.5L-8 2H-3L-6.5 10H-3L3 2H8C9.6 2 11 1.4 11 0Z" fill="#1A1726"/></g>
+<g class="place-pin" transform="translate(214 70)"><path d="M0 0c-7-9-11-14-11-20a11 11 0 0 1 22 0c0 6-4 11-11 20z" fill="#6C4DF5"/><circle cy="-20" r="4" fill="#FFFFFF"/></g>
+</svg></div>
+<div class="place-text"><span class="place-title">Vivo all'estero</span><span class="place-desc">Sei fuori dall'Italia e pensi di tornare</span></div>
+</div>
+<div role="radio" tabindex="0" aria-checked="{{ livesItaly.aria }}" class="{{ italyClass }}" onClick="{{ livesItaly.fn }}" onKeyDown="{{ placeKey }}">
+<div class="place-art place-art-full"><svg viewBox="0 0 240 150" aria-hidden="true" style="overflow:visible">
+<g class="place-sun"><circle cx="176" cy="54" r="18" fill="#FFC857"/><g stroke="#FFC857" stroke-width="3" stroke-linecap="round"><path d="M176 26v-7M176 89v-7M148 54h-7M211 54h-7M156 34l-5-5M201 79l-5-5M156 74l-5 5M201 29l-5 5"/></g></g>
+<path d="M-80 124c60-30 130-34 200-18s110 8 200-10v60H-80z" fill="#DCD4FF"/>
+<g transform="translate(0 12)">
+<g fill="#4B32C9"><path d="M40 118c-5 0-7-10-7-22s3-26 7-26 7 14 7 26-2 22-7 22z"/><path d="M146 118c-4 0-6-8-6-18s2-21 6-21 6 11 6 21-2 18-6 18z"/></g>
+<g fill="#FFFFFF" stroke="#1A1726" stroke-width="1.6" stroke-linejoin="round"><path d="M58 112V88l14-12 14 12v24z"/><path d="M86 112V82h20v30z"/><path d="M106 112V92l12-10 12 10v20z"/><path d="M92 82V62h8v20"/></g>
+<g fill="#6C4DF5"><rect x="67" y="96" width="9" height="16" rx="4.5"/><rect x="92" y="90" width="8" height="8" rx="1.5"/><rect x="114" y="98" width="8" height="8" rx="1.5"/></g>
+<path d="M58 88l14-12 14 12M106 92l12-10 12 10" fill="none" stroke="#6C4DF5" stroke-width="3" stroke-linejoin="round"/>
+</g>
+<path d="M-80 140c70-16 150-16 220-6s110 6 180-4v30H-80z" fill="#B9A8FF"/>
+<g class="place-heart" transform="translate(96 56)"><path d="M0 8C-10 1-12-4-10-8s8-5 10 0c2-5 8-4 10 0s0 9-10 16z" fill="#6C4DF5"/></g>
+</svg></div>
+<div class="place-text"><span class="place-title">Vivo già in Italia</span><span class="place-desc">Sei già qui e cerchi con chi costruire</span></div>
+</div>
+</div>
 </div></sc-if>
 
 <sc-if value="{{ is_residenza }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:26px">
