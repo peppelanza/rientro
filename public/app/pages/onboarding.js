@@ -285,9 +285,13 @@ export default class extends Page {
       placeKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } },
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
-      countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
+      countryPickerProps: { onChange: l => {
+        this.set({ lives_in_country: l[0] ?? '', lives_in_city: null });
+        this.loadCities();
+        if (l[0]) setTimeout(() => document.querySelector('[data-key="city"]')?.focus()); // straight on to the city
+      } },
       citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
-      hasCountry: !!p.lives_in_country,
+      hasCountry: !!p.lives_in_country, noCity: !p.lives_in_city,
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 
