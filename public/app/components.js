@@ -270,7 +270,7 @@ def('App Segmented', String.raw`
 
 // ---------------------------------------------------------------------------------------------
 // App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio (max 1: the pick replaces the field). Also used for
-// countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]),
+// countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]; the region shows, the sigla never does),
 // selected[], max, counts?, placeholder, noun ("comune"), freeText (accept typed text), onChange(list)
 
 // Accent-insensitive lowercase, with a map back to positions in the original string
@@ -342,7 +342,7 @@ def('App Comune Picker', String.raw`
         const a = h.f.at[h.pos];
         const z = h.f.at[h.pos + h.len];
         const c = h.c;
-        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : [c[1], c[2]?.toUpperCase()].filter(Boolean).join(' · ') };
+        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : (c[2]?.toUpperCase() ?? '') };
       }),
       ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
     ];
