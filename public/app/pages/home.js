@@ -1,6 +1,6 @@
 import { Page, homeFor, peekMe } from './_base.js';
 
-export const title = 'Rientra in Italia o al Sud e trova persone con cui costruire';
+export const title = 'Rientra in Italia o al Sud e trova persone con cui costruire nella tua città';
 
 // Content copied from the design logic (Rientro 01 Landing e Accesso v2).
 export const forWho = [
