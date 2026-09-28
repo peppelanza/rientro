@@ -250,6 +250,32 @@ def('App Select', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
+// App Site Header — the public pages' header (home, Rientro dei cervelli): logo, the same menu in
+// the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli'),
+// onEnter(). Home sections are linked as /#section from the other pages.
+
+def('App Site Header', String.raw`
+<header class="r-pad" style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500;font-family:'Geist',sans-serif">
+<a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
+<nav aria-label="Menu" class="r-hide-md" style="display:flex;gap:26px;color:#6B6680;align-items:center">
+<sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" aria-current="{{ l.current }}" style="height:36px;padding:{{ l.pad }};border-radius:999px;background:{{ l.bg }};color:{{ l.fg }};text-decoration:none;display:flex;align-items:center">{{ l.label }}</a></sc-for>
+</nav>
+<div style="flex:1"></div><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import>
+</div></header>`, class extends DCLogic {
+  renderVals() {
+    const here = this.props.here ?? 'home';
+    const base = here === 'home' ? '' : '/';
+    const links = [
+      ['Come funziona', `${base}#come-funziona`], ['Per chi è', `${base}#per-chi`], ['Domande', `${base}#domande`],
+      ['Rientro dei cervelli', '/rientro-dei-cervelli', 'cervelli'],
+    ].map(([label, href, page]) => {
+      const on = page === here;
+      return { label, href, current: on ? 'page' : 'false', pad: on ? '0 14px' : '0', bg: on ? '#1A1726' : 'transparent', fg: on ? '#FFFFFF' : '#6B6680' };
+    });
+    return { links, enter: () => this.props.onEnter?.() };
+  }
+});
+
 // App Checkbox — UI Checkbox in a larger size, for a checkbox that stands alone as an answer
 // ("Non lo so ancora", "Ho sempre vissuto in Italia"). Props: label, checked. Clicks go on the
 // dc-import (on-click), like UI Checkbox.

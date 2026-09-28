@@ -30,6 +30,7 @@ export default class extends Page {
     const me = this.state.me;
     return {
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
+      headerProps: { onEnter: () => { location.href = me ? homeFor(me) : '/accedi'; } },
     };
   }
 }
