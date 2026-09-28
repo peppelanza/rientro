@@ -63,7 +63,7 @@
 </section>
 <section id="come-funziona" class="r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2></div>
-<ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
 <sc-for list="{{ steps }}" as="s">
 <li style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px;box-sizing:border-box"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></li>
 </sc-for>
