@@ -130,7 +130,8 @@ button { font: inherit; }
 @keyframes place-ripple { 0% { scale: .4; opacity: .9; } 100% { scale: 1.6; opacity: 0; } }
 @keyframes place-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) {
-  .place-card, .place-route, .place-plane, .place-pin, .place-pisa, .place-ripple, .place-windows rect { animation: none; transition: none; }
+  .place-card, .place-route, .place-plane, .place-pin, .place-pisa, .place-ripple, .place-windows rect, .who-plane, .who-dots circle, .who-heart { animation: none; transition: none; }
+  .who-plane { offset-distance: 70%; }
   .place-plane { offset-distance: 60%; }
   .place-ripple { opacity: 0; }
 }
@@ -158,3 +159,16 @@ button { font: inherit; }
 .faq-item[open] summary::after { transform: rotate(45deg); }
 .faq-item summary:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
 .faq-item p { margin: 0; padding: 0 24px 22px; font-size: 16px; line-height: 1.6; color: #4A4560; max-width: 720px; }
+
+/* Homepage "Per chi è" cards, illustrated like the onboarding location cards */
+.who-card { display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #FFFFFF; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(80,60,160,.06); }
+.who-art svg { height: 150px; }
+.who-text { display: flex; flex-direction: column; gap: 10px; padding: 18px 24px 24px; }
+.who-plane { offset-path: path("M28 112 C 48 40, 110 26, 140 56"); offset-rotate: auto; animation: place-fly 4.5s ease-in-out infinite; }
+.who-dots circle { animation: who-dot 1.4s ease-in-out infinite; }
+.who-dots circle:nth-child(2) { animation-delay: .2s; }
+.who-dots circle:nth-child(3) { animation-delay: .4s; }
+.who-heart { transform-box: fill-box; transform-origin: center; animation: who-beat 1.8s ease-in-out infinite; }
+@keyframes who-dot { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+@keyframes who-beat { 0%, 100% { scale: 1; } 15% { scale: 1.18; } 30% { scale: 1; } 45% { scale: 1.1; } }
+@media (max-width: 720px) { .who-art svg { height: 130px; } }
