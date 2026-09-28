@@ -4,10 +4,7 @@
 <section class="r-pad-lg" style="padding:96px 56px 72px;display:flex;flex-direction:column;gap:36px">
 <dc-import name="UI Eyebrow" text="Per chi torna, chi ci sta pensando e chi è già tornato"></dc-import>
 <h1 class="r-hero r-hero-long" style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(48px,5.8vw,84px);line-height:.98;font-weight:600;letter-spacing:-.06em;max-width:1240px;text-wrap:balance">Rientra in Italia o al Sud e trova persone <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:clamp(56px,6.7vw,96px)">con cui costruire</span></h1>
-<div style="display:flex;flex-direction:column;align-items:flex-start;gap:28px">
-<p class="r-lede" style="margin:0;font-size:24px;line-height:1.4;letter-spacing:-.01em;max-width:720px;color:#4A4560;text-wrap:pretty">Conosci le persone che rientrano nella tua zona, per iniziare un progetto insieme o semplicemente per condividere il percorso. Ragioni in più per&nbsp;tornare.</p>
-<div class="r-stack" style="display:flex;gap:10px"><dc-import name="UI Button" label="Accedi a Rientro →" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
-</div></section>
+<dc-import name="App City Jump"></dc-import></section>
 <sc-if value="{{ launched }}"><div class="r-pad-lg r-grid-2" style="padding:0 56px 88px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
 <sc-for list="{{ heroPeople }}" as="h">
 <div style="margin-top:{{ h.mt }};background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:12px">
@@ -16,16 +13,23 @@
 </div>
 </sc-for>
 </div></sc-if>
-<sc-if value="{{ prelaunch }}"><div class="r-pad-lg" style="padding:0 56px 88px;display:flex;flex-direction:column;gap:16px">
-<div style="display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px 0 12px;border-radius:999px;background:#FFFFFF;font-size:14px;font-weight:500;flex:none"><span class="live-dot"></span>{{ launchText }}</div>
-<span style="font-size:15px;line-height:1.45;color:#4A4560"><a href="/accedi" onClick="{{ enterLink }}" style="color:#6C4DF5;font-weight:600;text-underline-offset:3px">Iscriviti ora</a> e assicurati il tuo posto: il tuo profilo sarà pronto dal primo giorno.</span></div>
-<div role="timer" aria-label="{{ countdownLabel }}" class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-<sc-for list="{{ countdown }}" as="c"><div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:28px 24px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:6px"><span data-cd="{{ c.k }}" style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:clamp(44px,6vw,88px);line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums">{{ c.v }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6B6680">{{ c.l }}</span></div></sc-for>
-</div></div></sc-if>
 <section class="r-grid-1 r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
 <dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
 <p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Una community <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.02em;color:#6C4DF5;font-size:1.18em">gratuita</span> per chi torna in Italia, o al Sud. Incontra persone ambiziose con cui fare rete o costruire un progetto insieme.</p>
 </section>
+<section class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:240px repeat(3,minmax(0,1fr));gap:16px">
+<dc-import name="UI Eyebrow" text="Tre modi di iniziare"></dc-import>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma cerchi con chi lavorarci.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="neutral" label="Fare rete"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Vuoi semplicemente fare networking.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Conosci chi è rientrato o sta per farlo, nella tua città o dove vorresti vivere. Un caffè, un consiglio, un contatto in più.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
+</section>
+<section id="come-funziona" class="r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2></div>
+<ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<sc-for list="{{ steps }}" as="s">
+<li style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px;box-sizing:border-box"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></li>
+</sc-for>
+</ol></section>
 <section id="per-chi" class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:16px">
 <dc-import name="UI Eyebrow" text="Per chi è"></dc-import>
 <sc-for list="{{ forWho }}" as="f">
@@ -56,19 +60,6 @@
 <g class="who-heart" transform="translate(112 60)"><path d="M0 8C-10 1-12-4-10-8s8-5 10 0c2-5 8-4 10 0s0 9-10 16z" fill="#6C4DF5"/></g>
 </svg></sc-if></div><div class="who-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div></div>
 </sc-for>
-</section>
-<section id="come-funziona" class="r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
-<div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2></div>
-<ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-<sc-for list="{{ steps }}" as="s">
-<li style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px;box-sizing:border-box"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></li>
-</sc-for>
-</ol></section>
-<section class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:240px repeat(3,minmax(0,1fr));gap:16px">
-<dc-import name="UI Eyebrow" text="Tre modi di iniziare"></dc-import>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma cerchi con chi lavorarci.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="neutral" label="Fare rete"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Vuoi semplicemente fare networking.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Conosci chi è rientrato o sta per farlo, nella tua città o dove vorresti vivere. Un caffè, un consiglio, un contatto in più.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
 </section>
 <section id="domande" class="r-grid-1 r-pad-lg" style="padding:0 56px 88px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;scroll-margin-top:24px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.04em">Domande e risposte</h2>

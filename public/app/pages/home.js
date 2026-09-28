@@ -27,44 +27,21 @@ const steps = [
 const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
   .map(([n, r, a, b], i) => ({ n, r, a, b, mt: i % 2 ? '36px' : '0' }));
 
-// Time left until launch, as the four countdown tiles
-const UNITS = [['d', 'Giorni', 86400], ['h', 'Ore', 3600], ['m', 'Minuti', 60], ['s', 'Secondi', 1]];
-function timeLeft(at) {
-  let s = Math.max(0, Math.floor((at - Date.now()) / 1000));
-  return UNITS.map(([k, l, size]) => { const v = Math.floor(s / size); s -= v * size; return { k, l, v: String(v).padStart(2, '0') }; });
-}
 
 // One landing page. Before launch (LAUNCHED flag off and launch date ahead) the example
-// profiles give way to a live countdown to the launch date.
+// profiles are hidden; the countdown lives in the pre-launch bar (launchbar.js) on every page.
 export default class extends Page {
   async load() {
     const [me, launch] = await Promise.all([peekMe(), fetch('/api/public/launch').then(r => r.json()).catch(() => ({ launched: true }))]);
-    Object.assign(this.state, { me, launched: launch.launched, launchAt: Date.parse(launch.launch_at) });
-    if (!launch.launched) this.timer = setInterval(() => this.tick(), 1000);
-  }
-  componentWillUnmount() { clearInterval(this.timer); }
-
-  // Updates the digits in place every second; reloads when the countdown ends
-  tick() {
-    if (Date.now() >= this.state.launchAt) { clearInterval(this.timer); location.reload(); return; }
-    for (const { k, v } of timeLeft(this.state.launchAt)) {
-      const el = document.querySelector(`[data-cd="${k}"]`);
-      if (el && el.textContent !== v) el.textContent = v;
-    }
+    Object.assign(this.state, { me, launched: launch.launched });
   }
 
   renderVals() {
     const me = this.state.me;
-    const prelaunch = this.state.launched === false;
     return {
-      launched: this.state.launched !== false, prelaunch, forWho, steps, faq, heroPeople,
-      countdown: prelaunch ? timeLeft(this.state.launchAt) : [],
-      launchText: prelaunch ? 'Apre il ' + new Date(this.state.launchAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ') : '',
-      countdownLabel: 'Tempo che manca al lancio',
+      launched: this.state.launched !== false, forWho, steps, faq, heroPeople,
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
       headerProps: { onEnter: () => { location.href = me ? homeFor(me) : '/accedi'; } },
-      enterLink: e => { e.preventDefault(); location.href = me ? homeFor(me) : '/accedi'; },
-      how: () => document.getElementById('come-funziona')?.scrollIntoView(),
     };
   }
 }

@@ -2,6 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
+import { getCatalog } from './lib.js';
 
 const def = (name, template, Component) => register({ name, template, propsMeta: {}, Component });
 const b = v => v === true || v === 'true';
@@ -105,7 +106,7 @@ def('App Side Menu', String.raw`
 // App Admin Sidebar — from UI Admin Sidebar (+ links, live counts, signed-in admin, audit log)
 
 def('App Admin Sidebar', String.raw`
-<div class="admin-sidebar" style="width:240px;min-height:100vh;box-sizing:border-box;padding:12px;font-family:'Geist',sans-serif;color:#1A1726;flex:none;position:sticky;top:0;align-self:flex-start">
+<div class="admin-sidebar" style="width:240px;min-height:100vh;box-sizing:border-box;padding:12px;font-family:'Geist',sans-serif;color:#1A1726;flex:none;position:sticky;top:var(--lb, 0px);align-self:flex-start">
 <div style="min-height:calc(100vh - 24px);box-sizing:border-box;background:#1A1726;border-radius:24px;padding:20px 10px;display:flex;flex-direction:column;gap:22px">
 <a href="/admin" style="display:flex;align-items:center;gap:8px;padding:0 10px;text-decoration:none"><dc-import name="UI Logo" size="22" tone="light"></dc-import><span style="font-family:'Geist Mono',monospace;font-size:10px;padding:3px 7px;border-radius:999px;background:#6C4DF5;color:#FFFFFF;letter-spacing:.04em">ADMIN</span></a>
 <nav style="display:flex;flex-direction:column;gap:2px">
@@ -250,6 +251,56 @@ def('App Select', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
+// App City Jump — "Scopri chi rientra a [città ▾]": opens the territory page of the chosen place.
+// Empty, the list shows Italy's 15 largest cities; typing searches every comune.
+
+const citySlug = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+def('App City Jump', String.raw`
+<div class="city-jump">
+<label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
+<div class="cj-box">
+<input id="city-jump" data-key="city-jump" class="cj-input bare-input" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+<sc-if value="{{ open }}"><div id="city-jump-list" role="listbox" aria-label="Città" class="cj-list">
+<sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt" style="background:{{ m.bg }}" onMouseDown="{{ m.pick }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
+<sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
+</div></sc-if>
+</div>
+</div>`, class extends DCLogic {
+  state = { query: '', open: false, idx: 0, comuni: null };
+  async load() {
+    if (this.state.comuni) return;
+    const cat = await getCatalog().catch(() => null);
+    this.setState({ comuni: (cat?.comuni ?? []).map(c => ({ name: c[0], region: c[2], pop: c[3] ?? 0, key: fold(c[0]).out })).sort((a, b) => b.pop - a.pop) });
+  }
+  go(name) { location.href = `/territori/${citySlug(name)}`; }
+  renderVals() {
+    const { query, open, idx, comuni } = this.state;
+    const q = fold(query.trim()).out;
+    const list = comuni ?? [];
+    const found = !q ? list.slice(0, 15)
+      : [...list.filter(c => c.key.startsWith(q)), ...list.filter(c => !c.key.startsWith(q) && c.key.includes(q))].slice(0, 10);
+    const matches = found.map((c, i) => ({
+      name: c.name, region: c.region, active: i === idx ? 'true' : 'false', bg: i === idx ? '#F1EFF8' : 'transparent',
+      pick: e => { e.preventDefault(); this.go(c.name); },
+    }));
+    return {
+      query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length,
+      input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
+      focus: () => { this.setState({ open: true }); this.load(); },
+      blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
+      keydown: e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ open: true, idx: Math.min(idx + 1, found.length - 1) }); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ idx: Math.max(idx - 1, 0) }); }
+        else if (e.key === 'Enter' && found[idx]) { e.preventDefault(); this.go(found[idx].name); }
+        else if (e.key === 'Escape') this.setState({ open: false });
+      },
+    };
+  }
+});
+
 // App Site Header — the public pages' header (home, Rientro dei cervelli, territori): logo, the same
 // menu in the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli' | 'territori'),
 // onEnter(). Home sections are linked as /#section from the other pages.

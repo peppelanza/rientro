@@ -3,6 +3,7 @@
 import '../dc/gen/components.js';
 import './components.js';
 import { mountPage } from '../dc/runtime.js';
+import { launchBar } from './launchbar.js';
 import { template } from './lib.js';
 
 const ROUTES = [
@@ -51,6 +52,7 @@ async function boot() {
   mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
 }
 
+launchBar();
 boot().catch(err => {
   console.error(err);
   document.getElementById('app').textContent = 'Non siamo riusciti a caricare la pagina. Ricarica per riprovare.';
