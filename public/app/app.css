@@ -197,18 +197,15 @@ button { font: inherit; }
 @media (max-width: 720px) { .rec-stage { aspect-ratio: 3 / 4; } .rec-actions .rec-btn { flex: 1; } }
 
 /* "Rientro dei cervelli" article: in-article ads for Rientro. They sit outside the article's
-   sections (own colours, "Annuncio" tag, full card) so readers don't mistake them for content. */
+   sections (own colours, full card) so readers don't mistake them for content. */
 .ad-banner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; gap: 24px; padding: 28px 28px 28px 32px; border-radius: 28px; overflow: hidden; font-family: 'Geist', sans-serif; box-shadow: 0 18px 44px rgba(80,60,160,.18); }
 .ad-banner .ad-body { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-.ad-banner .ad-tag { display: inline-flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
-.ad-banner .ad-tag b { font-weight: 500; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,.18); }
 .ad-banner .ad-title { margin: 0; font-family: 'Unbounded', sans-serif; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.04em; text-wrap: balance; }
 .ad-banner .ad-text { margin: 0; font-size: 15px; line-height: 1.55; opacity: .88; text-wrap: pretty; }
 .ad-banner .ad-art svg { display: block; width: 100%; height: auto; }
 .ad-purple { background: radial-gradient(circle at 90% 10%, #8E7FE0, transparent 55%), #6C4DF5; color: #FFFFFF; }
 .ad-dark { background: radial-gradient(circle at 85% 90%, #3A3160, transparent 60%), #1A1726; color: #FFFFFF; }
 .ad-light { background: linear-gradient(135deg, #FFFFFF, #EFEBFF); color: #1A1726; border: 1.5px solid #CFC5FF; }
-.ad-light .ad-tag b { background: #6C4DF5; color: #FFFFFF; }
 .ad-sunset { background: linear-gradient(135deg, #6C4DF5 0%, #3E2BA8 55%, #1A1726 100%); color: #FFFFFF; }
 @media (max-width: 720px) {
   .ad-banner { grid-template-columns: 1fr; padding: 22px; gap: 14px; }
