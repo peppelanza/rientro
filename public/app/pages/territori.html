@@ -10,14 +10,14 @@
 <dc-import name="UI Button" label="Entra in Rientro" on-click="{{ enter }}"></dc-import>
 </div></header>
 
-<section class="r-grid-1 r-pad-lg" style="padding:48px 56px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,460px);gap:48px;align-items:center;justify-content:space-between">
+<section class="r-grid-1 r-pad-lg" style="padding:48px 56px 56px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:56px;align-items:center">
 <div style="display:flex;flex-direction:column;gap:28px">
 <dc-import name="UI Eyebrow" text="{{ eyebrow }}"></dc-import>
-<h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-size:84px;line-height:.95;font-weight:600;letter-spacing:-.065em;text-wrap:balance">Tornare {{ prep }} {{ name }}, <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:96px">con qualcuno.</span></h1>
+<h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(56px,5.8vw,84px);line-height:.95;font-weight:600;letter-spacing:-.065em;text-wrap:balance">Tornare {{ prep }} {{ name }}, <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:1.14em">con qualcuno.</span></h1>
 <p class="r-lede" style="margin:0;font-size:21px;line-height:1.4;color:#4A4560;max-width:520px;text-wrap:pretty">{{ lede }}</p>
 <div style="display:flex;gap:10px;flex-wrap:wrap"><dc-import name="UI Button" label="{{ cta }}" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
 </div>
-<div class="r-hide-sm"><dc-import name="App Photo" ratio="4/5" radius="28px" src="{{ photo }}" alt="{{ photoAlt }}" label="{{ photoLabel }}" w="100%"></dc-import></div>
+<div class="r-hide-sm"><dc-import name="App Photo" ratio="1/1" radius="28px" src="{{ photo }}" alt="{{ photoAlt }}" label="{{ photoLabel }}" w="100%"></dc-import></div>
 </section>
 
 <section aria-label="In numeri" class="r-grid-1" style="margin:0 var(--gutter);padding:28px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
