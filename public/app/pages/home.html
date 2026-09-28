@@ -3,15 +3,14 @@
 <header class="r-pad" style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500">
 <a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
 <nav class="r-hide-md" style="display:flex;gap:26px;color:#6B6680"><a href="#come-funziona" style="color:#6B6680;text-decoration:none">Come funziona</a><a href="#per-chi" style="color:#6B6680;text-decoration:none">Per chi è</a><a href="/rientro-dei-cervelli" style="color:#6B6680;text-decoration:none">Rientro dei cervelli</a><a href="#domande" style="color:#6B6680;text-decoration:none">Domande</a></nav>
-<div style="flex:1"></div><a href="{{ loginHref }}" style="color:#1A1726;text-decoration:none">{{ loginLabel }}</a>
-<span class="r-hide-sm"><dc-import name="UI Button" label="Entra in Rientro" on-click="{{ enter }}"></dc-import></span>
+<div style="flex:1"></div><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import>
 </div></header>
 <section class="r-pad-lg" style="padding:96px 56px 72px;display:flex;flex-direction:column;gap:36px">
 <dc-import name="UI Eyebrow" text="Per chi torna, chi ci sta pensando e chi è già tornato"></dc-import>
 <h1 class="r-hero r-hero-long" style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(48px,5.8vw,84px);line-height:.98;font-weight:600;letter-spacing:-.06em;max-width:1240px">Rientra in Italia o al Sud e trova persone <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:clamp(56px,6.7vw,96px)">con cui costruire</span></h1>
 <div style="display:flex;flex-direction:column;align-items:flex-start;gap:28px">
-<p class="r-lede" style="margin:0;font-size:24px;line-height:1.4;letter-spacing:-.01em;max-width:720px;color:#4A4560;text-wrap:pretty">Trova un co-founder o un socio che sta rientrando come&nbsp;te. Una ragione in più per tornare.</p>
-<div class="r-stack" style="display:flex;gap:10px"><dc-import name="UI Button" label="Entra in Rientro →" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
+<p class="r-lede" style="margin:0;font-size:24px;line-height:1.4;letter-spacing:-.01em;max-width:720px;color:#4A4560;text-wrap:pretty">Trova persone come te che rientrano, per iniziare un progetto o semplicemente per conoscersi. Ragioni in più per&nbsp;tornare.</p>
+<div class="r-stack" style="display:flex;gap:10px"><dc-import name="UI Button" label="Accedi a Rientro →" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
 </div></section>
 <sc-if value="{{ launched }}"><div class="r-pad-lg r-grid-2" style="padding:0 56px 88px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
 <sc-for list="{{ heroPeople }}" as="h">
@@ -28,7 +27,7 @@
 </div></div></sc-if>
 <section class="r-grid-1 r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
 <dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
-<p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Una community per chi torna in Italia, o al sud. Incontra persone ambiziose con cui fondare un'azienda o un progetto. <span style="color:#8C84AE">È gratuito.</span></p>
+<p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Una community <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.02em;color:#6C4DF5;font-size:1.18em">gratuita</span> per chi torna in Italia, o al sud. Incontra persone ambiziose con cui fare rete e costruire.</p>
 </section>
 <section id="per-chi" class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px repeat(3,1fr);gap:16px">
 <dc-import name="UI Eyebrow" text="Per chi è"></dc-import>
@@ -68,10 +67,11 @@
 <li style="background:#2A2638;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:40px;min-height:220px;box-sizing:border-box"><span style="width:40px;height:40px;border-radius:50%;background:#6C4DF5;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px">{{ s.n }}</span><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:19px;font-weight:600">{{ s.t }}</span><span style="font-size:14px;line-height:1.5;color:#C9C0F0">{{ s.d }}</span></div></li>
 </sc-for>
 </ol></section>
-<section class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:280px 1fr 1fr;gap:16px">
-<dc-import name="UI Eyebrow" text="Due modi di iniziare"></dc-import>
+<section class="r-grid-1 r-pad-lg" style="padding:88px 56px;display:grid;grid-template-columns:240px repeat(3,minmax(0,1fr));gap:16px">
+<dc-import name="UI Eyebrow" text="Tre modi di iniziare"></dc-import>
 <div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span></div>
 <div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma cerchi con chi lavorarci.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span></div>
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="neutral" label="Fare rete"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Vuoi semplicemente fare networking.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Conosci chi è rientrato o sta per farlo, nella tua città o dove vorresti vivere. Un caffè, un consiglio, un contatto in più.</span></div>
 </section>
 <section id="domande" class="r-grid-1 r-pad-lg" style="padding:0 56px 88px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;scroll-margin-top:24px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.04em">Domande e risposte</h2>
@@ -79,8 +79,8 @@
 </section>
 <section class="r-stack r-pad-lg" style="margin:0 var(--gutter) 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
 <h2 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:720px">Trova qualcuno con cui <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">costruire.</span></h2>
-<dc-import name="UI Button" label="Entra in Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
+<dc-import name="UI Button" label="Accedi a Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
 </section>
 <footer class="r-wrap r-pad-lg" style="padding:8px 56px 32px;display:flex;gap:24px;font-size:13px;color:#6B6680;align-items:center"><span>© 2026 Rientro · rientro.it</span><div style="flex:1"></div><a href="/legal/privacy" style="color:#6B6680;text-decoration:none">Privacy Policy</a><a href="/legal/termini" style="color:#6B6680;text-decoration:none">Termini</a><a href="/legal/cookie" style="color:#6B6680;text-decoration:none">Cookie Policy</a><a href="mailto:ciao@rientro.it" style="color:#6B6680;text-decoration:none">Contatti</a></footer>
-<div class="r-show-sm" style="position:sticky;bottom:0;padding:12px 20px 24px;background:linear-gradient(transparent,#E9E6F5 30%)"><dc-import name="UI Button" label="Entra in Rientro" variant="accent" size="lg" full="{{ true }}" on-click="{{ enter }}"></dc-import></div>
+<div class="r-show-sm" style="position:sticky;bottom:0;padding:12px 20px 24px;background:linear-gradient(transparent,#E9E6F5 30%)"><dc-import name="UI Button" label="Accedi a Rientro" variant="accent" size="lg" full="{{ true }}" on-click="{{ enter }}"></dc-import></div>
 </div>

@@ -11,10 +11,41 @@ const subset = (v, allowed, f, max) => {
   return l;
 };
 
+// Half year of arrival in Italy, at most two years back (a little slack for answers saved earlier)
+function arrivedPeriod(v) {
+  if (v === undefined || v === null) return v;
+  const m = /^(\d{4})-H([12])$/.exec(v);
+  const year = new Date().getFullYear();
+  if (!m || Number(m[1]) > year || Number(m[1]) < year - 3) throw bad('invalid_field', 'Quando sei arrivato non valido');
+  return v;
+}
+
+// '2025-H2' → 'tra luglio e dicembre 2025'; the current half reads 'da luglio 2026'
+// "Da Londra, Regno Unito · tra luglio e dicembre 2025", "In Italia da più di 2 anni", or null
+export function arrivedText(p) {
+  if (p.in_italy_long_time) return 'In Italia da più di 2 anni';
+  const where = [p.arrived_from_city, p.arrived_from_country].filter(Boolean).join(', ');
+  const when = arrivedLabel(p.arrived_period);
+  return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
+}
+
+export function arrivedLabel(v) {
+  const m = /^(\d{4})-H([12])$/.exec(v ?? '');
+  if (!m) return null;
+  const d = new Date();
+  const current = Number(m[1]) === d.getFullYear() && (m[2] === '1') === (d.getMonth() < 6);
+  const [from, to] = m[2] === '1' ? ['gennaio', 'giugno'] : ['luglio', 'dicembre'];
+  return current ? `da ${from} ${m[1]}` : `tra ${from} e ${to} ${m[1]}`;
+}
+
 const EDITABLE = {
   lives_in: v => oneOf(v, ['italy', 'abroad'], 'Dove vivi'),
   lives_in_country: v => text(v, 'Paese', { max: 60 }),
   lives_in_city: v => text(v, 'Città', { max: 80 }),
+  arrived_from_country: v => text(v, 'Paese di provenienza', { max: 60 }),
+  arrived_from_city: v => text(v, 'Città di provenienza', { max: 80 }),
+  arrived_period: v => arrivedPeriod(v),
+  in_italy_long_time: v => bool(v, 'In Italia da più di 2 anni'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, ['has_idea', 'seeking_idea'], 'Obiettivo'),
@@ -75,6 +106,7 @@ export function getOwnProfile(db, userId) {
   return {
     ...rest,
     desired_unknown: p.desired_unknown === 1,
+    in_italy_long_time: p.in_italy_long_time === 1,
     video_connections_only: p.video_connections_only === 1,
     visible: p.visible === 1,
     photo_url: fileUrl(pending.photo_file_id ?? p.photo_file_id),
@@ -106,6 +138,9 @@ export function updateProfile(db, user, body) {
     live[key] = JSON_FIELDS.has(key) ? JSON.stringify(v) : v;
   }
   const next = { ...current, ...live };
+  // "Sono da più di 2 anni in Italia" overrides where from and when
+  if (live.in_italy_long_time === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_period: null });
+  if (live.arrived_from_country?.trim().toLowerCase() === 'italia') throw bad('invalid_field', 'Indica il paese estero da cui sei arrivato.');
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   else if (next.lives_in === 'abroad' && next.lives_in_country?.trim().toLowerCase() === 'italia') {
     throw bad('invalid_field', 'Se vivi in Italia, scegli «Vivo già in Italia».');
@@ -261,6 +296,7 @@ export function publicProfile(db, viewer, targetId) {
     first_name: p.first_name, last_name: p.last_name,
     age_band: label(AGE_BANDS, p.age_band),
     lives_in_city: p.lives_in_city, lives_in_country: p.lives_in_country,
+    arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
     desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p),
     primary_intent: p.primary_intent,
     idea: p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,

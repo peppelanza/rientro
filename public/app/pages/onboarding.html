@@ -61,6 +61,15 @@
 <div style="display:flex;flex-direction:column;gap:8px"><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ cityComune }}" max="1" size="lg" field="city-comune" placeholder="Cerca il tuo comune" dc-props="{{ cityPickerProps }}"></dc-import></div></sc-if>
 </div></sc-if>
 
+<sc-if value="{{ is_arrivo }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:26px">
+<div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivevi prima?</h2><span style="font-size:16px;color:#6B6680">Prima di rientrare in Italia, e quando è stato il rientro.</span></div>
+<sc-if value="{{ notLongTime }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Paese</span><dc-import name="App Comune Picker" comuni="{{ paesi }}" selected="{{ fromCountrySel }}" max="1" size="lg" field="from-country" noun="paese" placeholder="Cerca il paese" dc-props="{{ fromCountryProps }}"></dc-import></div>
+<sc-if value="{{ hasFromCountry }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Città</span><dc-import name="App Comune Picker" comuni="{{ cittaFrom }}" selected="{{ fromCitySel }}" max="1" size="lg" field="from-city" noun="città" free-text="{{ true }}" placeholder="Cerca la città" none-text="Nessuna città trovata" dc-props="{{ fromCityProps }}"></dc-import><sc-if value="{{ noFromCity }}"><span style="font-size:13px;color:#6B6680">Non la trovi? Scrivila e scegli «Usa».</span></sc-if></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando è stato il rientro?</span><dc-import name="App Segmented" label="Quando è stato il rientro" options="{{ periodOpts }}" value="{{ period }}" dc-props="{{ periodProps }}"></dc-import></div></sc-if>
+<div style="height:1px;background:#DCD7EC"></div>
+<dc-import name="UI Checkbox" label="Sono da più di 2 anni in Italia" checked="{{ longTime }}" on-click="{{ toggleLongTime }}" host-role="checkbox" host-aria-checked="{{ longTime }}"></dc-import>
+</div></sc-if>
+
 <sc-if value="{{ is_dove }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vorresti vivere in Italia?</h2><span style="font-size:16px;color:#6B6680">Puoi sceglierne più di uno. Cerca tra tutti i comuni italiani.</span></div>
 <div style="background:#FFFFFF;border-radius:26px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12)"><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" max="10" size="lg" field="desired" dc-props="{{ desiredProps }}"></dc-import></div>

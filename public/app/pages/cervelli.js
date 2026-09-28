@@ -29,7 +29,6 @@ export default class extends Page {
   renderVals() {
     const me = this.state.me;
     return {
-      loginLabel: me ? 'Il tuo spazio' : 'Accedi', loginHref: me ? homeFor(me) : '/accedi',
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
     };
   }

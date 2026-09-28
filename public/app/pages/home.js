@@ -61,7 +61,6 @@ export default class extends Page {
       countdown: prelaunch ? timeLeft(this.state.launchAt) : [],
       launchText: prelaunch ? 'Apre il ' + new Date(this.state.launchAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ') : '',
       countdownLabel: 'Tempo che manca al lancio',
-      loginLabel: me ? 'Il tuo spazio' : 'Accedi', loginHref: me ? homeFor(me) : '/accedi',
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
       how: () => document.getElementById('come-funziona')?.scrollIntoView(),
     };

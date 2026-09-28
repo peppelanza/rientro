@@ -21,8 +21,6 @@
 <dc-import name="UI Button" label="✉  Continua con email" variant="light" size="lg" full="{{ true }}" on-click="{{ toEmail }}"></dc-import>
 <sc-if value="{{ oauthNote }}"><div role="status" style="border-radius:20px;background:#EFEBFF;color:#3E2BA8;padding:12px 16px;font-size:14px;line-height:1.45">{{ oauthNote }}</div></sc-if>
 <span style="font-size:12px;line-height:1.55;color:#6B6680;text-wrap:pretty">Continuando accetti i <a href="/legal/termini" style="color:#6B6680">Termini</a> e confermi di aver letto la <a href="/legal/privacy" style="color:#6B6680">Privacy Policy</a>. Non pubblichiamo nulla sul tuo LinkedIn.</span>
-<div style="height:1px;background:#DCD7EC"></div>
-<span style="font-size:14px;color:#6B6680">{{ switchText }} <a href="{{ switchHref }}" style="font-weight:600;color:#1A1726;text-underline-offset:3px">{{ switchLink }}</a></span>
 </sc-if>
 
 <sc-if value="{{ stepEmail }}">
