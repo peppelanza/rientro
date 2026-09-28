@@ -114,11 +114,11 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
 
 function serveFile(res, file) {
-  // Place lists change only with a new build: cache them for a day.
-  const cache = file.includes(`${path.sep}data${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
+  // Place lists and images change only with a new build: cache them for a day.
+  const cache = file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
   reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
 }
 

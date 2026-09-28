@@ -32,7 +32,7 @@ export default class extends Page {
       name: t.name, prep: t.prep, nameUpper: t.name.toUpperCase(),
       eyebrow: `Rientro ${t.prep} ${t.name}`,
       lede: `Chi vive all'estero e vuole tornare ${t.prep} ${t.name} è già qui. Trova le persone con cui costruire un'azienda o un progetto${isCity ? ' in città' : ''}.`,
-      cta: `Scopri chi torna ${t.prep} ${t.name} →`, photoLabel: `FOTO · ${t.name.toUpperCase()}`,
+      cta: `Scopri chi torna ${t.prep} ${t.name} →`, photoLabel: `FOTO · ${t.name.toUpperCase()}`, photo: t.photo || '', photoAlt: t.name,
       stats: [
         { v: few(t.count), l: `persone vogliono vivere ${t.prep} ${t.name}` },
         { v: few(t.living), l: 'ci vivono già e cercano soci' },
