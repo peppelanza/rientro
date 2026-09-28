@@ -195,3 +195,57 @@ button { font: inherit; }
 .rec-btn-main:disabled { background: #CFC8E8; box-shadow: none; cursor: default; }
 .rec-btn-ghost { background: #F1EFF8; color: #1A1726; }
 @media (max-width: 720px) { .rec-stage { aspect-ratio: 3 / 4; } .rec-actions .rec-btn { flex: 1; } }
+
+/* "Rientro dei cervelli" article: in-article ads for Rientro. They sit outside the article's
+   sections (own colours, "Annuncio" tag, full card) so readers don't mistake them for content. */
+.ad-banner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; gap: 24px; padding: 28px 28px 28px 32px; border-radius: 28px; overflow: hidden; font-family: 'Geist', sans-serif; box-shadow: 0 18px 44px rgba(80,60,160,.18); }
+.ad-banner .ad-body { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ad-banner .ad-tag { display: inline-flex; align-items: center; gap: 8px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.ad-banner .ad-tag b { font-weight: 500; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,.18); }
+.ad-banner .ad-title { margin: 0; font-family: 'Unbounded', sans-serif; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.04em; text-wrap: balance; }
+.ad-banner .ad-text { margin: 0; font-size: 15px; line-height: 1.55; opacity: .88; text-wrap: pretty; }
+.ad-banner .ad-art svg { display: block; width: 100%; height: auto; }
+.ad-purple { background: radial-gradient(circle at 90% 10%, #8E7FE0, transparent 55%), #6C4DF5; color: #FFFFFF; }
+.ad-dark { background: radial-gradient(circle at 85% 90%, #3A3160, transparent 60%), #1A1726; color: #FFFFFF; }
+.ad-light { background: linear-gradient(135deg, #FFFFFF, #EFEBFF); color: #1A1726; border: 1.5px solid #CFC5FF; }
+.ad-light .ad-tag b { background: #6C4DF5; color: #FFFFFF; }
+.ad-sunset { background: linear-gradient(135deg, #6C4DF5 0%, #3E2BA8 55%, #1A1726 100%); color: #FFFFFF; }
+@media (max-width: 720px) {
+  .ad-banner { grid-template-columns: 1fr; padding: 22px; gap: 14px; }
+  .ad-banner .ad-art { order: -1; max-width: 220px; }
+  .ad-banner .ad-title { font-size: 21px; }
+}
+
+/* 1 · two people meet and a spark lights up */
+.ad-meet-a { animation: ad-meet-a 4s ease-in-out infinite; }
+.ad-meet-b { animation: ad-meet-b 4s ease-in-out infinite; }
+.ad-spark { transform-box: fill-box; transform-origin: center; animation: ad-spark 4s ease-in-out infinite; }
+@keyframes ad-meet-a { 0%, 100% { translate: 0 0; } 45%, 60% { translate: 26px 0; } }
+@keyframes ad-meet-b { 0%, 100% { translate: 0 0; } 45%, 60% { translate: -26px 0; } }
+@keyframes ad-spark { 0%, 38% { scale: 0; opacity: 0; } 50% { scale: 1.2; opacity: 1; } 60% { scale: 1; opacity: 1; } 72%, 100% { scale: 0; opacity: 0; } }
+/* 2 · routes from abroad converge on one pin */
+.ad-routes path { stroke-dasharray: 4 6; animation: place-dash 1.2s linear infinite; }
+.ad-dot { animation: place-twinkle 2.4s ease-in-out infinite; }
+.ad-dot:nth-of-type(2) { animation-delay: .6s; }
+.ad-dot:nth-of-type(3) { animation-delay: 1.2s; }
+.ad-bob { animation: place-bob 2.4s ease-in-out infinite; }
+/* 3 · a chat fills up, message by message */
+.ad-msg { transform-box: fill-box; transform-origin: left bottom; animation: ad-msg 6s ease-out infinite; }
+.ad-msg.r { transform-origin: right bottom; }
+.ad-msg:nth-of-type(2) { animation-delay: .9s; }
+.ad-msg:nth-of-type(3) { animation-delay: 1.8s; }
+.ad-msg:nth-of-type(4) { animation-delay: 2.7s; }
+@keyframes ad-msg { 0% { scale: .4; opacity: 0; } 8%, 80% { scale: 1; opacity: 1; } 92%, 100% { scale: 1; opacity: 0; } }
+/* 4 · a pin drops on the city and people gather around */
+.ad-drop { animation: ad-drop 4.2s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+.ad-ring { transform-box: fill-box; transform-origin: center; animation: place-ripple 2.1s ease-out infinite; }
+.ad-person { transform-box: fill-box; transform-origin: center bottom; animation: ad-pop 4.2s ease-out infinite; }
+.ad-person:nth-of-type(2) { animation-delay: .25s; }
+.ad-person:nth-of-type(3) { animation-delay: .5s; }
+.ad-person:nth-of-type(4) { animation-delay: .75s; }
+@keyframes ad-drop { 0% { translate: 0 -60px; opacity: 0; } 18% { translate: 0 0; opacity: 1; } 85% { translate: 0 0; opacity: 1; } 100% { translate: 0 0; opacity: 0; } }
+@keyframes ad-pop { 0%, 22% { scale: 0; } 32%, 85% { scale: 1; } 100% { scale: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ad-meet-a, .ad-meet-b, .ad-spark, .ad-routes path, .ad-dot, .ad-bob, .ad-msg, .ad-drop, .ad-ring, .ad-person { animation: none; }
+  .ad-spark { opacity: 1; }
+}
