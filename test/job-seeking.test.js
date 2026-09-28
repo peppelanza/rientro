@@ -83,3 +83,19 @@ test('living abroad cannot name Italy as the country', async () => {
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Regno Unito', lives_in_city: 'Londra' })).status, 200);
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'italy', lives_in_city: 'Roma' })).status, 200);
 });
+
+test('idea stages are the three new ones, and old stored stages move over', async () => {
+  const u = await t.login('stage@x.it');
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'has_idea', idea_title: 'X', idea_stage: 'validation' })).status, 400);
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'has_idea', idea_title: 'X', idea_stage: 'prototype' })).status, 200);
+
+  const { openDb, migrateIdeaStages } = await import('../src/db.js');
+  const db = openDb(':memory:');
+  const t2 = await startApp({ db });
+  const v = await t2.login('old@x.it');
+  await v.patch('/api/me/profile', { primary_intent: 'has_idea', idea_title: 'X', idea_stage: 'idea' });
+  db.prepare('UPDATE profiles SET idea_stage = ?').run('first_customers');
+  migrateIdeaStages(db);
+  assert.equal((await v.get('/api/me')).body.profile.idea_stage, 'revenue');
+  t2.close();
+});

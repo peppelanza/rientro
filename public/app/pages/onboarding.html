@@ -56,10 +56,10 @@
 
 <sc-if value="{{ is_residenza }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:26px">
 <sc-if value="{{ isAbroad }}"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">In quale paese vivi?</h2>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Paese</span><dc-import name="App Comune Picker" comuni="{{ paesi }}" selected="{{ countrySel }}" max="1" size="lg" field="country" noun="paese" placeholder="Cerca il paese" dc-props="{{ countryPickerProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="App Comune Picker" comuni="{{ paesi }}" selected="{{ countrySel }}" max="1" size="lg" field="country" noun="paese" placeholder="Cerca il paese" dc-props="{{ countryPickerProps }}"></dc-import></div>
 <sc-if value="{{ hasCountry }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Città</span><dc-import name="App Comune Picker" comuni="{{ citta }}" selected="{{ citySel }}" max="1" size="lg" field="city" noun="città" free-text="{{ true }}" placeholder="Cerca la città" none-text="Nessuna città trovata" dc-props="{{ cityAbroadProps }}"></dc-import><span style="font-size:13px;color:#6B6680">Non la trovi? Scrivila e scegli «Usa».</span></div></sc-if></sc-if>
 <sc-if value="{{ isItaly }}"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">In quale comune vivi?</h2>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Comune</span><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ cityComune }}" max="1" size="lg" field="city-comune" placeholder="Cerca il tuo comune" dc-props="{{ cityPickerProps }}"></dc-import></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ cityComune }}" max="1" size="lg" field="city-comune" placeholder="Cerca il tuo comune" dc-props="{{ cityPickerProps }}"></dc-import></div></sc-if>
 </div></sc-if>
 
 <sc-if value="{{ is_dove }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
@@ -92,8 +92,8 @@
 
 <sc-if value="{{ is_idea }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">{{ ideaHeading }}</h2><sc-if value="{{ ideaHint }}"><span style="font-size:16px;color:#6B6680">{{ ideaHint }}</span></sc-if></div>
-<dc-import name="App Field" label="In una frase" size="lg" field="idea-title" value="{{ ideaTitle }}" maxlength="140" placeholder="Es. Software per gestire gli affitti brevi nei borghi" dc-props="{{ ideaTitleProps }}"></dc-import>
-<dc-import name="App Field" label="Descrizione" rows="4" field="idea-desc" value="{{ ideaDesc }}" maxlength="1000" placeholder="Il problema, per chi, perché ora." dc-props="{{ ideaDescProps }}"></dc-import>
+<dc-import name="App Field" label="In una frase" size="lg" field="idea-title" value="{{ ideaTitle }}" maxlength="140" placeholder="Esempio: Agenzia creativa o Progetto sociale" dc-props="{{ ideaTitleProps }}"></dc-import>
+<dc-import name="App Field" label="Descrizione" rows="4" field="idea-desc" value="{{ ideaDesc }}" maxlength="1000" placeholder="Di cosa si tratta?" dc-props="{{ ideaDescProps }}"></dc-import>
 <sc-if value="{{ hasIdea }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="App Segmented" label="A che punto sei" options="{{ stageOpts }}" value="{{ stage }}" dc-props="{{ stageProps }}"></dc-import></div></sc-if>
 </div></sc-if>
 

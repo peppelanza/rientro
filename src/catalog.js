@@ -12,7 +12,10 @@ export const SOURCES = ['Passaparola, un amico o collega', 'LinkedIn', 'Instagra
 export const AGE_BANDS = [['25-29', '25–29'], ['30-34', '30–34'], ['35-39', '35–39'], ['40-44', '40–44'], ['45-50+', '45–50+']];
 export const YEARS = [['0-3', '0–3'], ['4-7', '4–7'], ['8-12', '8–12'], ['13+', '13+']];
 
-export const IDEA_STAGES = [['idea', 'Solo un\'idea'], ['validation', 'Validazione'], ['prototype', 'Prototipo'], ['first_customers', 'Primi clienti'], ['revenue', 'Ricavi']];
+// Codes reuse values the database already allows (schema CHECK), so no schema change was needed
+export const IDEA_STAGES = [['idea', 'Solo un\'idea'], ['prototype', 'Ci sto lavorando'], ['revenue', 'Già operativo']];
+// Stages used before they were reduced to three, and where each one now belongs
+export const OLD_IDEA_STAGES = { validation: 'prototype', first_customers: 'revenue' };
 
 export const TIME = [
   ['full_time', 'Full-time', 'È il mio progetto principale'],
