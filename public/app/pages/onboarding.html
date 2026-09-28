@@ -1,5 +1,4 @@
-<!-- From design/Rientro 02 Onboarding v2 · artboards 6a (benvenuto), 7a–22a (passi), 10a (opzione lavoro), 23a (anteprima).
-     The "Che tipo di opportunità cerchi in Italia?" step (spec §10) has no artboard: it reuses 17a/18a patterns. -->
+<!-- From design/Rientro 02 Onboarding v2 · artboards 6a (benvenuto), 7a–22a (passi), 23a (anteprima). -->
 <sc-if value="{{ loading }}"><div style="min-height:100vh;background:#E9E6F5"></div></sc-if>
 
 <sc-if value="{{ isWelcome }}">
@@ -73,22 +72,8 @@
 <sc-if value="{{ is_obiettivo }}"><div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:22px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Cosa stai cercando su Rientro?</h2><span style="font-size:16px;color:#6B6680">Scegline una. Potrai cambiarla in seguito.</span></div>
 <div role="radiogroup" aria-label="Obiettivo" class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><dc-import name="UI Option Card" letter="A" size="lg" selected="{{ intentA.on }}" title="Ho già un'idea e cerco un socio" desc="Racconterai il progetto e le competenze che ti mancano." on-click="{{ intentA.fn }}" host-role="radio" host-aria-checked="{{ intentA.aria }}"></dc-import><dc-import name="UI Option Card" letter="B" size="lg" selected="{{ intentB.on }}" title="Non ho ancora un'idea e cerco qualcuno con cui trovarla" desc="Racconterai cosa ti interessa e con chi vorresti lavorare." on-click="{{ intentB.fn }}" host-role="radio" host-aria-checked="{{ intentB.aria }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:10px;padding-top:4px"><dc-import name="UI Eyebrow" text="In più, facoltativo"></dc-import>
-<sc-if value="{{ jobOff }}"><div role="checkbox" tabindex="0" aria-checked="false" onClick="{{ toggleJob }}" onKeyDown="{{ jobKey }}" style="display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:22px;border:1.5px dashed #B9B2D6;cursor:pointer"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid #CFC8E8;box-sizing:border-box;background:#FFFFFF;flex:none"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#6B6680">Stai cercando anche un'opportunità di lavoro?</span><span style="font-size:16px;font-weight:500">Sto anche cercando lavoro in Italia per un'azienda italiana</span></div></div></sc-if>
-<sc-if value="{{ jobOn }}"><div style="border-radius:24px;border:1.5px solid #6C4DF5;background:#FFFFFF;overflow:hidden">
-<div role="checkbox" tabindex="0" aria-checked="true" onClick="{{ toggleJob }}" onKeyDown="{{ jobKey }}" style="display:flex;gap:14px;align-items:center;padding:16px 18px;cursor:pointer"><span style="width:22px;height:22px;border-radius:7px;background:#6C4DF5;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">✓</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#6B6680">Stai cercando anche un'opportunità di lavoro?</span><span style="font-size:16px;font-weight:500">Sto anche cercando lavoro in Italia per un'azienda italiana</span></div></div>
-<div class="r-pad" style="padding:16px 18px 18px 54px;background:#EFEBFF;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.55;color:#3E2BA8">
-<span>Sul tuo profilo comparirà “Sta anche cercando lavoro in Italia”. Questa scelta indica che sei interessato a opportunità da aziende italiane.</span>
-<span>Resta secondaria rispetto alla ricerca del co-founder. Puoi toglierla quando vuoi da <a href="/impostazioni/privacy" style="color:#3E2BA8">Impostazioni → Privacy</a>.</span>
-</div></div></sc-if>
-</div>
 </div></sc-if>
 
-<sc-if value="{{ is_lavoro }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:22px">
-<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="In più, facoltativo" tone="accent"></dc-import><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Che tipo di opportunità cerchi in Italia?</h2><span style="font-size:16px;color:#6B6680;line-height:1.5">Tutto facoltativo. Questi dettagli non compaiono sul profilo: gli altri membri vedono solo “Sta anche cercando lavoro in Italia”.</span></div>
-<dc-import name="App Job Details" job="{{ j }}" catalog="{{ cat }}" desired="{{ desired }}" dc-props="{{ jobProps }}"></dc-import>
-<span style="font-size:13px;color:#8C84AE;line-height:1.5">Puoi modificarli o cancellarli quando vuoi da <a href="/impostazioni/privacy" style="color:#6B6680">Impostazioni → Privacy</a>. Se togli la spunta, li cancelliamo.</span>
-</div></sc-if>
 
 <sc-if value="{{ is_idea }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">{{ ideaHeading }}</h2><sc-if value="{{ ideaHint }}"><span style="font-size:16px;color:#6B6680">{{ ideaHint }}</span></sc-if></div>
@@ -229,7 +214,6 @@
 <div style="display:flex;flex-direction:column;gap:16px">
 <dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ pvName }}"></dc-import>
 <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.045em">{{ pvName }}</span><span style="font-size:15px;color:#6B6680">{{ pvRole }}</span></div>
-<sc-if value="{{ pvJob }}"><div><span style="height:28px;padding:0 12px;border-radius:999px;background:#FFFFFF;color:#4A4560;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5"></span>Sta anche cercando lavoro in Italia</span></div></sc-if>
 <div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:22px;padding:4px 18px;font-size:14px"><sc-for list="{{ pvFacts }}" as="f"><div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:{{ f.bt }}"><span style="color:#8C84AE">{{ f.k }}</span><span style="text-align:right">{{ f.v }}</span></div></sc-for></div>
 </div>
 <div class="r-pad-lg" style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px 32px 28px;display:flex;flex-direction:column;align-self:start;min-width:0">

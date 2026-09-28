@@ -13,7 +13,7 @@ const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insie
 
 function readFilters() {
   const q = new URLSearchParams(location.search);
-  const f = { lives: q.get('lives') || '', time: q.get('time') || '', age: q.get('age') || '', job: q.get('job') === '1', include_unknown: q.get('include_unknown') === '1', q: q.get('q') || '' };
+  const f = { lives: q.get('lives') || '', time: q.get('time') || '', age: q.get('age') || '', include_unknown: q.get('include_unknown') === '1', q: q.get('q') || '' };
   for (const k of LIST_KEYS) f[k] = q.get(k) ? q.get(k).split(',').filter(Boolean) : [];
   return f;
 }
@@ -24,7 +24,6 @@ function toQuery(f) {
   if (f.lives) q.set('lives', f.lives);
   if (f.time) q.set('time', f.time);
   if (f.age) q.set('age', f.age);
-  if (f.job) q.set('job', '1');
   if (f.include_unknown && f.desired.length) q.set('include_unknown', '1');
   if (f.q) q.set('q', f.q);
   return q;
@@ -67,7 +66,6 @@ export default class extends Page {
     for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
     if (f.time) out.push({ label: cat.time.find(t => t[0] === f.time)?.[1], without: g => ({ ...g, time: '' }) });
     if (f.age) out.push({ label: AGES.find(a => a[0] === f.age)?.[1], without: g => ({ ...g, age: '' }) });
-    if (f.job) out.push({ label: 'Cerca lavoro in Italia', without: g => ({ ...g, job: false }) });
     if (f.q) out.push({ label: `“${f.q}”`, without: g => ({ ...g, q: '' }) });
     return out;
   }
@@ -132,7 +130,6 @@ export default class extends Page {
       toggleMoreSectors: () => this.setState({ moreSectors: !s.moreSectors }),
       timeOpts: [{ v: 'full_time', l: 'Full-time' }, { v: 'part_time', l: 'Part-time' }], time: f.time, timeProps: { onSelect: v => this.set({ time: v }) },
       ageOpts: AGES.map(([v, l]) => ({ v, l })), age: f.age, ageProps: { onSelect: v => this.set({ age: v }) },
-      job: f.job, toggleJob: () => this.set({ job: !f.job }),
       // results
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
       toggleSort: () => this.setState({ sort: s.sort === 'match' ? 'recent' : 'match' }),
@@ -150,5 +147,5 @@ export default class extends Page {
 }
 
 function readFiltersEmpty() {
-  return { lives: '', time: '', age: '', job: false, include_unknown: false, q: '', intent: [], backgrounds: [], sectors: [], desired: [] };
+  return { lives: '', time: '', age: '', include_unknown: false, q: '', intent: [], backgrounds: [], sectors: [], desired: [] };
 }

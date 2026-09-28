@@ -20,8 +20,6 @@
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Settori"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for><sc-if value="{{ hasMoreSectors }}"><dc-import name="UI Chip" label="{{ moreSectorsLabel }}" tone="dashed" size="sm" on-click="{{ toggleMoreSectors }}"></dc-import></sc-if></div></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Tempo"></dc-import><dc-import name="App Segmented" label="Tempo" options="{{ timeOpts }}" value="{{ time }}" clearable="{{ true }}" dc-props="{{ timeProps }}"></dc-import></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Fascia d'età"></dc-import><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" clearable="{{ true }}" dc-props="{{ ageProps }}"></dc-import></div>
-<div style="height:1px;background:#E4E0F2"></div>
-<dc-import name="UI Toggle" label="Cerca anche lavoro in Italia" on="{{ job }}" on-click="{{ toggleJob }}" host-role="switch" host-aria-checked="{{ job }}"></dc-import>
 </aside>
 
 <main style="display:flex;flex-direction:column;gap:22px;padding-right:8px;min-width:0">

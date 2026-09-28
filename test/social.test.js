@@ -97,7 +97,7 @@ test('dashboard and analytics compute without errors', async () => {
   const admin = await t.asAdmin();
   const d = await admin.get('/api/admin/dashboard?period=30');
   assert.equal(d.status, 200);
-  assert.equal(d.body.kpis.length, 7);
+  assert.equal(d.body.kpis.length, 6);
   // The signup chart ends today, so members who joined today are counted
   const today = new Date().toISOString().slice(0, 10);
   assert.equal(d.body.signups.at(-1).day, today);

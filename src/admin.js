@@ -53,7 +53,6 @@ export function dashboard(db, admin, query) {
   const messages = count('SELECT COUNT(*) AS n FROM messages');
   const msgPeriod = count('SELECT COUNT(*) AS n FROM messages WHERE created_at >= ?', from);
   const msgPrev = count('SELECT COUNT(*) AS n FROM messages WHERE created_at >= ? AND created_at < ?', prev, from);
-  const jobSeekers = users.filter(u => getJobPreferences(db, u.id).looking_for_italian_job).length;
   const requests = count('SELECT COUNT(*) AS n FROM connections');
   const withMessage = count(`SELECT COUNT(*) AS n FROM connections c WHERE c.status = 'accepted' AND EXISTS (
     SELECT 1 FROM messages m WHERE (m.sender_id = c.requester_id AND m.recipient_id = c.addressee_id) OR (m.sender_id = c.addressee_id AND m.recipient_id = c.requester_id))`);
@@ -75,7 +74,6 @@ export function dashboard(db, admin, query) {
       { label: 'Profili approvati', value: fmt(approved), delta: `${pct(approved, submitted)}%` },
       { label: 'Connessioni', value: fmt(accepted), delta: `+${fmt(acceptedPeriod)}` },
       { label: 'Messaggi', value: fmt(messages), delta: delta(msgPeriod, msgPrev) },
-      { label: 'Cercano lavoro', value: fmt(jobSeekers), delta: `${pct(jobSeekers, users.length)}%`, tone: 'neutral' },
     ],
     signups,
     funnel: [
@@ -87,7 +85,6 @@ export function dashboard(db, admin, query) {
     cities: topCounts(approvedUsers.flatMap(u => u.desired_comuni), 6),
     sectors: topCounts(approvedUsers.flatMap(u => u.sectors), 6),
     intent: { has_idea: pct(approvedUsers.filter(u => u.primary_intent === 'has_idea').length, approvedUsers.length), seeking_idea: pct(approvedUsers.filter(u => u.primary_intent === 'seeking_idea').length, approvedUsers.length) },
-    job: { pct: pct(jobSeekers, users.length), count: jobSeekers, total: users.length },
   };
 }
 
@@ -96,7 +93,6 @@ export function dashboard(db, admin, query) {
 export function listUsers(db, admin, query) {
   const status = oneOf(query.get('status') || undefined, Object.keys(STATUS_LABEL), 'status');
   const intent = oneOf(query.get('intent') || undefined, Object.keys(INTENT), 'intent');
-  const job = query.get('job');
   const place = (query.get('place') || '').trim();
   const source = query.get('source') || '';
   const q = (query.get('q') || '').trim().toLowerCase();
@@ -105,16 +101,15 @@ export function listUsers(db, admin, query) {
   rows = rows.filter(u => (!status || u.status === status) && (!intent || u.primary_intent === intent)
     && (!place || u.desired_comuni.includes(place)) && (!source || u.source === source)
     && (!q || [u.first_name, u.last_name, u.email, u.lives_in_city].filter(Boolean).join(' ').toLowerCase().includes(q)));
-  if (job === '1' || job === '0') rows = rows.filter(u => getJobPreferences(db, u.id).looking_for_italian_job === (job === '1'));
   const perPage = 10;
   const slice = rows.slice((page - 1) * perPage, page * perPage);
-  audit(db, admin.id, 'users.list', null, { status: status ?? 'all', intent: intent ?? 'all', job: job ?? 'all', place: place || 'all', page, count: slice.length });
+  audit(db, admin.id, 'users.list', null, { status: status ?? 'all', intent: intent ?? 'all', place: place || 'all', page, count: slice.length });
   return {
     total: rows.length, page, pages: Math.max(1, Math.ceil(rows.length / perPage)),
     users: slice.map(u => ({
       id: u.id, name: name(u) || '—', email: u.email, photo_url: u.photo_file_id ? `/api/files/${u.photo_file_id}` : null,
       from: u.lives_in_city || '—', to: u.desired_comuni.slice(0, 2).join(', ') || (u.desired_unknown ? 'Non lo sa' : '—'),
-      intent: INTENT[u.primary_intent] ?? '—', job: getJobPreferences(db, u.id).looking_for_italian_job ? 'Sì' : 'No',
+      intent: INTENT[u.primary_intent] ?? '—',
       status: u.status, status_label: STATUS_LABEL[u.status], joined: u.created_at,
     })),
   };
@@ -329,7 +324,6 @@ export function analytics(db, admin, query) {
       idea: share(approved, u => u.primary_intent === 'has_idea'),
       full_time: share(approved, u => u.time_commitment === 'full_time'),
       part_time: share(approved, u => u.time_commitment === 'part_time'),
-      job: share(users, u => getJobPreferences(db, u.id).looking_for_italian_job),
     },
     backgrounds: topCounts(approved.map(u => u.background_area).filter(Boolean), 5).map(([l, n]) => ({ l, v: pct(n, approved.length) })),
     weeks,
@@ -355,7 +349,7 @@ const csvCell = v => {
 };
 
 export function exportCsv(db, admin, body) {
-  only(body, ['dataset', 'status', 'job', 'columns']);
+  only(body, ['dataset', 'status', 'columns']);
   const dataset = oneOf(body.dataset, ['users', 'connections', 'reports'], 'dataset', { nullable: false });
   const all = Object.keys(EXPORT_COLUMNS[dataset]);
   const columns = list(body.columns, 'columns', { maxItems: all.length }) ?? all;
@@ -364,7 +358,6 @@ export function exportCsv(db, admin, body) {
   if (dataset === 'users') {
     const status = oneOf(body.status || undefined, Object.keys(STATUS_LABEL), 'status');
     rows = allProfiles(db, "u.role = 'member'").filter(u => !status || u.status === status);
-    if (body.job === true) rows = rows.filter(u => getJobPreferences(db, u.id).looking_for_italian_job);
   } else if (dataset === 'connections') {
     rows = db.prepare(`SELECT c.*, pa.first_name || ' ' || pa.last_name AS from_name, pb.first_name || ' ' || pb.last_name AS to_name
       FROM connections c LEFT JOIN profiles pa ON pa.user_id = c.requester_id LEFT JOIN profiles pb ON pb.user_id = c.addressee_id`).all();
@@ -373,7 +366,7 @@ export function exportCsv(db, admin, body) {
   }
   const cols = columns.map(c => [c, EXPORT_COLUMNS[dataset][c]]);
   const csv = [cols.map(([c]) => csvCell(c)).join(','), ...rows.map(r => cols.map(([, f]) => csvCell(f(r))).join(','))].join('\r\n');
-  audit(db, admin.id, 'export.csv', null, { dataset, rows: rows.length, columns, status: body.status ?? null, job_filter: body.job === true });
+  audit(db, admin.id, 'export.csv', null, { dataset, rows: rows.length, columns, status: body.status ?? null });
   return { filename: `${dataset}_${now().slice(0, 10)}.csv`, csv: `﻿${csv}`, rows: rows.length };
 }
 

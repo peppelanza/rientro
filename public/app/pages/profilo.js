@@ -143,7 +143,7 @@ export default class extends Page {
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
       intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
       hasIdea: p.primary_intent === 'has_idea', stageOpts: opts(cat.ideaStages), stage: p.idea_stage, stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
-      jobLabel: me.job_seeking.looking_for_italian_job ? 'attivo' : 'non attivo',
+
       // percorso
       areas: cat.areas.map(a => ({ t: a, ...card(p.background_area === a, () => this.set({ background_area: a, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== a) })) })),
       yearOpts: opts(cat.years), years: p.years_experience, yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },

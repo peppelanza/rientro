@@ -32,7 +32,7 @@ test('public profile never exposes email, job details or connections-only links'
   }
   assert.equal(seen.status, undefined);
   assert.equal(seen.links.locked, true);
-  assert.equal(seen.is_looking_for_italian_job, true);
+  assert.equal(seen.is_looking_for_italian_job, undefined); // job seeking is no longer shown to others
   await t.connect(b, a);
   const after = (await b.get(`/api/profiles/${a.id}`)).body;
   assert.equal(after.links.instagram_handle, '@anna');

@@ -40,7 +40,6 @@
 <dc-import name="App Field" label="In una frase" field="idea_title" maxlength="140" value="{{ t.idea_title.value }}" dc-props="{{ t.idea_title.props }}"></dc-import>
 <dc-import name="App Field" label="Descrizione" rows="4" field="idea_description" maxlength="1000" value="{{ t.idea_description.value }}" dc-props="{{ t.idea_description.props }}"></dc-import>
 <sc-if value="{{ hasIdea }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="App Segmented" label="A che punto sei" options="{{ stageOpts }}" value="{{ stage }}" dc-props="{{ stageProps }}"></dc-import></div></sc-if>
-<div style="display:flex;gap:14px;align-items:center;padding:14px 18px;border-radius:20px;border:1.5px dashed #B9B2D6;font-size:14px;line-height:1.5;color:#4A4560"><span style="flex:1">Sto anche cercando lavoro in Italia per un'azienda italiana: <b style="font-weight:600">{{ jobLabel }}</b></span><a href="/impostazioni/privacy" style="font-size:13px;color:#6B6680">Gestisci in Privacy</a></div>
 </sc-if>
 
 <sc-if value="{{ isPercorso }}">

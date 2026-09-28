@@ -5,6 +5,7 @@ import { AdminPage, STATUS_KIND, initials } from './_admin.js';
 export const title = 'Utente · Admin';
 const ACTION_LABEL = { approve: 'Approvato', request_changes: 'Modifiche richieste', reject: 'Rifiutato', suspend: 'Sospeso', unsuspend: 'Riattivato' };
 const REASON = { fake_profile: 'Profilo falso', harassment: 'Messaggi molesti', spam: 'Spam', other: 'Altro' };
+// job_seeking only appears in the history of choices made before the option was removed
 const PREF = { job_seeking: 'Cerca lavoro in Italia', marketing_email: 'Email marketing' };
 
 export default class extends AdminPage {
@@ -42,7 +43,6 @@ export default class extends AdminPage {
     if (!s.d) return { loading: true, side: this.side('utenti') };
     const { d, cat } = s;
     const p = d.profile;
-    const j = d.job_seeking;
     const u = d.user;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || u.email;
     const lab = (pairs, v) => pairs.find(x => x[0] === v)?.[1];
@@ -55,11 +55,6 @@ export default class extends AdminPage {
       ['Cerca', p.seeking_backgrounds.join(', ')], ['Settori', p.sectors.join(', ')],
       ['Tempo', [d.labels.time, d.labels.start?.toLowerCase()].filter(Boolean).join(' · ')], ['Fonte', p.source],
       ['LinkedIn', p.linkedin_url], ['Su di me', p.bio],
-      ['Cerca lavoro in Italia', j.looking_for_italian_job ? `Sì · dal ${fmtDate(j.selected_at)}` : 'No'],
-      ...(j.looking_for_italian_job ? [
-        ['· Ruoli', j.roles.join(', ')], ['· Competenze', j.skills.join(', ')], ['· Settori', j.sectors.join(', ')], ['· Luoghi', j.preferred_locations.join(', ')],
-        ['· Modalità', lab(cat.workArrangements, j.work_arrangement)], ['· Impiego', lab(cat.employmentTypes, j.employment_type)], ['· Disponibilità', lab(cat.availability, j.availability)],
-      ] : []),
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const tab = k => ({ tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.setState({ tab: k }) });
     const st = u.status;
