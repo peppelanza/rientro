@@ -273,7 +273,6 @@ export default class extends Page {
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: `Ti faremo ${steps.length} domande. Le risposte salvano da sole, puoi uscire e riprendere quando vuoi.`,
-      chapters: [['01', 'Luogo', 'Dove sei, dove vuoi andare'], ['02', 'Obiettivo', 'Hai un\'idea o la cerchi insieme'], ['03', 'Su di te', 'Percorso, formazione, un video'], ['04', 'Cosa cerchi', 'Settori, persone, tempo'], ['05', 'Ultimi dettagli', 'Link e un pensiero sull\'Italia']].map(([n, t, d]) => ({ n, t, d })),
       needsLegal: !s.legalOk, acceptLegal: this.acceptLegal,
       start: () => { if (s.legalOk) this.goTo(steps[0][0]); },
 

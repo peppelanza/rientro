@@ -3,16 +3,13 @@
 <sc-if value="{{ loading }}"><div style="min-height:100vh;background:#E9E6F5"></div></sc-if>
 
 <sc-if value="{{ isWelcome }}">
-<div class="r-grid-1" style="min-height:100vh;background:#E9E6F5;display:grid;grid-template-columns:1fr 420px;padding:12px;box-sizing:border-box;gap:12px">
-<div class="r-pad-lg" style="padding:36px 44px;display:flex;flex-direction:column;justify-content:space-between;gap:40px">
-<a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="26"></dc-import></a>
-<div style="display:flex;flex-direction:column;gap:24px"><dc-import name="UI Eyebrow" text="{{ welcomeName }}"></dc-import><h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Costruiamo il profilo che <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:60px;letter-spacing:-.02em">ti presenta.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#4A4560;max-width:500px">{{ questions }}</p>
+<div style="min-height:100vh;background:#E9E6F5;display:flex;flex-direction:column">
+<dc-import name="App Onboarding Bar" step="0" total="{{ total }}"></dc-import>
+<main class="r-pad-lg" style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px 40px 80px">
+<div style="width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px"><dc-import name="UI Eyebrow" text="{{ welcomeName }}"></dc-import><h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Costruiamo il profilo che <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:60px;letter-spacing:-.02em">ti presenta.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#4A4560;max-width:500px">{{ questions }}</p>
 <sc-if value="{{ needsLegal }}"><div role="alert" style="max-width:500px;border-radius:22px;background:#FFFFFF;padding:16px 18px;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.5;color:#4A4560">Abbiamo aggiornato i <a href="/legal/termini" style="color:#1A1726">Termini</a> e la <a href="/legal/privacy" style="color:#1A1726">Privacy Policy</a>. Per continuare, confermali.<div><dc-import name="UI Button" label="Ho letto e accetto" size="sm" on-click="{{ acceptLegal }}"></dc-import></div></div></sc-if>
-<div style="display:flex;gap:14px;align-items:center"><dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" on-click="{{ start }}" host-aria-disabled="{{ needsLegal }}"></dc-import><span style="font-size:14px;color:#6B6680">Circa 10 minuti</span></div></div>
-<span></span></div>
-<div style="background:#FFFFFF;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:center;gap:6px">
-<sc-for list="{{ chapters }}" as="c"><div style="display:flex;gap:16px;align-items:center;padding:14px;border-radius:18px;background:#F6F4FC"><span style="width:36px;height:36px;border-radius:50%;background:#EFEBFF;color:#3E2BA8;font-family:'Geist Mono',monospace;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">{{ c.n }}</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ c.t }}</span><span style="font-size:13px;color:#6B6680">{{ c.d }}</span></div></div></sc-for>
-</div></div>
+<dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" on-click="{{ start }}" host-aria-disabled="{{ needsLegal }}"></dc-import></div>
+</main></div>
 </sc-if>
 
 <sc-if value="{{ inSteps }}">
