@@ -260,8 +260,9 @@ export default class extends Page {
       start: () => { if (s.legalOk) this.goTo(steps[0][0]); },
 
       // 7a
-      livesItaly: card(p.lives_in === 'italy', () => this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null })),
-      livesAbroad: card(p.lives_in === 'abroad', () => this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null })),
+      // Choosing where you live moves straight on to the country/city step
+      livesItaly: card(p.lives_in === 'italy', () => { this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null }); this.next(); }),
+      livesAbroad: card(p.lives_in === 'abroad', () => { this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null }); this.next(); }),
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', noLives: !p.lives_in,
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
