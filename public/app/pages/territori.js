@@ -29,8 +29,9 @@ export default class extends Page {
     const isCity = t.kind === 'city';
     const enterHref = s.me ? homeFor(s.me) : '/accedi';
     const link = x => ({ label: x, href: `/territori/${slug(x)}` });
-    const otherRegions = t.regions.filter(x => x !== t.name).map(link);
-    const otherCities = t.cities.filter(x => x !== t.name).map(link);
+    const abc = list => list.filter(x => x !== t.name).sort((a, b) => a.localeCompare(b, 'it')).map(link);
+    const otherRegions = abc(t.regions);
+    const otherCities = abc(t.cities);
     return {
       loading: false, notFound: false, isCity, region: t.region, regionHref: t.region ? `/territori/${slug(t.region)}` : '#',
       name: t.name, prep: t.prep, nameUpper: t.name.toUpperCase(),
@@ -45,7 +46,7 @@ export default class extends Page {
       origins: t.origins.map(o => ({ from: o.from.toUpperCase(), to: t.name.toUpperCase(), n: String(o.n) })), hasOrigins: t.origins.length > 0,
       sectors: t.sectors.map(x => ({ l: x.l, n: String(x.n) })), hasSectors: t.sectors.length > 0,
       idea: few(t.idea), explore: few(t.explore),
-      placesTitle: isCity ? `Altre città in ${t.region}` : `Città in ${t.name}`,
+      placesTitle: isCity ? `Altre città ${t.regionPrep} ${t.region}` : `Città ${t.prep} ${t.name}`,
       places: t.places.slice(0, 12).map(c => ({ name: c.name, n: c.n == null ? 'Meno di 5 persone' : `${c.n} persone`, href: `/territori/${slug(c.name)}` })),
       steps: [
         { n: '01', t: 'Crea il profilo', d: `Indica ${t.name} tra i posti dove vuoi vivere. Ci vogliono circa 10 minuti.` },
