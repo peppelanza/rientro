@@ -17,7 +17,7 @@
 
 <sc-if value="{{ inSteps }}">
 <div style="min-height:100vh;background:{{ pageBg }};color:{{ pageFg }};display:flex;flex-direction:column">
-<dc-import name="App Onboarding Bar" step="{{ stepN }}" total="{{ total }}" section="{{ section }}" dark="{{ dark }}"></dc-import>
+<dc-import name="App Onboarding Bar" step="{{ stepN }}" total="{{ total }}" dark="{{ dark }}"></dc-import>
 <main class="r-pad-lg" style="flex:1;display:flex;justify-content:center;padding:44px 40px 24px">
 
 <sc-if value="{{ is_luogo }}"><div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:26px">
@@ -36,25 +36,21 @@
 <div class="place-text"><span class="place-title">Vivo all'estero</span><span class="place-desc">Sei fuori dall'Italia e pensi di tornare</span></div>
 </div>
 <div role="radio" tabindex="0" aria-checked="{{ livesItaly.aria }}" class="{{ italyClass }}" onClick="{{ livesItaly.fn }}" onKeyDown="{{ placeKey }}">
-<div class="place-art place-art-full"><svg viewBox="8 36 224 114" aria-hidden="true" style="overflow:visible">
-<circle cx="120" cy="92" r="58" fill="#EFEBFF"/>
-<path d="M-80 128h400v22H-80z" fill="#DCD4FF"/>
-<g stroke="#1A1726" stroke-width="1.6" stroke-linejoin="round">
-<path d="M16 128V100q34-12 70 0v28z" fill="#FFFFFF"/>
-<path d="M16 110q34-11 70 0" fill="none"/>
-<g class="place-pisa"><path d="M96 128V80h16v48z" fill="#FFFFFF"/><path d="M96 92h16M96 104h16M96 116h16M98 80v-5h12v5" fill="none"/></g>
-<path d="M122 128v-20h38v20zM131 108v-7h20v7z" fill="#FFFFFF"/>
-<path d="M130 101q11-30 22 0z" fill="#6C4DF5"/>
-<path d="M141 86v-8M138 78h6" fill="none"/>
-<path d="M170 128V62h16v66zM194 128V78h20v50z" fill="#FFFFFF"/>
-<path d="M178 62V44" fill="none"/>
+<div class="place-art"><svg viewBox="0 0 240 150" aria-hidden="true">
+<defs><clipPath id="place-disc"><circle cx="120" cy="92" r="52"/></clipPath></defs>
+<circle cx="120" cy="92" r="52" fill="#DCD4FF"/>
+<g clip-path="url(#place-disc)">
+<rect x="60" y="118" width="120" height="40" fill="#B9A8FF"/>
+<g fill="#B9A8FF"><rect x="146" y="70" width="10" height="50" rx="1.5"/><rect x="150.5" y="60" width="1.2" height="10"/><rect x="158" y="84" width="9" height="36" rx="1.5"/></g>
+<g class="place-windows" fill="#EFEBFF"><rect x="148" y="76" width="6" height="2.5" rx="1"/><rect x="148" y="84" width="6" height="2.5" rx="1"/><rect x="148" y="92" width="6" height="2.5" rx="1"/><rect x="148" y="100" width="6" height="2.5" rx="1"/><rect x="148" y="108" width="6" height="2.5" rx="1"/><rect x="160" y="92" width="5" height="2.5" rx="1"/><rect x="160" y="100" width="5" height="2.5" rx="1"/></g>
+<g class="place-pisa"><rect x="110" y="80" width="9" height="40" rx="1.5" fill="#B9A8FF"/><g fill="#DCD4FF"><rect x="110" y="90" width="9" height="1.5"/><rect x="110" y="100" width="9" height="1.5"/><rect x="110" y="110" width="9" height="1.5"/></g></g>
+<g fill="#6C4DF5" opacity=".85"><path d="M76 118v-18q16-7 32 0v18z"/><path d="M121 118v-14h22v14zM126 104v-5h12v5z"/><path d="M125 99q7-21 14 0z"/></g>
+<g fill="#DCD4FF"><rect x="79" y="108" width="4" height="8" rx="2"/><rect x="85" y="107" width="4" height="9" rx="2"/><rect x="91" y="107" width="4" height="9" rx="2"/><rect x="97" y="107" width="4" height="9" rx="2"/><rect x="103" y="108" width="3" height="8" rx="1.5"/><rect x="81" y="100" width="2.5" height="3" rx="1.2"/><rect x="88" y="99" width="2.5" height="3" rx="1.2"/><rect x="95" y="99" width="2.5" height="3" rx="1.2"/><rect x="102" y="100" width="2.5" height="3" rx="1.2"/><rect x="126" y="108" width="3" height="7" rx="1.5"/><rect x="135" y="108" width="3" height="7" rx="1.5"/></g>
 </g>
-<g fill="#6C4DF5"><rect x="22" y="114" width="6" height="10" rx="3"/><rect x="33" y="113" width="6" height="11" rx="3"/><rect x="44" y="112" width="6" height="12" rx="3"/><rect x="55" y="112" width="6" height="12" rx="3"/><rect x="66" y="113" width="6" height="11" rx="3"/><rect x="77" y="114" width="5" height="10" rx="2.5"/>
-<rect x="24" y="102" width="4" height="5" rx="2"/><rect x="36" y="100" width="4" height="5" rx="2"/><rect x="48" y="99" width="4" height="5" rx="2"/><rect x="60" y="99" width="4" height="5" rx="2"/><rect x="72" y="100" width="4" height="5" rx="2"/>
-<rect x="134" y="114" width="5" height="9" rx="2.5"/><rect x="143" y="114" width="5" height="9" rx="2.5"/></g>
-<g class="place-windows" fill="#6C4DF5"><rect x="174" y="70" width="8" height="4" rx="1"/><rect x="174" y="80" width="8" height="4" rx="1"/><rect x="174" y="90" width="8" height="4" rx="1"/><rect x="174" y="100" width="8" height="4" rx="1"/><rect x="174" y="110" width="8" height="4" rx="1"/>
-<rect x="198" y="86" width="5" height="5" rx="1"/><rect x="205" y="86" width="5" height="5" rx="1"/><rect x="198" y="98" width="5" height="5" rx="1"/><rect x="205" y="98" width="5" height="5" rx="1"/><rect x="198" y="110" width="5" height="5" rx="1"/><rect x="205" y="110" width="5" height="5" rx="1"/></g>
-<g class="place-pin" transform="translate(141 62)"><path d="M0 0c-7-9-11-14-11-20a11 11 0 0 1 22 0c0 6-4 11-11 20z" fill="#6C4DF5"/><circle cy="-20" r="4" fill="#FFFFFF"/></g>
+<path class="place-route" d="M34 50 C 60 18, 104 16, 124 40" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"/>
+<circle cx="34" cy="50" r="4" fill="#1A1726"/>
+<ellipse class="place-ripple" cx="132" cy="76" rx="10" ry="3" fill="none" stroke="#6C4DF5" stroke-width="1.6"/>
+<g class="place-pin" transform="translate(132 72)"><path d="M0 0c-7-9-11-14-11-20a11 11 0 0 1 22 0c0 6-4 11-11 20z" fill="#6C4DF5"/><circle cy="-20" r="4" fill="#FFFFFF"/></g>
 </svg></div>
 <div class="place-text"><span class="place-title">Vivo già in Italia</span><span class="place-desc">Sei già qui e cerchi con chi costruire</span></div>
 </div>

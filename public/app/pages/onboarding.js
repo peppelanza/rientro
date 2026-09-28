@@ -251,7 +251,7 @@ export default class extends Page {
       // chrome
       isWelcome: is('benvenuto'), isPreview: is('anteprima'), inSteps: idx >= 0,
       pageBg: dark ? '#1A1726' : '#E9E6F5', pageFg: dark ? '#FFFFFF' : '#1A1726', dark,
-      stepN: idx + 1, total: steps.length, section: steps[idx]?.[1] ?? '',
+      stepN: idx + 1, total: steps.length,
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
       footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
