@@ -5,15 +5,22 @@ export const title = 'Fai rete con chi torna';
 // Content copied from the design logic (Rientro 01 Landing e Accesso v2).
 export const forWho = [
   { t: 'Chi sta tornando', d: "Anni all'estero, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
-  { t: 'Chi si trasferisce', d: "Non sei italiano ma hai scelto l'Italia. Ti serve qualcuno che conosca il contesto." },
   { t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' },
+  { t: 'Chi è già tornato', d: 'Sei rientrato da poco o da anni. Cerchi persone con un percorso come il tuo con cui costruire qualcosa qui.' },
 ];
-export const principles = [
-  { t: 'Profili rivisti a mano', d: 'Niente account vuoti o anonimi.' },
-  { t: 'Nessun punteggio', d: 'Ti mostriamo cosa si completa, non percentuali.' },
-  { t: 'Messaggi solo con consenso', d: "La chat si apre dopo l'accettazione." },
-  { t: 'Gratuito', d: 'Al lancio, per tutti.' },
-];
+// Homepage questions and answers (#domande), collapsed by default
+const faq = [
+  ['Cos’è Rientro?', 'Una community per chi torna in Italia, o al sud, e cerca persone con cui fondare un’azienda o un progetto.'],
+  ['Quanto costa?', 'Niente. Rientro è gratuito.'],
+  ['A chi è rivolto?', 'A chi sta tornando, a chi ci sta pensando e a chi è già tornato. Anche a chi non è italiano ma ha scelto l’Italia.'],
+  ['Devo avere già un’idea?', 'No. Puoi avere un’idea e cercare un socio, oppure non averla ancora e cercare qualcuno con cui trovarla.'],
+  ['Perché il mio profilo viene rivisto?', 'Ogni profilo viene letto da una persona prima di andare online. Così su Rientro non ci sono account vuoti o anonimi.'],
+  ['Come trovo le persone?', 'Nella sezione Scopri filtri per città, settori, competenze e tempo a disposizione. Nessun punteggio: vedi le persone, non percentuali.'],
+  ['Come funzionano i messaggi?', 'Invii una richiesta di connessione con una nota. La chat si apre solo se l’altra persona accetta.'],
+  ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
+  ['Posso cercare anche lavoro?', 'Sì, se vuoi. Nel profilo puoi indicare che cerchi lavoro in un’azienda italiana. È facoltativo e puoi toglierlo quando vuoi.'],
+  ['Posso cancellare il mio account?', 'Sì, in qualsiasi momento, da Impostazioni › I tuoi dati. Da lì puoi anche scaricare una copia dei tuoi dati.'],
+].map(([q, a]) => ({ q, a }));
 const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
   { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
@@ -54,7 +61,7 @@ export default class extends Page {
     const me = this.state.me;
     const prelaunch = this.state.launched === false;
     return {
-      launched: this.state.launched !== false, prelaunch, forWho, steps, principles, heroPeople,
+      launched: this.state.launched !== false, prelaunch, forWho, steps, faq, heroPeople,
       countdown: prelaunch ? timeLeft(this.state.launchAt) : [],
       launchText: prelaunch ? 'Apre il ' + new Date(this.state.launchAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ') : '',
       countdownLabel: 'Tempo che manca al lancio',
