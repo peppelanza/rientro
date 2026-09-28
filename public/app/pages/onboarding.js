@@ -272,7 +272,7 @@ export default class extends Page {
       jobKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggleJob(); } },
 
       // 6a
-      welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: `Ti faremo ${steps.length} domande. Le risposte salvano da sole, puoi uscire e riprendere quando vuoi.`,
+      welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
       needsLegal: !s.legalOk, acceptLegal: this.acceptLegal,
       start: () => { if (s.legalOk) this.goTo(steps[0][0]); },
 
