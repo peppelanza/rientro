@@ -21,7 +21,8 @@
 </sc-for>
 </div></sc-if>
 <sc-if value="{{ prelaunch }}"><div class="r-pad-lg" style="padding:0 56px 88px;display:flex;flex-direction:column;gap:16px">
-<div style="display:flex;align-items:center;gap:8px;align-self:flex-start;height:36px;padding:0 16px 0 12px;border-radius:999px;background:#FFFFFF;font-size:14px;font-weight:500"><span class="live-dot"></span>{{ launchText }}</div>
+<div style="display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 16px 0 12px;border-radius:999px;background:#FFFFFF;font-size:14px;font-weight:500;flex:none"><span class="live-dot"></span>{{ launchText }}</div>
+<span style="font-size:15px;line-height:1.45;color:#4A4560"><a href="/accedi" onClick="{{ enterLink }}" style="color:#6C4DF5;font-weight:600;text-underline-offset:3px">Iscriviti ora</a> e assicurati il tuo posto: il tuo profilo sarà pronto dal primo giorno.</span></div>
 <div role="timer" aria-label="{{ countdownLabel }}" class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
 <sc-for list="{{ countdown }}" as="c"><div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:28px 24px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:6px"><span data-cd="{{ c.k }}" style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:clamp(44px,6vw,88px);line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums">{{ c.v }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6B6680">{{ c.l }}</span></div></sc-for>
 </div></div></sc-if>
