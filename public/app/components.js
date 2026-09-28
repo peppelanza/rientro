@@ -251,10 +251,8 @@ def('App Select', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App City Jump — "Scopri chi rientra a [città ▾]": opens the territory page of the chosen place.
+// App City Jump — "Scopri chi rientra a [città ▾]": takes the visitor to sign-up with that city.
 // Empty, the list shows Italy's 15 largest cities; typing searches every comune.
-
-const citySlug = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 def('App City Jump', String.raw`
 <div class="city-jump">
@@ -275,7 +273,8 @@ def('App City Jump', String.raw`
     const cat = await getCatalog().catch(() => null);
     this.setState({ comuni: (cat?.comuni ?? []).map(c => ({ name: c[0], region: c[2], pop: c[3] ?? 0, key: fold(c[0]).out })).sort((a, b) => b.pop - a.pop) });
   }
-  go(name) { location.href = `/territori/${citySlug(name)}`; }
+  // To sign-up, carrying the city for the sign-up page's headline
+  go(name) { location.href = `/accedi?citta=${encodeURIComponent(name)}`; }
   renderVals() {
     const { query, open, idx, comuni } = this.state;
     const q = fold(query.trim()).out;
