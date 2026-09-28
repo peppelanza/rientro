@@ -34,6 +34,7 @@ export default class extends Page {
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
     const facts = [
       ['Età', p.age_band], ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
+      ['Rientro', p.arrived],
       ['Tempo', [p.time.commitment, p.time.start?.toLowerCase()].filter(Boolean).join(' · ')],
       ...(connected ? [] : [['LinkedIn', li ? `${li} ↗` : null, L.linkedin_url], ['Sito', L.website_url ? `${L.website_url.replace(/^https:\/\//, '')} ↗` : null, L.website_url]]),
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));

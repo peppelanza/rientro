@@ -3,14 +3,14 @@
 // come back.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
-import { loadCitta, loadPaesi } from '../places.js';
+import { arrivalPeriods, loadCitta, loadPaesi } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
 
 const STEPS = [
-  ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
+  ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
   ['presentati', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
   ['risultato', 'Su di te'], ['video', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
   ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
@@ -20,6 +20,7 @@ const STEPS = [
 const FIELDS = {
   luogo: ['lives_in', 'lives_in_country', 'lives_in_city'],
   residenza: ['lives_in', 'lives_in_country', 'lives_in_city'],
+  arrivo: ['arrived_from_country', 'arrived_from_city', 'arrived_period', 'in_italy_long_time'],
   dove: ['desired_comuni', 'desired_unknown'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
@@ -37,6 +38,7 @@ const FIELDS = {
 
 const FREQUENT = ['Roma', 'Torino', 'Napoli', 'Firenze'];
 
+
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k] ?? null]));
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
@@ -53,14 +55,19 @@ export default class extends Page {
     Object.assign(this.state, {
       me, cat, p, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
-      edu: null, exp: null, up: null, paesi, citta: [],
+      edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
     if (p.lives_in === 'abroad' && p.lives_in_country) this.loadCities();
+    if (p.arrived_from_country) this.loadFromCities();
   }
 
   // Countries load with the page; a country's cities load when it is chosen
   async loadCities() {
     this.state.citta = this.state.p.lives_in_country ? await loadCitta(this.state.p.lives_in_country) : [];
+    this.__rerender();
+  }
+  async loadFromCities() {
+    this.state.cittaFrom = this.state.p.arrived_from_country ? await loadCitta(this.state.p.arrived_from_country) : [];
     this.__rerender();
   }
 
@@ -82,7 +89,8 @@ export default class extends Page {
     this.next();
   };
 
-  get steps() { return STEPS; }
+  // "Da dove sei arrivato" only for who already lives in Italy
+  get steps() { return this.state.p?.lives_in === 'italy' ? STEPS : STEPS.filter(([k]) => k !== 'arrivo'); }
 
   goTo(step) {
     this.state.step = step;
@@ -103,6 +111,7 @@ export default class extends Page {
     switch (step) {
       case 'luogo': return p.lives_in ? null : 'Scegli dove vivi';
       case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
+      case 'arrivo': return p.in_italy_long_time ? null : !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_period ? 'Indica quando è stato il rientro' : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle due opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
@@ -234,6 +243,7 @@ export default class extends Page {
     // Preview (23a)
     const pvFacts = [
       ['Età', cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
+      ['Rientro', p.lives_in !== 'italy' ? null : p.in_italy_long_time ? 'In Italia da tanto tempo' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, arrivalPeriods().find(x => x.v === p.arrived_period)?.l].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const timeLabel = [cat.time.find(t => t[0] === p.time_commitment)?.[1], cat.start.find(t => t[0] === p.start_when)?.[1]?.toLowerCase()].filter(Boolean).join(' · ');
@@ -247,7 +257,7 @@ export default class extends Page {
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
       footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
-      is_luogo: is('luogo'), is_residenza: is('residenza'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
+      is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'), is_tempo: is('tempo'),
       is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'),
@@ -288,6 +298,23 @@ export default class extends Page {
       citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
       hasCountry: !!p.lives_in_country, noCity: !p.lives_in_city,
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
+      // Arrivo
+      fromCountrySel: p.arrived_from_country ? [p.arrived_from_country] : [], hasFromCountry: !!p.arrived_from_country,
+      fromCountryProps: { onChange: l => {
+        this.set({ arrived_from_country: l[0] ?? null, arrived_from_city: null });
+        this.loadFromCities();
+        if (l[0]) setTimeout(() => {
+          document.querySelector('[data-key="from-city"]')?.focus();
+          const iso = (s.paesi || []).find(x => x[1] === l[0])?.[0];
+          if (iso) flagBurst(iso, document.querySelector(`[aria-label="Rimuovi ${CSS.escape(l[0])}"]`));
+        });
+      } },
+      cittaFrom: (s.cittaFrom || []).map(n => [n]), fromCitySel: p.arrived_from_city ? [p.arrived_from_city] : [], noFromCity: !p.arrived_from_city,
+      fromCityProps: { onChange: l => this.set({ arrived_from_city: l[0] ?? null }) },
+      periodOpts: arrivalPeriods(), period: p.arrived_period ?? '',
+      periodProps: { onSelect: v => this.set({ arrived_period: v || null }) },
+      longTime: !!p.in_italy_long_time, notLongTime: !p.in_italy_long_time,
+      toggleLongTime: () => this.set({ in_italy_long_time: !p.in_italy_long_time }),
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 
       // 8a

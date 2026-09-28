@@ -31,9 +31,22 @@ export function openDb(file = config.dbPath) {
   }
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  addProfileColumns(db);
   migrateIdeaStages(db);
   seed(db);
   return db;
+}
+
+// Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
+const NEW_PROFILE_COLUMNS = {
+  arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_period: 'TEXT',
+  in_italy_long_time: 'INTEGER NOT NULL DEFAULT 0',
+};
+function addProfileColumns(db) {
+  const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));
+  for (const [name, type] of Object.entries(NEW_PROFILE_COLUMNS)) {
+    if (!have.has(name)) db.exec(`ALTER TABLE profiles ADD COLUMN ${name} ${type}`);
+  }
 }
 
 // Idea stages went from five to three; move stored and pending values over (idempotent)
