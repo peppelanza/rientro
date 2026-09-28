@@ -268,6 +268,14 @@ def('App City Jump', String.raw`
 </div>
 </div>`, class extends DCLogic {
   state = { query: '', open: false, idx: 0, comuni: null };
+  // Tapping outside closes the list: mobile Safari doesn't blur the field on a tap elsewhere
+  componentDidMount() { document.addEventListener('pointerdown', this.outside, true); }
+  componentWillUnmount() { document.removeEventListener('pointerdown', this.outside, true); }
+  outside = e => {
+    if (!this.state.open || e.target.closest?.('.city-jump')) return;
+    document.getElementById('city-jump')?.blur();
+    this.setState({ open: false });
+  };
   async load() {
     if (this.state.comuni) return;
     const cat = await getCatalog().catch(() => null);
