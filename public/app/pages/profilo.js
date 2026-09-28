@@ -159,7 +159,7 @@ export default class extends Page {
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [], cityProps: { onChange: l => this.set({ lives_in_city: l.at(-1) ?? null }) },
       desired: p.desired_comuni, desiredProps: { onChange: l => this.set({ desired_comuni: l, desired_unknown: l.length ? false : p.desired_unknown }) },
-      unknown: p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),
+      unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),
       // su di me
       video: p.video_url ? s.videoPreview || p.video_url : null, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`, upLabel: `${pct}%`,
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },

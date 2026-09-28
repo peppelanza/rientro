@@ -321,7 +321,7 @@ export default class extends Page {
       desired: p.desired_comuni,
       frequent: FREQUENT.filter(c => !p.desired_comuni.includes(c)).map(c => ({ l: `+ ${c}`, add: () => p.desired_comuni.length < 10 && this.set({ desired_comuni: [...p.desired_comuni, c], desired_unknown: false }) })),
       hasFrequent: p.desired_comuni.length < 10,
-      unknown: p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
+      unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
 
       // 9a / 10a
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),

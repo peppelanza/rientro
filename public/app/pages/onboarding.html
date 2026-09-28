@@ -72,9 +72,9 @@
 
 <sc-if value="{{ is_dove }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vorresti vivere in Italia?</h2><span style="font-size:16px;color:#6B6680">Puoi sceglierne più di uno. Cerca tra tutti i comuni italiani.</span></div>
-<div style="background:#FFFFFF;border-radius:26px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12)"><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" max="10" size="lg" field="desired" dc-props="{{ desiredProps }}"></dc-import></div>
+<sc-if value="{{ notUnknown }}"><div style="background:#FFFFFF;border-radius:26px;padding:8px;box-shadow:0 14px 40px rgba(80,60,160,.12)"><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" max="10" size="lg" field="desired" dc-props="{{ desiredProps }}"></dc-import></div>
 <sc-if value="{{ hasFrequent }}"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:13px;color:#6B6680;margin-right:4px">Scelte frequenti</span><sc-for list="{{ frequent }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" on-click="{{ c.add }}"></dc-import></sc-for></div></sc-if>
-<div style="height:1px;background:#DCD7EC"></div>
+<div style="height:1px;background:#DCD7EC"></div></sc-if>
 <dc-import name="App Checkbox" label="Non lo so ancora" checked="{{ unknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ unknown }}"></dc-import>
 </div></sc-if>
 
