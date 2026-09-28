@@ -1,7 +1,7 @@
 <!-- From design/Rientro 04 Connessioni e Chat v2 · artboards 32a (connessioni), 32b (inviate), 33a (stato vuoto). -->
 <div style="min-height:100vh;background:#E9E6F5;display:flex;flex-direction:column">
 <dc-import name="App Nav" active="connessioni" me="{{ me }}"></dc-import>
-<sc-if value="{{ empty }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:60px 20px">
+<sc-if value="{{ empty }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:60px var(--gutter)">
 <div aria-hidden="true" style="display:flex"><div style="width:64px;height:64px;border-radius:50%;background:#FFFFFF"></div><div style="width:64px;height:64px;border-radius:50%;background:#6C4DF5;opacity:.85;margin-left:-20px"></div></div>
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Non hai ancora connessioni.</h1>
 <span style="font-size:16px;color:#4A4560;max-width:420px;line-height:1.5">Esplora Rientro e trova persone con cui potresti costruire qualcosa.</span>
