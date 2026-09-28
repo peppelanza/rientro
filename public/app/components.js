@@ -60,7 +60,7 @@ def('App Nav', String.raw`
 // App TabBar — from UI TabBar (+ links, live dots). Shown on small screens only.
 
 def('App TabBar', String.raw`
-<nav class="r-show-sm tabbar" aria-label="Navigazione" style="position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 12px 14px;box-sizing:border-box;font-family:'Geist',sans-serif">
+<nav class="r-show-sm tabbar" aria-label="Navigazione" style="position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 var(--gutter) 14px;box-sizing:border-box;font-family:'Geist',sans-serif">
 <div style="border-radius:999px;background:rgba(255,255,255,.82);border:1px solid #FFFFFF;box-shadow:0 10px 30px rgba(80,60,160,.14);padding:6px;display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px)">
 <sc-for list="{{ items }}" as="it">
 <a href="{{ it.href }}" aria-current="{{ it.current }}" style="min-height:52px;border-radius:999px;background:{{ it.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;text-decoration:none">
@@ -117,7 +117,7 @@ def('App Admin Sidebar', String.raw`
 <a href="/" style="padding:0 14px;font-size:13px;color:#8C84AE;text-decoration:none">← Torna al sito</a>
 <div style="border-top:1px solid #2E2A40;padding:14px 10px 0;display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);color:#1A1726;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">{{ initials }}</div><div style="display:flex;flex-direction:column;min-width:0"><span style="font-size:13px;font-weight:500;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ adminName }}</span><span style="font-size:12px;color:#B7B0D4">Moderazione</span></div><button type="button" onClick="{{ logout }}" style="margin-left:auto;height:32px;padding:0 12px;border:1px solid #3A3550;border-radius:999px;background:transparent;color:#C9C0F0;font:13px 'Geist',sans-serif;cursor:pointer;flex:none">Esci</button></div>
 </div></div>
-<nav aria-label="Sezioni admin" class="r-show-sm" style="padding:12px 12px 0;font-family:'Geist',sans-serif"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ items }}" as="it"><a href="{{ it.href }}" aria-current="{{ it.current }}" style="flex:none;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;background:{{ it.mbg }};color:{{ it.mfg }};text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;opacity:.7">{{ it.count }}</span></sc-if></a></sc-for><button type="button" onClick="{{ logout }}" style="flex:none;height:36px;padding:0 14px;border:1px solid #DCD7EC;border-radius:999px;background:transparent;font:13px 'Geist',sans-serif;color:#6B6680;cursor:pointer">Esci</button></div></nav>`, class extends DCLogic {
+<nav aria-label="Sezioni admin" class="r-show-sm" style="padding:12px var(--gutter) 0;font-family:'Geist',sans-serif"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ items }}" as="it"><a href="{{ it.href }}" aria-current="{{ it.current }}" style="flex:none;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;background:{{ it.mbg }};color:{{ it.mfg }};text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;opacity:.7">{{ it.count }}</span></sc-if></a></sc-for><button type="button" onClick="{{ logout }}" style="flex:none;height:36px;padding:0 14px;border:1px solid #DCD7EC;border-radius:999px;background:transparent;font:13px 'Geist',sans-serif;color:#6B6680;cursor:pointer">Esci</button></div></nav>`, class extends DCLogic {
   renderVals() {
     const a = this.props.active ?? 'dashboard';
     const c = this.props.counts || {};
@@ -273,8 +273,21 @@ def('App Segmented', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Comune Picker — design 7b/8a/27a: chips + search across comuni with ↑ ↓ and Invio.
-// Props: comuni (catalog), selected[], max, counts?, placeholder, onChange(list)
+// App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio. Also used for
+// countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]),
+// selected[], max, counts?, placeholder, noun ("comune"), freeText (accept typed text), onChange(list)
+
+// Accent-insensitive lowercase, with a map back to positions in the original string
+function fold(str) {
+  let out = '';
+  const at = [];
+  for (let i = 0; i < str.length; i++) {
+    const f = str[i].normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    for (let k = 0; k < f.length; k++) { out += f[k]; at.push(i); }
+  }
+  at.push(str.length);
+  return { out, at };
+}
 
 def('App Comune Picker', String.raw`
 <div style="display:flex;flex-direction:column;gap:12px;font-family:'Geist',sans-serif;position:relative">
@@ -283,55 +296,80 @@ def('App Comune Picker', String.raw`
 </div></sc-if>
 <div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
 <span style="width:12px;height:12px;border:1.8px solid #8C84AE;border-radius:50%;flex:none"></span>
-<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ placeholder }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 </div>
 <sc-if value="{{ open }}"><div role="listbox" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span><b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680">{{ m.meta }}</span></div></sc-for>
-<sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">Nessun comune trovato</div></sc-if>
-<div style="padding:8px 12px 6px;font-size:12px;color:#8C84AE;border-top:1px solid #ECE8F7;margin-top:4px">{{ total }} comuni · usa ↑ ↓ e Invio</div>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
+<sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
 </div>`, class extends DCLogic {
   state = { query: '', open: false, idx: 0 };
+  // Items starting with the query first, then items with a later word starting with it;
+  // within each group the most populous first (or the list's own order).
   matchesFor(q) {
     const sel = this.props.selected || [];
-    const t = q.trim().toLowerCase();
+    const t = fold(q.trim()).out;
     if (!t) return [];
-    return (this.props.comuni || []).filter(c => c[0].toLowerCase().startsWith(t) && !sel.includes(c[0])).slice(0, 6);
+    const hits = [];
+    for (const [i, c] of (this.props.comuni || []).entries()) {
+      if (sel.includes(c[0])) continue;
+      const f = fold(c[0]);
+      let pos = f.out.startsWith(t) ? 0 : -1;
+      if (pos < 0) {
+        const m = new RegExp(`[\\s'’\\-(/]${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).exec(f.out);
+        if (m) pos = m.index + 1;
+      }
+      if (pos >= 0) hits.push({ c, i, pos, f, weight: typeof c[3] === 'number' ? c[3] : -i });
+    }
+    hits.sort((a, b) => (a.pos > 0) - (b.pos > 0) || b.weight - a.weight);
+    return hits.slice(0, 6).map(h => ({ ...h, len: t.length }));
   }
   add(name) {
     const sel = this.props.selected || [];
     const max = Number(this.props.max || 10);
-    if (sel.length >= max || sel.includes(name)) return;
+    if (sel.includes(name)) return;
     this.state.query = '';
     this.state.open = false;
-    this.props.onChange?.([...sel, name]);
+    if (max === 1) this.props.onChange?.([name]); // a new pick replaces the old one
+    else if (sel.length < max) this.props.onChange?.([...sel, name]);
   }
   renderVals() {
     const sel = this.props.selected || [];
     const q = this.state.query;
-    const found = this.matchesFor(q);
     const counts = this.props.counts;
-    const matches = found.map((c, i) => ({
-      head: c[0].slice(0, q.trim().length), rest: c[0].slice(q.trim().length),
-      meta: counts ? `${counts[c[0]] || 0} persone` : `${c[1]} · ${c[2].toUpperCase()}`,
-      active: i === this.state.idx ? 'true' : 'false', bg: i === this.state.idx ? '#F1EFF8' : 'transparent',
-      pick: e => { e.preventDefault(); this.add(c[0]); },
+    const max = Number(this.props.max || 10);
+    const found = this.matchesFor(q);
+    const typed = q.trim();
+    const offerTyped = b(this.props.freeText) && typed && !found.some(h => h.c[0].toLowerCase() === typed.toLowerCase());
+    const options = [
+      ...found.map(h => {
+        const a = h.f.at[h.pos];
+        const z = h.f.at[h.pos + h.len];
+        const c = h.c;
+        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : [c[1], c[2]?.toUpperCase()].filter(Boolean).join(' · ') };
+      }),
+      ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
+    ];
+    const matches = options.map((o, i) => ({
+      ...o, active: i === this.state.idx ? 'true' : 'false', bg: i === this.state.idx ? '#F1EFF8' : 'transparent',
+      pick: e => { e.preventDefault(); this.add(o.name); },
     }));
-    const full = sel.length >= Number(this.props.max || 10);
+    const full = max > 1 && sel.length >= max;
+    const noun = this.props.noun ?? 'comune';
     return {
       chips: sel.map(l => ({ l, aria: `Rimuovi ${l}`, remove: () => this.props.onChange?.(sel.filter(x => x !== l)) })),
       hasChips: sel.length > 0, query: q, field: this.props.field ?? 'comuni', full,
-      placeholder: full ? `Massimo ${this.props.max} comuni` : (this.props.placeholder ?? 'Cerca un comune'),
-      open: this.state.open && q.trim().length > 0, matches, none: this.state.open && q.trim() && !matches.length,
-      total: (this.props.comuni || []).length.toLocaleString('it-IT'),
+      placeholder: full ? `Massimo ${max} ${noun === 'comune' ? 'comuni' : 'scelte'}` : max === 1 && sel.length ? `Cambia ${noun}` : (this.props.placeholder ?? `Cerca un ${noun}`),
+      open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length,
+      noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: sel.length ? 'calc(100% + 6px)' : '52px',
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
       focus: () => { if (this.state.query) this.setState({ open: true }); },
       blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
       keydown: e => {
-        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ idx: Math.min(this.state.idx + 1, found.length - 1) }); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ idx: Math.min(this.state.idx + 1, options.length - 1) }); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ idx: Math.max(this.state.idx - 1, 0) }); }
-        else if (e.key === 'Enter') { e.preventDefault(); if (found[this.state.idx]) this.add(found[this.state.idx][0]); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (options[this.state.idx]) this.add(options[this.state.idx].name); }
         else if (e.key === 'Escape') this.setState({ open: false });
         else if (e.key === 'Backspace' && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
       },

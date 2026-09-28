@@ -13,7 +13,7 @@
 <p class="r-lede" style="margin:0;font-size:24px;line-height:1.35;letter-spacing:-.01em;max-width:520px;color:#4A4560;text-wrap:pretty">Trova le persone con cui costruire qualcosa in Italia. Un co-founder, un progetto, una ragione in più per tornare. <span style="color:#1A1726">Iscriviti ora e prepara il profilo: dal 1° gennaio 2027 potrai scoprire le persone e connetterti.</span></p>
 <div class="r-stack" style="display:flex;gap:10px"><dc-import name="UI Button" label="Iscriviti ora →" variant="accent" size="lg" on-click="{{ enter }}"></dc-import><dc-import name="UI Button" label="Scopri come funziona" variant="glass" size="lg" on-click="{{ how }}"></dc-import></div>
 </div></section>
-<section class="r-grid-1 r-pad-lg" style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
+<section class="r-grid-1 r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
 <dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
 <p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Un luogo dove chi torna in Italia, o ci arriva per la prima volta, incontra persone ambiziose con cui fondare un'azienda o un progetto. <span style="color:#8C84AE">Profili veri, rivisti uno a uno. Gratuito.</span></p>
 </section>
@@ -23,7 +23,7 @@
 <div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div>
 </sc-for>
 </section>
-<section id="come-funziona" class="r-pad-lg" style="margin:0 24px;padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
+<section id="come-funziona" class="r-pad-lg" style="margin:0 var(--gutter);padding:72px 32px;border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2><span style="font-size:15px;color:#C9C0F0">I passi 3 e 4 si aprono il 1° gennaio 2027.</span></div>
 <ol class="r-grid-1" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
 <sc-for list="{{ steps }}" as="s">
@@ -41,7 +41,7 @@
 <dc-import name="UI Eyebrow" text="Principi"></dc-import>
 <sc-for list="{{ principles }}" as="p"><div style="display:flex;flex-direction:column;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:#6C4DF5"></span><span style="font-size:17px;font-weight:600">{{ p.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ p.d }}</span></div></sc-for>
 </section>
-<section class="r-stack r-pad-lg" style="margin:0 24px 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+<section class="r-stack r-pad-lg" style="margin:0 var(--gutter) 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px 48px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
 <h2 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:720px">Ci vediamo il <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">1° gennaio.</span></h2>
 <dc-import name="UI Button" label="Iscriviti ora" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
 </section>

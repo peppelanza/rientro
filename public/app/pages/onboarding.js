@@ -3,6 +3,7 @@
 // come back. The job-seeking step (spec §10) only appears when the optional box in step 3 is
 // ticked; its answers live in job_preferences, never in the co-founder profile.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
+import { loadCitta, loadPaesi } from '../places.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -41,7 +42,7 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 
 export default class extends Page {
   async load() {
-    const [me, cat] = await Promise.all([getMe(true), getCatalog()]);
+    const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
     if (me.user.role === 'admin') return go('/admin');
     if (me.user.status === 'approved') return go('/profilo');
     if (me.user.status === 'in_review' || me.user.status === 'rejected') return go('/stato');
@@ -52,8 +53,15 @@ export default class extends Page {
     Object.assign(this.state, {
       me, cat, p, j, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
-      edu: null, exp: null, up: null,
+      edu: null, exp: null, up: null, paesi, citta: [],
     });
+    if (p.lives_in === 'abroad' && p.lives_in_country) this.loadCities();
+  }
+
+  // Countries load with the page; a country's cities load when it is chosen
+  async loadCities() {
+    this.state.citta = this.state.p.lives_in_country ? await loadCitta(this.state.p.lives_in_country) : [];
+    this.__rerender();
   }
 
   get steps() { return STEPS.filter(([k]) => k !== 'lavoro' || this.state.j.looking_for_italian_job); }
@@ -254,8 +262,11 @@ export default class extends Page {
       livesAbroad: card(p.lives_in === 'abroad', () => this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null })),
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', noLives: !p.lives_in,
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
-      countryProps: { onInput: v => { p.lives_in_country = v; this.touch(); } },
-      cityProps: { onInput: v => { p.lives_in_city = v; this.touch(); } },
+      paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
+      countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
+      citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
+      cityPlaceholder: p.lives_in_country ? 'Cerca la città' : 'Prima scegli il paese',
+      cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 
       // 8a

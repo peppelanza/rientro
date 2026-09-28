@@ -3,7 +3,7 @@
 <div style="min-height:100vh;background:#E9E6F5">
 <dc-import name="App Nav" active="none" me="{{ me }}"></dc-import>
 <sc-if value="{{ cat }}">
-<div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:28px;padding:28px 24px 40px;max-width:1280px;box-sizing:border-box;margin:0 auto">
+<div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:28px;padding:28px var(--gutter) 40px;max-width:1280px;box-sizing:border-box;margin:0 auto">
 <div><dc-import name="App Side Menu" eyebrow="Il tuo profilo" items="{{ menu }}" active="{{ activeLabel }}"></dc-import></div>
 
 <main style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:22px;min-width:0;align-self:start" class="r-pad-lg">
@@ -19,7 +19,7 @@
 </div>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fascia d'età</span><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" dc-props="{{ ageProps }}"></dc-import></div>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Vive</span><div class="r-full" style="max-width:320px"><dc-import name="App Segmented" label="Dove vivi" options="{{ livesOpts }}" value="{{ lives }}" dc-props="{{ livesProps }}"></dc-import></div></div>
-<sc-if value="{{ isAbroad }}"><div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><dc-import name="App Field" label="Paese" field="lives_in_country" value="{{ t.lives_in_country.value }}" dc-props="{{ t.lives_in_country.props }}"></dc-import><dc-import name="App Field" label="Città" field="lives_in_city" value="{{ t.lives_in_city.value }}" dc-props="{{ t.lives_in_city.props }}"></dc-import></div></sc-if>
+<sc-if value="{{ isAbroad }}"><div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Paese</span><dc-import name="App Comune Picker" comuni="{{ paesi }}" selected="{{ countrySel }}" max="1" field="country" noun="paese" placeholder="Cerca il paese" dc-props="{{ countryPickerProps }}"></dc-import></div><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Città</span><dc-import name="App Comune Picker" comuni="{{ citta }}" selected="{{ citySel }}" max="1" field="city" noun="città" free-text="{{ true }}" placeholder="{{ cityPlaceholder }}" none-text="Nessuna città trovata" dc-props="{{ cityAbroadProps }}"></dc-import></div></div></sc-if>
 <sc-if value="{{ isItaly }}"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Comune</span><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ cityComune }}" max="1" field="city-comune" dc-props="{{ cityProps }}"></dc-import></div></sc-if>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Vuole vivere a</span><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" max="10" field="desired" dc-props="{{ desiredProps }}"></dc-import><dc-import name="UI Checkbox" label="Non lo so ancora" checked="{{ unknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ unknown }}"></dc-import></div>
 </sc-if>

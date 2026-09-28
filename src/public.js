@@ -36,8 +36,12 @@ export function territory(db, place) {
     origins: tally(wants.filter(p => p.lives_in === 'abroad'), p => [p.lives_in_city])
       .slice(0, 5).map(([from, n]) => ({ from, n })),
     sectors: tally(wants, p => p.sectors).slice(0, 8).map(([l, n]) => ({ l, n })),
-    places: (isRegion ? cities : COMUNI.filter(c => c[2] === regionOf[place] && c[0] !== place).map(c => c[0]))
-      .map(c => ({ name: c, n: k(rows.filter(p => p.desired.includes(c)).length), linkable: TERRITORY_CITIES.includes(c) || REGIONS.includes(c) })),
+    // 12 other comuni of the region: most wanted first (only counts ≥ 5 are shown), then most populous
+    places: COMUNI.filter(c => c[2] === (isRegion ? place : regionOf[place]) && c[0] !== place)
+      .map(c => ({ name: c[0], pop: c[3], wanted: rows.filter(p => p.desired.includes(c[0])).length }))
+      .sort((a, b) => (k(b.wanted) ?? 0) - (k(a.wanted) ?? 0) || b.pop - a.pop)
+      .slice(0, 12)
+      .map(c => ({ name: c.name, n: k(c.wanted), linkable: TERRITORY_CITIES.includes(c.name) || REGIONS.includes(c.name) })),
     regions: REGIONS, cities: TERRITORY_CITIES,
   };
 }
