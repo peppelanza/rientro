@@ -3,6 +3,7 @@
 // come back. The job-seeking step (spec §10) only appears when the optional box in step 3 is
 // ticked; its answers live in job_preferences, never in the co-founder profile.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
+import { flagBurst } from '../flags.js';
 import { loadCitta, loadPaesi } from '../places.js';
 import { Page } from './_base.js';
 
@@ -288,7 +289,11 @@ export default class extends Page {
       countryPickerProps: { onChange: l => {
         this.set({ lives_in_country: l[0] ?? '', lives_in_city: null });
         this.loadCities();
-        if (l[0]) setTimeout(() => document.querySelector('[data-key="city"]')?.focus()); // straight on to the city
+        if (l[0]) setTimeout(() => {
+          document.querySelector('[data-key="city"]')?.focus(); // straight on to the city
+          const iso = (s.paesi || []).find(x => x[1] === l[0])?.[0];
+          if (iso) flagBurst(iso, document.querySelector(`[aria-label="Rimuovi ${CSS.escape(l[0])}"]`)); // celebrate the new chip
+        });
       } },
       citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
       hasCountry: !!p.lives_in_country, noCity: !p.lives_in_city,
