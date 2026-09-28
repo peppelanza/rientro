@@ -1,16 +1,16 @@
 <!-- From design/Rientro 01 Landing e Accesso v2 · artboards 2a (registrazione), 2b (accesso), 5a/5b/5c (email + codice) -->
-<div class="r-grid-1" style="min-height:100vh;background:#E9E6F5;display:grid;grid-template-columns:1fr 1fr;padding:12px;box-sizing:border-box;gap:12px">
-<div class="r-hide-sm" style="border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between;min-height:calc(100vh - 24px);box-sizing:border-box">
+<div class="r-grid-1" style="min-height:calc(100vh - var(--lb, 0px));background:#E9E6F5;display:grid;grid-template-columns:1fr 1fr;padding:12px;box-sizing:border-box;gap:12px">
+<div class="r-hide-sm" style="border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between;min-height:calc(100vh - 24px - var(--lb, 0px));box-sizing:border-box">
 <a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28" tone="light"></dc-import></a>
-<div style="display:flex;flex-direction:column;gap:20px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.055em">Il tuo profilo è la tua presentazione.</span><span style="font-size:16px;line-height:1.5;color:#E6E0FF;max-width:420px">Chi lo legge deve capire in un minuto chi sei, da dove vieni e cosa vuoi costruire.</span></div>
-<div style="display:flex;gap:8px;font-size:13px;flex-wrap:wrap"><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Gratuito</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Rivisto a mano</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Nessun messaggio senza consenso</span></div>
+<div style="display:flex;flex-direction:column;gap:20px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.055em;text-wrap:balance">{{ panelTitle }}</span><span style="font-size:16px;line-height:1.5;color:#E6E0FF;max-width:420px">{{ panelText }}</span></div>
+<div style="display:flex;gap:8px;font-size:13px;flex-wrap:wrap"><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Gratuito</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Solo contatti verificati</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Rispettiamo la privacy</span></div>
 </div>
 <main style="display:flex;align-items:center;justify-content:center;padding:48px var(--gutter)">
 <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:22px">
 <a href="/" class="r-show-sm" aria-label="Rientro, home" style="text-decoration:none;margin-bottom:12px"><dc-import name="UI Logo" size="25"></dc-import></a>
 
 <sc-if value="{{ stepChoose }}">
-<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;font-weight:600;letter-spacing:-.05em">{{ title }}</h1><span style="font-size:15px;color:#6B6680">{{ subtitle }}</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;font-weight:600;letter-spacing:-.05em">{{ title }}</h1></div>
 <sc-if value="{{ expired }}"><div role="alert" style="border-radius:20px;background:#FDE8E8;color:#912018;padding:12px 16px;font-size:14px;line-height:1.45">La sessione è scaduta. Accedi di nuovo.</div></sc-if>
 <div style="border-radius:26px;padding:6px;background:#FFFFFF;box-shadow:0 14px 40px rgba(80,60,160,.14);display:flex;flex-direction:column">
 <dc-import name="UI Button" label="in  Continua con LinkedIn" size="lg" full="{{ true }}" on-click="{{ linkedin }}"></dc-import>

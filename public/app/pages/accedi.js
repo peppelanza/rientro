@@ -13,6 +13,12 @@ export default class extends Page {
     this.timer = setInterval(() => { if (this.state.step === 'code') this.__rerender?.(); }, 1000);
   }
 
+  async load() {
+    const launch = await fetch('/api/public/launch').then(r => r.json()).catch(() => null);
+    const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
+    Object.assign(this.state, { launch, launchDate: date, city: (qs().get('citta') ?? '').trim().slice(0, 80) });
+  }
+
   async sendCode(e) {
     e?.preventDefault?.();
     const email = this.state.email.trim();
@@ -65,7 +71,11 @@ export default class extends Page {
       stepChoose: s.step === 'choose', stepEmail: s.step === 'email', stepCode: s.step === 'code',
       // One way in: a new email creates the account, a known one signs in
       title: 'Accedi a Rientro',
-      subtitle: 'Se è la prima volta, creiamo il tuo profilo. Se hai già un account, entri.',
+      // Left panel: before launch it speaks to who came from "Scopri chi rientra a [città]"
+      panelTitle: !s.ready ? '' : s.launch?.launched === false
+        ? `Registrati per esplorare chi rientra ${s.city ? `${/^a/i.test(s.city) ? 'ad' : 'a'} ${s.city}` : 'nella tua città'}`
+        : 'Il tuo profilo è la tua presentazione.',
+      panelText: s.launchDate ? `Assicura il tuo posto prima del lancio di Rientro il ${s.launchDate}.` : '',
       expired: !!qs().get('next'),
       linkedin: oauth('LinkedIn'), google: oauth('Google'), oauthNote: s.oauthNote,
       toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
