@@ -45,7 +45,10 @@ export const COMUNE_NAMES = new Set(COMUNI.map(c => c[0]));
 
 // Territory landing pages (design 51): regions and cities offered as tabs.
 export const REGIONS = ['Lombardia', 'Lazio', 'Campania', 'Sicilia', 'Veneto', 'Emilia-Romagna', 'Piemonte', 'Puglia', 'Toscana', 'Calabria', 'Liguria', 'Sardegna', 'Marche', 'Abruzzo', 'Friuli-Venezia Giulia', 'Trentino-Alto Adige', 'Umbria', 'Basilicata', 'Molise', 'Valle d\'Aosta'];
-export const TERRITORY_CITIES = ['Roma', 'Milano', 'Napoli', 'Torino', 'Palermo', 'Genova', 'Bologna', 'Firenze', 'Bari', 'Catania'];
+// Cities with their own listed page: every regional capital plus every comune over 100,000
+// inhabitants, most populous first. Any other comune still has a page, it just isn't listed.
+export const REGIONAL_CAPITALS = ['Roma', 'Milano', 'Napoli', 'Torino', 'Palermo', 'Genova', 'Bologna', 'Firenze', 'Bari', 'Venezia', 'Trieste', 'Trento', 'Aosta', 'Ancona', 'Perugia', "L'Aquila", 'Campobasso', 'Potenza', 'Catanzaro', 'Cagliari'];
+export const TERRITORY_CITIES = COMUNI.filter(c => REGIONAL_CAPITALS.includes(c[0]) || c[3] >= 100_000).sort((a, b) => b[3] - a[3]).map(c => c[0]);
 
 export const catalog = {
   areas: AREAS, sectors: SECTORS, sources: SOURCES, ageBands: AGE_BANDS, years: YEARS, ideaStages: IDEA_STAGES,

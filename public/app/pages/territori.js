@@ -28,8 +28,9 @@ export default class extends Page {
     if (!t) return { loading: false, notFound: true, place: s.place };
     const isCity = t.kind === 'city';
     const enterHref = s.me ? homeFor(s.me) : '/accedi';
-    const others = [...t.regions.map(r => ['in', r]), ...t.cities.map(c => ['a', c])].filter(([, x]) => x !== t.name)
-      .map(([pre, x]) => ({ label: `Rientro ${pre} ${x}`, href: `/territori/${slug(x)}` }));
+    const link = x => ({ label: x, href: `/territori/${slug(x)}` });
+    const otherRegions = t.regions.filter(x => x !== t.name).map(link);
+    const otherCities = t.cities.filter(x => x !== t.name).map(link);
     return {
       loading: false, notFound: false, isCity, region: t.region, regionHref: t.region ? `/territori/${slug(t.region)}` : '#',
       name: t.name, prep: t.prep, nameUpper: t.name.toUpperCase(),
@@ -52,7 +53,7 @@ export default class extends Page {
         { n: '03', t: 'Connettiti', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
       ],
       closing: t.count == null ? 'Le prime persone ti aspettano' : `${t.count.toLocaleString('it-IT')} persone ti aspettano`,
-      others, enterHref, loginLabel: s.me ? 'Il tuo spazio' : 'Accedi', loginHref: s.me ? homeFor(s.me) : '/accedi?mode=login',
+      otherRegions, otherCities, enterHref, loginLabel: s.me ? 'Il tuo spazio' : 'Accedi', loginHref: s.me ? homeFor(s.me) : '/accedi?mode=login',
       enter: () => { location.href = enterHref; }, how: () => document.getElementById('come-funziona')?.scrollIntoView(),
       year: new Date().getFullYear(),
     };

@@ -156,6 +156,9 @@ test('territory pages answer to their slug in any case', async () => {
   assert.equal((await get('molise')).kind, 'region'); // also a comune: the region wins
   assert.equal((await get('reggio-di-calabria')).name, 'Reggio di Calabria');
   assert.equal(await get('atlantide'), 404);
+  // Listed cities: every regional capital and every comune over 100,000 inhabitants
+  const { cities } = await get('napoli');
+  for (const c of ['Aosta', 'Campobasso', "L'Aquila", 'Potenza', 'Cagliari', 'Trento', 'Verona', 'Salerno', 'Bergamo']) assert.ok(cities.includes(c), c);
 });
 
 test('login requests are rate limited', async () => {
