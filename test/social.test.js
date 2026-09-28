@@ -16,7 +16,7 @@ test('onboarding: submit requires the essentials, then goes to review', async ()
   assert.equal(s.body.user.status, 'in_review');
 });
 
-test('who lives in Italy says where from and when; "da tanto tempo" overrides it', async () => {
+test('who lives in Italy says where from and when; "da più di 2 anni" overrides it', async () => {
   const a = await t.approved('arrivo@x.it', { lives_in: 'italy', lives_in_city: 'Bari' });
   const half = `${new Date().getFullYear() - 1}-H2`;
   let r = await a.patch('/api/me/profile', { arrived_from_country: 'Regno Unito', arrived_from_city: 'Londra', arrived_period: half });
@@ -34,7 +34,7 @@ test('who lives in Italy says where from and when; "da tanto tempo" overrides it
   assert.equal(r.body.in_italy_long_time, true);
   assert.equal(r.body.arrived_from_city, null);
   assert.equal(r.body.arrived_period, null);
-  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'In Italia da tanto tempo');
+  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'In Italia da più di 2 anni');
 });
 
 test('education and experience CRUD', async () => {

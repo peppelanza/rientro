@@ -243,7 +243,7 @@ export default class extends Page {
     // Preview (23a)
     const pvFacts = [
       ['Età', cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
-      ['Rientro', p.lives_in !== 'italy' ? null : p.in_italy_long_time ? 'In Italia da tanto tempo' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, arrivalPeriods().find(x => x.v === p.arrived_period)?.l].filter(Boolean).join(' · ') : null],
+      ['Rientro', p.lives_in !== 'italy' ? null : p.in_italy_long_time ? 'In Italia da più di 2 anni' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, arrivalPeriods().find(x => x.v === p.arrived_period)?.l].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const timeLabel = [cat.time.find(t => t[0] === p.time_commitment)?.[1], cat.start.find(t => t[0] === p.start_when)?.[1]?.toLowerCase()].filter(Boolean).join(' · ');

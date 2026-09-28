@@ -21,9 +21,9 @@ function arrivedPeriod(v) {
 }
 
 // '2025-H2' → 'tra luglio e dicembre 2025'; the current half reads 'da luglio 2026'
-// "Da Londra, Regno Unito · tra luglio e dicembre 2025", "In Italia da tanto tempo", or null
+// "Da Londra, Regno Unito · tra luglio e dicembre 2025", "In Italia da più di 2 anni", or null
 export function arrivedText(p) {
-  if (p.in_italy_long_time) return 'In Italia da tanto tempo';
+  if (p.in_italy_long_time) return 'In Italia da più di 2 anni';
   const where = [p.arrived_from_city, p.arrived_from_country].filter(Boolean).join(', ');
   const when = arrivedLabel(p.arrived_period);
   return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
@@ -45,7 +45,7 @@ const EDITABLE = {
   arrived_from_country: v => text(v, 'Paese di provenienza', { max: 60 }),
   arrived_from_city: v => text(v, 'Città di provenienza', { max: 80 }),
   arrived_period: v => arrivedPeriod(v),
-  in_italy_long_time: v => bool(v, 'In Italia da tanto tempo'),
+  in_italy_long_time: v => bool(v, 'In Italia da più di 2 anni'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, ['has_idea', 'seeking_idea'], 'Obiettivo'),
@@ -138,7 +138,7 @@ export function updateProfile(db, user, body) {
     live[key] = JSON_FIELDS.has(key) ? JSON.stringify(v) : v;
   }
   const next = { ...current, ...live };
-  // "Sono in Italia da tanto tempo" overrides where from and when
+  // "Sono da più di 2 anni in Italia" overrides where from and when
   if (live.in_italy_long_time === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_period: null });
   if (live.arrived_from_country?.trim().toLowerCase() === 'italia') throw bad('invalid_field', 'Indica il paese estero da cui sei arrivato.');
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';

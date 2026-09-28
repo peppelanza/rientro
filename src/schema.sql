@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   lives_in               TEXT CHECK (lives_in IS NULL OR lives_in IN ('italy', 'abroad')),
   lives_in_country       TEXT,
   lives_in_city          TEXT,
-  -- 1b Arrivo (only for who already lives in Italy): where from and when, or "da tanto tempo"
+  -- 1b Arrivo (only for who already lives in Italy): where from and when, or "da più di 2 anni"
   arrived_from_country   TEXT,
   arrived_from_city      TEXT,
   arrived_period         TEXT,              -- half year, e.g. '2025-H2'
