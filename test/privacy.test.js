@@ -158,6 +158,10 @@ test('territory pages answer to their slug in any case', async () => {
   assert.equal(await get('atlantide'), 404);
   assert.equal((await get('aosta')).prep, 'ad');
   assert.equal((await get('napoli')).prep, 'a');
+  assert.equal((await get('lazio')).prep, 'nel');
+  assert.equal((await get('marche')).prep, 'nelle');
+  assert.equal((await get('toscana')).prep, 'in');
+  assert.equal((await get('roma')).regionPrep, 'nel');
   // Listed cities: every regional capital and every comune over 100,000 inhabitants
   const { cities } = await get('napoli');
   for (const c of ['Aosta', 'Campobasso', "L'Aquila", 'Potenza', 'Cagliari', 'Trento', 'Verona', 'Salerno', 'Bergamo']) assert.ok(cities.includes(c), c);

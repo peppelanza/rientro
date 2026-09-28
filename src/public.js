@@ -19,6 +19,10 @@ function photoFor(name) {
 
 const regionOf = Object.fromEntries(COMUNI.map(c => [c[0], c[2]]));
 
+// "Tornare nel Lazio", "nelle Marche", "nel Molise"; every other region takes "in"
+const REGION_PREP = { Lazio: 'nel', Marche: 'nelle', Molise: 'nel' };
+const regionPrep = name => REGION_PREP[name] ?? 'in';
+
 // URL → territory name: exact name ("Napoli", "Valle d'Aosta") or its slug ("napoli", "valle-d-aosta"),
 // any case. On a slug shared by two comuni the region wins, then the most populous comune.
 const bySlug = new Map();
@@ -51,7 +55,8 @@ export function territory(db, raw) {
     slug: photoSlug(place),
     kind: isRegion ? 'region' : 'city',
     region: isCity ? regionOf[place] ?? null : null,
-    prep: isRegion ? 'in' : /^a/i.test(place) ? 'ad' : 'a', // "ad Aosta", "ad Ancona"
+    prep: isRegion ? regionPrep(place) : /^a/i.test(place) ? 'ad' : 'a', // "ad Aosta", "ad Ancona"
+    regionPrep: isCity && regionOf[place] ? regionPrep(regionOf[place]) : null,
     photo: photoFor(place),
     count: k(wants.length),
     living: k(livesThere.length),

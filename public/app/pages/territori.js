@@ -46,7 +46,7 @@ export default class extends Page {
       origins: t.origins.map(o => ({ from: o.from.toUpperCase(), to: t.name.toUpperCase(), n: String(o.n) })), hasOrigins: t.origins.length > 0,
       sectors: t.sectors.map(x => ({ l: x.l, n: String(x.n) })), hasSectors: t.sectors.length > 0,
       idea: few(t.idea), explore: few(t.explore),
-      placesTitle: isCity ? `Altre città in ${t.region}` : `Città in ${t.name}`,
+      placesTitle: isCity ? `Altre città ${t.regionPrep} ${t.region}` : `Città ${t.prep} ${t.name}`,
       places: t.places.slice(0, 12).map(c => ({ name: c.name, n: c.n == null ? 'Meno di 5 persone' : `${c.n} persone`, href: `/territori/${slug(c.name)}` })),
       steps: [
         { n: '01', t: 'Crea il profilo', d: `Indica ${t.name} tra i posti dove vuoi vivere. Ci vogliono circa 10 minuti.` },
