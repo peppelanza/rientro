@@ -9,7 +9,7 @@ import { Page } from './_base.js';
 export const title = 'Il tuo profilo';
 
 const STEPS = [
-  ['luogo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['lavoro', 'Obiettivo'], ['idea', 'Obiettivo'],
+  ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['lavoro', 'Obiettivo'], ['idea', 'Obiettivo'],
   ['presentati', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
   ['risultato', 'Su di te'], ['video', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
   ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
@@ -18,6 +18,7 @@ const STEPS = [
 // Profile fields saved by each step
 const FIELDS = {
   luogo: ['lives_in', 'lives_in_country', 'lives_in_city'],
+  residenza: ['lives_in', 'lives_in_country', 'lives_in_city'],
   dove: ['desired_comuni', 'desired_unknown'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
@@ -84,7 +85,8 @@ export default class extends Page {
   blocker(step) {
     const p = this.state.p;
     switch (step) {
-      case 'luogo': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
+      case 'luogo': return p.lives_in ? null : 'Scegli dove vivi';
+      case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle due opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
@@ -103,7 +105,7 @@ export default class extends Page {
     }
     const body = pick(s.p, FIELDS[step] || []);
     for (const k of Object.keys(body)) body[k] = nz(body[k]);
-    if (step === 'luogo' && s.p.lives_in === 'italy') delete body.lives_in_country;
+    if ((step === 'luogo' || step === 'residenza') && s.p.lives_in === 'italy') delete body.lives_in_country;
     body.onboarding_step = nextStep;
     const saved = await api('PATCH', '/api/me/profile', body);
     Object.assign(s.p, saved);
@@ -235,7 +237,7 @@ export default class extends Page {
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
       footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
-      is_luogo: is('luogo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_lavoro: is('lavoro'), is_idea: is('idea'),
+      is_luogo: is('luogo'), is_residenza: is('residenza'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_lavoro: is('lavoro'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'), is_tempo: is('tempo'),
       is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'),
@@ -265,7 +267,7 @@ export default class extends Page {
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
       countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
       citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
-      cityPlaceholder: p.lives_in_country ? 'Cerca la città' : 'Prima scegli il paese',
+      hasCountry: !!p.lives_in_country,
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 
