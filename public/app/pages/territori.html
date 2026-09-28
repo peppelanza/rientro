@@ -3,7 +3,7 @@
 <sc-if value="{{ notFound }}"><main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.03em">Non conosciamo “{{ place }}”.</h1><a href="/" style="font-size:14px">← Torna a Rientro</a></main></sc-if>
 <sc-if value="{{ stats }}">
 <div class="r-page" style="background:#E9E6F5">
-<dc-import name="App Site Header" here="territori" dc-props="{{ headerProps }}"></dc-import>
+<dc-import name="App Site Header" host-class="site-header" here="territori" dc-props="{{ headerProps }}"></dc-import>
 
 <section class="r-grid-1 r-pad-lg" style="padding:48px 56px 56px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:56px;align-items:center">
 <div style="display:flex;flex-direction:column;gap:28px">
