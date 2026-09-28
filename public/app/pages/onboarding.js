@@ -4,7 +4,7 @@
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
 import { loadCitta, loadPaesi } from '../places.js';
-import { canRecord, durationProblem, recordVideo, videoDuration } from '../video.js';
+import { canRecord, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -68,7 +68,7 @@ export default class extends Page {
     document.addEventListener('keydown', this.onKey);
     await super.componentDidMount();
   }
-  componentWillUnmount() { document.removeEventListener('keydown', this.onKey); }
+  componentWillUnmount() { document.removeEventListener('keydown', this.onKey); setPreview(this.state, null); }
 
   // Enter moves on, like Continua, unless something focused uses Enter itself
   onKey = e => {
@@ -152,7 +152,7 @@ export default class extends Page {
     const s = this.state;
     const isVideo = kind === 'video';
     if (isVideo && file.size > 200 * 1024 * 1024) { toast('Il video supera i 200 MB. Carica un file più leggero.', { tone: 'err' }); return; }
-    // Recordings are already 10–30 s; for picked files check now instead of after the upload
+    // Recordings are already 15–60 s; for picked files check now instead of after the upload
     const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
     if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
@@ -160,7 +160,8 @@ export default class extends Page {
     this.__rerender();
     upload(`/api/me/${kind === 'video' ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
       .then(r => {
-        if (isVideo) s.p.video_url = r.url; else s.p.photo_url = r.url;
+        // Show the file just sent: the server converts it in the background
+        if (isVideo) { s.p.video_url = r.url; setPreview(s, file); } else s.p.photo_url = r.url;
         toast(isVideo ? 'Video caricato.' : 'Foto caricata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
@@ -351,12 +352,12 @@ export default class extends Page {
       achievement: p.achievement ?? '', achProps: { onInput: v => { p.achievement = v; } },
 
       // 16a
-      video: p.video_url, noVideo: !p.video_url && up?.kind !== 'video', videoUploading: up?.kind === 'video',
-      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? (pct < 100 ? `${mb(up.loaded)} MB di ${mb(up.total)} MB · ${secs} s` : up.kind === 'video' ? 'Lo stiamo preparando, qualche secondo…' : '') : '',
+      video: p.video_url ? s.videoPreview || p.video_url : null, noVideo: !p.video_url && up?.kind !== 'video', videoUploading: up?.kind === 'video',
+      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? (pct < 100 ? `${mb(up.loaded)} MB di ${mb(up.total)} MB · ${secs} s` : up.kind === 'video' ? 'Ancora un attimo…' : '') : '',
       cancelUpload: () => upload.abort?.(),
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
       canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); },
-      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; }),
+      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; setPreview(s, null); }),
       videoPrivate: p.video_connections_only, videoPrivBg: p.video_connections_only ? '#6C4DF5' : '#FFFFFF', videoPrivBd: p.video_connections_only ? 'none' : '1.5px solid #CFC8E8', videoPrivMark: p.video_connections_only ? '✓' : '',
       toggleVideoPrivate: e => this.set({ video_connections_only: e.target.checked }),
 

@@ -2,7 +2,7 @@
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { loadCitta, loadPaesi } from '../places.js';
-import { canRecord, durationProblem, recordVideo, videoDuration } from '../video.js';
+import { canRecord, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -23,6 +23,8 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 
 export default class extends Page {
+  componentWillUnmount() { super.componentWillUnmount?.(); setPreview(this.state, null); }
+
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
     if (me.user.role === 'admin') return go('/admin');
@@ -80,7 +82,7 @@ export default class extends Page {
     this.__rerender();
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
       .then(r => {
-        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; } else { s.me.profile.photo_url = r.url; s.p.photo_url = r.url; }
+        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); } else { s.me.profile.photo_url = r.url; s.p.photo_url = r.url; }
         toast(r.pending_review ? 'Foto caricata. Sarà online dopo la revisione.' : video ? 'Video caricato.' : 'Foto aggiornata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
@@ -138,10 +140,10 @@ export default class extends Page {
       desired: p.desired_comuni, desiredProps: { onChange: l => this.set({ desired_comuni: l, desired_unknown: l.length ? false : p.desired_unknown }) },
       unknown: p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),
       // su di me
-      video: p.video_url, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`, upLabel: pct < 100 ? `${pct}%` : 'Preparazione…',
+      video: p.video_url ? s.videoPreview || p.video_url : null, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`, upLabel: `${pct}%`,
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
       canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); }, cancelUpload: () => upload.abort?.(),
-      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; toast('Video rimosso.'); }),
+      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; setPreview(s, null); toast('Video rimosso.'); }),
       videoOnly: p.video_connections_only, toggleVideoOnly: () => this.set({ video_connections_only: !p.video_connections_only }),
       // obiettivo
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),

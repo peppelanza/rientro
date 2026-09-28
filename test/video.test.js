@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
+import { videosConverted } from '../src/files.js';
 import { startApp } from './helpers.js';
 
 // Needs ffmpeg (installed in the Docker image); skipped where it is missing.
@@ -22,16 +23,17 @@ const clips = {};
 let t;
 before(async () => {
   if (hasFfmpeg) {
-    clips.short = make('short.mp4', 5, mp4);
-    clips.long = make('long.mp4', 40, mp4);
-    clips.ok = make('ok.mp4', 15, mp4);
-    clips.rec = make('rec.webm', 12, ['-c:v', 'libvpx', '-b:v', '2M', '-c:a', 'libopus']);
+    clips.short = make('short.mp4', 8, mp4);
+    clips.long = make('long.mp4', 65, ['-c:v', 'libx264', '-preset', 'ultrafast', '-b:v', '1M', '-c:a', 'aac']);
+    clips.ok = make('ok.mp4', 20, mp4);
+    // A browser recording: WebM with no duration in its header
+    clips.rec = make('rec.webm', 18, ['-c:v', 'libvpx', '-deadline', 'realtime', '-b:v', '2M', '-c:a', 'libopus', '-live', '1']);
   }
   t = await startApp();
 });
 after(() => t.close());
 
-test('profile videos must last 10 to 30 seconds and are converted to a light MP4', { skip: !hasFfmpeg && 'ffmpeg not installed' }, async () => {
+test('profile videos must last 15 to 60 seconds, play at once and become a light MP4 in the background', { skip: !hasFfmpeg && 'ffmpeg not installed' }, async () => {
   const u = await t.login('video@x.it');
 
   const short = await u.raw('POST', '/api/me/video', clips.short);
@@ -41,14 +43,20 @@ test('profile videos must last 10 to 30 seconds and are converted to a light MP4
   assert.equal(long.status, 400);
   assert.equal(long.body.error, 'video_too_long');
 
+  // The original is served straight away, then swapped for the converted file
   const ok = await u.raw('POST', '/api/me/video', clips.ok);
   assert.equal(ok.status, 200);
+  assert.equal((await u.get(ok.body.url)).body.byteLength, clips.ok.length);
+  await videosConverted();
   const file = await u.get(ok.body.url);
   assert.equal(file.headers.get('content-type'), 'video/mp4');
   assert.ok(file.body.byteLength < clips.ok.length / 2, `converted ${file.body.byteLength} vs original ${clips.ok.length}`);
 
-  // A browser recording (WebM, VP8/Opus) is accepted and stored as MP4
+  // A browser recording is accepted as WebM and ends up as MP4; the replaced video is gone
   const rec = await u.raw('POST', '/api/me/video', clips.rec);
   assert.equal(rec.status, 200);
+  assert.equal((await u.get(rec.body.url)).headers.get('content-type'), 'video/webm');
+  assert.equal((await u.get(ok.body.url)).status, 404);
+  await videosConverted();
   assert.equal((await u.get(rec.body.url)).headers.get('content-type'), 'video/mp4');
 });

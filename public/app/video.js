@@ -2,8 +2,8 @@
 // (camera + microphone via MediaRecorder). The server checks the length again and converts
 // every video to MP4, so a recording can be WebM (Chrome, Firefox) or MP4 (Safari).
 
-export const MIN_SECONDS = 10;
-export const MAX_SECONDS = 30;
+export const MIN_SECONDS = 15;
+export const MAX_SECONDS = 60;
 
 export const canRecord = () => !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
 
@@ -22,7 +22,14 @@ export function videoDuration(file) {
   });
 }
 
-// Message for a length outside 10–30 seconds (half a second of tolerance), else null
+// Plays the file just uploaded from memory (page state .videoPreview), so the member sees it at
+// once while the server converts it; null forgets it.
+export function setPreview(state, file) {
+  if (state.videoPreview) URL.revokeObjectURL(state.videoPreview);
+  state.videoPreview = file ? URL.createObjectURL(file) : null;
+}
+
+// Message for a length outside 15–60 seconds (half a second of tolerance), else null
 export function durationProblem(seconds) {
   if (seconds === null) return null;
   if (seconds < MIN_SECONDS - 0.5) return `Il video dura ${Math.round(seconds)} secondi: deve durarne almeno ${MIN_SECONDS}.`;
@@ -31,7 +38,7 @@ export function durationProblem(seconds) {
 }
 
 const TYPES = ['video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
-const clock = s => `0:${String(Math.floor(s)).padStart(2, '0')}`;
+const clock = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
 
 // Opens the recorder dialog. Resolves with a File once the member confirms a take, or null.
@@ -108,7 +115,7 @@ export function recordVideo() {
 
     const start = () => {
       chunks = [];
-      recorder = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 2_500_000 });
+      recorder = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 2_000_000 });
       recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
       recorder.onstop = () => {
         const seconds = (performance.now() - started) / 1000;
@@ -132,8 +139,8 @@ export function recordVideo() {
         const s = (performance.now() - started) / 1000;
         badge.textContent = `${clock(Math.min(s, MAX_SECONDS))} / ${clock(MAX_SECONDS)}`;
         fill.style.width = `${Math.min(100, (s / MAX_SECONDS) * 100)}%`;
-        if (s < MIN_SECONDS) { main.textContent = `Ferma (ancora ${Math.ceil(MIN_SECONDS - s)} s)`; main.disabled = true; }
-        else { main.textContent = 'Ferma'; main.disabled = false; }
+        if (s < MIN_SECONDS) { main.textContent = `Fine (ancora ${Math.ceil(MIN_SECONDS - s)} s)`; main.disabled = true; }
+        else { main.textContent = 'Fine'; main.disabled = false; }
         if (s >= MAX_SECONDS) stop();
       }, 200);
     };
