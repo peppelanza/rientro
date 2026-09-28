@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
 import { startApp } from './helpers.js';
+import { addProfileColumns } from '../src/db.js';
+import { arrivedWhen } from '../src/profiles.js';
 
 let t;
 before(async () => { t = await startApp(); });
@@ -16,25 +19,45 @@ test('onboarding: submit requires the essentials, then goes to review', async ()
   assert.equal(s.body.user.status, 'in_review');
 });
 
-test('who lives in Italy says where from and when; "da più di 2 anni" overrides it', async () => {
+test('who lives in Italy says where from and when; "ho sempre vissuto in Italia" overrides it', async () => {
   const a = await t.approved('arrivo@x.it', { lives_in: 'italy', lives_in_city: 'Bari' });
-  const half = `${new Date().getFullYear() - 1}-H2`;
-  let r = await a.patch('/api/me/profile', { arrived_from_country: 'Regno Unito', arrived_from_city: 'Londra', arrived_period: half });
+  let r = await a.patch('/api/me/profile', { arrived_from_country: 'Regno Unito', arrived_from_city: 'Londra', arrived_when: '3_12m' });
   assert.equal(r.status, 200);
-  assert.equal(r.body.arrived_period, half);
+  assert.equal(r.body.arrived_when, '3_12m');
   const viewer = await t.approved('guarda@x.it');
-  const seen = (await viewer.get(`/api/profiles/${a.id}`)).body;
-  assert.equal(seen.arrived, `Da Londra, Regno Unito · tra luglio e dicembre ${new Date().getFullYear() - 1}`);
+  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'Da Londra, Regno Unito · 3–12 mesi fa');
 
-  assert.equal((await a.patch('/api/me/profile', { arrived_period: '2019-H1' })).status, 400); // over two years back
-  assert.equal((await a.patch('/api/me/profile', { arrived_period: 'ieri' })).status, 400);
+  // Stored as dates: the span moves with time, and re-saving the same answer keeps them
+  const { arrived_after, arrived_before } = t.app.db.prepare('SELECT arrived_after, arrived_before FROM profiles WHERE user_id = ?').get(a.id);
+  r = await a.patch('/api/me/profile', { arrived_when: '3_12m' });
+  assert.deepEqual([r.body.arrived_after, r.body.arrived_before], [arrived_after, arrived_before]);
+  const now = new Date(); const later = now.getFullYear() * 12 + now.getMonth() + 9;
+  assert.equal(arrivedWhen({ arrived_after, arrived_before }, later), '1_2y');
+  r = await a.patch('/api/me/profile', { arrived_when: '2y_plus' });
+  assert.equal(r.body.arrived_after, null);
+  assert.equal(r.body.arrived_when, '2y_plus');
+
+  assert.equal((await a.patch('/api/me/profile', { arrived_when: 'ieri' })).status, 400);
   assert.equal((await a.patch('/api/me/profile', { arrived_from_country: 'Italia' })).status, 400);
 
-  r = await a.patch('/api/me/profile', { in_italy_long_time: true });
-  assert.equal(r.body.in_italy_long_time, true);
+  r = await a.patch('/api/me/profile', { always_in_italy: true });
+  assert.equal(r.body.always_in_italy, true);
   assert.equal(r.body.arrived_from_city, null);
-  assert.equal(r.body.arrived_period, null);
-  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'In Italia da più di 2 anni');
+  assert.equal(r.body.arrived_when, null);
+  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'Ha sempre vissuto in Italia');
+});
+
+test('the first arrival columns are migrated to the date range', () => {
+  const db = new DatabaseSync(':memory:');
+  db.exec(`CREATE TABLE users (id TEXT PRIMARY KEY); CREATE TABLE profiles (user_id TEXT PRIMARY KEY, arrived_from_country TEXT, arrived_from_city TEXT, arrived_period TEXT, in_italy_long_time INTEGER NOT NULL DEFAULT 0);
+    INSERT INTO profiles VALUES ('a', 'Germania', 'Berlino', '2025-H2', 0), ('b', NULL, NULL, NULL, 1);`);
+  addProfileColumns(db);
+  const rows = db.prepare('SELECT * FROM profiles ORDER BY user_id').all();
+  assert.equal(rows[0].arrived_after, '2025-07');
+  assert.equal(rows[0].arrived_before, '2025-12');
+  assert.equal(rows[1].arrived_after, null);
+  assert.ok(rows[1].arrived_before);
+  assert.ok(!('arrived_period' in rows[0]) && !('in_italy_long_time' in rows[0]));
 });
 
 test('education and experience CRUD', async () => {

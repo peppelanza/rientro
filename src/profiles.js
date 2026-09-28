@@ -11,31 +11,33 @@ const subset = (v, allowed, f, max) => {
   return l;
 };
 
-// Half year of arrival in Italy, at most two years back (a little slack for answers saved earlier)
-function arrivedPeriod(v) {
-  if (v === undefined || v === null) return v;
-  const m = /^(\d{4})-H([12])$/.exec(v);
-  const year = new Date().getFullYear();
-  if (!m || Number(m[1]) > year || Number(m[1]) < year - 3) throw bad('invalid_field', 'Quando sei arrivato non valido');
-  return v;
+// When the member came back to Italy. They pick a span relative to today ("3–12 mesi fa"); we
+// store it as a month range (arrived_after..arrived_before, 'YYYY-MM') so the span shown later
+// follows the calendar: "0–3 mesi fa" picked in March reads "3–12 mesi fa" by the summer.
+export const ARRIVED_WHEN = [['0_3m', '0–3 mesi fa', 0, 3], ['3_12m', '3–12 mesi fa', 3, 12], ['1_2y', '1–2 anni fa', 12, 24], ['2y_plus', 'Più di 2 anni fa', 24, null]];
+const monthIndex = ym => { const [y, m] = ym.split('-').map(Number); return y * 12 + m - 1; };
+const monthText = i => `${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, '0')}`;
+const thisMonth = () => { const d = new Date(); return d.getFullYear() * 12 + d.getMonth(); };
+
+export function arrivedRange(when, now = thisMonth()) {
+  const w = ARRIVED_WHEN.find(x => x[0] === when);
+  return { arrived_after: w[3] === null ? null : monthText(now - w[3]), arrived_before: monthText(now - w[2]) };
 }
 
-// '2025-H2' → 'tra luglio e dicembre 2025'; the current half reads 'da luglio 2026'
-// "Da Londra, Regno Unito · tra luglio e dicembre 2025", "In Italia da più di 2 anni", or null
+// The span that fits the stored range today, or null
+export function arrivedWhen(p, now = thisMonth()) {
+  if (!p.arrived_before) return null;
+  if (!p.arrived_after) return '2y_plus';
+  const ago = now - (monthIndex(p.arrived_after) + monthIndex(p.arrived_before)) / 2;
+  return (ARRIVED_WHEN.find(x => x[3] !== null && ago < x[3]) ?? ARRIVED_WHEN.at(-1))[0];
+}
+
+// "Da Londra, Regno Unito · 3–12 mesi fa", "Ha sempre vissuto in Italia", or null
 export function arrivedText(p) {
-  if (p.in_italy_long_time) return 'In Italia da più di 2 anni';
+  if (p.always_in_italy) return 'Ha sempre vissuto in Italia';
   const where = [p.arrived_from_city, p.arrived_from_country].filter(Boolean).join(', ');
-  const when = arrivedLabel(p.arrived_period);
+  const when = ARRIVED_WHEN.find(x => x[0] === arrivedWhen(p))?.[1].toLowerCase();
   return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
-}
-
-export function arrivedLabel(v) {
-  const m = /^(\d{4})-H([12])$/.exec(v ?? '');
-  if (!m) return null;
-  const d = new Date();
-  const current = Number(m[1]) === d.getFullYear() && (m[2] === '1') === (d.getMonth() < 6);
-  const [from, to] = m[2] === '1' ? ['gennaio', 'giugno'] : ['luglio', 'dicembre'];
-  return current ? `da ${from} ${m[1]}` : `tra ${from} e ${to} ${m[1]}`;
 }
 
 const EDITABLE = {
@@ -44,8 +46,8 @@ const EDITABLE = {
   lives_in_city: v => text(v, 'Città', { max: 80 }),
   arrived_from_country: v => text(v, 'Paese di provenienza', { max: 60 }),
   arrived_from_city: v => text(v, 'Città di provenienza', { max: 80 }),
-  arrived_period: v => arrivedPeriod(v),
-  in_italy_long_time: v => bool(v, 'In Italia da più di 2 anni'),
+  arrived_when: v => oneOf(v, ARRIVED_WHEN.map(x => x[0]), 'Quando è stato il rientro'),
+  always_in_italy: v => bool(v, 'Ho sempre vissuto in Italia'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, ['has_idea', 'seeking_idea'], 'Obiettivo'),
@@ -106,7 +108,8 @@ export function getOwnProfile(db, userId) {
   return {
     ...rest,
     desired_unknown: p.desired_unknown === 1,
-    in_italy_long_time: p.in_italy_long_time === 1,
+    always_in_italy: p.always_in_italy === 1,
+    arrived_when: arrivedWhen(p),
     video_connections_only: p.video_connections_only === 1,
     visible: p.visible === 1,
     photo_url: fileUrl(pending.photo_file_id ?? p.photo_file_id),
@@ -138,8 +141,16 @@ export function updateProfile(db, user, body) {
     live[key] = JSON_FIELDS.has(key) ? JSON.stringify(v) : v;
   }
   const next = { ...current, ...live };
-  // "Sono da più di 2 anni in Italia" overrides where from and when
-  if (live.in_italy_long_time === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_period: null });
+  // arrived_when is a span relative to today: stored as a month range, and moved only when the
+  // member picks a different span (re-saving the same answer keeps the original dates)
+  if ('arrived_when' in live) {
+    const when = live.arrived_when;
+    delete live.arrived_when;
+    if (when === null) Object.assign(live, { arrived_after: null, arrived_before: null });
+    else if (when !== arrivedWhen(current)) Object.assign(live, arrivedRange(when));
+  }
+  // "Ho sempre vissuto in Italia" overrides where from and when
+  if (live.always_in_italy === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_after: null, arrived_before: null });
   if (live.arrived_from_country?.trim().toLowerCase() === 'italia') throw bad('invalid_field', 'Indica il paese estero da cui sei arrivato.');
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   else if (next.lives_in === 'abroad' && next.lives_in_country?.trim().toLowerCase() === 'italia') {

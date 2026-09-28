@@ -55,8 +55,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   -- 1b Arrivo (only for who already lives in Italy): where from and when, or "da più di 2 anni"
   arrived_from_country   TEXT,
   arrived_from_city      TEXT,
-  arrived_period         TEXT,              -- half year, e.g. '2025-H2'
-  in_italy_long_time     INTEGER NOT NULL DEFAULT 0,
+  arrived_after          TEXT,              -- month range of the return, 'YYYY-MM'; after is NULL for "more than 2 years ago"
+  arrived_before         TEXT,
+  always_in_italy        INTEGER NOT NULL DEFAULT 0,
   -- 2 Dove vorresti vivere
   desired_comuni         TEXT NOT NULL DEFAULT '[]',
   desired_unknown        INTEGER NOT NULL DEFAULT 0,

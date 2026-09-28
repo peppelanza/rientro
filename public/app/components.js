@@ -250,6 +250,21 @@ def('App Select', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
+// App Checkbox — UI Checkbox in a larger size, for a checkbox that stands alone as an answer
+// ("Non lo so ancora", "Ho sempre vissuto in Italia"). Props: label, checked. Clicks go on the
+// dc-import (on-click), like UI Checkbox.
+
+def('App Checkbox', String.raw`
+<div style="display:flex;align-items:center;gap:14px;min-height:44px;font-family:'Geist',sans-serif;font-size:17px;font-weight:500;color:#1A1726;cursor:pointer">
+<span style="width:28px;height:28px;border-radius:9px;flex:none;box-sizing:border-box;background:{{ bg }};border:{{ bd }};color:#FFFFFF;font-size:16px;display:flex;align-items:center;justify-content:center">{{ mark }}</span>
+<span>{{ label }}</span>
+</div>`, class extends DCLogic {
+  renderVals() {
+    const on = b(this.props.checked);
+    return { label: this.props.label ?? '', bg: on ? '#6C4DF5' : '#FFFFFF', bd: on ? 'none' : '2px solid #CFC8E8', mark: on ? '✓' : '' };
+  }
+});
+
 // App Segmented — UI Segmented with clickable options. options: [{ v, l }], value, onSelect(v)
 
 def('App Segmented', String.raw`

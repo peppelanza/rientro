@@ -1,7 +1,7 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own; for approved
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
-import { arrivalPeriods, loadCitta, loadPaesi } from '../places.js';
+import { ARRIVED_WHEN, loadCitta, loadPaesi } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
@@ -9,7 +9,7 @@ export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'age_band', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_period', 'in_italy_long_time', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'age_band', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement', 'video_connections_only']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -151,8 +151,8 @@ export default class extends Page {
       fromCountryProps: { onChange: l => { this.set({ arrived_from_country: l[0] ?? null, arrived_from_city: null }); this.loadFromCities(); } },
       cittaFrom: s.cittaFrom.map(n => [n]), fromCitySel: p.arrived_from_city ? [p.arrived_from_city] : [],
       fromCityProps: { onChange: l => this.set({ arrived_from_city: l[0] ?? null }) },
-      periodOpts: arrivalPeriods(), period: p.arrived_period ?? '', periodProps: { onSelect: v => this.set({ arrived_period: v || null }) },
-      longTime: !!p.in_italy_long_time, notLongTime: !p.in_italy_long_time, toggleLongTime: () => this.set({ in_italy_long_time: !p.in_italy_long_time }),
+      periodOpts: ARRIVED_WHEN, period: p.arrived_when ?? '', periodProps: { onSelect: v => this.set({ arrived_when: v || null }) },
+      alwaysItaly: !!p.always_in_italy, notAlwaysItaly: !p.always_in_italy, toggleAlwaysItaly: () => this.set({ always_in_italy: !p.always_in_italy }),
       countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
       citta: s.citta.map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
       cityPlaceholder: p.lives_in_country ? 'Cerca la città' : 'Prima scegli il paese',

@@ -15,17 +15,7 @@ export async function loadCitta(countryName) {
   return paese ? load(`/data/citta/${paese[0]}.json`) : [];
 }
 
-// Half years of the last two years, newest first: { v: '2026-H2', l: 'Lug–set 2026' }
-const MONTHS = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
-export function arrivalPeriods(today = new Date()) {
-  const nowM = today.getFullYear() * 12 + today.getMonth();
-  const oldest = nowM - 24;
-  const out = [];
-  for (let start = nowM - (today.getMonth() % 6); start + 5 >= oldest; start -= 6) {
-    const from = Math.max(start, oldest), to = Math.min(start + 5, nowM);
-    const y = Math.floor(start / 12);
-    const range = from === to ? MONTHS[from % 12] : `${MONTHS[from % 12]}–${MONTHS[to % 12].toLowerCase()}`;
-    out.push({ v: `${y}-H${start % 12 < 6 ? 1 : 2}`, l: `${range} ${y}` });
-  }
-  return out;
-}
+// "Quando è stato il rientro?": spans relative to today (the server keeps them as dates)
+export const ARRIVED_WHEN = [
+  { v: '0_3m', l: '0–3 mesi fa' }, { v: '3_12m', l: '3–12 mesi fa' }, { v: '1_2y', l: '1–2 anni fa' }, { v: '2y_plus', l: 'Più di 2 anni fa' },
+];
