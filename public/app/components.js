@@ -18,7 +18,7 @@ def('App Nav', String.raw`
 </sc-for>
 <sc-if value="{{ pendingNote }}"><a href="/stato" class="r-hide-sm" style="height:42px;padding:0 16px;border-radius:999px;background:#FFF3D6;color:#8A5A00;display:flex;align-items:center;gap:8px;text-decoration:none"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>{{ pendingNote }}</a></sc-if>
 <div style="flex:1"></div>
-<sc-if value="{{ showSearch }}"><form role="search" onSubmit="{{ search }}" class="r-hide-sm" style="width:280px;height:44px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-sizing:border-box;font-size:13px;font-weight:400;color:#8C84AE"><span style="width:11px;height:11px;border:1.8px solid #8C84AE;border-radius:50%;flex:none"></span><input name="q" value="{{ q }}" aria-label="Cerca" placeholder="Cerca persone, città, settori" class="bare-input" style="font-size:13px"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border-radius:999px;background:#FFFFFF">⌘K</span></form></sc-if>
+<sc-if value="{{ showSearch }}"><form role="search" onSubmit="{{ search }}" class="r-hide-sm" style="width:280px;height:44px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-sizing:border-box;font-size:13px;font-weight:400;color:#8C84AE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input name="q" value="{{ q }}" aria-label="Cerca" placeholder="Cerca persone, città, settori" class="bare-input" style="font-size:13px"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border-radius:999px;background:#FFFFFF">⌘K</span></form></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
 </div>
 <sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:34px;top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
@@ -199,7 +199,7 @@ def('App Field', String.raw`
 <label style="display:flex;flex-direction:column;gap:6px;width:100%;font-family:'Geist',sans-serif">
 <sc-if value="{{ hasLabel }}"><span style="font-size:13px;font-weight:500;color:#1A1726">{{ label }}<sc-if value="{{ optional }}"> <span style="color:#8C84AE;font-weight:400">Facoltativo</span></sc-if></span></sc-if>
 <div class="dc-field" style="width:100%;min-height:{{ h }};border-radius:{{ radius }};background:#FFFFFF;border:{{ bd }};box-sizing:border-box;padding:{{ pad }};display:flex;align-items:{{ align }};gap:10px;font-size:{{ fs }}px;line-height:1.5;color:#1A1726">
-<sc-if value="{{ search }}"><span style="width:12px;height:12px;border:1.8px solid #8C84AE;border-radius:50%;flex:none"></span></sc-if>
+<sc-if value="{{ search }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></sc-if>
 <sc-if value="{{ multi }}"><textarea class="bare-input" data-key="{{ field }}" rows="{{ rows }}" maxlength="{{ maxlength }}" placeholder="{{ placeholder }}" value="{{ value }}" onInput="{{ input }}" onBlur="{{ blur }}" aria-invalid="{{ invalid }}" style="resize:vertical;min-height:{{ taH }}"></textarea></sc-if>
 <sc-if value="{{ single }}"><input class="bare-input" data-key="{{ field }}" type="{{ type }}" maxlength="{{ maxlength }}" placeholder="{{ placeholder }}" value="{{ value }}" autocomplete="{{ autocomplete }}" inputmode="{{ inputmode }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onBlur="{{ blur }}" aria-invalid="{{ invalid }}"></sc-if>
 <sc-if value="{{ hasHint }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:2px 6px;border-radius:6px;background:#F1EFF8;white-space:nowrap">{{ hint }}</span></sc-if>
@@ -273,7 +273,7 @@ def('App Segmented', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio. Also used for
+// App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio (max 1: the pick sits in the field). Also used for
 // countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]),
 // selected[], max, counts?, placeholder, noun ("comune"), freeText (accept typed text), onChange(list)
 
@@ -295,15 +295,16 @@ def('App Comune Picker', String.raw`
 <sc-for list="{{ chips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="selected" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
 </div></sc-if>
 <div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
-<span style="width:12px;height:12px;border:1.8px solid #8C84AE;border-radius:50%;flex:none"></span>
-<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ placeholder }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ shown }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<sc-if value="{{ canClear }}"><button type="button" aria-label="{{ clearLabel }}" onClick="{{ clear }}" style="border:none;background:#F1EFF8;color:#6B6680;width:26px;height:26px;border-radius:50%;flex:none;cursor:pointer;font-size:15px;line-height:1;padding:0">×</button></sc-if>
 </div>
 <sc-if value="{{ open }}"><div role="listbox" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
 <sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
 </div>`, class extends DCLogic {
-  state = { query: '', open: false, idx: 0 };
+  state = { query: '', open: false, idx: 0, editing: false };
   // Items starting with the query first, then items with a later word starting with it;
   // within each group the most populous first (or the list's own order).
   matchesFor(q) {
@@ -330,6 +331,7 @@ def('App Comune Picker', String.raw`
     if (sel.includes(name)) return;
     this.state.query = '';
     this.state.open = false;
+    this.state.editing = false;
     if (max === 1) this.props.onChange?.([name]); // a new pick replaces the old one
     else if (sel.length < max) this.props.onChange?.([...sel, name]);
   }
@@ -356,22 +358,30 @@ def('App Comune Picker', String.raw`
     }));
     const full = max > 1 && sel.length >= max;
     const noun = this.props.noun ?? 'comune';
+    // Single choice works like a select: the pick sits inside the field and typing replaces it
+    const single = max === 1;
+    const placeholder = full ? `Massimo ${max} ${noun === 'comune' ? 'comuni' : 'scelte'}` : (this.props.placeholder ?? `Cerca un ${noun}`);
     return {
       chips: sel.map(l => ({ l, aria: `Rimuovi ${l}`, remove: () => this.props.onChange?.(sel.filter(x => x !== l)) })),
-      hasChips: sel.length > 0, query: q, field: this.props.field ?? 'comuni', full,
-      placeholder: full ? `Massimo ${max} ${noun === 'comune' ? 'comuni' : 'scelte'}` : max === 1 && sel.length ? `Cambia ${noun}` : (this.props.placeholder ?? `Cerca un ${noun}`),
+      hasChips: !single && sel.length > 0, field: this.props.field ?? 'comuni', full,
+      shown: single && !this.state.editing ? (sel[0] ?? '') : q, placeholder, label: placeholder,
+      canClear: single && sel.length > 0 && !this.state.editing, clearLabel: `Rimuovi ${sel[0] ?? ''}`,
+      clear: () => this.props.onChange?.([]),
       open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length,
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
-      h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: sel.length ? 'calc(100% + 6px)' : '52px',
-      input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
-      focus: () => { if (this.state.query) this.setState({ open: true }); },
-      blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
+      h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
+      input: e => this.setState({ query: e.target.value, open: true, idx: 0, editing: true }),
+      focus: e => { if (single && !this.state.editing) e.target.select(); else if (this.state.query) this.setState({ open: true }); },
+      blur: () => setTimeout(() => {
+        if (single && this.state.editing) this.setState({ open: false, editing: false, query: '' }); // unfinished edit: keep the pick
+        else if (this.state.open) this.setState({ open: false });
+      }, 150),
       keydown: e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ idx: Math.min(this.state.idx + 1, options.length - 1) }); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ idx: Math.max(this.state.idx - 1, 0) }); }
         else if (e.key === 'Enter') { e.preventDefault(); if (options[this.state.idx]) this.add(options[this.state.idx].name); }
         else if (e.key === 'Escape') this.setState({ open: false });
-        else if (e.key === 'Backspace' && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
+        else if (e.key === 'Backspace' && !single && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
       },
     };
   }
