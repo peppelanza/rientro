@@ -10,16 +10,13 @@ export const forWho = [
 ];
 // Homepage questions and answers (#domande), collapsed by default
 const faq = [
-  ['Cos’è Rientro?', 'Una community per chi torna in Italia, o al sud, e cerca persone con cui fondare un’azienda o un progetto.'],
+  ['Perché Rientro?', 'Perché tornare è più facile se non lo fai da solo. Su Rientro conosci persone che stanno facendo il tuo stesso percorso e con cui fondare un’azienda o un progetto, in Italia o al Sud.'],
   ['Quanto costa?', 'Niente. Rientro è gratuito.'],
   ['A chi è rivolto?', 'A chi sta tornando, a chi ci sta pensando e a chi è già tornato. Anche a chi non è italiano ma ha scelto l’Italia.'],
   ['Devo avere già un’idea?', 'No. Puoi avere un’idea e cercare un socio, oppure non averla ancora e cercare qualcuno con cui trovarla.'],
-  ['Perché il mio profilo viene rivisto?', 'Ogni profilo viene letto da una persona prima di andare online. Così su Rientro non ci sono account vuoti o anonimi.'],
   ['Come trovo le persone?', 'Nella sezione Scopri filtri per città, settori, competenze e tempo a disposizione. Nessun punteggio: vedi le persone, non percentuali.'],
   ['Come funzionano i messaggi?', 'Invii una richiesta di connessione con una nota. La chat si apre solo se l’altra persona accetta.'],
   ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
-  ['Posso cercare anche lavoro?', 'Sì, se vuoi. Nel profilo puoi indicare che cerchi lavoro in un’azienda italiana. È facoltativo e puoi toglierlo quando vuoi.'],
-  ['Posso cancellare il mio account?', 'Sì, in qualsiasi momento, da Impostazioni › I tuoi dati. Da lì puoi anche scaricare una copia dei tuoi dati.'],
 ].map(([q, a]) => ({ q, a }));
 const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
