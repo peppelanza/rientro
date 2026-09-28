@@ -115,9 +115,9 @@ def('App Admin Sidebar', String.raw`
 </nav>
 <div style="flex:1"></div>
 <a href="/" style="padding:0 14px;font-size:13px;color:#8C84AE;text-decoration:none">← Torna al sito</a>
-<div style="border-top:1px solid #2E2A40;padding:14px 10px 0;display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);color:#1A1726;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">{{ initials }}</div><div style="display:flex;flex-direction:column;min-width:0"><span style="font-size:13px;font-weight:500;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ adminName }}</span><span style="font-size:12px;color:#B7B0D4">Moderazione</span></div></div>
+<div style="border-top:1px solid #2E2A40;padding:14px 10px 0;display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);color:#1A1726;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">{{ initials }}</div><div style="display:flex;flex-direction:column;min-width:0"><span style="font-size:13px;font-weight:500;color:#FFFFFF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ adminName }}</span><span style="font-size:12px;color:#B7B0D4">Moderazione</span></div><button type="button" onClick="{{ logout }}" style="margin-left:auto;height:32px;padding:0 12px;border:1px solid #3A3550;border-radius:999px;background:transparent;color:#C9C0F0;font:13px 'Geist',sans-serif;cursor:pointer;flex:none">Esci</button></div>
 </div></div>
-<nav aria-label="Sezioni admin" class="r-show-sm" style="padding:12px 12px 0;font-family:'Geist',sans-serif"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ items }}" as="it"><a href="{{ it.href }}" aria-current="{{ it.current }}" style="flex:none;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;background:{{ it.mbg }};color:{{ it.mfg }};text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;opacity:.7">{{ it.count }}</span></sc-if></a></sc-for></div></nav>`, class extends DCLogic {
+<nav aria-label="Sezioni admin" class="r-show-sm" style="padding:12px 12px 0;font-family:'Geist',sans-serif"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ items }}" as="it"><a href="{{ it.href }}" aria-current="{{ it.current }}" style="flex:none;height:36px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;background:{{ it.mbg }};color:{{ it.mfg }};text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;opacity:.7">{{ it.count }}</span></sc-if></a></sc-for><button type="button" onClick="{{ logout }}" style="flex:none;height:36px;padding:0 14px;border:1px solid #DCD7EC;border-radius:999px;background:transparent;font:13px 'Geist',sans-serif;color:#6B6680;cursor:pointer">Esci</button></div></nav>`, class extends DCLogic {
   renderVals() {
     const a = this.props.active ?? 'dashboard';
     const c = this.props.counts || {};
@@ -131,7 +131,8 @@ def('App Admin Sidebar', String.raw`
       bg: k === a ? '#FFFFFF' : 'transparent', fg: k === a ? '#1A1726' : '#C9C0F0', fw: k === a ? 600 : 400, mark: k === a ? '#6C4DF5' : '#3A3550', cc: k === a ? '#6B6680' : '#8C84AE',
       mbg: k === a ? '#1A1726' : '#FFFFFF', mfg: k === a ? '#FFFFFF' : '#1A1726',
     }));
-    return { items, adminName: email.split('@')[0], initials: email.slice(0, 2).toUpperCase() };
+    const logout = async () => { await fetch('/api/auth/logout', { method: 'POST', headers: { 'x-requested-with': 'rientro' } }); location.href = '/'; };
+    return { items, logout, adminName: email.split('@')[0], initials: email.slice(0, 2).toUpperCase() };
   }
 });
 
