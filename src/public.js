@@ -51,7 +51,7 @@ export function territory(db, raw) {
     slug: photoSlug(place),
     kind: isRegion ? 'region' : 'city',
     region: isCity ? regionOf[place] ?? null : null,
-    prep: isRegion ? 'in' : 'a',
+    prep: isRegion ? 'in' : /^a/i.test(place) ? 'ad' : 'a', // "ad Aosta", "ad Ancona"
     photo: photoFor(place),
     count: k(wants.length),
     living: k(livesThere.length),
