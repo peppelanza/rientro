@@ -39,13 +39,25 @@ export function openDb(file = config.dbPath) {
 
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
-  arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_period: 'TEXT',
-  in_italy_long_time: 'INTEGER NOT NULL DEFAULT 0',
+  arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
+  always_in_italy: 'INTEGER NOT NULL DEFAULT 0',
 };
-function addProfileColumns(db) {
+export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));
   for (const [name, type] of Object.entries(NEW_PROFILE_COLUMNS)) {
     if (!have.has(name)) db.exec(`ALTER TABLE profiles ADD COLUMN ${name} ${type}`);
+  }
+  // First version of the arrival step: a half year ('2025-H2') and "in Italia da più di 2 anni"
+  if (have.has('arrived_period')) {
+    db.exec(`UPDATE profiles SET
+      arrived_after = substr(arrived_period, 1, 4) || CASE substr(arrived_period, 7, 1) WHEN '1' THEN '-01' ELSE '-07' END,
+      arrived_before = substr(arrived_period, 1, 4) || CASE substr(arrived_period, 7, 1) WHEN '1' THEN '-06' ELSE '-12' END
+      WHERE arrived_period GLOB '[0-9][0-9][0-9][0-9]-H[12]'`);
+    db.exec('ALTER TABLE profiles DROP COLUMN arrived_period');
+  }
+  if (have.has('in_italy_long_time')) {
+    db.exec(`UPDATE profiles SET arrived_after = NULL, arrived_before = strftime('%Y-%m', 'now', '-24 months') WHERE in_italy_long_time = 1`);
+    db.exec('ALTER TABLE profiles DROP COLUMN in_italy_long_time');
   }
 }
 
