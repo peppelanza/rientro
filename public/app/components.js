@@ -287,8 +287,11 @@ function fold(str) {
 
 def('App Comune Picker', String.raw`
 <div style="display:flex;flex-direction:column;gap:12px;font-family:'Geist',sans-serif;position:relative">
-<sc-if value="{{ hasChips }}"><div style="display:flex;gap:6px;flex-wrap:wrap">
+<sc-if value="{{ smallChips }}"><div style="display:flex;gap:6px;flex-wrap:wrap">
 <sc-for list="{{ chips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="selected" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
+</div></sc-if>
+<sc-if value="{{ bigChip }}"><div style="display:flex">
+<sc-for list="{{ chips }}" as="c"><button type="button" aria-label="{{ c.aria }}" onClick="{{ c.remove }}" style="height:{{ h }};max-width:100%;padding:0 12px 0 22px;border:none;border-radius:999px;background:#1A1726;color:#FFFFFF;font:500 {{ fs }}px 'Geist',sans-serif;display:inline-flex;align-items:center;gap:12px;cursor:pointer;box-sizing:border-box"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.l }}</span><span aria-hidden="true" style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1">×</span></button></sc-for>
 </div></sc-if>
 <sc-if value="{{ showField }}"><div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -361,7 +364,8 @@ def('App Comune Picker', String.raw`
         const key = this.props.field ?? 'comuni';
         setTimeout(() => document.querySelector(`[data-key="${key}"]`)?.focus()); // ready to type the next one
       } })),
-      hasChips: sel.length > 0, showField: !(single && sel.length), field: this.props.field ?? 'comuni', full, query: q,
+      // Single choice: the chip stands in for the field, so it takes the field's size
+      smallChips: !single && sel.length > 0, bigChip: single && sel.length > 0, showField: !(single && sel.length), field: this.props.field ?? 'comuni', full, query: q,
       placeholder, label: placeholder,
       open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length,
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
