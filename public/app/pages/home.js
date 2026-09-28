@@ -23,9 +23,8 @@ const faq = [
 ].map(([q, a]) => ({ q, a }));
 const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
-  { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
-  { n: '03', t: 'Scopri persone', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
-  { n: '04', t: 'Connettiti e parla', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
+  { n: '02', t: 'Scopri persone', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
+  { n: '03', t: 'Connettiti e parla', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
 ];
 // Illustrative example profiles from the design (not real members).
 const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
