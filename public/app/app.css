@@ -12,7 +12,7 @@ body { min-height: 100vh; }
 .sc-host { min-width: 0; }
 
 /* Real inputs rendered inside UI Input-styled boxes */
-.bare-input { border: none; background: transparent; outline: none; font: inherit; color: inherit; flex: 1; min-width: 0; width: 100%; padding: 0; }
+.bare-input { border: none; background: transparent; outline: none; font: inherit; color: inherit; flex: 1; min-width: 0; width: 100%; padding: 0; border-radius: 0; caret-color: #6C4DF5; }
 .bare-input::placeholder { color: #8C84AE; opacity: 1; transition: opacity .15s; }
 /* Hide the hint as soon as a field is focused, not only once typing starts */
 input:focus::placeholder, textarea:focus::placeholder { opacity: 0; }
@@ -20,7 +20,9 @@ input:focus::placeholder, textarea:focus::placeholder { opacity: 0; }
 
 /* Keyboard focus, matching design 00 "FOCUS" states */
 :focus { outline: none; }
-:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; border-radius: 999px; }
+:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
+/* Pill-shaped focus ring, except on text fields: rounding a field clips its caret and selection */
+:focus-visible:not(input, textarea, select) { border-radius: 999px; }
 [role="button"]:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
 [role="button"] { cursor: pointer; }
 [aria-disabled="true"] { cursor: not-allowed; }

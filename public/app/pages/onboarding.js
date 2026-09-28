@@ -65,6 +65,24 @@ export default class extends Page {
     this.__rerender();
   }
 
+  async componentDidMount() {
+    document.addEventListener('keydown', this.onKey);
+    await super.componentDidMount();
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this.onKey); }
+
+  // Enter moves on, like Continua, unless something focused uses Enter itself
+  onKey = e => {
+    if (e.key !== 'Enter' || e.defaultPrevented || e.isComposing || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest?.('textarea, button, a, select, [role=button], [role=radio], [role=checkbox], [role=option], [role=dialog]')) return;
+    const s = this.state;
+    if (!s.ready || s.edu || s.exp) return;
+    if (s.step === 'benvenuto') { if (s.legalOk) { e.preventDefault(); this.goTo(this.steps[0][0]); } return; }
+    if (!this.steps.some(([k]) => k === s.step)) return;
+    e.preventDefault();
+    this.next();
+  };
+
   get steps() { return STEPS.filter(([k]) => k !== 'lavoro' || this.state.j.looking_for_italian_job); }
 
   goTo(step) {

@@ -366,7 +366,11 @@ def('App Comune Picker', String.raw`
       hasChips: !single && sel.length > 0, field: this.props.field ?? 'comuni', full,
       shown: single && !this.state.editing ? (sel[0] ?? '') : q, placeholder, label: placeholder,
       canClear: single && sel.length > 0 && !this.state.editing, clearLabel: `Rimuovi ${sel[0] ?? ''}`,
-      clear: () => this.props.onChange?.([]),
+      clear: () => {
+        this.props.onChange?.([]);
+        const key = this.props.field ?? 'comuni';
+        setTimeout(() => document.querySelector(`[data-key="${key}"]`)?.focus()); // ready to type the new one
+      },
       open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length,
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
@@ -379,7 +383,7 @@ def('App Comune Picker', String.raw`
       keydown: e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ idx: Math.min(this.state.idx + 1, options.length - 1) }); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ idx: Math.max(this.state.idx - 1, 0) }); }
-        else if (e.key === 'Enter') { e.preventDefault(); if (options[this.state.idx]) this.add(options[this.state.idx].name); }
+        else if (e.key === 'Enter' && options[this.state.idx]) { e.preventDefault(); this.add(options[this.state.idx].name); }
         else if (e.key === 'Escape') this.setState({ open: false });
         else if (e.key === 'Backspace' && !single && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
       },
