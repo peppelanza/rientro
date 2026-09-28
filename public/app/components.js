@@ -137,19 +137,15 @@ def('App Admin Sidebar', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Onboarding Bar — from UI Onboarding Bar (+ variable total, "Salva ed esci" link)
+// App Onboarding Bar — from UI Onboarding Bar: logo and progress only (variable total)
 
 def('App Onboarding Bar', String.raw`
 <div class="r-pad" style="width:100%;box-sizing:border-box;padding:18px 24px 0;font-family:'Geist',sans-serif">
 <div style="border-radius:999px;background:{{ bg }};border:{{ bd }};padding:12px 24px 12px 26px;display:flex;flex-direction:column;gap:10px">
 <div style="display:flex;align-items:center;gap:18px">
 <a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="24" tone="{{ tone }}"></dc-import></a>
-<div style="flex:1"></div>
-<span class="r-hide-sm" style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:{{ muted }}">{{ section }}</span>
-<span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ fg }}">{{ label }}</span>
-<a href="{{ exitHref }}" style="font-size:13px;color:{{ muted }};text-decoration:underline;text-underline-offset:3px">Salva ed esci</a>
 </div>
-<div role="progressbar" aria-valuemin="1" aria-valuemax="{{ total }}" aria-valuenow="{{ step }}" aria-label="Avanzamento" style="display:grid;grid-template-columns:repeat({{ total }},1fr);gap:4px">
+<div role="progressbar" aria-valuemin="1" aria-valuemax="{{ total }}" aria-valuenow="{{ step }}" aria-valuetext="{{ label }}" aria-label="Avanzamento" style="display:grid;grid-template-columns:repeat({{ total }},1fr);gap:4px">
 <sc-for list="{{ segs }}" as="s"><div style="height:5px;border-radius:3px;background:{{ s.c }}"></div></sc-for>
 </div></div></div>`, class extends DCLogic {
   renderVals() {
@@ -158,9 +154,9 @@ def('App Onboarding Bar', String.raw`
     const dark = b(this.props.dark);
     const segs = Array.from({ length: total }, (_, i) => ({ c: i < step - 1 ? (dark ? '#C9C0F0' : '#1A1726') : i === step - 1 ? '#6C4DF5' : (dark ? '#3A3550' : '#DCD7EC') }));
     return {
-      segs, step, total, label: `${step} di ${total}`, section: this.props.section ?? 'Profilo', exitHref: this.props.exitHref ?? '/stato',
+      segs, step, total, label: `${step} di ${total}`,
       bg: dark ? '#2A2638' : 'rgba(255,255,255,.72)', bd: dark ? '1px solid #3A3550' : '1px solid #FFFFFF',
-      fg: dark ? '#FFFFFF' : '#1A1726', muted: dark ? '#B7B0D4' : '#6B6680', tone: dark ? 'light' : 'dark',
+      tone: dark ? 'light' : 'dark',
     };
   }
 });
