@@ -4,6 +4,7 @@
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
 import { loadCitta, loadPaesi } from '../places.js';
+import { canRecord, durationProblem, recordVideo, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -146,11 +147,14 @@ export default class extends Page {
     this.goTo(i > 0 ? keys[i - 1] : 'benvenuto');
   }
 
-  uploadFile(kind, file) {
+  async uploadFile(kind, file, { recorded = false } = {}) {
     if (!file) return;
     const s = this.state;
     const isVideo = kind === 'video';
     if (isVideo && file.size > 200 * 1024 * 1024) { toast('Il video supera i 200 MB. Carica un file più leggero.', { tone: 'err' }); return; }
+    // Recordings are already 10–30 s; for picked files check now instead of after the upload
+    const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
+    if (problem) { toast(problem, { tone: 'err' }); return; }
     if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
@@ -348,9 +352,10 @@ export default class extends Page {
 
       // 16a
       video: p.video_url, noVideo: !p.video_url && up?.kind !== 'video', videoUploading: up?.kind === 'video',
-      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? `${mb(up.loaded)} MB di ${mb(up.total)} MB${pct < 100 ? ` · ${secs} s` : ''}` : '',
+      upName: up?.name ?? '', upPct: `${pct}%`, upBar: `${pct}%`, upMeta: up ? (pct < 100 ? `${mb(up.loaded)} MB di ${mb(up.total)} MB · ${secs} s` : up.kind === 'video' ? 'Lo stiamo preparando, qualche secondo…' : '') : '',
       cancelUpload: () => upload.abort?.(),
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
+      canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); },
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; }),
       videoPrivate: p.video_connections_only, videoPrivBg: p.video_connections_only ? '#6C4DF5' : '#FFFFFF', videoPrivBd: p.video_connections_only ? 'none' : '1.5px solid #CFC8E8', videoPrivMark: p.video_connections_only ? '✓' : '',
       toggleVideoPrivate: e => this.set({ video_connections_only: e.target.checked }),

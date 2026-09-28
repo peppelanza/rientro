@@ -9,7 +9,7 @@ import * as auth from './auth.js';
 import { catalog } from './catalog.js';
 import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb } from './db.js';
-import { attachUpload, readFileFor, receiveUpload, removeVideo } from './files.js';
+import { attachUpload, processVideo, readFileFor, receiveUpload, removeVideo } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import * as profiles from './profiles.js';
@@ -239,7 +239,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('PATCH', '/api/me/experiences/:id', async ({ user, req, params }) => profiles.saveExperience(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/experiences/:id', ({ user, params }) => profiles.deleteRow(db, 'experiences', user.id, params.id));
   route('POST', '/api/me/photo', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo')); });
-  route('POST', '/api/me/video', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_video', await receiveUpload(req, 'profile_video')); });
+  route('POST', '/api/me/video', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_video', await processVideo(await receiveUpload(req, 'profile_video'))); });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
   route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 

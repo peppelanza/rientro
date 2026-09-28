@@ -1,3 +1,4 @@
+import { execFile } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,6 +12,7 @@ function sniff(buf) {
   if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
   if (buf.length > 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
   if (buf.length > 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  if (buf.length > 4 && buf.readUInt32BE(0) === 0x1a45dfa3) return 'video/webm'; // browser recordings (MediaRecorder)
   if (buf.length > 12 && buf.toString('ascii', 4, 8) === 'ftyp') return buf.toString('ascii', 8, 12) === 'qt  ' ? 'video/quicktime' : 'video/mp4';
   return null;
 }
@@ -55,13 +57,59 @@ export function receiveUpload(req, kind) {
         const mime = sniff(head);
         if (!size) return fail(new HttpError(400, 'empty_file'));
         if (!mime || !TYPES[kind].test(mime)) {
-          return fail(new HttpError(415, 'unsupported_type', kind === 'profile_video' ? 'Formato non supportato. Usa MP4 o MOV.' : 'Usa una foto JPG, PNG o WebP.'));
+          return fail(new HttpError(415, 'unsupported_type', kind === 'profile_video' ? 'Formato non supportato. Usa MP4, MOV o WebM.' : 'Usa una foto JPG, PNG o WebP.'));
         }
         resolve({ key, mime, size, sha256: hash.digest('hex') });
       });
     });
     req.on('error', fail);
   });
+}
+
+// Profile videos: 10 to 30 seconds, re-encoded to a light H.264/AAC MP4 (short side at most
+// 720 px, audio 96 kbps, faststart so playback begins before the download ends). Needs ffmpeg
+// and ffprobe (installed in the Docker image); without them the upload is kept as sent.
+export const VIDEO_MIN_SECONDS = 10;
+export const VIDEO_MAX_SECONDS = 30;
+const run = (cmd, args) => new Promise((resolve, reject) => {
+  execFile(cmd, args, { timeout: 180_000, maxBuffer: 1 << 20 }, (err, stdout) => (err ? reject(err) : resolve(stdout)));
+});
+let ffmpegOk;
+async function hasFfmpeg() {
+  if (ffmpegOk === undefined) ffmpegOk = await run('ffprobe', ['-version']).then(() => true, () => false);
+  if (!ffmpegOk) console.warn('ffmpeg/ffprobe not found: videos are stored without conversion or duration check');
+  return ffmpegOk;
+}
+
+export async function processVideo(upload) {
+  if (!(await hasFfmpeg())) return upload;
+  const src = diskPath(upload.key);
+  const key = crypto.randomBytes(24).toString('hex');
+  const out = diskPath(key);
+  const drop = () => { fs.rmSync(src, { force: true }); fs.rmSync(out, { force: true }); };
+  try {
+    await run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', src, '-t', String(VIDEO_MAX_SECONDS + 1),
+      '-vf', "scale='if(gt(iw,ih),-2,min(720,iw))':'if(gt(iw,ih),min(720,ih),-2)',fps=30",
+      '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-pix_fmt', 'yuv420p', '-profile:v', 'main',
+      '-c:a', 'aac', '-b:a', '96k', '-ac', '2', '-movflags', '+faststart', '-f', 'mp4', out]);
+  } catch {
+    drop();
+    throw new HttpError(415, 'unsupported_type', 'Non riusciamo a leggere questo video. Prova con un altro file o registralo qui.');
+  }
+  // Duration measured on the converted file: browser recordings often carry none in their header
+  const seconds = Number(await run('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out]).catch(() => ''));
+  if (!(seconds >= VIDEO_MIN_SECONDS - 0.5)) {
+    drop();
+    throw new HttpError(400, 'video_too_short', `Il video deve durare almeno ${VIDEO_MIN_SECONDS} secondi.`);
+  }
+  if (seconds > VIDEO_MAX_SECONDS + 0.5) {
+    drop();
+    throw new HttpError(400, 'video_too_long', `Il video può durare al massimo ${VIDEO_MAX_SECONDS} secondi.`);
+  }
+  fs.rmSync(src, { force: true });
+  fs.chmodSync(out, 0o600);
+  const buf = fs.readFileSync(out);
+  return { key, mime: 'video/mp4', size: buf.length, sha256: crypto.createHash('sha256').update(buf).digest('hex'), seconds };
 }
 
 const fileRow = (db, id) => (id ? db.prepare('SELECT * FROM files WHERE id = ?').get(id) : null);

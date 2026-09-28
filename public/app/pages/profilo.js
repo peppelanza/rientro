@@ -2,6 +2,7 @@
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { loadCitta, loadPaesi } from '../places.js';
+import { canRecord, durationProblem, recordVideo, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -68,11 +69,13 @@ export default class extends Page {
 
   cancel() { const s = this.state; s.p = structuredClone(s.me.profile); s.dirty = false; this.__rerender(); }
 
-  uploadFile(kind, file) {
+  async uploadFile(kind, file, { recorded = false } = {}) {
     if (!file) return;
     const s = this.state;
     const video = kind === 'video';
     if (file.size > (video ? 200 : 5) * 1024 * 1024) { toast(video ? 'Il video supera i 200 MB.' : 'La foto supera 5 MB.', { tone: 'err' }); return; }
+    const problem = video && !recorded && durationProblem(await videoDuration(file));
+    if (problem) { toast(problem, { tone: 'err' }); return; }
     s.up = { kind, loaded: 0, total: file.size, name: file.name };
     this.__rerender();
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
@@ -135,8 +138,9 @@ export default class extends Page {
       desired: p.desired_comuni, desiredProps: { onChange: l => this.set({ desired_comuni: l, desired_unknown: l.length ? false : p.desired_unknown }) },
       unknown: p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),
       // su di me
-      video: p.video_url, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`,
-      pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; }, cancelUpload: () => upload.abort?.(),
+      video: p.video_url, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`, upLabel: pct < 100 ? `${pct}%` : 'Preparazione…',
+      pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
+      canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); }, cancelUpload: () => upload.abort?.(),
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; toast('Video rimosso.'); }),
       videoOnly: p.video_connections_only, toggleVideoOnly: () => this.set({ video_connections_only: !p.video_connections_only }),
       // obiettivo
