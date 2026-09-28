@@ -257,7 +257,7 @@ def('App Select', String.raw`
 def('App City Jump', String.raw`
 <div class="city-jump">
 <label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
-<div class="cj-box">
+<div class="cj-box" onMouseDown="{{ boxDown }}">
 <input id="city-jump" data-key="city-jump" class="cj-input bare-input" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
 <sc-if value="{{ open }}"><div id="city-jump-list" role="listbox" aria-label="Città" class="cj-list">
@@ -289,6 +289,14 @@ def('App City Jump', String.raw`
       query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length,
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
       focus: () => { this.setState({ open: true }); this.load(); },
+      // The chevron and the rest of the pill open the list too (and close it when it's open)
+      boxDown: e => {
+        if (e.target.closest('.cj-list') || e.target.tagName === 'INPUT') return;
+        e.preventDefault();
+        const input = document.getElementById('city-jump');
+        if (document.activeElement === input) this.setState({ open: !this.state.open });
+        else input?.focus();
+      },
       blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
       keydown: e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ open: true, idx: Math.min(idx + 1, found.length - 1) }); }
