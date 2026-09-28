@@ -74,7 +74,9 @@ button { font: inherit; }
   .r-h1 { font-size: 34px !important; line-height: 1.02 !important; }
   .r-h1 .r-serif { font-size: 40px !important; }
   .r-hero { font-size: 46px !important; line-height: .98 !important; }
+  .r-hero.r-hero-long { font-size: 40px !important; line-height: 1 !important; }
   .r-hero .r-serif { font-size: 54px !important; }
+  .r-hero-long .r-serif { font-size: 46px !important; }
   .r-h2 { font-size: 30px !important; }
   .r-lede { font-size: 18px !important; }
   .r-gap-sm { gap: 16px !important; }
