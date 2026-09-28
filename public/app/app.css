@@ -142,3 +142,8 @@ button { font: inherit; }
 .toc-link { padding: 8px 14px; border-radius: 999px; text-decoration: none; color: #4A4560; transition: background .15s, color .15s; }
 .toc-link:hover { color: #1A1726; }
 .toc-link[aria-current="true"] { background: #FFFFFF; color: #1A1726; font-weight: 500; }
+
+/* Pre-launch countdown: pulsing "live" dot */
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #6C4DF5; animation: live-pulse 1.6s ease-out infinite; }
+@keyframes live-pulse { 0% { box-shadow: 0 0 0 0 rgba(108,77,245,.5); } 100% { box-shadow: 0 0 0 8px rgba(108,77,245,0); } }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }

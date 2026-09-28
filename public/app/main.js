@@ -7,7 +7,7 @@ import { template } from './lib.js';
 
 const ROUTES = [
   [/^\/$/, 'home'],
-  [/^\/prelancio$/, 'prelancio'],
+  [/^\/prelancio$/, 'home'], // old pre-launch address
   [/^\/rientro-dei-cervelli$/, 'cervelli'],
   [/^\/territori\/(?<luogo>[^/]+)$/, 'territori'],
   [/^\/accedi$/, 'accedi'],

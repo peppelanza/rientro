@@ -15,7 +15,7 @@ videos). `render.yaml` in the repo root describes everything; Render reads it au
    | `BASE_URL` | `https://rientro.onrender.com` for now (Render shows the exact address); later your domain, e.g. `https://rientro.it` |
    | `ADMIN_EMAILS` | your email. Signing in with it gives you the admin area |
    | `PREVIEW_PASSWORD` | a password to share with testers. Leave **empty** only when you go public |
-   | `LAUNCHED` | `1` to open discovery and connections now; empty keeps the pre-launch page until 1 Jan 2027 |
+   | `LAUNCHED` | `1` to open discovery and connections now; empty keeps them closed until 1 Jan 2027, and the homepage shows a live countdown instead of the example profiles |
    | `BREVO_API_KEY` | empty for the preview (the code is shown on screen, behind the password) |
    | `MAIL_FROM` | empty for the preview |
 
