@@ -269,8 +269,8 @@ def('App Segmented', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio (max 1: the pick sits in the field). Also used for
-// countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]),
+// App Comune Picker — design 7b/8a/27a: chips + search with ↑ ↓ and Invio (max 1: the pick replaces the field). Also used for
+// countries and foreign cities. Props: comuni (items: [name, sigla?, regione?, popolazione?]; the region shows, the sigla never does),
 // selected[], max, counts?, placeholder, noun ("comune"), freeText (accept typed text), onChange(list)
 
 // Accent-insensitive lowercase, with a map back to positions in the original string
@@ -290,17 +290,16 @@ def('App Comune Picker', String.raw`
 <sc-if value="{{ hasChips }}"><div style="display:flex;gap:6px;flex-wrap:wrap">
 <sc-for list="{{ chips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="selected" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
 </div></sc-if>
-<div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
+<sc-if value="{{ showField }}"><div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ shown }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
-<sc-if value="{{ canClear }}"><button type="button" aria-label="{{ clearLabel }}" onClick="{{ clear }}" style="border:none;background:#F1EFF8;color:#6B6680;width:26px;height:26px;border-radius:50%;flex:none;cursor:pointer;font-size:15px;line-height:1;padding:0">×</button></sc-if>
-</div>
+<input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+</div></sc-if>
 <sc-if value="{{ open }}"><div role="listbox" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
 <sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
 </div>`, class extends DCLogic {
-  state = { query: '', open: false, idx: 0, editing: false };
+  state = { query: '', open: false, idx: 0 };
   // Items starting with the query first, then items with a later word starting with it;
   // within each group the most populous first (or the list's own order).
   matchesFor(q) {
@@ -327,7 +326,6 @@ def('App Comune Picker', String.raw`
     if (sel.includes(name)) return;
     this.state.query = '';
     this.state.open = false;
-    this.state.editing = false;
     if (max === 1) this.props.onChange?.([name]); // a new pick replaces the old one
     else if (sel.length < max) this.props.onChange?.([...sel, name]);
   }
@@ -344,7 +342,7 @@ def('App Comune Picker', String.raw`
         const a = h.f.at[h.pos];
         const z = h.f.at[h.pos + h.len];
         const c = h.c;
-        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : [c[1], c[2]?.toUpperCase()].filter(Boolean).join(' · ') };
+        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : (c[2]?.toUpperCase() ?? '') };
       }),
       ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
     ];
@@ -354,34 +352,29 @@ def('App Comune Picker', String.raw`
     }));
     const full = max > 1 && sel.length >= max;
     const noun = this.props.noun ?? 'comune';
-    // Single choice works like a select: the pick sits inside the field and typing replaces it
+    // Single choice: once picked, the chip takes the field's place; removing it brings the field back
     const single = max === 1;
     const placeholder = full ? `Massimo ${max} ${noun === 'comune' ? 'comuni' : 'scelte'}` : (this.props.placeholder ?? `Cerca un ${noun}`);
     return {
-      chips: sel.map(l => ({ l, aria: `Rimuovi ${l}`, remove: () => this.props.onChange?.(sel.filter(x => x !== l)) })),
-      hasChips: !single && sel.length > 0, field: this.props.field ?? 'comuni', full,
-      shown: single && !this.state.editing ? (sel[0] ?? '') : q, placeholder, label: placeholder,
-      canClear: single && sel.length > 0 && !this.state.editing, clearLabel: `Rimuovi ${sel[0] ?? ''}`,
-      clear: () => {
-        this.props.onChange?.([]);
+      chips: sel.map(l => ({ l, aria: `Rimuovi ${l}`, remove: () => {
+        this.props.onChange?.(sel.filter(x => x !== l));
         const key = this.props.field ?? 'comuni';
-        setTimeout(() => document.querySelector(`[data-key="${key}"]`)?.focus()); // ready to type the new one
-      },
+        setTimeout(() => document.querySelector(`[data-key="${key}"]`)?.focus()); // ready to type the next one
+      } })),
+      hasChips: sel.length > 0, showField: !(single && sel.length), field: this.props.field ?? 'comuni', full, query: q,
+      placeholder, label: placeholder,
       open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length,
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
-      input: e => this.setState({ query: e.target.value, open: true, idx: 0, editing: true }),
-      focus: e => { if (single && !this.state.editing) e.target.select(); else if (this.state.query) this.setState({ open: true }); },
-      blur: () => setTimeout(() => {
-        if (single && this.state.editing) this.setState({ open: false, editing: false, query: '' }); // unfinished edit: keep the pick
-        else if (this.state.open) this.setState({ open: false });
-      }, 150),
+      input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
+      focus: () => { if (this.state.query) this.setState({ open: true }); },
+      blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
       keydown: e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ idx: Math.min(this.state.idx + 1, options.length - 1) }); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ idx: Math.max(this.state.idx - 1, 0) }); }
         else if (e.key === 'Enter' && options[this.state.idx]) { e.preventDefault(); this.add(options[this.state.idx].name); }
         else if (e.key === 'Escape') this.setState({ open: false });
-        else if (e.key === 'Backspace' && !single && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
+        else if (e.key === 'Backspace' && !this.state.query && sel.length) this.props.onChange?.(sel.slice(0, -1));
       },
     };
   }

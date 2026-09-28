@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { config, LEGAL_VERSIONS } from './config.js';
 import { PROCESSING_REGISTER } from './processing-register.js';
+import { OLD_IDEA_STAGES } from './catalog.js';
 
 const schemaPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'schema.sql');
 
@@ -30,8 +31,18 @@ export function openDb(file = config.dbPath) {
   }
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  migrateIdeaStages(db);
   seed(db);
   return db;
+}
+
+// Idea stages went from five to three; move stored and pending values over (idempotent)
+export function migrateIdeaStages(db) {
+  for (const [from, to] of Object.entries(OLD_IDEA_STAGES)) {
+    db.prepare('UPDATE profiles SET idea_stage = ? WHERE idea_stage = ?').run(to, from);
+    db.prepare(`UPDATE profiles SET pending_changes = json_set(pending_changes, '$.idea_stage', ?)
+      WHERE json_valid(pending_changes) AND json_extract(pending_changes, '$.idea_stage') = ?`).run(to, from);
+  }
 }
 
 function seed(db) {

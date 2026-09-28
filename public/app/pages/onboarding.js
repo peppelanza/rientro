@@ -273,7 +273,6 @@ export default class extends Page {
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: `Ti faremo ${steps.length} domande. Le risposte salvano da sole, puoi uscire e riprendere quando vuoi.`,
-      chapters: [['01', 'Luogo', 'Dove sei, dove vuoi andare'], ['02', 'Obiettivo', 'Hai un\'idea o la cerchi insieme'], ['03', 'Su di te', 'Percorso, formazione, un video'], ['04', 'Cosa cerchi', 'Settori, persone, tempo'], ['05', 'Ultimi dettagli', 'Link e un pensiero sull\'Italia']].map(([n, t, d]) => ({ n, t, d })),
       needsLegal: !s.legalOk, acceptLegal: this.acceptLegal,
       start: () => { if (s.legalOk) this.goTo(steps[0][0]); },
 
@@ -286,9 +285,13 @@ export default class extends Page {
       placeKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } },
       country: p.lives_in_country ?? '', city: p.lives_in_city ?? '', comuni: cat.comuni,
       paesi: (s.paesi || []).map(x => [x[1]]), countrySel: p.lives_in_country && p.lives_in === 'abroad' ? [p.lives_in_country] : [],
-      countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
+      countryPickerProps: { onChange: l => {
+        this.set({ lives_in_country: l[0] ?? '', lives_in_city: null });
+        this.loadCities();
+        if (l[0]) setTimeout(() => document.querySelector('[data-key="city"]')?.focus()); // straight on to the city
+      } },
       citta: (s.citta || []).map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
-      hasCountry: !!p.lives_in_country,
+      hasCountry: !!p.lives_in_country, noCity: !p.lives_in_city,
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 

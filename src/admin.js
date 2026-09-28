@@ -1,7 +1,7 @@
 // Internal moderation and analytics (design 44–50). Every read or write of a user's personal
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
-import { AGE_BANDS, COMUNI, SOURCES, START, TIME, label } from './catalog.js';
+import { AGE_BANDS, SOURCES, START, TIME, label } from './catalog.js';
 import { now, subjectRef, tx } from './db.js';
 import { cleanupReplacedPhoto } from './files.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
@@ -305,7 +305,6 @@ export function analytics(db, admin, query) {
   const accepted = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status = 'accepted'", from);
   const active = count('SELECT COUNT(*) AS n FROM users WHERE last_seen_at >= ?', from) || 1;
   const abroad = pct(users.filter(u => u.lives_in === 'abroad').length, users.filter(u => u.lives_in).length);
-  const sigla = Object.fromEntries(COMUNI.map(c => [c[0], c[1]]));
   const weeks = Array.from({ length: 13 }, (_, i) => {
     const a = since((13 - i) * 7);
     const b = since((12 - i) * 7);
@@ -323,7 +322,7 @@ export function analytics(db, admin, query) {
     abroad, italy: 100 - abroad,
     sign_in_methods: [{ l: 'Email', v: 100 }], // LinkedIn and Google are not connected yet
     sources: SOURCES.map(s => ({ l: s, v: share(users.filter(u => u.source), u => u.source === s) })),
-    top_comuni: topCounts(approved.flatMap(u => u.desired_comuni), 7).map(([n, v]) => ({ n, p: sigla[n] ?? '', v })),
+    top_comuni: topCounts(approved.flatMap(u => u.desired_comuni), 7).map(([n, v]) => ({ n, v })),
     distinct_comuni: new Set(approved.flatMap(u => u.desired_comuni)).size,
     unknown_pct: share(approved, u => u.desired_unknown === 1),
     composition: {
