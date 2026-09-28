@@ -1,7 +1,7 @@
 import { Page, homeFor, peekMe } from './_base.js';
 import { forWho, principles } from './home.js';
 
-export const title = 'Non tornare in Italia da solo · Apre il 1° gennaio 2027';
+export const title = 'Fai rete con chi torna · Apre il 1° gennaio 2027';
 
 // Content copied from the design logic (Rientro 01 Landing Pre-lancio v2).
 const steps = [

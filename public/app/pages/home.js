@@ -1,6 +1,6 @@
 import { Page, homeFor, peekMe } from './_base.js';
 
-export const title = 'Non tornare in Italia da solo';
+export const title = 'Fai rete con chi torna';
 
 // Before launch day "/" shows the pre-launch landing (design 01 Landing Pre-lancio).
 export async function resolve() {
