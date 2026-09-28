@@ -25,6 +25,18 @@ videos). `render.yaml` in the repo root describes everything; Render reads it au
 
 Cost: Starter plan (about $7/month) + 5 GB disk (about $1.25/month), Frankfurt region.
 
+## 1b. If you created a Docker web service instead of a Blueprint
+
+That works too (the repo has a `Dockerfile`). In the service settings:
+
+1. **Region**: Frankfurt. **Instance type**: Starter or higher (disks need a paid plan).
+2. **Disks → Add disk**: mount path `/var/data`, 5 GB. Without it, data is lost on every deploy.
+3. **Environment → Add variables**:
+   - `PSEUDONYM_SECRET`: a long random string (e.g. from a password manager). Never change it later.
+   - `BASE_URL`, `ADMIN_EMAILS`, `PREVIEW_PASSWORD`, `LAUNCHED`: as in the table above.
+4. **Health check path** (Settings): `/healthz`.
+5. **Manual Deploy → Deploy latest commit**.
+
 ## 2. Going public (before launch)
 
 1. **Email for sign-in codes.** Create a free account at <https://www.brevo.com> (EU; 300 emails/day free).
