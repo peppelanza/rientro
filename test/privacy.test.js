@@ -147,6 +147,17 @@ test('territory stats are aggregates with small counts suppressed', async () => 
   assert.ok(!JSON.stringify(r).includes('@x.it'));
 });
 
+test('territory pages answer to their slug in any case', async () => {
+  const get = async p => { const r = await fetch(`${t.base}/api/public/territory/${encodeURIComponent(p)}`); return r.ok ? (await r.json()) : r.status; };
+  for (const p of ['napoli', 'Napoli', 'NAPOLI']) assert.equal((await get(p)).name, 'Napoli');
+  assert.equal((await get('valle-d-aosta')).name, "Valle d'Aosta");
+  assert.equal((await get("Valle d'Aosta")).slug, 'valle-d-aosta');
+  assert.equal((await get('emilia-romagna')).kind, 'region');
+  assert.equal((await get('molise')).kind, 'region'); // also a comune: the region wins
+  assert.equal((await get('reggio-di-calabria')).name, 'Reggio di Calabria');
+  assert.equal(await get('atlantide'), 404);
+});
+
 test('login requests are rate limited', async () => {
   const s = await startApp({ loginLimits: { ip: 3, email: 3 } });
   const statuses = [];

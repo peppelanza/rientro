@@ -5,14 +5,17 @@ import { Page, homeFor, peekMe } from './_base.js';
 export const title = 'Rientro';
 
 const few = v => (v == null ? 'meno di 5' : v.toLocaleString('it-IT'));
-const slug = s => encodeURIComponent(s);
+// Same as photoSlug in src/public.js: "Valle d'Aosta" → valle-d-aosta
+const slug = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export default class extends Page {
   async load() {
     const place = decodeURIComponent(this.props.params.luogo);
-    const [me, t] = await Promise.all([peekMe(), fetch(`/api/public/territory/${slug(place)}`).then(r => (r.ok ? r.json() : null))]);
+    const [me, t] = await Promise.all([peekMe(), fetch(`/api/public/territory/${encodeURIComponent(place)}`).then(r => (r.ok ? r.json() : null))]);
     Object.assign(this.state, { me, t, place });
     if (t) {
+      // One address per territory: /territori/Napoli and /territori/NAPOLI become /territori/napoli
+      if (place !== t.slug) history.replaceState(history.state, '', `/territori/${t.slug}${location.search}${location.hash}`);
       document.title = `Tornare ${t.prep} ${t.name}, con qualcuno · Rientro`;
       document.querySelector('meta[name=description]')?.setAttribute('content', `Chi vive all'estero e vuole tornare ${t.prep} ${t.name} è già su Rientro. Trova le persone con cui costruire un'azienda o un progetto.`);
     }

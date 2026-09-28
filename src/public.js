@@ -19,7 +19,17 @@ function photoFor(name) {
 
 const regionOf = Object.fromEntries(COMUNI.map(c => [c[0], c[2]]));
 
-export function territory(db, place) {
+// URL → territory name: exact name ("Napoli", "Valle d'Aosta") or its slug ("napoli", "valle-d-aosta"),
+// any case. On a slug shared by two comuni the region wins, then the most populous comune.
+const bySlug = new Map();
+for (const name of [...REGIONS, ...[...COMUNI].sort((a, b) => b[3] - a[3]).map(c => c[0])]) {
+  if (!bySlug.has(photoSlug(name))) bySlug.set(photoSlug(name), name);
+}
+export const resolveTerritory = raw => bySlug.get(photoSlug(raw)) ?? null;
+
+export function territory(db, raw) {
+  const place = resolveTerritory(raw);
+  if (!place) return null;
   const isRegion = REGIONS.includes(place);
   const isCity = !isRegion && COMUNI.some(c => c[0] === place);
   if (!isRegion && !isCity) return null;
@@ -38,6 +48,7 @@ export function territory(db, place) {
   const withIdea = wants.filter(p => p.primary_intent === 'has_idea').length;
   return {
     name: place,
+    slug: photoSlug(place),
     kind: isRegion ? 'region' : 'city',
     region: isCity ? regionOf[place] ?? null : null,
     prep: isRegion ? 'in' : 'a',
