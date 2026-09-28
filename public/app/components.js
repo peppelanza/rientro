@@ -250,8 +250,8 @@ def('App Select', String.raw`
 });
 
 // ---------------------------------------------------------------------------------------------
-// App Site Header — the public pages' header (home, Rientro dei cervelli): logo, the same menu in
-// the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli'),
+// App Site Header — the public pages' header (home, Rientro dei cervelli, territori): logo, the same
+// menu in the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli' | 'territori'),
 // onEnter(). Home sections are linked as /#section from the other pages.
 
 def('App Site Header', String.raw`
