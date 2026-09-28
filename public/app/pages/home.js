@@ -13,7 +13,7 @@ const faq = [
   ['Perché Rientro?', 'Perché tornare è più facile se non lo fai da solo. Su Rientro conosci persone che stanno facendo il tuo stesso percorso e con cui fondare un’azienda o un progetto, in Italia o al Sud.'],
   ['Quanto costa?', 'Niente. Rientro è gratuito.'],
   ['A chi è rivolto?', 'A chi sta tornando, a chi ci sta pensando e a chi è già tornato. Anche a chi non è italiano ma ha scelto l’Italia.'],
-  ['Devo avere già un’idea?', 'No. Puoi avere un’idea e cercare un socio, oppure non averla ancora e cercare qualcuno con cui trovarla.'],
+  ['Devo avere già un’idea?', 'No. Puoi avere un’idea e cercare un socio, non averla ancora e cercare qualcuno con cui trovarla, oppure semplicemente conoscere chi rientra come te e fare rete.'],
   ['Come trovo le persone?', 'Nella sezione Scopri filtri per città, settori, competenze e tempo a disposizione. Nessun punteggio: vedi le persone, non percentuali.'],
   ['Come funzionano i messaggi?', 'Invii una richiesta di connessione con una nota. La chat si apre solo se l’altra persona accetta.'],
   ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
