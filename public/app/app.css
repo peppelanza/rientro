@@ -137,3 +137,8 @@ button { font: inherit; }
   .place-text { padding: 14px 20px 20px; }
   .place-title { font-size: 18px; }
 }
+
+/* Guide table of contents: the link of the section being read is highlighted */
+.toc-link { padding: 8px 14px; border-radius: 999px; text-decoration: none; color: #4A4560; transition: background .15s, color .15s; }
+.toc-link:hover { color: #1A1726; }
+.toc-link[aria-current="true"] { background: #FFFFFF; color: #1A1726; font-weight: 500; }
