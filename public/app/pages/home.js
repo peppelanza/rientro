@@ -62,6 +62,7 @@ export default class extends Page {
       launchText: prelaunch ? 'Apre il ' + new Date(this.state.launchAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ') : '',
       countdownLabel: 'Tempo che manca al lancio',
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
+      headerProps: { onEnter: () => { location.href = me ? homeFor(me) : '/accedi'; } },
       enterLink: e => { e.preventDefault(); location.href = me ? homeFor(me) : '/accedi'; },
       how: () => document.getElementById('come-funziona')?.scrollIntoView(),
     };

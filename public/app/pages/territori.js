@@ -55,7 +55,7 @@ export default class extends Page {
       ],
       closing: t.count == null ? 'Le prime persone ti aspettano' : `${t.count.toLocaleString('it-IT')} persone ti aspettano`,
       otherRegions, otherCities, enterHref,
-      enter: () => { location.href = enterHref; }, how: () => document.getElementById('come-funziona')?.scrollIntoView(),
+      enter: () => { location.href = enterHref; }, headerProps: { onEnter: () => { location.href = enterHref; } }, how: () => document.getElementById('come-funziona')?.scrollIntoView(),
       year: new Date().getFullYear(),
     };
   }

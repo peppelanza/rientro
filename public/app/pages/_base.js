@@ -13,6 +13,8 @@ export class Page extends DCLogic {
     }
     this.state.ready = true;
     this.__rerender();
+    // Links like /#domande: the section only exists once the page has rendered its content
+    if (location.hash.length > 1) setTimeout(() => document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView());
   }
   // Wraps an async action: disables re-entry, shows errors as toasts, re-renders at the end.
   act(fn) {
