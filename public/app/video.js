@@ -29,6 +29,12 @@ export function setPreview(state, file) {
   state.videoPreview = file ? URL.createObjectURL(file) : null;
 }
 
+// The member keeps the current video: the server converts it in the background. keepalive lets
+// the request finish when it is sent while the page is closing.
+export function confirmVideo() {
+  fetch('/api/me/video/confirm', { method: 'POST', keepalive: true, headers: { 'x-requested-with': 'rientro' } }).catch(() => {});
+}
+
 // Message for a length outside 15–60 seconds (half a second of tolerance), else null
 export function durationProblem(seconds) {
   if (seconds === null) return null;
@@ -92,6 +98,7 @@ export function recordVideo() {
       clearInterval(tick);
       if (recorder?.state === 'recording') recorder.stop();
       stream?.getTracks().forEach(t => t.stop());
+      review.pause();
       if (review.src) URL.revokeObjectURL(review.src);
       overlay.remove();
       document.removeEventListener('keydown', onKey);
@@ -150,7 +157,15 @@ export function recordVideo() {
       else if (mode === 'recording') stop();
       else close(take);
     };
-    retake.onclick = () => { if (review.src) URL.revokeObjectURL(review.src); review.removeAttribute('src'); showLive(); main.focus(); };
+    // Rifai: stop the take that may be playing and throw it away
+    const dropTake = () => {
+      review.pause();
+      if (review.src) URL.revokeObjectURL(review.src);
+      review.removeAttribute('src');
+      review.load();
+      take = null; chunks = [];
+    };
+    retake.onclick = () => { dropTake(); showLive(); main.focus(); };
 
     main.disabled = true;
     status.textContent = 'Attiviamo la fotocamera…';

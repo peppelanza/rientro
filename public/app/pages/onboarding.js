@@ -4,7 +4,7 @@
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
 import { loadCitta, loadPaesi } from '../places.js';
-import { canRecord, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -136,6 +136,8 @@ export default class extends Page {
         // "Salta" keeps what was already saved but doesn't send half-typed answers
         await api('PATCH', '/api/me/profile', { onboarding_step: nextStep });
       } else await this.save(s.step, nextStep);
+      // Leaving the video step with a video: that's the take, the server converts it now
+      if (s.step === 'video' && s.p.video_url) confirmVideo();
       s.edu = null; s.exp = null;
       this.goTo(nextStep);
     })();

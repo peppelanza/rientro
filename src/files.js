@@ -67,15 +67,17 @@ export function receiveUpload(req, kind) {
 }
 
 // Profile videos: 15 to 60 seconds. The length is checked as soon as the upload lands (ffprobe
-// reads it in a moment) and the original is served right away; a background queue then
-// re-encodes it to a light H.264/AAC MP4 (short side at most 720 px, audio 96 kbps, faststart)
-// and deletes the original. Converted files get a ".mp4" storage key, so originals left by a
-// restart are found and converted at startup. Needs ffmpeg and ffprobe (installed in the Docker
-// image); without them the upload is kept as sent.
+// reads it in a moment) and the original is served as sent. Once the member confirms it
+// (Continua in onboarding, leaving the profile page) a background queue re-encodes it to a light
+// H.264/AAC MP4 (short side at most 720 px, audio 96 kbps, faststart) and deletes the original.
+// Removing or replacing the video cancels its conversion. Converted files get a ".mp4" storage
+// key, so originals never confirmed (tab closed, restart) are found and converted by a periodic
+// sweep. Needs ffmpeg and ffprobe (installed in the Docker image); without them the upload is
+// kept as sent.
 export const VIDEO_MIN_SECONDS = 15;
 export const VIDEO_MAX_SECONDS = 60;
-const run = (cmd, args, { timeout = 60_000, maxBuffer = 1 << 20 } = {}) => new Promise((resolve, reject) => {
-  execFile(cmd, args, { timeout, maxBuffer }, (err, stdout) => (err ? reject(err) : resolve(stdout)));
+const run = (cmd, args, { timeout = 60_000, maxBuffer = 1 << 20, signal } = {}) => new Promise((resolve, reject) => {
+  execFile(cmd, args, { timeout, maxBuffer, signal }, (err, stdout) => (err ? reject(err) : resolve(stdout)));
 });
 let ffmpegOk;
 async function hasFfmpeg() {
@@ -111,16 +113,29 @@ export async function checkVideo(upload) {
 // One conversion at a time, so a burst of uploads can't starve the web server of CPU
 const queue = [];
 let running = null;
+let current = null; // { id, stop: AbortController }
 export function convertVideoLater(db, fileId) {
+  if (!fileId || queue.includes(fileId) || current?.id === fileId) return;
   queue.push(fileId);
   if (!running) running = drain(db).finally(() => { running = null; });
 }
 async function drain(db) {
-  while (queue.length) await convertVideo(db, queue.shift()).catch(err => console.error('video conversion failed', err.message));
+  while (queue.length) {
+    current = { id: queue.shift(), stop: new AbortController() };
+    await convertVideo(db, current.id, current.stop.signal)
+      .catch(err => { if (!current.stop.signal.aborted) console.error('video conversion failed', err.message); });
+    current = null;
+  }
+}
+// The video was removed or replaced: forget it, and stop ffmpeg if it is on it right now
+function cancelConversion(fileId) {
+  const i = queue.indexOf(fileId);
+  if (i >= 0) queue.splice(i, 1);
+  if (current?.id === fileId) current.stop.abort();
 }
 export const videosConverted = () => running ?? Promise.resolve(); // for tests
 
-async function convertVideo(db, fileId) {
+async function convertVideo(db, fileId, signal) {
   if (!(await hasFfmpeg())) return;
   const f = fileRow(db, fileId);
   if (!f || f.storage_key.endsWith('.mp4')) return;
@@ -130,7 +145,7 @@ async function convertVideo(db, fileId) {
     await run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', diskPath(f.storage_key), '-t', String(VIDEO_MAX_SECONDS + 1),
       '-vf', "scale='if(gt(iw,ih),-2,min(720,iw))':'if(gt(iw,ih),min(720,ih),-2)',fps=30",
       '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '28', '-pix_fmt', 'yuv420p', '-profile:v', 'main',
-      '-c:a', 'aac', '-b:a', '96k', '-ac', '2', '-movflags', '+faststart', '-f', 'mp4', out], { timeout: 900_000 });
+      '-c:a', 'aac', '-b:a', '96k', '-ac', '2', '-movflags', '+faststart', '-f', 'mp4', out], { timeout: 900_000, signal });
   } catch (err) {
     fs.rmSync(out, { force: true });
     throw err; // the original stays and is still served
@@ -143,9 +158,17 @@ async function convertVideo(db, fileId) {
   fs.rmSync(swapped ? diskPath(f.storage_key) : out, { force: true });
 }
 
-// At startup: convert originals a restart left behind
-export function resumeVideoConversions(db) {
-  for (const { id } of db.prepare("SELECT id FROM files WHERE kind = 'profile_video' AND storage_key NOT LIKE '%.mp4'").all()) convertVideoLater(db, id);
+// Originals never confirmed (tab closed mid-onboarding, restart): convert them once they are
+// older than olderThanMs, so nobody still choosing a take gets it converted under them
+export function sweepVideoConversions(db, olderThanMs = 30 * 60_000) {
+  const before = new Date(Date.now() - olderThanMs).toISOString();
+  for (const { id } of db.prepare("SELECT id FROM files WHERE kind = 'profile_video' AND storage_key NOT LIKE '%.mp4' AND created_at <= ?").all(before)) {
+    convertVideoLater(db, id);
+  }
+}
+
+export function confirmVideo(db, userId) {
+  convertVideoLater(db, rawProfile(db, userId).video_file_id);
 }
 
 const fileRow = (db, id) => (id ? db.prepare('SELECT * FROM files WHERE id = ?').get(id) : null);
@@ -174,7 +197,7 @@ export function attachUpload(db, user, kind, upload) {
       db.prepare(`UPDATE profiles SET ${column} = ?, updated_at = ? WHERE user_id = ?`).run(id, now(), user.id);
     }
   });
-  if (replaced && replaced !== id) removeFile(db, replaced);
+  if (replaced && replaced !== id) { cancelConversion(replaced); removeFile(db, replaced); }
   return { id, url: `/api/files/${id}`, pending_review: reviewed };
 }
 
@@ -182,6 +205,7 @@ export function removeVideo(db, userId) {
   const p = rawProfile(db, userId);
   if (!p.video_file_id) return;
   db.prepare('UPDATE profiles SET video_file_id = NULL, updated_at = ? WHERE user_id = ?').run(now(), userId);
+  cancelConversion(p.video_file_id);
   removeFile(db, p.video_file_id);
 }
 

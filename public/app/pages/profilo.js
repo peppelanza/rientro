@@ -2,7 +2,7 @@
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { loadCitta, loadPaesi } from '../places.js';
-import { canRecord, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -23,7 +23,16 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 
 export default class extends Page {
-  componentWillUnmount() { super.componentWillUnmount?.(); setPreview(this.state, null); }
+  // A video uploaded here is confirmed when the member leaves the page (or closes the tab)
+  componentDidMount() { super.componentDidMount?.(); addEventListener('pagehide', this.confirmNewVideo); }
+  componentWillUnmount() {
+    super.componentWillUnmount?.();
+    removeEventListener('pagehide', this.confirmNewVideo);
+    this.confirmNewVideo();
+    setPreview(this.state, null);
+  }
+  confirmNewVideo = () => { if (this.state.newVideo) { this.state.newVideo = false; confirmVideo(); } };
+
 
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
@@ -82,7 +91,7 @@ export default class extends Page {
     this.__rerender();
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
       .then(r => {
-        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); } else { s.me.profile.photo_url = r.url; s.p.photo_url = r.url; }
+        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); s.newVideo = true; } else { s.me.profile.photo_url = r.url; s.p.photo_url = r.url; }
         toast(r.pending_review ? 'Foto caricata. Sarà online dopo la revisione.' : video ? 'Video caricato.' : 'Foto aggiornata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
@@ -143,7 +152,7 @@ export default class extends Page {
       video: p.video_url ? s.videoPreview || p.video_url : null, noVideo: !p.video_url && s.up?.kind !== 'video', videoUploading: s.up?.kind === 'video', upPct: `${pct}%`, upLabel: `${pct}%`,
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
       canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); }, cancelUpload: () => upload.abort?.(),
-      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; setPreview(s, null); toast('Video rimosso.'); }),
+      removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; setPreview(s, null); s.newVideo = false; toast('Video rimosso.'); }),
       videoOnly: p.video_connections_only, toggleVideoOnly: () => this.set({ video_connections_only: !p.video_connections_only }),
       // obiettivo
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),

@@ -9,7 +9,7 @@ import * as auth from './auth.js';
 import { catalog } from './catalog.js';
 import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb } from './db.js';
-import { attachUpload, checkVideo, convertVideoLater, readFileFor, receiveUpload, removeVideo, resumeVideoConversions } from './files.js';
+import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import * as profiles from './profiles.js';
@@ -241,10 +241,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/photo', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo')); });
   route('POST', '/api/me/video', async ({ user, req }) => {
     legal(user);
-    const r = attachUpload(db, user, 'profile_video', await checkVideo(await receiveUpload(req, 'profile_video')));
-    convertVideoLater(db, r.id); // served as uploaded until the light MP4 is ready
-    return r;
+    return attachUpload(db, user, 'profile_video', await checkVideo(await receiveUpload(req, 'profile_video')));
   });
+  // The member keeps this take (Continua, or leaves the profile page): convert it in the background
+  route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
   route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 
@@ -420,5 +420,7 @@ async function sendWithBrevo(email, code) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { db, server } = createApp();
   server.listen(config.port, '0.0.0.0', () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
-  resumeVideoConversions(db);
+  // Videos never confirmed: converted once they are half an hour old
+  sweepVideoConversions(db);
+  setInterval(() => sweepVideoConversions(db), 10 * 60_000).unref();
 }
