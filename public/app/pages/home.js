@@ -6,7 +6,7 @@ export const title = 'Rientra in Italia o al Sud e trova persone con cui costrui
 export const forWho = [
   { torna: true, t: 'Chi sta tornando', d: "Anni all'estero, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
   { pensa: true, t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' },
-  { tornato: true, t: 'Chi è già tornato', d: 'Sei rientrato da poco o da anni. Cerchi persone con un percorso come il tuo con cui costruire qualcosa qui.' },
+  { tornato: true, t: 'Chi è già tornato', d: 'Sei rientrato da poco e cerchi persone con un percorso come il tuo con cui costruire qualcosa nella tua città.' },
 ];
 // Homepage questions and answers (#domande), collapsed by default
 const faq = [
