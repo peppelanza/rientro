@@ -14,8 +14,22 @@
 </sc-for>
 </div></sc-if>
 <section class="r-grid-1" style="margin:0 var(--gutter);padding:72px var(--card-pad);border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px 1fr;gap:48px">
-<dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
-<p class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Una community <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.02em;color:#6C4DF5;font-size:1.18em">gratuita</span> per chi torna in Italia, o al Sud. Incontra persone ambiziose con cui fare rete o costruire un progetto insieme.</p>
+<div class="about-side"><dc-import name="UI Eyebrow" text="Cos'è Rientro"></dc-import>
+<svg class="about-art" viewBox="0 0 260 190" aria-hidden="true">
+<defs><linearGradient id="about-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E6E0FF"/><stop offset="1" stop-color="#8E7FE0"/></linearGradient></defs>
+<g class="about-links" fill="none" stroke="#D9D2FA" stroke-width="2" stroke-dasharray="4 6" stroke-linecap="round">
+<path d="M130 95 L38 44"/><path d="M130 95 L128 22"/><path d="M130 95 L226 52"/><path d="M130 95 L52 150"/><path d="M130 95 L178 166"/><path d="M130 95 L238 140"/><path d="M38 44 L128 22"/><path d="M178 166 L238 140"/>
+</g>
+<circle class="about-packet p1" r="4" fill="#6C4DF5"/><circle class="about-packet p2" r="4" fill="#6C4DF5"/><circle class="about-packet p3" r="4" fill="#6C4DF5"/>
+<g class="about-nodes" stroke="#FFFFFF" stroke-width="3">
+<circle class="n n1" cx="38" cy="44" r="13" fill="url(#about-g)"/><circle class="n n2" cx="128" cy="22" r="10" fill="url(#about-g)"/><circle class="n n3" cx="226" cy="52" r="14" fill="url(#about-g)"/>
+<circle class="n n4" cx="52" cy="150" r="11" fill="url(#about-g)"/><circle class="n n5" cx="178" cy="166" r="13" fill="url(#about-g)"/><circle class="n n6" cx="238" cy="140" r="9" fill="url(#about-g)"/>
+</g>
+<circle class="about-ripple" cx="130" cy="95" r="22" fill="none" stroke="#6C4DF5" stroke-width="2"/>
+<circle cx="130" cy="95" r="22" fill="#6C4DF5" stroke="#FFFFFF" stroke-width="4"/>
+<circle cx="130" cy="95" r="5" fill="#FFFFFF"/>
+</svg></div>
+<p class="r-h2 about-text" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.2;letter-spacing:-.04em;font-weight:500;max-width:880px;text-wrap:pretty">Una community <span class="r-serif about-mark" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.02em;color:#6C4DF5;font-size:1.18em">gratuita</span> per chi torna in Italia, o al Sud. Incontra persone ambiziose con cui fare rete o costruire un progetto insieme.</p>
 </section>
 <section class="r-grid-1" style="padding:var(--section-gap) var(--gutter);display:grid;grid-template-columns:240px repeat(3,minmax(0,1fr));gap:16px">
 <dc-import name="UI Eyebrow" text="Tre modi di iniziare"></dc-import>
