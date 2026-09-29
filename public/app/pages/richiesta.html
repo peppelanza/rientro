@@ -3,7 +3,7 @@
 <dc-import name="App Nav" active="connessioni" me="{{ me }}"></dc-import>
 <sc-if value="{{ gone }}"><main style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:96px 20px;text-align:center"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.03em">Richiesta non più disponibile.</h1><a href="/connessioni" style="font-size:14px">← Connessioni</a></main></sc-if>
 
-<sc-if value="{{ pending }}"><main class="r-grid-1 r-pad-lg" style="padding:48px 56px 56px;display:grid;grid-template-columns:1fr 360px;gap:48px;max-width:1100px;box-sizing:border-box;margin:0 auto">
+<sc-if value="{{ pending }}"><main class="r-grid-1" style="padding:48px var(--gutter) 56px;display:grid;grid-template-columns:1fr 360px;gap:48px;box-sizing:border-box">
 <div style="display:flex;flex-direction:column;gap:22px">
 <dc-import name="UI Eyebrow" text="{{ eyebrow }}" tone="accent"></dc-import>
 <h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:42px;line-height:1.08;font-weight:600;letter-spacing:-.055em">{{ heading }}</h1>

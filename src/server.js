@@ -61,6 +61,19 @@ function previewAllowed(req) {
   return crypto.timingSafeEqual(a, b);
 }
 
+// What stays open while the preview password is on: the public pages (not sign-in), their
+// static files and the public, read-only APIs. Sign-in, the member area, admin and every
+// other API still ask for the password, since without an email provider the sign-in code is
+// shown on the page and anyone could otherwise sign in as anyone.
+const OPEN_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/legal\/(privacy|termini|cookie)$/];
+const OPEN_APIS = [/^\/api\/public\//, /^\/api\/catalog$/, /^\/api\/session$/];
+const PAGE_ROUTES = () => [...PUBLIC_PAGES, ...MEMBER_PAGES, ...ADMIN_PAGES];
+function openDuringPreview(p) {
+  if (p.startsWith('/api/')) return OPEN_APIS.some(re => re.test(p));
+  if (OPEN_PAGES.some(re => re.test(p))) return true;
+  return !PAGE_ROUTES().some(re => re.test(p)) && !p.startsWith('/design'); // static files
+}
+
 // The sign-in code is returned to the page in development, and in a password-protected preview
 // when no email provider is configured.
 const showCodeOnPage = () => !config.production || (!!config.previewPassword && !config.brevoApiKey);
@@ -340,7 +353,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     try {
       // Health check for the host (no data, never behind the preview password)
       if (p === '/healthz') { send(res, 200, { ok: true }); return; }
-      if (config.previewPassword && !previewAllowed(req)) {
+      if (config.previewPassword && !openDuringPreview(p) && !previewAllowed(req)) {
         res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Rientro anteprima", charset="UTF-8"', 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end('Anteprima riservata. Chiedi la password al team Rientro.');
         return;

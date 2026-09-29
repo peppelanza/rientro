@@ -4,7 +4,7 @@
 <sc-if value="{{ isWelcome }}">
 <div style="min-height:100vh;background:#E9E6F5;display:flex;flex-direction:column">
 <dc-import name="App Onboarding Bar" step="0" total="{{ total }}"></dc-import>
-<main class="r-pad-lg" style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px 40px 80px">
+<main style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px var(--gutter) 80px">
 <div style="width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px"><dc-import name="UI Eyebrow" text="{{ welcomeName }}"></dc-import><h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Costruiamo il profilo&nbsp;che<br><span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:60px;letter-spacing:-.02em">ti presenta.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#4A4560;max-width:500px">{{ questions }}</p>
 <sc-if value="{{ needsLegal }}"><div role="alert" style="max-width:500px;border-radius:22px;background:#FFFFFF;padding:16px 18px;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.5;color:#4A4560">Abbiamo aggiornato i <a href="/legal/termini" style="color:#1A1726">Termini</a> e la <a href="/legal/privacy" style="color:#1A1726">Privacy Policy</a>. Per continuare, confermali.<div><dc-import name="UI Button" label="Ho letto e accetto" size="sm" on-click="{{ acceptLegal }}"></dc-import></div></div></sc-if>
 <dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" on-click="{{ start }}" host-aria-disabled="{{ needsLegal }}"></dc-import></div>
@@ -14,7 +14,7 @@
 <sc-if value="{{ inSteps }}">
 <div style="min-height:100vh;background:{{ pageBg }};color:{{ pageFg }};display:flex;flex-direction:column">
 <dc-import name="App Onboarding Bar" step="{{ stepN }}" total="{{ total }}" dark="{{ dark }}"></dc-import>
-<main class="r-pad-lg" style="flex:1;display:flex;justify-content:center;padding:44px 40px 24px">
+<main style="flex:1;display:flex;justify-content:center;padding:44px var(--gutter) 24px">
 
 <sc-if value="{{ is_luogo }}"><div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:26px">
 <h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivi attualmente?</h2>
@@ -220,13 +220,13 @@
 <div style="min-height:100vh;background:#E9E6F5">
 <div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedranno gli altri membri. Instagram, X e calendario restano nascosti fino all'accettazione.</span><div style="flex:1"></div><button type="button" onClick="{{ backToQuestions }}" style="border:none;background:none;padding:0;font:inherit;color:#C9C0F0;cursor:pointer">Torna alle domande</button><dc-import name="UI Button" label="Invia per la revisione" variant="light" size="sm" on-click="{{ submit }}" host-aria-disabled="{{ pvMissing }}"></dc-import></div>
 <sc-if value="{{ pvMissing }}"><div role="alert" style="margin:12px var(--gutter) 0;border-radius:20px;background:#FDE8E8;color:#912018;padding:12px 18px;font-size:14px">Prima di inviare, completa: {{ pvMissing }}.</div></sc-if>
-<div class="r-grid-1 r-pad-lg" style="padding:40px 56px 56px;display:grid;grid-template-columns:340px 1fr;gap:48px">
+<div class="r-grid-1" style="padding:40px var(--gutter) 56px;display:grid;grid-template-columns:340px 1fr;gap:48px">
 <div style="display:flex;flex-direction:column;gap:16px">
 <dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ pvName }}"></dc-import>
 <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.045em">{{ pvName }}</span><span style="font-size:15px;color:#6B6680">{{ pvRole }}</span></div>
 <div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:22px;padding:4px 18px;font-size:14px"><sc-for list="{{ pvFacts }}" as="f"><div style="display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:{{ f.bt }}"><span style="color:#8C84AE">{{ f.k }}</span><span style="text-align:right">{{ f.v }}</span></div></sc-for></div>
 </div>
-<div class="r-pad-lg" style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px 32px 28px;display:flex;flex-direction:column;align-self:start;min-width:0">
+<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px var(--card-pad) 28px;display:flex;flex-direction:column;align-self:start;min-width:0">
 <div style="display:flex;flex-direction:column;gap:10px;padding:24px 0;border-bottom:1px solid #ECE8F7"><div style="display:flex;justify-content:space-between"><dc-import name="UI Eyebrow" text="Su di me"></dc-import><button type="button" onClick="{{ editBio }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Modifica</button></div><p style="margin:0;font-size:20px;line-height:1.5;text-wrap:pretty;white-space:pre-line">{{ pvBio }}</p></div>
 <sc-if value="{{ pvIdeaTitle }}"><div style="display:flex;flex-direction:column;gap:12px;padding:24px 0;border-bottom:1px solid #ECE8F7"><div style="display:flex;justify-content:space-between"><dc-import name="UI Eyebrow" text="{{ pvIdeaEyebrow }}" tone="accent"></dc-import><button type="button" onClick="{{ editIdea }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Modifica</button></div><span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:500;letter-spacing:-.03em">{{ pvIdeaTitle }}</span><span style="font-size:15px;line-height:1.55;color:#4A4560;white-space:pre-line">{{ pvIdeaDesc }}</span><sc-if value="{{ pvStage }}"><div><dc-import name="UI Badge" kind="neutral" label="{{ pvStage }}"></dc-import></div></sc-if></div></sc-if>
 <div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:24px 0">

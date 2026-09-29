@@ -9,7 +9,7 @@
 <sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
 </div></div>
 
-<div class="r-grid-1 r-pad" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px 24px 0">
+<div class="r-grid-1" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px var(--gutter) 0">
 <aside aria-label="Filtri" class="{{ filterClass }}" style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
 <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Azzera</button></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vuole vivere"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" dc-props="{{ desiredProps }}"></dc-import>

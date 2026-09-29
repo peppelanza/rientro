@@ -11,7 +11,7 @@ const b = v => v === true || v === 'true';
 // App Nav — from UI Nav (+ links, live counts, search, avatar menu)
 
 def('App Nav', String.raw`
-<div class="r-pad" style="width:100%;padding:18px 24px 0;box-sizing:border-box;font-family:'Geist',sans-serif;position:relative;z-index:20">
+<div style="width:100%;padding:18px var(--gutter) 0;box-sizing:border-box;font-family:'Geist',sans-serif;position:relative;z-index:20">
 <div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);box-sizing:border-box;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:#1A1726">
 <a href="{{ home }}" aria-label="Rientro, home" style="display:flex;align-items:baseline;gap:3px;font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;line-height:1;margin-right:22px;color:#1A1726;text-decoration:none">Rientro<span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5;display:inline-block"></span></a>
 <sc-for list="{{ items }}" as="it">
@@ -22,7 +22,7 @@ def('App Nav', String.raw`
 <sc-if value="{{ showSearch }}"><form role="search" onSubmit="{{ search }}" class="r-hide-sm" style="width:280px;height:44px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-sizing:border-box;font-size:13px;font-weight:400;color:#8C84AE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input name="q" value="{{ q }}" aria-label="Cerca" placeholder="Cerca persone, città, settori" class="bare-input" style="font-size:13px"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border-radius:999px;background:#FFFFFF">⌘K</span></form></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
 </div>
-<sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:34px;top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
+<sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
 <sc-for list="{{ menu }}" as="m"><a role="menuitem" href="{{ m.href }}" style="padding:10px 12px;border-radius:16px;color:{{ m.fg }};text-decoration:none">{{ m.l }}</a></sc-for>
 <div style="height:1px;background:#ECE8F7;margin:4px 0"></div>
 <button type="button" role="menuitem" onClick="{{ logout }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#1A1726;cursor:pointer">Esci</button>
@@ -141,7 +141,7 @@ def('App Admin Sidebar', String.raw`
 // App Onboarding Bar — from UI Onboarding Bar: logo and progress only (variable total)
 
 def('App Onboarding Bar', String.raw`
-<div class="r-pad" style="width:100%;box-sizing:border-box;padding:18px 24px 0;font-family:'Geist',sans-serif">
+<div style="width:100%;box-sizing:border-box;padding:18px var(--gutter) 0;font-family:'Geist',sans-serif">
 <div style="border-radius:999px;background:{{ bg }};border:{{ bd }};padding:12px 24px 12px 26px;display:flex;flex-direction:column;gap:10px">
 <div style="display:flex;align-items:center;gap:18px">
 <a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="24" tone="{{ tone }}"></dc-import></a>
@@ -166,7 +166,7 @@ def('App Onboarding Bar', String.raw`
 // App Step Footer — from UI Step Footer (+ handlers, disabled state)
 
 def('App Step Footer', String.raw`
-<div class="r-pad" style="width:100%;box-sizing:border-box;padding:16px 24px 20px;display:flex;align-items:center;gap:14px;font-family:'Geist',sans-serif">
+<div style="width:100%;box-sizing:border-box;padding:16px var(--gutter) 20px;display:flex;align-items:center;gap:14px;font-family:'Geist',sans-serif">
 <sc-if value="{{ hasBack }}"><dc-import name="UI Button" label="← Indietro" variant="{{ backVariant }}" on-click="{{ back }}"></dc-import></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ hasStatus }}"><span role="status" class="r-hide-sm" style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:{{ statusColor }}">{{ status }}</span></sc-if>
@@ -281,6 +281,17 @@ def('App City Jump', String.raw`
     const cat = await getCatalog().catch(() => null);
     this.setState({ comuni: (cat?.comuni ?? []).map(c => ({ name: c[0], region: c[2], pop: c[3] ?? 0, key: fold(c[0]).out })).sort((a, b) => b.pop - a.pop) });
   }
+  // Opening the list scrolls the hero headline up to the top of the screen, so the list has room
+  // below it. Leaves room for the launch bar and, on phones, the sticky header; never scrolls back up.
+  reveal() {
+    const h1 = document.getElementById('city-jump')?.closest('section')?.querySelector('h1');
+    if (!h1) return;
+    const header = document.querySelector('.site-header');
+    const stuck = header && getComputedStyle(header).position === 'sticky' ? header.offsetHeight : 0;
+    const lb = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lb')) || 0;
+    const top = h1.getBoundingClientRect().top + window.scrollY - lb - stuck - 24;
+    if (top > window.scrollY + 4) window.scrollTo({ top, behavior: 'smooth' });
+  }
   // To sign-up, carrying the city for the sign-up page's headline
   go(name) { location.href = `/accedi?citta=${encodeURIComponent(name)}`; }
   renderVals() {
@@ -296,7 +307,7 @@ def('App City Jump', String.raw`
     return {
       query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length,
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
-      focus: () => { this.setState({ open: true }); this.load(); },
+      focus: () => { this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
       // The chevron and the rest of the pill open the list too (and close it when it's open)
       boxDown: e => {
         if (e.target.closest('.cj-list') || e.target.tagName === 'INPUT') return;
@@ -321,7 +332,7 @@ def('App City Jump', String.raw`
 // onEnter(). Home sections are linked as /#section from the other pages.
 
 def('App Site Header', String.raw`
-<header class="r-pad" style="padding:18px 24px 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500;font-family:'Geist',sans-serif">
+<header style="padding:18px var(--gutter) 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500;font-family:'Geist',sans-serif">
 <a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
 <nav aria-label="Menu" class="r-hide-md" style="display:flex;gap:26px;color:#6B6680;align-items:center">
 <sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" aria-current="{{ l.current }}" style="height:36px;padding:{{ l.pad }};border-radius:999px;background:{{ l.bg }};color:{{ l.fg }};text-decoration:none;display:flex;align-items:center">{{ l.label }}</a></sc-for>
