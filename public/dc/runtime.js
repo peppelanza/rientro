@@ -356,6 +356,7 @@ function serial(draw) {
   let running = false;
   let again = false;
   return function rerender() {
+    if (holding) { held.add(rerender); return; }
     if (running) { again = true; return; }
     running = true;
     try { draw(); } finally { running = false; }
@@ -373,32 +374,46 @@ function swap(root, nodes) {
 }
 
 // Keep focus and caret in real inputs across re-renders (inputs are keyed by data-key).
-// A field that was focused a moment ago (a click or tap into it whose focus handler re-renders)
-// is replaced while the browser is still handling that click, and the browser then puts the
-// caret at the start of the new field. Those get the caret at the end of the text, again once
-// the click has finished.
-let focusedAt = null, focusedTime = 0;
-if (typeof document !== 'undefined') document.addEventListener('focus', e => { focusedAt = e.target; focusedTime = performance.now(); }, true);
 function keepFocus(root) {
   const active = document.activeElement;
   const key = root.contains(active) ? active?.dataset?.key : null;
-  if (!key) return () => {};
+  // Keyed containers (a dropdown list) keep their scroll position too
+  const scrolls = [...root.querySelectorAll('[data-key]')].filter(el => el.scrollTop).map(el => [el.dataset.key, el.scrollTop]);
   let sel = null;
-  try { sel = active.selectionStart != null ? [active.selectionStart, active.selectionEnd] : null; } catch {}
-  const fresh = active === focusedAt && performance.now() - focusedTime < 50;
+  if (key) try { sel = active.selectionStart != null ? [active.selectionStart, active.selectionEnd] : null; } catch {}
   return () => {
+    for (const [k, top] of scrolls) { const el = root.querySelector(`[data-key="${CSS.escape(k)}"]`); if (el) el.scrollTop = top; }
+    if (!key) return;
     const next = root.querySelector(`[data-key="${CSS.escape(key)}"]`);
     if (!next || next === document.activeElement) return;
     next.focus();
-    if (fresh && next.value != null) {
-      const toEnd = () => { if (document.activeElement === next) try { next.setSelectionRange(next.value.length, next.value.length); } catch {} };
-      sel = null; toEnd();
-      const after = () => { document.removeEventListener('click', after, true); setTimeout(toEnd, 0); };
-      document.addEventListener('click', after, true);
-      setTimeout(() => document.removeEventListener('click', after, true), 1000);
-    }
     if (sel) try { next.setSelectionRange(...sel); } catch {}
   };
+}
+
+// While a click or tap on a text field is in progress, re-renders wait for it to finish. A field
+// whose focus handler re-renders (a picker opening its list) would otherwise be replaced in the
+// middle of the click, and the browser would drop the caret at the start of the new field
+// instead of where the person clicked. Once the click is done, the render runs and keepFocus
+// carries the caret over. Touch taps focus the field after the finger lifts, so the hold lasts
+// until the click event, with a timeout for taps that turn into scrolls.
+let holding = false, holdTimer = 0;
+const held = new Set();
+function releaseHold() {
+  if (!holding) return;
+  holding = false; clearTimeout(holdTimer);
+  const fns = [...held]; held.clear();
+  for (const fn of fns) fn();
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', e => {
+    if (!e.target?.matches?.('input[data-key], textarea[data-key]')) return;
+    holding = true; clearTimeout(holdTimer);
+    holdTimer = setTimeout(releaseHold, 1000);
+  }, true);
+  const later = () => { if (holding) setTimeout(releaseHold, 0); };
+  document.addEventListener('click', later, true);
+  document.addEventListener('pointercancel', later, true);
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -260,9 +260,9 @@ def('App City Jump', String.raw`
 <div class="cj-box" onMouseDown="{{ boxDown }}">
 <input id="city-jump" data-key="city-jump" class="cj-input bare-input" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-<sc-if value="{{ open }}"><div id="city-jump-list" role="listbox" aria-label="Città" class="cj-list">
+<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt" style="background:{{ m.bg }}" onMouseDown="{{ m.pick }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt" style="background:{{ m.bg }}" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
 </div></sc-if>
 </div>
@@ -303,6 +303,8 @@ def('App City Jump', String.raw`
     const matches = found.map((c, i) => ({
       name: c.name, region: c.region, active: i === idx ? 'true' : 'false', bg: i === idx ? '#F1EFF8' : 'transparent',
       pick: e => { e.preventDefault(); this.go(c.name); },
+      // One highlight for mouse and keyboard: pointing at a city makes it the active one
+      hover: () => { if (this.state.idx !== i) this.setState({ idx: i }); },
     }));
     return {
       query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length,
@@ -416,7 +418,7 @@ def('App Comune Picker', String.raw`
 <input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 </div></sc-if>
 <sc-if value="{{ open }}"><div role="listbox" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}" style="padding:10px 12px;border-radius:16px;background:{{ m.bg }};display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
 <sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
 </div>`, class extends DCLogic {
@@ -470,6 +472,8 @@ def('App Comune Picker', String.raw`
     const matches = options.map((o, i) => ({
       ...o, active: i === this.state.idx ? 'true' : 'false', bg: i === this.state.idx ? '#F1EFF8' : 'transparent',
       pick: e => { e.preventDefault(); this.add(o.name); },
+      // One highlight for mouse and keyboard: pointing at an option makes it the active one
+      hover: () => { if (this.state.idx !== i) this.setState({ idx: i }); },
     }));
     const full = max > 1 && sel.length >= max;
     const noun = this.props.noun ?? 'comune';
