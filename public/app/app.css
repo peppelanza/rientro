@@ -4,20 +4,20 @@
 
 /* Horizontal spacing: the one source of truth for every page.
    --gutter      side margin of the page. Every header, section, footer and card edge sits on it,
-                 so all left and right edges line up: 24px on phones, 5.5vw in between, 88px on
-                 desktop. On screens wider than --content-max it grows, which keeps the content
+                 so all left and right edges line up: 32px on phones, 8vw in between (about 100px
+                 on a laptop). On screens wider than --content-max it grows, which keeps the content
                  centred at that width while backgrounds stay full-bleed: pages need no max-width
                  wrappers of their own.
    --gutter-min  the same margin without the centring, for layouts that aren't one column
-                 (admin, the two halves of the sign-in page).
+                 (the two halves of the sign-in page). Admin keeps a tighter margin of its own.
    --card-pad    side padding inside a card or panel that sits on the gutter.
    --section-gap vertical space between the blocks of the public pages (home, Rientro dei
                  cervelli, territori). Not used inside the platform, which stays denser.
    --article-gap space between the sections of a long article (Rientro dei cervelli).
    Templates use them in inline styles (padding: 40px var(--gutter)); never hard-code side padding. */
 :root {
-  --content-max: 1264px;
-  --gutter-min: clamp(24px, 5.5vw, 88px);
+  --content-max: 1200px;
+  --gutter-min: clamp(32px, 8vw, 144px);
   --gutter: max(var(--gutter-min), (100vw - var(--content-max)) / 2);
   --card-pad: clamp(20px, 3.5vw, 48px);
   --section-gap: clamp(104px, 12vw, 176px);
@@ -111,7 +111,7 @@ button { font: inherit; }
 }
 
 /* Admin: sidebar on the left; on phones it becomes a scrolling row of links above the page */
-.admin-layout { --gutter: var(--gutter-min); display: flex; min-height: 100vh; background: #E9E6F5; }
+.admin-layout { --gutter: clamp(24px, 5.5vw, 88px); display: flex; min-height: 100vh; background: #E9E6F5; }
 .admin-main { flex: 1; min-width: 0; padding: 28px var(--gutter) 28px 16px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
 .admin-table { overflow-x: auto; }
 .admin-table > .admin-row, .admin-table > div > .admin-row { min-width: 880px; }
@@ -298,5 +298,6 @@ body { padding-top: var(--lb, 0px); }
 @media (max-width: 720px) {
   .site-header { position: sticky; top: var(--lb, 0px); z-index: 40; display: block; }
   .site-header header { padding-top: 10px !important; padding-bottom: 6px; }
+  .site-header header > div { gap: 12px !important; padding-left: 20px !important; min-width: 0; }
   .site-header header > div { background: rgba(255,255,255,.94) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 }
