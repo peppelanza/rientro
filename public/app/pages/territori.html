@@ -19,12 +19,12 @@
 <sc-for list="{{ stats }}" as="s"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-family:'Unbounded',sans-serif;font-size:44px;font-weight:600;letter-spacing:-.05em;line-height:1">{{ s.v }}</span><span style="font-size:14px;color:#6B6680">{{ s.l }}</span></div></sc-for>
 </section>
 
-<section style="padding:80px var(--gutter) 0;display:flex;flex-direction:column;gap:28px">
+<section style="padding:var(--section-gap) var(--gutter) 0;display:flex;flex-direction:column;gap:28px">
 <h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:44px;line-height:1;font-weight:600;letter-spacing:-.05em">Chi vuole vivere {{ prep }} {{ name }}</h2>
 <div class="r-stack" style="border-radius:28px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;gap:24px"><div style="display:flex;flex-direction:column;gap:8px;max-width:620px"><span style="font-size:18px;font-weight:600">I profili sono visibili solo ai membri.</span><span style="font-size:15px;line-height:1.5;color:#4A4560">Ogni profilo viene rivisto da una persona e non è indicizzato dai motori di ricerca. Entra per vedere chi vuole vivere {{ prep }} {{ name }} e cosa vuole costruire.</span></div><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import></div>
 </section>
 
-<section class="r-grid-1" style="padding:80px var(--gutter) 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
+<section class="r-grid-1" style="padding:var(--section-gap) var(--gutter) 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px">
 <div style="border-radius:28px;background:#1A1726;color:#FFFFFF;padding:32px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.035em">Da dove arrivano</h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">ARRIVI · {{ nameUpper }}</span></div>
 <sc-if value="{{ hasOrigins }}"><div style="display:flex;flex-direction:column;font-family:'Geist Mono',monospace;font-size:13px"><sc-for list="{{ origins }}" as="o"><div style="display:grid;grid-template-columns:1fr 20px 1fr 60px;gap:12px;padding:14px 0;border-top:1px solid #3A3550"><span>{{ o.from }}</span><span style="color:#C9C0F0">→</span><span>{{ o.to }}</span><span style="text-align:right;color:#B7B0D4">{{ o.n }}</span></div></sc-for></div></sc-if>
@@ -41,13 +41,13 @@
 </div></div>
 </section>
 
-<section class="r-grid-1" style="padding:80px var(--gutter) 0;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px">
+<section class="r-grid-1" style="padding:var(--section-gap) var(--gutter) 0;display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px">
 <dc-import name="UI Eyebrow" text="{{ placesTitle }}"></dc-import>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
 <sc-for list="{{ places }}" as="c"><a href="{{ c.href }}" style="border-radius:22px;background:rgba(255,255,255,.6);border:1px solid #FFFFFF;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;color:#1A1726;text-decoration:none" style-hover="background:#FFFFFF"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:600">{{ c.name }}</span><span style="font-size:13px;color:#6B6680">{{ c.n }}</span></div><span style="color:#6C4DF5">→</span></a></sc-for>
 </div></section>
 
-<section id="come-funziona" class="r-grid-1" style="margin:80px var(--gutter) 0;padding:56px var(--card-pad);border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr));gap:24px">
+<section id="come-funziona" class="r-grid-1" style="margin:var(--section-gap) var(--gutter) 0;padding:56px var(--card-pad);border-radius:28px;background:#FFFFFF;display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr));gap:24px">
 <dc-import name="UI Eyebrow" text="Come funziona"></dc-import>
 <sc-for list="{{ steps }}" as="x"><div style="display:flex;flex-direction:column;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:#6C4DF5;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:12px">{{ x.n }}</span><span style="font-size:18px;font-weight:600">{{ x.t }}</span><span style="font-size:14px;line-height:1.5;color:#6B6680">{{ x.d }}</span></div></sc-for>
 </section>
@@ -57,7 +57,7 @@
 <dc-import name="UI Button" label="Accedi a Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
 </section>
 
-<nav aria-label="Altre destinazioni"  style="padding:56px var(--gutter) 24px;display:flex;flex-direction:column;gap:14px">
+<nav aria-label="Altre destinazioni"  style="padding:var(--section-gap) var(--gutter) 24px;display:flex;flex-direction:column;gap:14px">
 <dc-import name="UI Eyebrow" text="Altre destinazioni"></dc-import>
 <div class="r-stack" style="display:flex;gap:8px 24px;align-items:baseline"><h3 style="margin:0;flex:none;width:72px;font:600 13px 'Geist',sans-serif;color:#1A1726">Regioni</h3><div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px"><sc-for list="{{ otherRegions }}" as="o"><a href="{{ o.href }}" style="color:#4A4560;text-underline-offset:3px;text-decoration-color:#C9C3DD">{{ o.label }}</a></sc-for></div></div>
 <div class="r-stack" style="display:flex;gap:8px 24px;align-items:baseline"><h3 style="margin:0;flex:none;width:72px;font:600 13px 'Geist',sans-serif;color:#1A1726">Città</h3><div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px"><sc-for list="{{ otherCities }}" as="o"><a href="{{ o.href }}" style="color:#4A4560;text-underline-offset:3px;text-decoration-color:#C9C3DD">{{ o.label }}</a></sc-for></div></div>

@@ -281,6 +281,17 @@ def('App City Jump', String.raw`
     const cat = await getCatalog().catch(() => null);
     this.setState({ comuni: (cat?.comuni ?? []).map(c => ({ name: c[0], region: c[2], pop: c[3] ?? 0, key: fold(c[0]).out })).sort((a, b) => b.pop - a.pop) });
   }
+  // Opening the list scrolls the hero headline up to the top of the screen, so the list has room
+  // below it. Leaves room for the launch bar and, on phones, the sticky header; never scrolls back up.
+  reveal() {
+    const h1 = document.getElementById('city-jump')?.closest('section')?.querySelector('h1');
+    if (!h1) return;
+    const header = document.querySelector('.site-header');
+    const stuck = header && getComputedStyle(header).position === 'sticky' ? header.offsetHeight : 0;
+    const lb = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lb')) || 0;
+    const top = h1.getBoundingClientRect().top + window.scrollY - lb - stuck - 24;
+    if (top > window.scrollY + 4) window.scrollTo({ top, behavior: 'smooth' });
+  }
   // To sign-up, carrying the city for the sign-up page's headline
   go(name) { location.href = `/accedi?citta=${encodeURIComponent(name)}`; }
   renderVals() {
@@ -296,7 +307,7 @@ def('App City Jump', String.raw`
     return {
       query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length,
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
-      focus: () => { this.setState({ open: true }); this.load(); },
+      focus: () => { this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
       // The chevron and the rest of the pill open the list too (and close it when it's open)
       boxDown: e => {
         if (e.target.closest('.cj-list') || e.target.tagName === 'INPUT') return;

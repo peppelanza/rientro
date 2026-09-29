@@ -11,12 +11,17 @@
    --gutter-min  the same margin without the centring, for layouts that aren't one column
                  (admin, the two halves of the sign-in page).
    --card-pad    side padding inside a card or panel that sits on the gutter.
+   --section-gap vertical space between the blocks of the public pages (home, Rientro dei
+                 cervelli, territori). Not used inside the platform, which stays denser.
+   --article-gap space between the sections of a long article (Rientro dei cervelli).
    Templates use them in inline styles (padding: 40px var(--gutter)); never hard-code side padding. */
 :root {
   --content-max: 1264px;
   --gutter-min: clamp(24px, 5.5vw, 88px);
   --gutter: max(var(--gutter-min), (100vw - var(--content-max)) / 2);
   --card-pad: clamp(20px, 3.5vw, 48px);
+  --section-gap: clamp(104px, 12vw, 176px);
+  --article-gap: clamp(72px, 7vw, 104px);
 }
 
 html { scroll-behavior: smooth; }
