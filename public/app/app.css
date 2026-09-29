@@ -312,3 +312,35 @@ body { padding-top: var(--lb, 0px); }
   .site-header header > div { gap: 12px !important; padding-left: 20px !important; min-width: 0; }
   .site-header header > div { background: rgba(255,255,255,.94) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 }
+
+/* Home · Cos'è Rientro: people linked to a hub, with messages travelling between them. The text
+   rises in and "gratuita" gets underlined as the block scrolls into view (scroll-driven, where
+   supported; elsewhere it simply shows). */
+.about-side { display: flex; flex-direction: column; gap: 28px; }
+.about-art { width: 100%; max-width: 260px; height: auto; overflow: visible; }
+.about-links { animation: about-flow 1.6s linear infinite; }
+.about-nodes .n { transform-box: fill-box; transform-origin: center; animation: about-bob 5s ease-in-out infinite; }
+.about-nodes .n2 { animation-delay: -1s; } .about-nodes .n3 { animation-delay: -2s; } .about-nodes .n4 { animation-delay: -3s; }
+.about-nodes .n5 { animation-delay: -1.5s; } .about-nodes .n6 { animation-delay: -2.5s; }
+.about-ripple { transform-box: fill-box; transform-origin: center; animation: about-ripple 2.4s ease-out infinite; }
+.about-packet { opacity: 0; animation: about-packet 3.6s ease-in-out infinite; }
+.about-packet.p1 { offset-path: path('M130 95 L38 44'); }
+.about-packet.p2 { offset-path: path('M226 52 L130 95'); animation-delay: 1.2s; }
+.about-packet.p3 { offset-path: path('M130 95 L178 166'); animation-delay: 2.4s; }
+@keyframes about-flow { to { stroke-dashoffset: -20; } }
+@keyframes about-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes about-ripple { 0% { scale: 1; opacity: .7; } 100% { scale: 2.1; opacity: 0; } }
+@keyframes about-packet { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 70% { offset-distance: 100%; opacity: 1; } 80%, 100% { offset-distance: 100%; opacity: 0; } }
+.about-mark { background: linear-gradient(#C9C0F0, #C9C0F0) 0 92% / 100% .12em no-repeat; }
+@supports (animation-timeline: view()) {
+  .about-text { animation: about-rise linear both; animation-timeline: view(); animation-range: entry 10% cover 35%; }
+  .about-mark { animation: about-underline linear both; animation-timeline: view(); animation-range: cover 25% cover 45%; }
+  .about-art { animation: about-rise linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+}
+@keyframes about-rise { from { opacity: 0; translate: 0 32px; } to { opacity: 1; translate: 0 0; } }
+@keyframes about-underline { from { background-size: 0% .12em; } to { background-size: 100% .12em; } }
+@media (max-width: 720px) { .about-art { max-width: 200px; } }
+@media (prefers-reduced-motion: reduce) {
+  .about-links, .about-nodes .n, .about-ripple, .about-packet, .about-text, .about-mark, .about-art { animation: none !important; }
+  .about-packet { display: none; }
+}
