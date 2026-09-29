@@ -13,7 +13,7 @@ export async function launchBar() {
   bar.className = 'launch-bar';
   bar.setAttribute('role', 'region');
   bar.setAttribute('aria-label', 'Lancio di Rientro');
-  bar.innerHTML = '<span class="live-dot"></span><b></b><span class="lb-note">Iscriviti ora e assicurati il tuo posto: il tuo profilo sarà pronto dal primo giorno.</span>';
+  bar.innerHTML = '<span class="live-dot"></span><b></b><span class="lb-note">Iscriviti ora e assicurati un posto.</span>';
   bar.querySelector('b').textContent = `Apre il ${date}`;
   // Gone on launch day, even for a page left open
   setTimeout(() => location.reload(), Math.min(at - Date.now(), 2 ** 31 - 1));
