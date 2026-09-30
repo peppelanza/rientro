@@ -1,7 +1,8 @@
 <!-- From design/Rientro 01 Landing e Accesso v2 · artboards 2a (registrazione), 2b (accesso), 5a/5b/5c (email + codice) -->
 <div class="r-grid-1" style="min-height:calc(100vh - var(--lb, 0px));background:#E9E6F5;display:grid;grid-template-columns:1fr 1fr;padding:12px;box-sizing:border-box;gap:12px">
-<div class="r-hide-sm" style="border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between;min-height:calc(100vh - 24px - var(--lb, 0px));box-sizing:border-box">
+<div class="r-hide-sm" style="position:relative;border-radius:24px;background:radial-gradient(circle at 80% 15%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:44px;display:flex;flex-direction:column;justify-content:space-between;min-height:calc(100vh - 24px - var(--lb, 0px));box-sizing:border-box">
 <a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28" tone="light"></dc-import></a>
+<sc-if value="{{ postcard }}"><div class="postcard"><div class="postcard-paper"><img src="{{ postcard }}" alt="{{ postcardAlt }}"></div></div></sc-if>
 <div style="display:flex;flex-direction:column;gap:20px"><span style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;line-height:1.05;letter-spacing:-.055em;text-wrap:balance">{{ panelTitle }}</span><span style="font-size:16px;line-height:1.5;color:#E6E0FF;max-width:420px">{{ panelText }}</span></div>
 <div style="display:flex;gap:8px;font-size:13px;flex-wrap:wrap"><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Gratuito</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Solo contatti verificati</span><span style="padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16)">Rispettiamo la privacy</span></div>
 </div>

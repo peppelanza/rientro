@@ -25,7 +25,13 @@ export default class extends Page {
   async load() {
     const launch = await fetch('/api/public/launch').then(r => r.json()).catch(() => null);
     const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
-    Object.assign(this.state, { launch, launchDate: date, city: (qs().get('citta') ?? '').trim().slice(0, 80) });
+    const city = (qs().get('citta') ?? '').trim().slice(0, 80);
+    Object.assign(this.state, { launch, launchDate: date, city });
+    // A city with its own territory page shows that page's photo as a postcard
+    if (city) {
+      const t = await fetch(`/api/public/territory/${encodeURIComponent(city)}`).then(r => (r.ok ? r.json() : null)).catch(() => null);
+      if (t?.kind === 'city' && t.photo && t.cities.includes(t.name)) this.state.postcard = { src: t.photo, name: t.name };
+    }
     // Coming back from LinkedIn with a problem (see /api/auth/linkedin/callback)
     const err = LINKEDIN_ERRORS[qs().get('errore')];
     if (err) this.state.oauthNote = err;
@@ -94,6 +100,8 @@ export default class extends Page {
         ? `Registrati per esplorare chi rientra ${s.city ? `${/^a/i.test(s.city) ? 'ad' : 'a'} ${s.city}` : 'nella tua città'}`
         : 'Il tuo profilo è la tua presentazione.',
       panelText: s.launchDate ? `Assicura il tuo posto prima del lancio di Rientro il ${s.launchDate}.` : '',
+      postcard: s.postcard?.src ?? null,
+      postcardAlt: s.postcard ? `Cartolina da ${s.postcard.name}` : '',
       expired: !!qs().get('next'),
       linkedin: oauth('LinkedIn'), google: oauth('Google'), oauthNote: s.oauthNote,
       toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
