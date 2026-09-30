@@ -387,3 +387,13 @@ body { padding-top: var(--lb, 0px); }
 .sso-linkedin:hover { background: #004182; }
 .sso-google, .sso-plain { border: 1px solid #DCD7EC; background: #FFFFFF; color: #1A1726; }
 .sso-google:hover, .sso-plain:hover { background: #F6F4FC; }
+
+/* Legal pages: paragraphs, list items and the purpose cards of the privacy policy */
+.legal-p, .legal-li { margin: 0; font-size: 15px; line-height: 1.6; color: #4A4560; text-wrap: pretty; }
+.legal-li { position: relative; padding-left: 20px; margin-top: -4px; }
+.legal-li::before { content: ''; position: absolute; left: 4px; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: #6C4DF5; }
+.legal-card { background: #FFFFFF; border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.5; color: #1A1726; }
+.legal-card-t { font-weight: 600; font-size: 15px; }
+.legal-card-grid { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; font-size: 13.5px; color: #4A4560; }
+.legal-card-k { color: #8C84AE; }
+@media (max-width: 720px) { .legal-card-grid { grid-template-columns: 1fr; gap: 2px; } .legal-card-k { margin-top: 6px; } }

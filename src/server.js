@@ -12,6 +12,8 @@ import { openDb } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
+import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail } from './mail.js';
+import { runRetention } from './retention.js';
 import * as profiles from './profiles.js';
 import { territory } from './public.js';
 import * as social from './social.js';
@@ -22,8 +24,8 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self'", "style-src 'self' https://fonts.googleapis.com",
-    "font-src https://fonts.gstatic.com", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
+    "default-src 'self'", "script-src 'self'", "style-src 'self'",
+    "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',
@@ -127,11 +129,13 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
+const MIME = { '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
 
 function serveFile(res, file) {
-  // Place lists and images change only with a new build: cache them for a day.
-  const cache = file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
+  // Font files never change (new versions get new names); place lists and images change only with
+  // a new build: cache them for a day.
+  const cache = file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2') ? 'public, max-age=31536000, immutable'
+    : file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
   reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
 }
 
@@ -210,13 +214,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/auth/verify-code', async ({ req, res }) => {
     const body = await readJson(req);
     limitVerify(`v:${clientIp(req)}`);
-    const { sessionToken, user } = auth.verifyCode(db, body, req.headers['user-agent']);
+    const { sessionToken, user, restored } = auth.verifyCode(db, body, req.headers['user-agent']);
     if (user.status === 'suspended') {
       auth.logout(db, sessionToken);
       throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
     }
     const next = user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato';
-    send(res, 200, { ok: true, next }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
+    send(res, 200, { ok: true, next, restored }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
   }, { ...pub, raw: true });
 
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
@@ -298,7 +302,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     send(res, 200, exportData(db, user), { 'Content-Disposition': 'attachment; filename="rientro-i-miei-dati.json"' });
   }, { raw: true, allowSuspended: true });
   route('DELETE', '/api/me', async ({ user, req, res }) => {
-    send(res, 200, deleteAccount(db, user, await readJson(req)), { 'Set-Cookie': sessionCookie('', 0) });
+    const out = deleteAccount(db, user, await readJson(req));
+    // The confirmation email (how to change one's mind) must not hold up or undo the request
+    if (canSendEmail()) sendDeletionScheduledEmail(user.email, out.erase_on).catch(err => console.error('[email] deletion notice', err?.message ?? err));
+    send(res, 200, out, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true, allowSuspended: true });
 
   // ---- members
@@ -429,29 +436,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 }
 
 async function defaultSendLoginCode(email, code) {
-  if (config.brevoApiKey) return sendWithBrevo(email, code);
+  if (canSendEmail()) return sendLoginCodeEmail(email, code);
   if (showCodeOnPage()) { if (!config.production) console.log(`\n[dev] Codice di accesso per ${email}: ${code}\n`); return; }
   throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.');
-}
-
-// Brevo transactional API (EU). https://developers.brevo.com/reference/sendtransacemail
-async function sendWithBrevo(email, code) {
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': config.brevoApiKey, 'content-type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      sender: { email: config.mailFrom, name: 'Rientro' },
-      to: [{ email }],
-      subject: `${code} è il tuo codice Rientro`,
-      textContent: `Il tuo codice di accesso a Rientro è ${code}.\n\nScade tra ${config.loginCodeTtlMinutes} minuti. Se non l'hai richiesto tu, ignora questa email.`,
-      htmlContent: `<p>Il tuo codice di accesso a Rientro è</p><p style="font-size:28px;font-weight:600;letter-spacing:4px;font-family:monospace">${code}</p><p>Scade tra ${config.loginCodeTtlMinutes} minuti. Se non l'hai richiesto tu, ignora questa email.</p>`,
-    }),
-    signal: AbortSignal.timeout(10_000),
-  }).catch(() => null);
-  if (!res?.ok) {
-    console.error('[email] Brevo error', res?.status, res ? await res.text().catch(() => '') : 'network');
-    throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.');
-  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -460,4 +447,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Videos never confirmed: converted once they are half an hour old
   sweepVideoConversions(db);
   setInterval(() => sweepVideoConversions(db), 10 * 60_000).unref();
+  // Retention rules of the privacy policy: at start and then once a day
+  const retain = () => {
+    try { console.log('[retention]', JSON.stringify(runRetention(db))); } catch (err) { console.error('[retention]', err); }
+  };
+  retain();
+  setInterval(retain, 24 * 3600_000).unref();
 }

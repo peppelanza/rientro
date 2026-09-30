@@ -37,7 +37,7 @@ def('App Nav', String.raw`
     const a = this.props.active ?? 'none';
     const approved = u.status === 'approved' || u.role === 'admin';
     const items = approved && me.launched ? [
-      ['scopri', 'Scopri persone', '/scopri', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
+      ['scopri', 'Scopri chi torna', '/scopri', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
       ['messaggi', 'Messaggi', '/messaggi', c.unread_messages], ['notifiche', 'Notifiche', '/notifiche', c.notifications],
     ].map(([k, label, href, n]) => ({ label, href, count: n, hasCount: !!n, current: k === a ? 'page' : false, bg: k === a ? '#1A1726' : 'transparent', fg: k === a ? '#FFFFFF' : '#6B6680' })) : [];
     const pendingNote = !approved ? { onboarding: 'Completa il profilo', in_review: 'Profilo in revisione', changes_requested: 'Modifiche richieste', rejected: 'Profilo non approvato' }[u.status] : null;

@@ -1,6 +1,6 @@
 // Settings · your data (design 05 · 40a export, 41a/41b delete account in two steps).
 import { DCLogic } from '../../dc/runtime.js';
-import { api, download, getMe, go, openModal, template, toast } from '../lib.js';
+import { api, download, flash, getMe, go, openModal, template, toast } from '../lib.js';
 import { Page } from './_base.js';
 import { settingsMenu } from './_settings.js';
 
@@ -39,7 +39,7 @@ export default class extends Page {
           const s = this.state;
           return {
             step1: s.step === 1, step2: s.step === 2,
-            delEffects: ['Il profilo sparisce subito da Rientro.', 'Connessioni e conversazioni vengono eliminate anche per gli altri.', 'Foto, video e dati vengono cancellati subito dai nostri sistemi; le copie di backup entro 30 giorni.'],
+            delEffects: ['Il profilo sparisce subito da Rientro e vieni disconnesso.', 'Hai 30 giorni per ripensarci: se accedi di nuovo ritrovi tutto com’era.', 'Dopo 30 giorni cancelliamo definitivamente profilo, foto, video, connessioni e messaggi, anche per gli altri.'],
             canPause: page.state.me.profile.visible && page.state.me.user.status === 'approved',
             pause: () => { this.close(); page.pause(); },
             exportFirst: () => { this.close(); page.exportData(); },
@@ -55,7 +55,7 @@ export default class extends Page {
         }
       },
     });
-    if (result?.deleted) go('/?account=eliminato');
+    if (result?.deleted) { flash('Account in eliminazione. Hai 30 giorni per ripensarci: ti basta accedere di nuovo.'); go('/'); }
   }
 
   renderVals() {

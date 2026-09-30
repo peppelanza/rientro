@@ -16,7 +16,11 @@ CREATE TABLE IF NOT EXISTS users (
                 CHECK (status IN ('onboarding', 'in_review', 'changes_requested', 'approved', 'rejected', 'suspended')),
   created_at    TEXT NOT NULL,
   updated_at    TEXT NOT NULL,
-  last_seen_at  TEXT
+  last_seen_at  TEXT,
+  -- Own deletion request: the account is hidden at once and erased 30 days later unless the
+  -- member signs in again (privacy policy §9). The optional reason is kept until then.
+  deletion_requested_at TEXT,
+  deletion_reason       TEXT
 );
 
 -- 6-digit sign-in codes (design 5a/5b). Only a salted hash of the code is stored.
@@ -335,9 +339,12 @@ WHEN NOT (OLD.target_user_id IS NOT NULL AND NEW.target_user_id IS NULL
           AND NEW.details = OLD.details AND NEW.created_at = OLD.created_at)
 BEGIN SELECT RAISE(ABORT, 'admin_audit_log is append-only'); END;
 
-CREATE TRIGGER IF NOT EXISTS admin_audit_log_no_delete
+-- Rows can be deleted only once they are past retention (24 months, privacy policy §9).
+DROP TRIGGER IF EXISTS admin_audit_log_no_delete;
+CREATE TRIGGER IF NOT EXISTS admin_audit_log_no_early_delete
 BEFORE DELETE ON admin_audit_log
-BEGIN SELECT RAISE(ABORT, 'admin_audit_log is append-only'); END;
+WHEN OLD.created_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-24 months')
+BEGIN SELECT RAISE(ABORT, 'admin_audit_log rows are kept for 24 months'); END;
 
 CREATE TRIGGER IF NOT EXISTS preference_events_no_update
 BEFORE UPDATE ON preference_events

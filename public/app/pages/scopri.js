@@ -4,7 +4,7 @@ import { api, getCatalog, getMe, go } from '../lib.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
 
-export const title = 'Scopri persone';
+export const title = 'Scopri chi torna';
 export const tabbar = true;
 
 const LIST_KEYS = ['intent', 'backgrounds', 'sectors', 'desired'];
@@ -134,7 +134,7 @@ export default class extends Page {
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
       toggleSort: () => this.setState({ sort: s.sort === 'match' ? 'recent' : 'match' }),
       isSearch: !!qn && res.total > 0, isGrid: !qn && res.total > 0, isEmpty: res.total === 0,
-      heading: qn ? `Risultati per “${qn}”` : 'Scopri persone',
+      heading: qn ? `Risultati per “${qn}”` : 'Scopri chi torna',
       people, cardProps: { onConnect: p => this.connectTo(p) },
       rows: people.map(p => {
         const one = mark(p.role, qn); const two = mark([p.from, p.to].filter(Boolean).join(' → '), qn);

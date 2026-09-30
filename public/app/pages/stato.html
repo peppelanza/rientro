@@ -6,7 +6,7 @@
 <div style="padding:56px var(--gutter);display:flex;flex-direction:column;justify-content:space-between;gap:48px">
 <a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="26" tone="light"></dc-import></a>
 <div style="display:flex;flex-direction:column;gap:22px"><div><dc-import name="UI Badge" kind="success" label="Approvato"></dc-import></div><h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:54px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Sei online, <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#C9C0F0;font-size:62px;letter-spacing:-.02em">{{ firstDot }}</span></h1>
-<sc-if value="{{ launched }}"><p style="margin:0;font-size:18px;line-height:1.5;color:#C9C0F0;max-width:420px">Da ora gli altri membri possono vedere il tuo profilo, e tu puoi scoprire il loro.</p><div><dc-import name="UI Button" label="Scopri persone →" variant="light" size="lg" on-click="{{ discover }}"></dc-import></div></sc-if>
+<sc-if value="{{ launched }}"><p style="margin:0;font-size:18px;line-height:1.5;color:#C9C0F0;max-width:420px">Da ora gli altri membri possono vedere il tuo profilo, e tu puoi scoprire il loro.</p><div><dc-import name="UI Button" label="Scopri chi torna →" variant="light" size="lg" on-click="{{ discover }}"></dc-import></div></sc-if>
 <sc-if value="{{ notLaunched }}"><p style="margin:0;font-size:18px;line-height:1.5;color:#C9C0F0;max-width:420px">Il tuo profilo è pronto. Al lancio potrai scoprire gli altri membri e loro potranno trovare te.</p><div><dc-import name="UI Button" label="Vedi il tuo profilo →" variant="light" size="lg" on-click="{{ profile }}"></dc-import></div></sc-if>
 </div>
 <span></span></div>

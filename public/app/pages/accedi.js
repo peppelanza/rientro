@@ -1,4 +1,4 @@
-import { api, qs } from '../lib.js';
+import { api, flash, qs } from '../lib.js';
 import { Page } from './_base.js';
 
 export const title = 'Accedi a Rientro';
@@ -39,6 +39,7 @@ export default class extends Page {
     this.state.busy = true; this.__rerender();
     try {
       const r = await api('POST', '/api/auth/verify-code', { email: this.state.email.trim(), code });
+      if (r.restored) flash('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.');
       const next = qs().get('next');
       location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : r.next;
       return;

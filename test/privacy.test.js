@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { PNG, startApp } from './helpers.js';
+import { runRetention } from '../src/retention.js';
 
 let t;
 before(async () => { t = await startApp(); });
@@ -85,7 +86,7 @@ test('CSV export is admin-only, audited, and guards against formula injection', 
 
 test('audit log and ledger are append-only at the database level', () => {
   const { db } = t.app;
-  assert.throws(() => db.prepare('DELETE FROM admin_audit_log').run(), /append-only/);
+  assert.throws(() => db.prepare('DELETE FROM admin_audit_log').run(), /kept for 24 months/); // only retention deletes old rows
   assert.throws(() => db.prepare("UPDATE admin_audit_log SET action = 'x'").run(), /append-only/);
   assert.throws(() => db.prepare('UPDATE preference_events SET value = 1 - value').run(), /append-only/);
   assert.throws(() => db.prepare('DELETE FROM preference_events').run(), /purge/);
@@ -122,6 +123,8 @@ test('account deletion removes personal data and pseudonymises the ledger', asyn
   assert.equal((await u.del('/api/me', { confirm: 'no' })).status, 400);
   assert.equal((await u.del('/api/me', { confirm: 'ELIMINA', reason: 'Ho trovato un co-founder' })).status, 200);
   const { db } = t.app;
+  // Erased by the daily retention run once the 30 days to change one's mind are over
+  runRetention(db, { at: new Date(Date.now() + 31 * 86_400_000) });
   for (const [table, col] of [['users', 'id'], ['profiles', 'user_id'], ['job_preferences', 'user_id'], ['sessions', 'user_id'], ['files', 'owner_id'], ['messages', 'sender_id'], ['connections', 'requester_id']]) {
     assert.equal(db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE ${col} = ?`).get(u.id).n, 0, table);
   }

@@ -41,11 +41,24 @@ export function exportData(db, user) {
   };
 }
 
-// Design 41a/41b: two steps, "Scrivi ELIMINA per confermare", optional reason.
+// Design 41a/41b: two steps, "Scrivi ELIMINA per confermare", optional reason. The account is
+// hidden from everyone and signed out at once; retention.js erases it 30 days later unless the
+// member signs in again before then (auth.verifyCode restores it).
 export function deleteAccount(db, user, body) {
   only(body, ['confirm', 'reason']);
   if (body.confirm !== 'ELIMINA') throw new HttpError(400, 'confirm_required', 'Scrivi ELIMINA per confermare.');
   const reason = text(body.reason, 'Motivo', { max: 200 }) ?? null;
+  const at = now();
+  tx(db, () => {
+    db.prepare('UPDATE users SET deletion_requested_at = ?, deletion_reason = ? WHERE id = ?').run(at, reason, user.id);
+    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+  });
+  const erase_on = new Date(Date.parse(at) + config.retention.deletionGraceDays * 86_400_000).toISOString();
+  return { deleted: true, erase_on };
+}
+
+// Erases an account and everything tied to it, for good (retention.js, 30 days after the request).
+export function eraseAccount(db, user, reason = null) {
   const purgeAfter = new Date();
   purgeAfter.setMonth(purgeAfter.getMonth() + config.ledgerRetentionMonthsAfterDeletion);
   const removeFromDisk = deleteFilesOf(db, user.id);
@@ -66,7 +79,8 @@ export function deleteAccount(db, user, body) {
   return { deleted: true, ledger_subject_ref: subjectRef(user.id).slice(0, 12), ledger_purge_after: purgeAfter.toISOString() };
 }
 
-// Retention job (daily cron).
+// Expired sign-in codes and sessions, and consent proof past its purge date. Run daily by
+// retention.js.
 export function purgeExpired(db) {
   const ts = now();
   const n = r => Number(r.changes);

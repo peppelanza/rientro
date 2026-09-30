@@ -78,7 +78,7 @@ export function requestConnection(db, viewer, body) {
   const to = text(body.to, 'to', { max: 64, nullable: false });
   const note = text(body.note, 'Nota', { max: 300 }) ?? null;
   if (to === viewer.id) throw bad('self');
-  const target = db.prepare("SELECT id FROM users WHERE id = ? AND status = 'approved'").get(to);
+  const target = db.prepare("SELECT id FROM users WHERE id = ? AND status = 'approved' AND deletion_requested_at IS NULL").get(to);
   if (!target || isBlocked(db, viewer.id, to)) throw new HttpError(404, 'not_found', 'Profilo non disponibile.');
   expireOld(db);
   const existing = connectionBetween(db, viewer.id, to);

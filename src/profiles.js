@@ -254,8 +254,11 @@ export function submitForReview(db, user) {
 
 // --- Relationships -----------------------------------------------------------------------
 
+// Also true when either account is waiting to be deleted: for the other members it is as if it
+// were already gone (profile, requests, connections, chats), until it is restored or erased.
 export function isBlocked(db, a, b) {
-  return !!db.prepare('SELECT 1 FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)').get(a, b, b, a);
+  return !!db.prepare('SELECT 1 FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)').get(a, b, b, a)
+    || !!db.prepare('SELECT 1 FROM users WHERE id IN (?, ?) AND deletion_requested_at IS NOT NULL').get(a, b);
 }
 
 export function connectionBetween(db, a, b) {
@@ -385,7 +388,7 @@ export function parseDiscoverQuery(q) {
 export function discover(db, viewer, filters) {
   const rows = db.prepare(
     `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id
-     WHERE u.status = 'approved' AND p.visible = 1 AND u.id != ?
+     WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL AND u.id != ?
        AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = ? AND b.blocked_id = u.id) OR (b.blocker_id = u.id AND b.blocked_id = ?))
      ORDER BY p.approved_at DESC`,
   ).all(viewer.id, viewer.id, viewer.id).map(p => {
@@ -411,7 +414,7 @@ export function discover(db, viewer, filters) {
 export function comuneCounts(db) {
   const counts = {};
   for (const { desired_comuni } of db.prepare(
-    `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1`,
+    `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
   ).all()) for (const c of JSON.parse(desired_comuni)) counts[c] = (counts[c] || 0) + 1;
   return counts;
 }

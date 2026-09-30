@@ -207,7 +207,7 @@ export function review(db, admin, userId, body) {
 // --- Approvals queue (47a) ----------------------------------------------------------------
 
 export function approvals(db, admin) {
-  const rows = allProfiles(db, "u.role = 'member' AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))")
+  const rows = allProfiles(db, "u.role = 'member' AND u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))")
     .sort((a, b) => (a.submitted_at || a.updated_at).localeCompare(b.submitted_at || b.updated_at));
   const waits = rows.map(u => hoursAgo(u.status === 'in_review' ? u.submitted_at : u.updated_at));
   audit(db, admin.id, 'approvals.list', null, { count: rows.length });
@@ -381,7 +381,7 @@ export function sidebarCounts(db) {
   return {
     users: db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'member'").get().n,
     approvals: db.prepare(`SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id
-      WHERE u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}')`).get().n,
+      WHERE u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
   };
 }

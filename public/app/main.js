@@ -4,7 +4,7 @@ import '../dc/gen/components.js';
 import './components.js';
 import { mountPage } from '../dc/runtime.js';
 import { launchBar } from './launchbar.js';
-import { template } from './lib.js';
+import { showFlash, template } from './lib.js';
 
 const ROUTES = [
   [/^\/$/, 'home'],
@@ -50,6 +50,7 @@ async function boot() {
   if (mod.title) document.title = `${mod.title} · Rientro`;
   if (mod.tabbar) document.body.classList.add('has-tabbar');
   mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
+  showFlash();
 }
 
 launchBar();

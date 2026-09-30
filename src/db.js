@@ -32,9 +32,19 @@ export function openDb(file = config.dbPath) {
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   addProfileColumns(db);
+  migrateUserColumns(db);
   migrateIdeaStages(db);
   seed(db);
   return db;
+}
+
+// users: the deletion-request columns, and the inactivity-warning column of a retention rule that
+// was dropped before launch
+function migrateUserColumns(db) {
+  const have = new Set(db.prepare('PRAGMA table_info(users)').all().map(c => c.name));
+  if (!have.has('deletion_requested_at')) db.exec('ALTER TABLE users ADD COLUMN deletion_requested_at TEXT');
+  if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
+  if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
 }
 
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
@@ -85,6 +95,9 @@ function seed(db) {
        retention = excluded.retention, recipients = excluded.recipients`,
   );
   for (const row of PROCESSING_REGISTER) upsert.run(prefix(row));
+  // Purposes renamed or merged since: drop them so the register matches the code
+  const keep = PROCESSING_REGISTER.map(r => r.purpose);
+  db.prepare(`DELETE FROM processing_register WHERE purpose NOT IN (${keep.map(() => '?').join(',')})`).run(...keep);
 }
 
 // node:sqlite named parameters need their sigil in the object keys.
