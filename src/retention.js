@@ -6,6 +6,7 @@
 //   · resolved/dismissed reports, admin access log, data-export records and anonymous leaving
 //     feedback after 24 months
 import { config } from './config.js';
+import { subjectRef } from './db.js';
 import { eraseAccount, purgeExpired } from './privacy.js';
 
 const monthsBefore = (date, months) => { const d = new Date(date); d.setMonth(d.getMonth() - months); return d.toISOString(); };
@@ -19,12 +20,16 @@ export async function runRetention(db, { sendInactivityNotice = null, at = new D
   out.inactivity_notices = 0;
   if (sendInactivityNotice) {
     const deleteOn = new Date(at.getTime() + R.inactiveGraceDays * 86_400_000);
-    const due = db.prepare(`SELECT id, email FROM users WHERE role = 'member' AND inactivity_notice_at IS NULL
-      AND COALESCE(last_seen_at, created_at) < ?`).all(monthsBefore(at, R.inactiveMonths));
+    const cutoff = monthsBefore(at, R.inactiveMonths);
+    // No warning pending, or a stale one from before a later sign-in
+    const due = db.prepare(`SELECT id, email FROM users WHERE role = 'member'
+      AND (inactivity_notice_at IS NULL OR inactivity_notice_at < COALESCE(last_seen_at, created_at))
+      AND COALESCE(last_seen_at, created_at) < ?`).all(cutoff);
     for (const u of due) {
       try {
         await sendInactivityNotice(u.email, deleteOn);
-        db.prepare('UPDATE users SET inactivity_notice_at = ? WHERE id = ?').run(at.toISOString(), u.id);
+        // Only if they are still inactive: they may have signed in while the email was being sent
+        db.prepare('UPDATE users SET inactivity_notice_at = ? WHERE id = ? AND COALESCE(last_seen_at, created_at) < ?').run(at.toISOString(), u.id, cutoff);
         out.inactivity_notices++;
       } catch (err) { console.error('[retention] inactivity notice failed', err?.message ?? err); }
     }
@@ -34,8 +39,16 @@ export async function runRetention(db, { sendInactivityNotice = null, at = new D
   const warnedBefore = new Date(at.getTime() - R.inactiveGraceDays * 86_400_000).toISOString();
   const expired = db.prepare(`SELECT * FROM users WHERE role = 'member' AND inactivity_notice_at IS NOT NULL
     AND inactivity_notice_at <= ? AND COALESCE(last_seen_at, created_at) < inactivity_notice_at`).all(warnedBefore);
-  for (const u of expired) eraseAccount(db, u);
-  out.inactive_accounts_deleted = expired.length;
+  const log = db.prepare("INSERT INTO admin_audit_log (admin_id, action, target_ref, details, created_at) VALUES ('system', 'retention.inactive_account_deleted', ?, ?, ?)");
+  out.inactive_accounts_deleted = 0;
+  for (const u of expired) {
+    // Re-read inside the loop: skip anyone who signed in since the query above
+    const still = db.prepare('SELECT * FROM users WHERE id = ? AND inactivity_notice_at IS NOT NULL').get(u.id);
+    if (!still) continue;
+    eraseAccount(db, still);
+    out.inactive_accounts_deleted++;
+    log.run(subjectRef(u.id).slice(0, 12), JSON.stringify({ warned_at: u.inactivity_notice_at, last_seen_at: u.last_seen_at ?? u.created_at }), new Date().toISOString());
+  }
 
   // 3. Records kept for 24 months
   out.closed_reports = n(db.prepare("DELETE FROM reports WHERE status <> 'open' AND COALESCE(resolved_at, created_at) < ?").run(monthsBefore(at, R.closedReportsMonths)));

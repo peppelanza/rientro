@@ -77,3 +77,84 @@ test('expired codes and sessions and consent proof past its date are purged', as
   assert.equal(count('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?', u.id), 0);
   assert.equal(count("SELECT COUNT(*) AS n FROM preference_events WHERE subject_ref = 'ref'"), 0);
 });
+
+// ---- edge cases -------------------------------------------------------------------------------
+const DAY = 86_400_000;
+const inactive = (id, months = 25) => db.prepare('UPDATE users SET last_seen_at = ?, created_at = ?, inactivity_notice_at = NULL WHERE id = ?').run(ago(months), ago(months + 6), id);
+const exists = id => count('SELECT COUNT(*) AS n FROM users WHERE id = ?', id) === 1;
+const notice = id => db.prepare('SELECT inactivity_notice_at FROM users WHERE id = ?').get(id)?.inactivity_notice_at;
+const quiet = async () => {};
+
+test('signing in again with a new code cancels the pending deletion', async () => {
+  const u = await t.member('torna-col-codice@x.it');
+  inactive(u.id);
+  await runRetention(db, { sendInactivityNotice: quiet });
+  assert.ok(notice(u.id));
+  await t.login('torna-col-codice@x.it'); // request code + verify, nothing else
+  assert.equal(notice(u.id), null);
+  await runRetention(db, { sendInactivityNotice: quiet, at: new Date(Date.now() + 40 * DAY) });
+  assert.ok(exists(u.id));
+});
+
+test('the deletion happens only after the full 30 days, and only once', async () => {
+  const u = await t.member('trenta@x.it');
+  inactive(u.id);
+  await runRetention(db, { sendInactivityNotice: quiet });
+  await runRetention(db, { sendInactivityNotice: quiet, at: new Date(Date.now() + 29 * DAY) });
+  assert.ok(exists(u.id), 'still there on day 29');
+  const r = await runRetention(db, { sendInactivityNotice: quiet, at: new Date(Date.now() + 31 * DAY) });
+  assert.ok(!exists(u.id));
+  assert.equal(count("SELECT COUNT(*) AS n FROM admin_audit_log WHERE action = 'retention.inactive_account_deleted'") >= 1, true);
+  const again = await runRetention(db, { sendInactivityNotice: quiet, at: new Date(Date.now() + 32 * DAY) });
+  assert.equal(again.inactive_accounts_deleted, 0);
+  assert.ok(r.inactive_accounts_deleted >= 1);
+});
+
+test('admins and members active in the last 24 months are never warned', async () => {
+  const admin = await t.asAdmin();
+  db.prepare('UPDATE users SET last_seen_at = ?, created_at = ? WHERE id = ?').run(ago(40), ago(40), admin.id);
+  const old = await t.member('iscritto-da-anni@x.it');
+  db.prepare('UPDATE users SET created_at = ?, last_seen_at = ? WHERE id = ?').run(ago(60), ago(23), old.id);
+  const sent = [];
+  await runRetention(db, { sendInactivityNotice: async e => sent.push(e) });
+  assert.ok(!sent.includes('admin@rientro.test') && !sent.includes('iscritto-da-anni@x.it'));
+  assert.ok(exists(admin.id) && exists(old.id));
+});
+
+test('if the warning email fails nothing is marked, and it is retried next time', async () => {
+  const u = await t.member('email-ko@x.it');
+  inactive(u.id);
+  await runRetention(db, { sendInactivityNotice: async e => { if (e === 'email-ko@x.it') throw new Error('Brevo down'); } });
+  assert.equal(notice(u.id), null);
+  await runRetention(db, { sendInactivityNotice: quiet, at: new Date(Date.now() + 40 * DAY) });
+  assert.ok(exists(u.id), 'not deleted: the warning only now went out');
+  assert.ok(notice(u.id));
+});
+
+test('signing in while the warning is being sent leaves no warning behind', async () => {
+  const u = await t.member('in-contemporanea@x.it');
+  inactive(u.id);
+  await runRetention(db, { sendInactivityNotice: async e => { if (e === 'in-contemporanea@x.it') await t.login(e); } });
+  assert.equal(notice(u.id), null);
+  // …so when they go quiet again for 24 months they get a fresh warning
+  inactive(u.id);
+  const sent = [];
+  await runRetention(db, { sendInactivityNotice: async e => sent.push(e) });
+  assert.ok(sent.includes('in-contemporanea@x.it'));
+});
+
+test('an inactive deletion removes the person, not the other members; consent proof stays 36 months', async () => {
+  const a = await t.approved('parte@x.it', {});
+  const b = await t.approved('resta@x.it', {});
+  await t.connect(a, b);
+  await b.post('/api/messages', { to: a.id, text: 'Ciao' }).catch(() => {});
+  db.prepare("INSERT INTO preference_events (user_id, subject_ref, preference, value, source, privacy_policy_version, created_at) VALUES (?, 'r-parte', 'marketing_email', 1, 'signup', 'v', ?)").run(a.id, ago(30));
+  inactive(a.id);
+  await runRetention(db, { sendInactivityNotice: async () => {} });
+  await runRetention(db, { sendInactivityNotice: async () => {}, at: new Date(Date.now() + 31 * DAY) });
+  assert.ok(!exists(a.id) && exists(b.id));
+  assert.equal(count('SELECT COUNT(*) AS n FROM connections WHERE requester_id = ? OR addressee_id = ?', a.id, a.id), 0);
+  const proof = db.prepare("SELECT user_id, purge_after FROM preference_events WHERE subject_ref = 'r-parte'").get();
+  assert.equal(proof.user_id, null);
+  assert.ok(Date.parse(proof.purge_after) - Date.now() > 35 * 30 * DAY, 'kept pseudonymously for 36 months');
+});

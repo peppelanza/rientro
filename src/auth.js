@@ -58,6 +58,8 @@ export function verifyCode(db, body, userAgent) {
       // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
       acknowledge(db, user.id);
     }
+    // Signing in is activity: it also cancels a pending inactivity deletion (retention.js)
+    if (!isNew) db.prepare('UPDATE users SET last_seen_at = ?, inactivity_notice_at = NULL WHERE id = ?').run(now(), user.id);
     if (row.marketing_opt_in) {
       db.prepare(
         `INSERT INTO communication_preferences (user_id, marketing_email, updated_at) VALUES (?, 1, ?)
