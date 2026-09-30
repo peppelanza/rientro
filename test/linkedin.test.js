@@ -44,6 +44,7 @@ test('start sends the browser to LinkedIn with the right parameters', async () =
   assert.equal(to.origin + to.pathname, 'https://www.linkedin.com/oauth/v2/authorization');
   assert.equal(to.searchParams.get('client_id'), 'client-id');
   assert.equal(to.searchParams.get('scope'), 'openid profile email');
+  assert.match(to.search, /scope=openid%20profile%20email/, 'scopes separated by %20, as LinkedIn expects');
   assert.match(to.searchParams.get('redirect_uri'), /\/api\/auth\/linkedin\/callback$/);
   assert.ok(state && cookie);
 });
