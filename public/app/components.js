@@ -279,6 +279,21 @@ if (typeof document !== 'undefined') {
   document.addEventListener('wheel', later, { capture: true, passive: true });
 }
 
+// The same highlight set straight from the option's own mouse events (enter or move), so it never
+// depends on the pointer-position lookup above; leaving the list clears it.
+function hoverOption(el) {
+  const list = el?.closest?.('.dd-list');
+  if (!list) return;
+  for (const o of list.querySelectorAll('.dd-opt.is-hover')) if (o !== el) o.classList.remove('is-hover');
+  el.classList.add('is-hover');
+  list.classList.add('has-hover');
+}
+function leaveList(e) {
+  const list = e.currentTarget;
+  for (const o of list.querySelectorAll('.dd-opt.is-hover')) o.classList.remove('is-hover');
+  list.classList.remove('has-hover');
+}
+
 // Empty query: the 15 largest cities; otherwise names starting with it, then names containing it.
 function searchCities(list, query) {
   const q = fold(query.trim()).out;
@@ -316,9 +331,9 @@ def('App City Jump', String.raw`
 <div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
 <input id="city-jump" data-key="city-jump" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}">
+<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}" onMouseLeave="{{ leave }}">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt dd-opt" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt dd-opt" onMouseDown="{{ m.pick }}" onMouseOver="{{ m.hover }}" onMouseMove="{{ m.hover }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
 </div></sc-if>
 </div>
@@ -366,11 +381,12 @@ def('App City Jump', String.raw`
     if (!fromHistory && history.state?.cjSheet) history.back();
   }
   popped = () => { if (this.state.sheet) this.closeSheet(true); };
-  // The mouse highlight is plain CSS :hover (see .dd-opt). Pointing at an option only moves the
+  // The mouse highlight is .is-hover (see hoverOption/refreshHover). Pointing at an option also moves the
   // keyboard position there, without a re-render, so the arrows continue from it; after arrow keys
   // it hands the highlight back to the mouse. Chrome also sends a mousemove when the list is
   // redrawn under a still pointer: those (same coordinates) are ignored.
   pointAt(e, i) {
+    hoverOption(e.currentTarget);
     if (e.clientX === this.mx && e.clientY === this.my) return;
     this.mx = e.clientX; this.my = e.clientY;
     if (this.state.kb) this.setState({ kb: false, idx: i }); else this.state.idx = i;
@@ -406,7 +422,7 @@ def('App City Jump', String.raw`
     const phone = this.phone;
     if (open) requestAnimationFrame(refreshHover); // options were redrawn
     return {
-      query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
+      query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '', leave: leaveList,
       phone, sheet: this.state.sheet, loading: !comuni,
       openClass: open && comuni && !phone ? 'cj-open' : '',
       // The open animation plays once, not on every later render of the sheet
@@ -535,17 +551,18 @@ def('App Comune Picker', String.raw`
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 </div></sc-if>
-<sc-if value="{{ open }}"><div role="listbox" class="dd-list {{ kbClass }}" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="dd-opt" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}" style="padding:10px 12px;border-radius:16px;display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
+<sc-if value="{{ open }}"><div role="listbox" class="dd-list {{ kbClass }}" onMouseLeave="{{ leave }}" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="dd-opt" onMouseDown="{{ m.pick }}" onMouseOver="{{ m.hover }}" onMouseMove="{{ m.hover }}" style="padding:10px 12px;border-radius:16px;display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
 <sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
 </div>`, class extends DCLogic {
   state = { query: '', open: false, idx: 0 };
-  // The mouse highlight is plain CSS :hover (see .dd-opt). Pointing at an option only moves the
+  // The mouse highlight is .is-hover (see hoverOption/refreshHover). Pointing at an option also moves the
   // keyboard position there, without a re-render, so the arrows continue from it; after arrow keys
   // it hands the highlight back to the mouse. Chrome also sends a mousemove when the list is
   // redrawn under a still pointer: those (same coordinates) are ignored.
   pointAt(e, i) {
+    hoverOption(e.currentTarget);
     if (e.clientX === this.mx && e.clientY === this.my) return;
     this.mx = e.clientX; this.my = e.clientY;
     if (this.state.kb) this.setState({ kb: false, idx: i }); else this.state.idx = i;
@@ -616,7 +633,7 @@ def('App Comune Picker', String.raw`
       // Single choice: the chip stands in for the field, so it takes the field's size
       smallChips: !single && sel.length > 0, bigChip: single && sel.length > 0, showField: !(single && sel.length), field: this.props.field ?? 'comuni', full, query: q,
       placeholder, label: placeholder,
-      open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length, kbClass: this.state.kb ? 'dd-kb' : '',
+      open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length, kbClass: this.state.kb ? 'dd-kb' : '', leave: leaveList,
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
