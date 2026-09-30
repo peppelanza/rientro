@@ -311,7 +311,7 @@ def('App City Options', String.raw`
 });
 
 def('App City Jump', String.raw`
-<div class="city-jump">
+<div class="city-jump {{ openClass }}">
 <label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
 <div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
 <input id="city-jump" data-key="city-jump" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
@@ -408,6 +408,7 @@ def('App City Jump', String.raw`
     return {
       query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
       phone, sheet: this.state.sheet, loading: !comuni,
+      openClass: open && comuni && !phone ? 'cj-open' : '',
       // The open animation plays once, not on every later render of the sheet
       anim: this.state.sheetFresh ? 'cj-anim' : '',
       listProps: { comuni, query, onPick: name => this.go(name), onReady: list => { this.list = list; } },

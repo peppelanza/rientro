@@ -8,7 +8,7 @@ const PATH = 'M26.5 25.5C19.0043 33.3697 0 34 0 34C0 34 19.1013 35.3684 26.5 43.
 const LIFE = 700; // ms, must match .sparkle animation
 const rand = (min, max) => min + Math.random() * (max - min);
 
-function sparkle(layer, { size = rand(0.2, 0.42), left = rand(-4, 98), top = rand(-18, 80), still = false } = {}) {
+function sparkle(layer, { size = rand(0.067, 0.14), left = rand(-4, 98), top = rand(-18, 80), still = false } = {}) {
   const s = document.createElement('span');
   s.className = still ? 'sparkle sparkle-still' : 'sparkle';
   s.style.cssText = `left:${left}%;top:${top}%;width:${size}em;height:${size}em;z-index:${Math.random() < 0.5 ? 0 : 2}`;
@@ -30,7 +30,7 @@ export function startSparkles(selector = '.hero-sparks') {
     return host.querySelector('.hs-layer');
   };
   if (reduced) {
-    const put = () => { const l = layerOf(); if (l && !l.children.length) [[0.38, 99, -14], [0.22, 92, 62], [0.18, 32, -18]].forEach(([size, left, top]) => sparkle(l, { size, left, top, still: true })); };
+    const put = () => { const l = layerOf(); if (l && !l.children.length) [[0.127, 99, -6], [0.073, 92, 66], [0.06, 32, -10]].forEach(([size, left, top]) => sparkle(l, { size, left, top, still: true })); };
     put(); setTimeout(put, 500);
     return;
   }
