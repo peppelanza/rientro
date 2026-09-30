@@ -32,6 +32,7 @@ export function openDb(file = config.dbPath) {
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   addProfileColumns(db);
+  if (!db.prepare('PRAGMA table_info(users)').all().some(c => c.name === 'inactivity_notice_at')) db.exec('ALTER TABLE users ADD COLUMN inactivity_notice_at TEXT');
   migrateIdeaStages(db);
   seed(db);
   return db;
@@ -85,6 +86,9 @@ function seed(db) {
        retention = excluded.retention, recipients = excluded.recipients`,
   );
   for (const row of PROCESSING_REGISTER) upsert.run(prefix(row));
+  // Purposes renamed or merged since: drop them so the register matches the code
+  const keep = PROCESSING_REGISTER.map(r => r.purpose);
+  db.prepare(`DELETE FROM processing_register WHERE purpose NOT IN (${keep.map(() => '?').join(',')})`).run(...keep);
 }
 
 // node:sqlite named parameters need their sigil in the object keys.

@@ -85,7 +85,7 @@ export function userForSession(db, rawToken) {
   if (user) {
     const ts = now();
     db.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').run(ts, hash);
-    db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(ts, user.id);
+    db.prepare('UPDATE users SET last_seen_at = ?, inactivity_notice_at = NULL WHERE id = ?').run(ts, user.id);
   }
   return user ?? null;
 }

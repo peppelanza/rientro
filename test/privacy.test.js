@@ -85,7 +85,7 @@ test('CSV export is admin-only, audited, and guards against formula injection', 
 
 test('audit log and ledger are append-only at the database level', () => {
   const { db } = t.app;
-  assert.throws(() => db.prepare('DELETE FROM admin_audit_log').run(), /append-only/);
+  assert.throws(() => db.prepare('DELETE FROM admin_audit_log').run(), /kept for 24 months/); // only retention deletes old rows
   assert.throws(() => db.prepare("UPDATE admin_audit_log SET action = 'x'").run(), /append-only/);
   assert.throws(() => db.prepare('UPDATE preference_events SET value = 1 - value').run(), /append-only/);
   assert.throws(() => db.prepare('DELETE FROM preference_events').run(), /purge/);

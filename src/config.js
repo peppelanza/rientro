@@ -26,8 +26,16 @@ export const config = {
   publicStatsMinCount: 5,
   connectionRequestTtlDays: 30,
   moderationSlaHours: 24,
-  // How long preference/consent proof is kept after account deletion. PLACEHOLDER: confirm with counsel.
+  // How long preference/consent proof is kept after account deletion (privacy policy §9).
   ledgerRetentionMonthsAfterDeletion: 36,
+  // Retention (privacy policy §9), applied daily by src/retention.js.
+  retention: {
+    inactiveMonths: 24,       // no sign-in for this long → email warning
+    inactiveGraceDays: 30,    // still no sign-in this long after the warning → account deleted
+    closedReportsMonths: 24,  // resolved/dismissed reports
+    adminLogMonths: 24,       // admin access log
+    exportLogMonths: 24,      // record of data-export requests, anonymous leaving feedback
+  },
   exportCooldownHours: 24,
   // Behind a hosting proxy (Render): read the visitor's IP from X-Forwarded-For for rate limits.
   trustProxy: process.env.TRUST_PROXY === '1',
@@ -42,9 +50,9 @@ export const config = {
 // Versions of user-facing texts. Bump when the text changes; the version is stamped
 // on every preference_events row so we can prove what the user saw.
 export const LEGAL_VERSIONS = {
-  privacy: '2026-09-draft-1',
+  privacy: '2026-09-30',
   terms: '2026-09-draft-1',
-  cookies: '2026-09-draft-1',
+  cookies: '2026-09-30',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
 };

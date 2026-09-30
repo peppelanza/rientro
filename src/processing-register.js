@@ -1,77 +1,87 @@
-// Record of processing activities (art. 30 GDPR style), kept in code so it is versioned
-// with the features it describes. Seeded into the processing_register table on boot.
-//
-// ⚠️ The "proposed_basis" and "retention" values are ENGINEERING PROPOSALS, not legal advice.
-// Every row stays review_status = 'pending_legal_review' until a qualified EU/Italian privacy
-// professional confirms or changes it.
+// Record of processing activities (art. 30 GDPR), kept in code so it is versioned with the features
+// it describes. Seeded into the processing_register table on boot and shown in the admin area.
+// It mirrors the privacy policy of 30 September 2026 (public/app/pages/legal.js): change both together.
+// Retention periods are enforced by src/retention.js.
 
 export const PROCESSING_REGISTER = [
   {
     purpose: 'account',
-    description: 'Creare e gestire l’account, autenticazione, sicurezza delle sessioni.',
-    data_categories: 'email, sessioni (hash), user agent',
-    proposed_basis: 'Esecuzione del contratto (art. 6.1.b) — DA CONFERMARE',
-    retention: 'Fino alla cancellazione dell’account; sessioni scadono dopo 30 giorni',
-    recipients: 'Nessuno oltre al titolare e ai responsabili tecnici (hosting)',
+    description: 'Creare e gestire l’account: iscrizione, accesso con codice via email o con LinkedIn/Google, sessioni, assistenza.',
+    data_categories: 'email, dati ricevuti da LinkedIn/Google (nome, cognome, email, foto), sessioni (hash), user agent',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
+    retention: 'Fino alla cancellazione dell’account; 24 mesi di inattività → avviso, cancellazione dopo 30 giorni; codici 10 minuti; sessioni 30 giorni',
+    recipients: 'Render (hosting, UE), Brevo (email, UE); LinkedIn e Google titolari autonomi per il login',
   },
   {
-    purpose: 'cofounder_matching',
-    description: 'Mostrare il profilo ad altri membri per trovare un co-founder o un’idea.',
-    data_categories: 'nome, foto, fascia d’età, città, comuni desiderati, intento, background, bio, link',
-    proposed_basis: 'Esecuzione del contratto (art. 6.1.b) — DA CONFERMARE',
+    purpose: 'community',
+    description: 'Mostrare il profilo ai membri approvati, suggerire persone affini, connessioni e notifiche in app.',
+    data_categories: 'nome, foto, video, fascia d’età, luoghi, rientro, comuni desiderati, obiettivo e idea, background, formazione, esperienze, settori, cosa cerca, link',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
     retention: 'Fino alla cancellazione dell’account',
-    recipients: 'Membri approvati di Rientro; link Instagram/X/calendario solo alle connessioni',
+    recipients: 'Membri approvati; Instagram/X/calendario solo alle connessioni; mai l’email',
   },
   {
-    purpose: 'job_seeking_signal',
-    description:
-      'Registrare che l’utente sta anche cercando lavoro in Italia e raccogliere preferenze strutturate ' +
-      '(ruoli, competenze, settori, luoghi, modalità, disponibilità) per un eventuale futuro servizio Rientro Talent.',
-    data_categories: 'looking_for_italian_job, ruoli, competenze, settori, comuni preferiti, modalità, tipo contratto, disponibilità',
-    proposed_basis:
-      'Scelta esplicita e facoltativa dell’utente; base giuridica da definire (consenso art. 6.1.a o contratto art. 6.1.b) — DA DEFINIRE',
-    retention: 'Finché l’opzione è attiva; i dettagli vengono cancellati quando l’utente la disattiva',
-    recipients:
-      'Oggi: nessuna azienda terza. Un futuro accesso da parte di aziende richiederà informativa aggiornata e revisione legale prima del lancio',
+    purpose: 'messaging',
+    description: 'Richieste di connessione con nota e chat 1-a-1 tra connessioni.',
+    data_categories: 'note, messaggi, stato di lettura',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
+    retention: 'Fino alla cancellazione dell’account di uno dei due partecipanti',
+    recipients: 'Solo i due partecipanti; moderatori solo in caso di segnalazione',
   },
   {
-    purpose: 'preference_ledger',
-    description: 'Conservare la prova di quando e come l’utente ha attivato o disattivato preferenze facoltative.',
-    data_categories: 'riferimento pseudonimo, preferenza, valore, data, versione dei testi mostrati',
-    proposed_basis: 'Obbligo di dimostrare il consenso (art. 7.1) / legittimo interesse — DA CONFERMARE',
-    retention: 'Per la durata dell’account + 36 mesi dopo la cancellazione, in forma pseudonima — DA CONFERMARE',
-    recipients: 'Nessuno',
+    purpose: 'service_email',
+    description: 'Email di servizio: codice di accesso, avvisi di richieste/messaggi/stato del profilo, avviso di inattività, comunicazioni sul servizio.',
+    data_categories: 'email, dati del singolo avviso',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b); notifiche configurabili dalle impostazioni',
+    retention: 'Non conservate oltre l’invio (registri di invio presso Brevo secondo le sue policy)',
+    recipients: 'Brevo (responsabile, UE)',
   },
   {
     purpose: 'marketing_email',
     description: 'Newsletter e comunicazioni promozionali.',
-    data_categories: 'email',
-    proposed_basis: 'Consenso (art. 6.1.a) — separato da ogni altra scelta — DA CONFERMARE',
+    data_categories: 'email, nome',
+    proposed_basis: 'Consenso (art. 6.1.a), separato e facoltativo',
     retention: 'Fino alla revoca del consenso o alla cancellazione dell’account',
-    recipients: 'Eventuale fornitore di invio email (responsabile del trattamento)',
+    recipients: 'Brevo (responsabile, UE)',
   },
   {
-    purpose: 'messaging',
-    description: 'Richieste di connessione con nota, chat 1-a-1 tra connessioni, notifiche in app.',
-    data_categories: 'note, messaggi, stato di lettura, notifiche',
-    proposed_basis: 'Esecuzione del contratto (art. 6.1.b) — DA CONFERMARE',
-    retention: 'Fino alla cancellazione di uno dei due account — DA CONFERMARE',
-    recipients: 'Solo i due partecipanti; moderatori solo in caso di segnalazione (vedi moderation_and_admin)',
+    purpose: 'company_visibility',
+    description: 'IN ARRIVO: aziende registrate e verificate trovano i profili e contattano i membri dentro Rientro. Avviso preventivo agli iscritti e interruttore per non essere visibili.',
+    data_categories: 'dati del profilo visibili ai membri',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b), con opposizione tramite impostazione',
+    retention: 'Fino alla cancellazione dell’account',
+    recipients: 'Aziende verificate registrate su Rientro (mai email né dati fuori piattaforma)',
   },
   {
-    purpose: 'safety_reports',
-    description: 'Segnalazioni e blocchi. In caso di segnalazione, un moderatore può leggere la chat tra chi segnala e la persona segnalata; ogni accesso è registrato.',
-    data_categories: 'motivo, dettagli, chat tra segnalante e segnalato',
-    proposed_basis: 'Legittimo interesse alla sicurezza della community (art. 6.1.f) — DA CONFERMARE con bilanciamento documentato',
-    retention: 'DA DEFINIRE (proposta: 24 mesi dalla chiusura)',
-    recipients: 'Personale Rientro autorizzato con ruolo admin',
+    purpose: 'moderation_and_safety',
+    description: 'Revisione dei profili, segnalazioni e blocchi, prevenzione di abusi, spam, profili falsi e accessi abusivi. In caso di segnalazione un moderatore può leggere la chat tra segnalante e segnalato; ogni accesso è registrato.',
+    data_categories: 'dati del profilo, segnalazioni, conversazioni segnalate, note admin, registro accessi admin, indirizzo IP (non salvato nel database)',
+    proposed_basis: 'Legittimo interesse alla sicurezza della community (art. 6.1.f)',
+    retention: 'Segnalazioni chiuse 24 mesi; registro accessi admin 24 mesi',
+    recipients: 'Titolare e persone autorizzate con ruolo admin',
   },
   {
-    purpose: 'moderation_and_admin',
-    description: 'Revisione dei profili, gestione segnalazioni, sicurezza della community.',
-    data_categories: 'dati del profilo, segnalazioni, note admin, registro accessi admin',
-    proposed_basis: 'Legittimo interesse (art. 6.1.f) — DA CONFERMARE con bilanciamento documentato',
-    retention: 'Registro accessi admin: DA DEFINIRE (proposta 24 mesi)',
-    recipients: 'Personale Rientro autorizzato con ruolo admin',
+    purpose: 'statistics',
+    description: 'Statistiche aggregate interne e conteggi pubblici per città (mai gruppi sotto le 5 persone).',
+    data_categories: 'dati aggregati non identificativi',
+    proposed_basis: 'Legittimo interesse (art. 6.1.f)',
+    retention: 'Calcolate al momento, non conservate',
+    recipients: 'Titolare; conteggi aggregati pubblici',
+  },
+  {
+    purpose: 'preference_ledger',
+    description: 'Prova di quando e come l’utente ha dato o revocato il consenso alla newsletter e preso visione dei documenti legali.',
+    data_categories: 'riferimento pseudonimo, preferenza, valore, data, versione dei testi',
+    proposed_basis: 'Obbligo di legge (art. 6.1.c in relazione agli artt. 5.2 e 7.1 GDPR)',
+    retention: 'Durata dell’account + 36 mesi dopo la cancellazione, in forma pseudonima',
+    recipients: 'Nessuno',
+  },
+  {
+    purpose: 'job_seeking_signal',
+    description: 'FUNZIONE DISATTIVATA: la scelta "cerco anche lavoro" non è più nell’app. I dati eventualmente raccolti restano visibili e cancellabili dall’utente.',
+    data_categories: 'preferenze di ricerca lavoro raccolte in precedenza',
+    proposed_basis: 'Consenso (art. 6.1.a) dato a suo tempo',
+    retention: 'Fino alla disattivazione da parte dell’utente o alla cancellazione dell’account',
+    recipients: 'Nessuna azienda terza',
   },
 ];

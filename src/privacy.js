@@ -45,7 +45,12 @@ export function exportData(db, user) {
 export function deleteAccount(db, user, body) {
   only(body, ['confirm', 'reason']);
   if (body.confirm !== 'ELIMINA') throw new HttpError(400, 'confirm_required', 'Scrivi ELIMINA per confermare.');
-  const reason = text(body.reason, 'Motivo', { max: 200 }) ?? null;
+  return eraseAccount(db, user, text(body.reason, 'Motivo', { max: 200 }) ?? null);
+}
+
+// Deletes an account and everything tied to it. Used by the member's own request and by the
+// inactivity rule in retention.js.
+export function eraseAccount(db, user, reason = null) {
   const purgeAfter = new Date();
   purgeAfter.setMonth(purgeAfter.getMonth() + config.ledgerRetentionMonthsAfterDeletion);
   const removeFromDisk = deleteFilesOf(db, user.id);
@@ -66,7 +71,8 @@ export function deleteAccount(db, user, body) {
   return { deleted: true, ledger_subject_ref: subjectRef(user.id).slice(0, 12), ledger_purge_after: purgeAfter.toISOString() };
 }
 
-// Retention job (daily cron).
+// Expired sign-in codes and sessions, and consent proof past its purge date. Run daily by
+// retention.js.
 export function purgeExpired(db) {
   const ts = now();
   const n = r => Number(r.changes);
