@@ -53,7 +53,10 @@ test('sign-in page accepts only real comuni in ?citta=; unknown addresses are an
     const r = await get(p);
     assert.equal(r.status, 404, p);
     assert.match(r.headers.get('content-type'), /text\/html/);
-    assert.match(await r.text(), /Questa pagina/);
+    const html = await r.text();
+    assert.match(html, /Questa pagina/);
+    // The comune explanation only where a city was asked for
+    assert.equal(/comune italiano/.test(html), p.includes('citta='), p);
   }
   assert.equal((await get('/api/non-esiste')).headers.get('content-type').includes('json'), true);
 });

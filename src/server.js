@@ -172,12 +172,17 @@ function serveFile(res, file) {
 const gzipped = new Map();
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
-function plainNotFound(res) {
-  reply(res, 404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' }, Buffer.from('404 Not Found'));
-}
-
-function sendNotFound(res) {
-  reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' }, fs.readFileSync(path.join(config.publicDir, '404.html')));
+// Unknown addresses get a real page with status 404 (not the JSON the API uses). city: the text for
+// /accedi?citta=<not a comune>. home: where its links go (the main site, when on the admin host).
+const NOT_FOUND_TEXT = {
+  page: 'L’indirizzo potrebbe essere sbagliato, oppure la pagina è stata spostata.',
+  city: 'Il link potrebbe essere sbagliato, oppure la città indicata non è un comune italiano.',
+};
+function sendNotFound(res, { kind = 'page', home = '/' } = {}) {
+  const html = fs.readFileSync(path.join(config.publicDir, '404.html'), 'utf8')
+    .replace('{{text}}', NOT_FOUND_TEXT[kind])
+    .replaceAll('href="/"', `href="${home}"`);
+  reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' }, Buffer.from(html));
 }
 
 // /accedi?citta=… only for real comuni. Any casing is accepted and redirected to the official
@@ -505,7 +510,12 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         const adminPath = ADMIN_PAGES.some(re => re.test(p)) || p.startsWith('/api/admin/');
         if (onAdminHost) {
           const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
-          if (user?.role !== 'admin' || user.status === 'suspended') return plainNotFound(res);
+          if (user?.role !== 'admin' || user.status === 'suspended') {
+            // The 404 page's own styles and fonts (public anyway); everything else is a 404 that
+            // says nothing about what's here, with its links going to the main site
+            if (/^\/(fonts\/[\w.-]+|dc\/base\.css|app\/app\.css|favicon\.svg)$/.test(p) && serveStatic(res, p)) return;
+            return sendNotFound(res, { home: `${config.baseUrl}/` });
+          }
           if (p === '/') { res.writeHead(302, { Location: '/admin' }); res.end(); return; }
           if (!adminPath && (PUBLIC_PAGES.some(re => re.test(p)) || MEMBER_PAGES.some(re => re.test(p)))) {
             res.writeHead(302, { Location: config.baseUrl + p + url.search }); res.end(); return;
@@ -525,7 +535,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
         if (p === '/accedi') {
           const city = checkCity(url);
-          if (city === 'missing') return sendNotFound(res);
+          if (city === 'missing') return sendNotFound(res, { kind: 'city' });
           if (city !== 'ok') { res.writeHead(302, { Location: city }); res.end(); return; }
         }
         if (PUBLIC_PAGES.some(re => re.test(p))) return appPage('app.html');

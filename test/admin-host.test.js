@@ -1,4 +1,4 @@
-// The admin panel lives only on its own host: a plain 404 for everyone else, gone from the main site.
+// The admin panel lives only on its own host: a 404 page for everyone else, gone from the main site.
 // Admins are members in the portal like everyone else.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -19,15 +19,20 @@ const get = (p, { host = '127.0.0.1', cookie = '' } = {}) => new Promise((resolv
 });
 const admin = { host: 'admin.rientro.test' };
 
-test('admin host: plain 404 unless signed in as admin', async () => {
+test('admin host: a 404 page unless signed in as admin', async () => {
   const m = await t.login('socio@x.it');
   for (const p of ['/', '/admin', '/admin/utenti', '/api/admin/users', '/app/main.js', '/accedi']) {
     for (const cookie of ['', m.cookie]) {
       const r = await get(p, { ...admin, cookie });
       assert.equal(r.status, 404, `${p} ${cookie ? 'member' : 'anonymous'}`);
-      assert.equal(r.body, '404 Not Found');
+      assert.match(r.body, /Questa pagina <em>non esiste<\/em>/);
+      assert.match(r.body, /la pagina è stata spostata/);
+      assert.doesNotMatch(r.body, /admin|comune/i);
+      assert.match(r.body, new RegExp(`href="${config.baseUrl}/"`));
     }
   }
+  // The 404 page's styles load there too
+  assert.equal((await get('/app/app.css', admin)).status, 200);
   const a = await t.asAdmin();
   assert.equal((await get('/', { ...admin, cookie: a.cookie })).location, '/admin');
   assert.equal((await get('/admin', { ...admin, cookie: a.cookie })).status, 200);
