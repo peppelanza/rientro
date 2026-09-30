@@ -3,7 +3,7 @@
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
-import { faceProblem } from '../face.js';
+import { preparePhoto } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -90,16 +90,18 @@ export default class extends Page {
     if (!file) return;
     const s = this.state;
     const video = kind === 'video';
-    if (file.size > (video ? 200 : 5) * 1024 * 1024) { toast(video ? 'Il video supera i 200 MB.' : 'La foto supera 5 MB.', { tone: 'err' }); return; }
+    if (video && file.size > 200 * 1024 * 1024) { toast('Il video supera i 200 MB.', { tone: 'err' }); return; }
     const problem = video && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
-    // Only photos of a face (see face.js)
+    // Only photos of a face, framed on it (see face.js)
     if (kind === 'photo') {
       s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
       this.__rerender();
-      const noFace = await faceProblem(file);
+      const out = await preparePhoto(file);
       s.up = null;
-      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+      if (out.problem) { this.__rerender(); toast(out.problem, { tone: 'err' }); return; }
+      file = out.file;
+      if (file.size > 5 * 1024 * 1024) { this.__rerender(); toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     }
     s.up = { kind, loaded: 0, total: file.size, name: file.name };
     this.__rerender();
