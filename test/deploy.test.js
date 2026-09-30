@@ -74,3 +74,12 @@ test('updated Terms/Privacy: onboarding is never interrupted; approved members a
   await a.post('/api/me/legal', { accept: true });
   assert.equal((await a.patch('/api/me/profile', { bio: 'Ciao' })).status, 200);
 });
+
+test('face check library: self-hosted, WebAssembly allowed by the CSP, cached for good', async () => {
+  const r = await fetch(`${t.base}/vendor/mediapipe-1.0.1/wasm/vision_wasm_internal.wasm`);
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('content-type'), 'application/wasm');
+  assert.match(r.headers.get('cache-control'), /immutable/);
+  assert.match(r.headers.get('content-security-policy'), /script-src 'self' 'wasm-unsafe-eval'/);
+  assert.equal((await fetch(`${t.base}/vendor/mediapipe-1.0.1/blaze_face_short_range.tflite`)).status, 200);
+});

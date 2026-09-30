@@ -5,6 +5,7 @@ import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } f
 import { flagBurst } from '../flags.js';
 import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { faceProblem, warmUpFaceCheck } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -170,6 +171,14 @@ export default class extends Page {
     const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
     if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
+    // Only photos of a face (see face.js)
+    if (kind === 'photo') {
+      s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
+      this.__rerender();
+      const noFace = await faceProblem(file);
+      s.up = null;
+      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+    }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
     upload(`/api/me/${kind === 'video' ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
@@ -224,6 +233,7 @@ export default class extends Page {
     const is = k => s.step === k;
     const blocker = this.blocker(s.step);
     this.lastBlocker = blocker;
+    if (s.step === 'presentati') warmUpFaceCheck(); // the photo check needs its model: fetch it now
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');
@@ -339,7 +349,7 @@ export default class extends Page {
       stageOpts: opts(cat.ideaStages), stage: p.idea_stage,
 
       // 11a
-      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: `${pct}%`,
+      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: up?.checking ? 'Controllo…' : `${pct}%`,
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
       photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? 'Cambia foto' : 'Obbligatoria · si deve vedere il tuo volto',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },

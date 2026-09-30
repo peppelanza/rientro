@@ -3,6 +3,7 @@
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { faceProblem } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -92,6 +93,14 @@ export default class extends Page {
     if (file.size > (video ? 200 : 5) * 1024 * 1024) { toast(video ? 'Il video supera i 200 MB.' : 'La foto supera 5 MB.', { tone: 'err' }); return; }
     const problem = video && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
+    // Only photos of a face (see face.js)
+    if (kind === 'photo') {
+      s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
+      this.__rerender();
+      const noFace = await faceProblem(file);
+      s.up = null;
+      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+    }
     s.up = { kind, loaded: 0, total: file.size, name: file.name };
     this.__rerender();
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
@@ -139,7 +148,7 @@ export default class extends Page {
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),
       // intestazione
-      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? `${pct}%` : '',
+      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },
       livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,

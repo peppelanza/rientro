@@ -28,7 +28,7 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self'", "style-src 'self'",
+    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
     "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
@@ -142,18 +142,29 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
+const MIME = { '.wasm': 'application/wasm', '.mjs': 'text/javascript; charset=utf-8', '.tflite': 'application/octet-stream', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
 
 function serveFile(res, file) {
   // Font files never change (new versions get new names); place lists and images change only with
   // a new build: cache them for a day.
-  const cache = file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2') ? 'public, max-age=31536000, immutable'
+  // Vendored libraries live in a folder named after their version, so they never change either.
+  const vendor = file.includes(`${path.sep}vendor${path.sep}`);
+  const cache = vendor || (file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2')) ? 'public, max-age=31536000, immutable'
     : file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400'
     // App code and styles: always fetched fresh, so a browser (or proxy) never mixes an old script
     // with a new stylesheet after a deploy
     : /\.(js|css|html)$/.test(file) ? 'no-store' : 'no-cache';
-  reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
+  const headers = { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache };
+  // The 12 MB WebAssembly file: compressed once, not on every request
+  if (vendor && /\bgzip\b/.test(res.req?.headers['accept-encoding'] || '')) {
+    if (!gzipped.has(file)) gzipped.set(file, zlib.gzipSync(fs.readFileSync(file)));
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' });
+    res.end(gzipped.get(file));
+    return;
+  }
+  reply(res, 200, headers, fs.readFileSync(file));
 }
+const gzipped = new Map();
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
 function plainNotFound(res) {
