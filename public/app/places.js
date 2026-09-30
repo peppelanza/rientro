@@ -1,3 +1,5 @@
+import { getCatalog } from './lib.js';
+
 // Countries (Italian names, CLDR) and their cities (GeoNames), built by scripts/build-places.js.
 // Loaded on demand and cached by the browser for a day.
 const cache = new Map();
@@ -6,11 +8,13 @@ const load = url => {
   return cache.get(url);
 };
 
-// [[ISO, nome]]
-export const loadPaesi = () => load('/data/paesi.json');
+// [[ISO, nome]]. Italy comes first: "Vivo fuori" also means the North, and before coming
+// back one may have lived elsewhere in Italy. Its cities are the comuni.
+export const loadPaesi = async () => [['IT', 'Italia'], ...await load('/data/paesi.json')];
 
 // City names for a country given its Italian name, most populous first
 export async function loadCitta(countryName) {
+  if (countryName === 'Italia') return [...(await getCatalog()).comuni].sort((a, b) => b[3] - a[3]).map(c => c[0]);
   const paese = (await loadPaesi()).find(p => p[1] === countryName);
   return paese ? load(`/data/citta/${paese[0]}.json`) : [];
 }

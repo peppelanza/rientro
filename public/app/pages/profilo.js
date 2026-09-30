@@ -142,7 +142,7 @@ export default class extends Page {
       photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? `${pct}%` : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       ageOpts: opts(cat.ageBands), ageProps: { onSelect: v => this.set({ age_band: v || null }) }, age: p.age_band,
-      livesOpts: [{ v: 'italy', l: 'In Italia' }, { v: 'abroad', l: "All'estero" }], lives: p.lives_in,
+      livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,
       livesProps: { onSelect: v => this.set({ lives_in: v, lives_in_city: null, lives_in_country: v === 'italy' ? 'Italia' : '' }) },
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', comuni: cat.comuni,
       paesi: s.paesi.map(x => [x[1]]), countrySel: p.lives_in === 'abroad' && p.lives_in_country ? [p.lives_in_country] : [],

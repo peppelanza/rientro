@@ -38,7 +38,8 @@ test('who lives in Italy says where from and when; "ho sempre vissuto in Italia"
   assert.equal(r.body.arrived_when, '2y_plus');
 
   assert.equal((await a.patch('/api/me/profile', { arrived_when: 'ieri' })).status, 400);
-  assert.equal((await a.patch('/api/me/profile', { arrived_from_country: 'Italia' })).status, 400);
+  // Coming back from elsewhere in Italy is fine
+  assert.equal((await a.patch('/api/me/profile', { arrived_from_country: 'Italia', arrived_from_city: 'Torino' })).status, 200);
 
   r = await a.patch('/api/me/profile', { always_in_italy: true });
   assert.equal(r.body.always_in_italy, true);

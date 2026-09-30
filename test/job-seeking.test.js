@@ -77,9 +77,9 @@ test('signing up records the terms and privacy notice acknowledgement', async ()
   assert.deepEqual(me.legal.needs, []);
 });
 
-test('living abroad cannot name Italy as the country', async () => {
+test('"vivo fuori" can be in Italy too (the North)', async () => {
   const u = await t.login('abroad@x.it');
-  assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Italia', lives_in_city: 'Roma' })).status, 400);
+  assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Italia', lives_in_city: 'Milano' })).status, 200);
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Regno Unito', lives_in_city: 'Londra' })).status, 200);
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'italy', lives_in_city: 'Roma' })).status, 200);
 });
