@@ -34,6 +34,7 @@ export function openDb(file = config.dbPath) {
   addProfileColumns(db);
   migrateUserColumns(db);
   migrateIdeaStages(db);
+  migrateIntentCheck(db);
   seed(db);
   return db;
 }
@@ -78,6 +79,23 @@ export function migrateIdeaStages(db) {
     db.prepare(`UPDATE profiles SET pending_changes = json_set(pending_changes, '$.idea_stage', ?)
       WHERE json_valid(pending_changes) AND json_extract(pending_changes, '$.idea_stage') = ?`).run(to, from);
   }
+}
+
+// The third intent ("networking") came after launch. A CHECK constraint can't be altered, but
+// widening its list doesn't change how rows are stored, so the table definition is edited in place
+// (sqlite.org/lang_altertable.html, "other kinds of table schema changes").
+function migrateIntentCheck(db) {
+  const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'profiles'").get();
+  const old = "primary_intent IN ('has_idea', 'seeking_idea')";
+  if (!sql.includes(old)) return;
+  const v = db.prepare('PRAGMA schema_version').get().schema_version;
+  db.exec('PRAGMA writable_schema = ON');
+  try {
+    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'profiles'")
+      .run(sql.replace(old, "primary_intent IN ('has_idea', 'seeking_idea', 'networking')"));
+    db.exec(`PRAGMA schema_version = ${v + 1}`);
+  } finally { db.exec('PRAGMA writable_schema = OFF'); }
+  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('profiles: intent migration failed');
 }
 
 function seed(db) {

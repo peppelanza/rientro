@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   desired_comuni         TEXT NOT NULL DEFAULT '[]',
   desired_unknown        INTEGER NOT NULL DEFAULT 0,
   -- 3 Obiettivo (job-seeking lives in job_preferences, never here)
-  primary_intent         TEXT CHECK (primary_intent IS NULL OR primary_intent IN ('has_idea', 'seeking_idea')),
+  primary_intent         TEXT CHECK (primary_intent IS NULL OR primary_intent IN ('has_idea', 'seeking_idea', 'networking')),
   -- 4 Idea (or "what you'd like to build" for seeking_idea)
   idea_title             TEXT,
   idea_description       TEXT,

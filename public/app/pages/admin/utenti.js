@@ -35,7 +35,7 @@ export default class extends AdminPage {
       q: f.q, qProps: { onEnter: v => this.set({ q: v.trim() }), onBlur: v => v.trim() !== f.q && this.set({ q: v.trim() }) },
       filters: [
         sel('Stato', 'status', [['onboarding', 'Bozza'], ['in_review', 'In revisione'], ['changes_requested', 'Modifiche'], ['approved', 'Approvato'], ['rejected', 'Rifiutato'], ['suspended', 'Sospeso']]),
-        sel('Intento', 'intent', [['has_idea', "Ha già un'idea"], ['seeking_idea', "Cerca un'idea"]]),
+        sel('Intento', 'intent', [['has_idea', "Ha già un'idea"], ['seeking_idea', "Cerca un'idea"], ['networking', 'Networking']]),
         sel('Fonte', 'source', cat.sources.map(x => [x, x])),
       ].map(x => ({ ...x, options: x.options.map(([v, l]) => ({ v, l })), placeholder: `${x.label}: tutti` })),
       users: d.users.map(u => ({ ...u, ini: initials(u.name), kind: STATUS_KIND[u.status], joined: short(u.joined), href: `/admin/utenti/${u.id}`, open: () => go(`/admin/utenti/${u.id}`) })),

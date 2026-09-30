@@ -168,6 +168,7 @@ export default class extends Page {
       // obiettivo
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
       intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
+      intentC: card(p.primary_intent === 'networking', () => this.set({ primary_intent: 'networking' })),
       hasIdea: p.primary_intent === 'has_idea', stageOpts: opts(cat.ideaStages), stage: p.idea_stage, stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
 
       // percorso

@@ -44,6 +44,11 @@ export async function getMe(fresh = false) {
 export const setMe = me => { meCache = me; };
 
 let catalogCache = null;
+// Intent (onboarding "Cosa stai cercando su Rientro?"): badge label and UI Badge kind
+export const INTENT_BADGE = {
+  has_idea: ["Ha già un'idea", 'idea'], seeking_idea: ["Cerca un'idea insieme", 'explore'], networking: ['Networking', 'neutral'],
+};
+
 export async function getCatalog() {
   catalogCache ??= await api('GET', '/api/catalog');
   return catalogCache;

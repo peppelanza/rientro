@@ -50,6 +50,7 @@ export function territory(db, raw) {
     return [...m.entries()].filter(([, n]) => n >= config.publicStatsMinCount).sort((a, b) => b[1] - a[1]);
   };
   const withIdea = wants.filter(p => p.primary_intent === 'has_idea').length;
+  const seeking = wants.filter(p => p.primary_intent === 'seeking_idea').length;
   return {
     name: place,
     slug: photoSlug(place),
@@ -61,7 +62,7 @@ export function territory(db, raw) {
     count: k(wants.length),
     living: k(livesThere.length),
     idea: k(withIdea),
-    explore: k(wants.length - withIdea),
+    explore: k(seeking),
     origins: tally(wants.filter(p => p.lives_in === 'abroad'), p => [p.lives_in_city])
       .slice(0, 5).map(([from, n]) => ({ from, n })),
     sectors: tally(wants, p => p.sectors).slice(0, 8).map(([l, n]) => ({ l, n })),

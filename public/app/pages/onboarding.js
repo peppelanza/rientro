@@ -11,8 +11,8 @@ export const title = 'Il tuo profilo';
 
 const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
-  ['presentati', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
-  ['risultato', 'Su di te'], ['video', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
+  ['presentati', 'Su di te'], ['video', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
+  ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
   ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
 ];
 
@@ -88,8 +88,11 @@ export default class extends Page {
     this.next();
   };
 
-  // "Da dove sei arrivato" only for who already lives in Italy
-  get steps() { return this.state.p?.lives_in === 'italy' ? STEPS : STEPS.filter(([k]) => k !== 'arrivo'); }
+  // "Da dove sei arrivato" only for who already came back; the idea step only for who has one
+  get steps() {
+    const p = this.state.p;
+    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'idea' || p?.primary_intent === 'has_idea'));
+  }
 
   goTo(step) {
     this.state.step = step;
@@ -112,7 +115,7 @@ export default class extends Page {
       case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
       case 'arrivo': return p.always_in_italy ? null : !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
-      case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle due opzioni';
+      case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
       case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : null;
       case 'background': return p.background_area ? null : 'Scegli la tua area';
@@ -321,8 +324,10 @@ export default class extends Page {
       unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
 
       // 9a / 10a
-      intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
-      intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
+      // One click: choosing moves on (to the idea step for A, straight to "Presentati" for B and C)
+      intentA: card(p.primary_intent === 'has_idea', () => { this.set({ primary_intent: 'has_idea' }); this.next(); }),
+      intentB: card(p.primary_intent === 'seeking_idea', () => { this.set({ primary_intent: 'seeking_idea' }); this.next(); }),
+      intentC: card(p.primary_intent === 'networking', () => { this.set({ primary_intent: 'networking' }); this.next(); }),
 
       cat,
 

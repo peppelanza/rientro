@@ -35,6 +35,7 @@ export default class extends AdminPage {
       funnel: d.funnel.map((f, i) => ({ ...f, w: `${f.w}%`, c: funnelColors[i] })),
       cities: bar(d.cities), inds: bar(d.sectors), noCities: !d.cities.length, noInds: !d.sectors.length,
       ideaW: `${d.intent.has_idea}%`, seekW: `${d.intent.seeking_idea}%`, ideaPct: `${d.intent.has_idea}%`, seekPct: `${d.intent.seeking_idea}%`,
+      netW: `${d.intent.networking ?? 0}%`, netPct: `${d.intent.networking ?? 0}%`,
     };
   }
 }

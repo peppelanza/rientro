@@ -2,6 +2,9 @@ import { AGE_BANDS, AREAS, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, STAR
 import { newId, now, tx } from './db.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
+// A: has an idea, B: looking for one with others, C: networking only (no idea step)
+const INTENTS = ['has_idea', 'seeking_idea', 'networking'];
+
 const values = pairs => pairs.map(p => p[0]);
 const bool = (v, f) => { if (v === undefined) return undefined; if (v === true || v === false) return v ? 1 : 0; throw bad('invalid_field', `${f} non valido`); };
 const subset = (v, allowed, f, max) => {
@@ -50,7 +53,7 @@ const EDITABLE = {
   always_in_italy: v => bool(v, 'Ho sempre vissuto in Italia'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
-  primary_intent: v => oneOf(v, ['has_idea', 'seeking_idea'], 'Obiettivo'),
+  primary_intent: v => oneOf(v, INTENTS, 'Obiettivo'),
   idea_title: v => text(v, 'In una frase', { max: 140 }),
   idea_description: v => text(v, 'Descrizione', { max: 1000 }),
   idea_stage: v => oneOf(v, values(IDEA_STAGES), 'A che punto sei'),
@@ -343,6 +346,7 @@ export function card(db, viewer, p, viewerP) {
     from: p.lives_in_city ?? '',
     to: p.desired_comuni.slice(0, 2).join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
+    intent: p.primary_intent,
     idea_title: p.idea_title,
     seeks: p.seeking_backgrounds.join(', '),
     tags: p.sectors.slice(0, 3).join(' · '),
@@ -371,7 +375,7 @@ export function parseDiscoverQuery(q) {
   const arr = k => (q.get(k) ? q.get(k).split(',').map(s => s.trim()).filter(Boolean).slice(0, 20) : []);
   return {
     lives: ['italy', 'abroad'].includes(q.get('lives')) ? q.get('lives') : '',
-    intent: arr('intent').filter(x => ['has_idea', 'seeking_idea'].includes(x)),
+    intent: arr('intent').filter(x => INTENTS.includes(x)),
     backgrounds: arr('backgrounds').filter(x => AREAS.includes(x)),
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
     desired: arr('desired'),
@@ -400,7 +404,7 @@ export function discover(db, viewer, filters) {
     total: results.length,
     people: results.slice(0, 60).map(p => card(db, viewer, p, viewerP)),
     counts: {
-      intent: { has_idea: count('intent', p => p.primary_intent === 'has_idea'), seeking_idea: count('intent', p => p.primary_intent === 'seeking_idea') },
+      intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
       backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => p.desired_comuni.includes(c))])),
     },

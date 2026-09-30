@@ -15,7 +15,7 @@ export function audit(db, adminId, action, targetUserId = null, details = {}) {
   ).run(adminId, action, targetUserId, targetUserId ? subjectRef(targetUserId) : null, JSON.stringify(details), now());
 }
 
-const INTENT = { has_idea: 'Ha già un\'idea', seeking_idea: 'Cerca un\'idea' };
+const INTENT = { has_idea: 'Ha già un\'idea', seeking_idea: 'Cerca un\'idea', networking: 'Networking' };
 const STATUS_LABEL = { onboarding: 'Bozza', in_review: 'In revisione', changes_requested: 'Modifiche', approved: 'Approvato', rejected: 'Rifiutato', suspended: 'Sospeso' };
 const DAY = 86400_000;
 const since = days => new Date(Date.now() - days * DAY).toISOString();
@@ -84,7 +84,7 @@ export function dashboard(db, admin, query) {
     ],
     cities: topCounts(approvedUsers.flatMap(u => u.desired_comuni), 6),
     sectors: topCounts(approvedUsers.flatMap(u => u.sectors), 6),
-    intent: { has_idea: pct(approvedUsers.filter(u => u.primary_intent === 'has_idea').length, approvedUsers.length), seeking_idea: pct(approvedUsers.filter(u => u.primary_intent === 'seeking_idea').length, approvedUsers.length) },
+    intent: Object.fromEntries(Object.keys(INTENT).map(i => [i, pct(approvedUsers.filter(u => u.primary_intent === i).length, approvedUsers.length)])),
   };
 }
 

@@ -99,3 +99,10 @@ test('idea stages are the three new ones, and old stored stages move over', asyn
   assert.equal((await v.get('/api/me')).body.profile.idea_stage, 'revenue');
   t2.close();
 });
+
+test('third intent: networking', async () => {
+  const u = await t.login('net@x.it');
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'networking' })).status, 200);
+  assert.equal((await u.get('/api/me')).body.profile.primary_intent, 'networking');
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'altro' })).status, 400);
+});
