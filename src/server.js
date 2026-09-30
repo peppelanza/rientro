@@ -8,12 +8,13 @@ import * as admin from './admin.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
-import { openDb } from './db.js';
+import { openDb, tx } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail } from './mail.js';
 import { runRetention } from './retention.js';
+import { checkLinkedinState, linkedinEnabled, linkedinProfile, startLinkedin, STATE_COOKIE } from './linkedin.js';
 import * as profiles from './profiles.js';
 import { territory } from './public.js';
 import * as social from './social.js';
@@ -79,6 +80,12 @@ function openDuringPreview(p) {
 // The sign-in code is returned to the page in development, and in a password-protected preview
 // when no email provider is configured.
 const showCodeOnPage = () => !config.production || (!!config.previewPassword && !config.brevoApiKey);
+
+function cookie(name, value, maxAgeSeconds, { path = '/', httpOnly = true } = {}) {
+  return [`${name}=${value}`, `Path=${path}`, ...(httpOnly ? ['HttpOnly'] : []), 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
+}
+const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : null);
+const homeFor = user => (user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato');
 
 function sessionCookie(value, maxAgeSeconds) {
   return [`${SESSION_COOKIE}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
@@ -193,7 +200,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|segnalazioni|ana
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 } } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch } = {}) {
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -222,8 +229,41 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       auth.logout(db, sessionToken);
       throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
     }
-    const next = user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato';
+    const next = homeFor(user);
     send(res, 200, { ok: true, next, restored }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
+  }, { ...pub, raw: true });
+
+  // Sign In with LinkedIn (see linkedin.js). Failures go back to /accedi with ?errore=… explained there.
+  const back = (res, errore, extra = []) => { res.writeHead(302, { Location: `/accedi?errore=${errore}`, 'Set-Cookie': [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), ...extra] }); res.end(); };
+  route('GET', '/api/auth/linkedin/start', ({ req, res, url }) => {
+    limitIp(clientIp(req));
+    if (!linkedinEnabled()) return back(res, 'linkedin_non_attivo');
+    const { url: to, cookieValue, maxAge } = startLinkedin(safeNext(url.searchParams.get('next')));
+    res.writeHead(302, { Location: to, 'Set-Cookie': cookie(STATE_COOKIE, cookieValue, maxAge, { path: '/api/auth/linkedin' }) });
+    res.end();
+  }, { ...pub, raw: true });
+  route('GET', '/api/auth/linkedin/callback', async ({ req, res, url, cookies }) => {
+    limitVerify(`v:${clientIp(req)}`);
+    if (url.searchParams.get('error')) return back(res, 'linkedin_annullato'); // e.g. the member pressed "Annulla"
+    const state = checkLinkedinState(cookies[STATE_COOKIE], url.searchParams.get('state'));
+    const code = url.searchParams.get('code');
+    if (!state || !code) return back(res, 'linkedin_scaduto');
+    let profile;
+    try { profile = await linkedinProfile(code, linkedinFetch); } catch (err) { console.error('[linkedin]', err?.message ?? err); return back(res, 'linkedin_errore'); }
+    let email;
+    try { email = auth.normaliseEmail(profile.email); } catch { return back(res, 'linkedin_email'); }
+    if (!profile.emailVerified) return back(res, 'linkedin_email');
+    const { sessionToken, user, restored } = tx(db, () => {
+      const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
+      // Fill in the name from LinkedIn only where the profile has none yet
+      db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
+      return out;
+    });
+    if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
+    const set = [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
+    if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
+    res.writeHead(302, { Location: safeNext(state.next) ?? homeFor(user), 'Set-Cookie': set });
+    res.end();
   }, { ...pub, raw: true });
 
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
@@ -242,7 +282,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
   }), pub);
-  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt }), pub);
+  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled() }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
     if (!t) throw new HttpError(404, 'not_found');

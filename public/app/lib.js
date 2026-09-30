@@ -172,5 +172,8 @@ export function flash(message) { try { sessionStorage.setItem(FLASH, message); }
 export function showFlash() {
   let m = null;
   try { m = sessionStorage.getItem(FLASH); sessionStorage.removeItem(FLASH); } catch {}
+  // The server can leave one too, after a redirect (LinkedIn sign-in)
+  const c = document.cookie.match(/(?:^|; )rientro_flash=([^;]*)/);
+  if (c) { m = decodeURIComponent(c[1]); document.cookie = 'rientro_flash=; Path=/; Max-Age=0'; }
   if (m) toast(m, { ms: 7000 });
 }

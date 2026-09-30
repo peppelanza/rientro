@@ -46,40 +46,47 @@ export function verifyCode(db, body, userAgent) {
     const claimed = db.prepare('UPDATE login_codes SET used_at = ? WHERE id = ? AND used_at IS NULL').run(now(), row.id);
     if (!claimed.changes) throw invalid;
 
-    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    const isNew = !user;
-    if (isNew) {
-      const ts = now();
-      const role = config.adminEmails.includes(email) ? 'admin' : 'member';
-      user = { id: newId(), email, role, status: 'onboarding', created_at: ts };
-      db.prepare('INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
-        .run(user.id, email, role, 'onboarding', ts, ts);
-      db.prepare('INSERT INTO profiles (user_id, updated_at) VALUES (?, ?)').run(user.id, ts);
-      // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
-      acknowledge(db, user.id);
-    }
-    // Signing in within 30 days of a deletion request cancels it: the account comes back as it was
-    const restored = !isNew && !!user.deletion_requested_at;
-    if (restored) {
-      db.prepare('UPDATE users SET deletion_requested_at = NULL, deletion_reason = NULL WHERE id = ?').run(user.id);
-      user = { ...user, deletion_requested_at: null, deletion_reason: null };
-    }
-    if (row.marketing_opt_in) {
-      db.prepare(
-        `INSERT INTO communication_preferences (user_id, marketing_email, updated_at) VALUES (?, 1, ?)
-         ON CONFLICT(user_id) DO UPDATE SET marketing_email = 1, updated_at = excluded.updated_at`,
-      ).run(user.id, now());
-      db.prepare(
-        `INSERT INTO preference_events (user_id, subject_ref, preference, value, source, privacy_policy_version, created_at)
-         VALUES (?, ?, 'marketing_email', 1, 'signup', ?, ?)`,
-      ).run(user.id, subjectRef(user.id), LEGAL_VERSIONS.privacy, now());
-    }
-    const sessionToken = token();
-    db.prepare(
-      'INSERT INTO sessions (token_hash, user_id, created_at, last_used_at, expires_at, user_agent) VALUES (?, ?, ?, ?, ?, ?)',
-    ).run(sha256(sessionToken), user.id, now(), now(), inMinutes(config.sessionTtlDays * 1440), (userAgent || '').slice(0, 200));
-    return { sessionToken, user, isNew, restored };
+    return startSession(db, email, { userAgent, marketing: !!row.marketing_opt_in });
   });
+}
+
+// Signs a verified email in (code by email, or LinkedIn): creates the account the first time,
+// cancels a pending deletion request, records an optional marketing opt-in, opens a session.
+// Call inside a transaction.
+export function startSession(db, email, { userAgent = '', marketing = false } = {}) {
+  let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const isNew = !user;
+  if (isNew) {
+    const ts = now();
+    const role = config.adminEmails.includes(email) ? 'admin' : 'member';
+    user = { id: newId(), email, role, status: 'onboarding', created_at: ts };
+    db.prepare('INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(user.id, email, role, 'onboarding', ts, ts);
+    db.prepare('INSERT INTO profiles (user_id, updated_at) VALUES (?, ?)').run(user.id, ts);
+    // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
+    acknowledge(db, user.id);
+  }
+  // Signing in within 30 days of a deletion request cancels it: the account comes back as it was
+  const restored = !isNew && !!user.deletion_requested_at;
+  if (restored) {
+    db.prepare('UPDATE users SET deletion_requested_at = NULL, deletion_reason = NULL WHERE id = ?').run(user.id);
+    user = { ...user, deletion_requested_at: null, deletion_reason: null };
+  }
+  if (marketing) {
+    db.prepare(
+      `INSERT INTO communication_preferences (user_id, marketing_email, updated_at) VALUES (?, 1, ?)
+       ON CONFLICT(user_id) DO UPDATE SET marketing_email = 1, updated_at = excluded.updated_at`,
+    ).run(user.id, now());
+    db.prepare(
+      `INSERT INTO preference_events (user_id, subject_ref, preference, value, source, privacy_policy_version, created_at)
+       VALUES (?, ?, 'marketing_email', 1, 'signup', ?, ?)`,
+    ).run(user.id, subjectRef(user.id), LEGAL_VERSIONS.privacy, now());
+  }
+  const sessionToken = token();
+  db.prepare(
+    'INSERT INTO sessions (token_hash, user_id, created_at, last_used_at, expires_at, user_agent) VALUES (?, ?, ?, ?, ?, ?)',
+  ).run(sha256(sessionToken), user.id, now(), now(), inMinutes(config.sessionTtlDays * 1440), (userAgent || '').slice(0, 200));
+  return { sessionToken, user, isNew, restored };
 }
 
 export function userForSession(db, rawToken) {

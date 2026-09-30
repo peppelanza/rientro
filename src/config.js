@@ -12,6 +12,10 @@ export const config = {
   publicDir: path.join(root, 'public'),
   // Used to pseudonymise subject references in the ledgers. Must be set in production.
   pseudonymSecret: process.env.PSEUDONYM_SECRET || 'dev-only-pseudonym-secret',
+  // Sign In with LinkedIn (OpenID Connect). Both set = the LinkedIn button works; the app's redirect
+  // URL registered on LinkedIn must be <BASE_URL>/api/auth/linkedin/callback.
+  linkedinClientId: process.env.LINKEDIN_CLIENT_ID || '',
+  linkedinClientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   sessionTtlDays: 30,
