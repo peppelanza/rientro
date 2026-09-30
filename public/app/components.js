@@ -254,18 +254,29 @@ def('App Select', String.raw`
 // App City Jump — "Scopri chi rientra a [città ▾]": takes the visitor to sign-up with that city.
 // Empty, the list shows Italy's 15 largest cities; typing searches every comune.
 
-// Dropdown highlight (.dd-opt.is-hover): set by hand from the pointer position on every mouse move
-// and every scroll of the list, instead of CSS :hover, which Chrome doesn't always update when a
-// list scrolls under a still pointer or is redrawn. The pointer is remembered on the component.
-function trackHover(e, owner, leave) {
-  const list = e.currentTarget;
-  if (leave) owner.pointer = null;
-  else if (e.type === 'mousemove') owner.pointer = [e.clientX, e.clientY];
-  const at = owner.pointer && document.elementFromPoint(...owner.pointer)?.closest?.('.dd-opt');
-  const on = at && list.contains(at) ? at : null;
-  for (const o of list.querySelectorAll('.dd-opt.is-hover')) if (o !== on) o.classList.remove('is-hover');
-  on?.classList.add('is-hover');
-  list.classList.toggle('has-hover', !!on);
+// Dropdown highlight (.dd-opt.is-hover): the option under the pointer, worked out from the
+// pointer position rather than CSS :hover. It's recomputed on every mouse move and on every scroll
+// anywhere (the list's own, and the page's: the smooth scroll that opens the home list moves it
+// under a still pointer), plus after each redraw, which :hover doesn't reliably follow.
+let pointer = null;
+function refreshHover() {
+  const lists = document.querySelectorAll('.dd-list');
+  if (!lists.length) return;
+  const at = pointer && document.elementFromPoint(...pointer)?.closest?.('.dd-opt');
+  for (const list of lists) {
+    const on = at && list.contains(at) ? at : null;
+    for (const o of list.querySelectorAll('.dd-opt.is-hover')) if (o !== on) o.classList.remove('is-hover');
+    on?.classList.add('is-hover');
+    list.classList.toggle('has-hover', !!on);
+  }
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('mousemove', e => { pointer = [e.clientX, e.clientY]; refreshHover(); }, { capture: true, passive: true });
+  document.addEventListener('mouseleave', () => { pointer = null; refreshHover(); });
+  let queued = false;
+  const later = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; refreshHover(); }); } };
+  document.addEventListener('scroll', later, { capture: true, passive: true });
+  document.addEventListener('wheel', later, { capture: true, passive: true });
 }
 
 // Empty query: the 15 largest cities; otherwise names starting with it, then names containing it.
@@ -305,7 +316,7 @@ def('App City Jump', String.raw`
 <div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
 <input id="city-jump" data-key="city-jump" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}" onMouseMove="{{ track }}" onScroll="{{ track }}" onMouseLeave="{{ untrack }}">
+<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt dd-opt" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
@@ -393,8 +404,9 @@ def('App City Jump', String.raw`
       hover: e => this.pointAt(e, i),
     }));
     const phone = this.phone;
+    if (open) requestAnimationFrame(refreshHover); // options were redrawn
     return {
-      query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '', track: e => trackHover(e, this), untrack: e => trackHover(e, this, true),
+      query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
       phone, sheet: this.state.sheet, loading: !comuni,
       // The open animation plays once, not on every later render of the sheet
       anim: this.state.sheetFresh ? 'cj-anim' : '',
@@ -522,7 +534,7 @@ def('App Comune Picker', String.raw`
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input class="bare-input" data-key="{{ field }}" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 </div></sc-if>
-<sc-if value="{{ open }}"><div role="listbox" class="dd-list {{ kbClass }}" onMouseMove="{{ track }}" onScroll="{{ track }}" onMouseLeave="{{ untrack }}" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
+<sc-if value="{{ open }}"><div role="listbox" class="dd-list {{ kbClass }}" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="dd-opt" onMouseDown="{{ m.pick }}" onMouseMove="{{ m.hover }}" style="padding:10px 12px;border-radius:16px;display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
 <sc-if value="{{ none }}"><div style="padding:10px 12px;color:#8C84AE">{{ noneText }}</div></sc-if>
 </div></sc-if>
@@ -583,6 +595,7 @@ def('App Comune Picker', String.raw`
       }),
       ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
     ];
+    if (this.state.open) requestAnimationFrame(refreshHover); // options were redrawn
     const matches = options.map((o, i) => ({
       ...o, active: i === this.state.idx ? 'true' : 'false',
       pick: e => { e.preventDefault(); this.add(o.name); },
@@ -602,7 +615,7 @@ def('App Comune Picker', String.raw`
       // Single choice: the chip stands in for the field, so it takes the field's size
       smallChips: !single && sel.length > 0, bigChip: single && sel.length > 0, showField: !(single && sel.length), field: this.props.field ?? 'comuni', full, query: q,
       placeholder, label: placeholder,
-      open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length, kbClass: this.state.kb ? 'dd-kb' : '', track: e => trackHover(e, this), untrack: e => trackHover(e, this, true),
+      open: this.state.open && typed.length > 0, matches, none: this.state.open && typed && !matches.length, kbClass: this.state.kb ? 'dd-kb' : '',
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),

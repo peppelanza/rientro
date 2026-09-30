@@ -300,11 +300,11 @@ body { padding-top: var(--lb, 0px); }
 .cj-input { cursor: text; flex: 1; min-width: 0; font: 600 24px 'Geist', sans-serif; color: #1A1726; letter-spacing: -.01em; }
 .cj-input::placeholder { color: #8C84AE; font-weight: 500; }
 .cj-chevron { flex: none; pointer-events: none; }
-.cj-list { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 20; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 18px 40px rgba(80,60,160,.18); display: flex; flex-direction: column; font-size: 16px; letter-spacing: 0; color: #1A1726; }
+.cj-list { overscroll-behavior: contain; position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 20; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 18px 40px rgba(80,60,160,.18); display: flex; flex-direction: column; font-size: 16px; letter-spacing: 0; color: #1A1726; }
 .cj-head { padding: 8px 12px 6px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #8C84AE; }
 /* Dropdown options (home city list, comune pickers): one highlight. The keyboard's option
    (aria-selected) is highlighted until the mouse is over the list; then the option under the
-   mouse is (.is-hover, set from the pointer on every move and scroll: see trackHover). After an arrow
+   mouse is (.is-hover, set from the pointer on every move and scroll: see refreshHover). After an arrow
    key (.dd-kb) the keyboard's option wins until the mouse moves again. */
 .dd-opt { background: transparent; }
 .dd-opt[aria-selected="true"], .dd-opt.is-hover { background: #F1EFF8; }
