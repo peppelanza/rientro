@@ -22,7 +22,8 @@ export const COMPLETE_PROFILE = {
 
 export async function startApp(opts = {}) {
   const codes = new Map();
-  const app = createApp({ db: openDb(':memory:'), sendLoginCode: async (email, code) => codes.set(email, code), loginLimits: { ip: 1000, email: 1000 }, ...opts });
+  // No DNS in tests: the email-domain check has its own test
+  const app = createApp({ db: openDb(':memory:'), sendLoginCode: async (email, code) => codes.set(email, code), loginLimits: { ip: 1000, email: 1000 }, emailDomainCheck: async () => {}, ...opts });
   await new Promise(r => app.server.listen(0, r));
   const base = `http://127.0.0.1:${app.server.address().port}`;
 

@@ -16,6 +16,9 @@ export const config = {
   // URL registered on LinkedIn must be <BASE_URL>/api/auth/linkedin/callback.
   linkedinClientId: process.env.LINKEDIN_CLIENT_ID || '',
   linkedinClientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
+  // Cloudflare Turnstile (bot check on sign-in): both set = on. See turnstile.js.
+  turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
+  turnstileSecret: process.env.TURNSTILE_SECRET_KEY || '',
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   // The admin panel lives only on its own host (e.g. admin.rientro.it): anyone who isn't a signed-in

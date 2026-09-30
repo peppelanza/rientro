@@ -1,4 +1,5 @@
 import { api, flash, qs } from '../lib.js';
+import { turnstileToken, warmUpTurnstile } from '../turnstile.js';
 import { Page } from './_base.js';
 
 const LINKEDIN_ERRORS = {
@@ -44,7 +45,10 @@ export default class extends Page {
     if (!/^\S+@\S+\.\S{2,}$/.test(email)) { this.state.emailError = 'Inserisci un indirizzo email valido.'; this.__rerender(); return; }
     this.state.busy = true; this.state.emailError = null; this.__rerender();
     try {
-      const r = await api('POST', '/api/auth/request-code', { email, marketing_opt_in: this.state.marketing });
+      // Bot check (Cloudflare Turnstile), when it's on
+      let token = null;
+      try { token = await turnstileToken(this.state.launch?.turnstile); } catch { throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Ricarica la pagina e riprova.'); }
+      const r = await api('POST', '/api/auth/request-code', { email, marketing_opt_in: this.state.marketing, ...(token ? { turnstile_token: token } : {}) });
       Object.assign(this.state, { step: 'code', devCode: r.dev_code ?? null, code: ['', '', '', '', '', ''], codeError: null, resendAt: Date.now() + 45_000 });
     } catch (err) { this.state.emailError = err.message; }
     this.state.busy = false;
@@ -105,7 +109,7 @@ export default class extends Page {
       postcardAlt: s.postcard ? `Cartolina da ${s.postcard.name}` : '',
       expired: !!qs().get('next'),
       linkedin: oauth('LinkedIn'), google: oauth('Google'), oauthNote: s.oauthNote,
-      toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
+      toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; warmUpTurnstile(this.state.launch?.turnstile); this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
       toChoose: () => { this.state.step = 'choose'; this.__rerender(); },
       email: s.email, emailError: s.emailError,
       emailProps: { onInput: v => { this.state.email = v; }, onEnter: () => this.sendCode() },

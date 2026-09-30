@@ -6,6 +6,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
 import * as moderation from './moderation.js';
+import { checkEmailDomain } from './email-check.js';
+import { turnstileEnabled, verifyTurnstile } from './turnstile.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
@@ -29,8 +31,9 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
+    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
     "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
+    "frame-src https://challenges.cloudflare.com", // Cloudflare Turnstile on sign-in (turnstile.js)
     "worker-src 'self' blob:", // HEIC photos are decoded in a worker (vendor/heic-to)
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
@@ -223,7 +226,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|bloccati|se
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch } = {}) {
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -236,8 +239,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // ---- auth (2a, 5a, 5b)
   route('POST', '/api/auth/request-code', async ({ req }) => {
-    const body = await readJson(req);
+    const { turnstile_token: token, ...body } = await readJson(req);
     limitIp(clientIp(req));
+    await verifyTurnstile(token, clientIp(req), turnstileFetch);
+    // Throwaway addresses and domains that can't receive mail get no code (email-check.js)
+    await emailDomainCheck(auth.normaliseEmail(body.email));
     const { email, code } = auth.requestCode(db, body);
     limitEmail(email);
     await sendLoginCode(email, code);
@@ -307,7 +313,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
   }), pub);
-  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled() }), pub);
+  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled(), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
     if (!t) throw new HttpError(404, 'not_found');
