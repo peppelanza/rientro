@@ -22,7 +22,7 @@ const faq = [
 const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Raccontaci di te.' },
   { n: '02', t: 'Scopri chi torna', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
-  { n: '03', t: 'Connettiti e parla', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
+  { n: '03', t: 'Connettiti e fai due chiacchiere', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
 ];
 // Illustrative example profiles from the design (not real members).
 const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
