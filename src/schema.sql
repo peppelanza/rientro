@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   first_name             TEXT,
   last_name              TEXT,
   birth_year             INTEGER,
+  -- Photo of the LinkedIn/Google account, offered as the first profile photo if it shows a face (then cleared)
+  suggested_photo_url    TEXT,
   age_band               TEXT CHECK (age_band IS NULL OR age_band IN ('18-24', '25-29', '30-34', '35-39', '40-44', '45-50+')),
   bio                    TEXT,
   photo_file_id          TEXT REFERENCES files(id) ON DELETE SET NULL,

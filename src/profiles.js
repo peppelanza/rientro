@@ -59,7 +59,6 @@ const EDITABLE = {
   idea_stage: v => oneOf(v, values(IDEA_STAGES), 'A che punto sei'),
   first_name: v => text(v, 'Nome', { max: 60 }),
   last_name: v => text(v, 'Cognome', { max: 60 }),
-  age_band: v => oneOf(v, values(AGE_BANDS), 'Fascia d’età'),
   birth_year: v => {
     if (v === undefined || v === null || v === '') return v === '' ? null : v;
     const y = new Date().getFullYear();
@@ -161,7 +160,10 @@ export function updateProfile(db, user, body) {
   // "Ho sempre vissuto in Italia" overrides where from and when
   if (live.always_in_italy === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_after: null, arrived_before: null });
   // The birth year stays private: others see the age band, kept in step here and every day after
-  if ('birth_year' in live) live.age_band = ageBandFor(live.birth_year);
+  if ('birth_year' in live) {
+    if (live.birth_year === null && user.status !== 'onboarding') throw bad('invalid_field', 'Indica il tuo anno di nascita.');
+    live.age_band = ageBandFor(live.birth_year);
+  }
   // "Vivo fuori" includes the North, and the city before coming back may be Italian too
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
@@ -243,6 +245,7 @@ export function missingForSubmit(p) {
   if (!p.primary_intent) missing.push('Obiettivo');
   if (!p.photo_url) missing.push('Foto');
   if (!p.first_name || !p.last_name) missing.push('Nome e cognome');
+  if (!p.birth_year) missing.push('Anno di nascita');
   if (!p.background_area) missing.push('Background');
   if (!p.seeking_backgrounds.length) missing.push('Chi stai cercando');
   if (!p.time_commitment) missing.push('Tempo');

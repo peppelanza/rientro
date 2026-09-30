@@ -19,9 +19,9 @@ export async function loadCitta(countryName) {
   return paese ? load(`/data/citta/${paese[0]}.json`) : [];
 }
 
-// Birth year: private, others see the age band. Empty is fine (it's optional), "19" is not yet
+// Birth year: private, others see the age band. Required; "19" is not a year yet
 export const parseBirthYear = v => (!v.trim() ? null : /^\d{4}$/.test(v.trim()) ? Number(v.trim()) : v);
-export const validBirthYear = y => y === null || y === undefined || (Number.isInteger(y) && y <= new Date().getFullYear() - 18 && y >= new Date().getFullYear() - 100);
+export const validBirthYear = y => (Number.isInteger(y) && y <= new Date().getFullYear() - 18 && y >= new Date().getFullYear() - 100);
 // Same bands as ageBandFor in src/catalog.js (the year alone: everyone moves up on 1 January)
 export function ageBandLabel(y) {
   if (!Number.isInteger(y)) return null;

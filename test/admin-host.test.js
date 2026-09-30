@@ -55,7 +55,7 @@ test('the admin is a member: onboarding, review, approval of their own profile',
     const me = (await a.get('/api/me')).body;
     assert.equal(me.user.status, 'onboarding');
     assert.equal((await a.get('/api/profiles')).status, 403); // not approved yet
-    await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Catania'], primary_intent: 'has_idea', first_name: 'Admin', last_name: 'Rientro', age_band: '35-39', bio: 'x'.repeat(160), background_area: 'Prodotto', current_role: 'Founder', seeking_backgrounds: ['Tech / Engineering'], sectors: ['AI'], time_commitment: 'full_time', start_when: '6_months' });
+    await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Catania'], primary_intent: 'has_idea', first_name: 'Admin', last_name: 'Rientro', birth_year: 1988, bio: 'x'.repeat(160), background_area: 'Prodotto', current_role: 'Founder', seeking_backgrounds: ['Tech / Engineering'], sectors: ['AI'], time_commitment: 'full_time', start_when: '6_months' });
     const { PNG } = await import('./helpers.js');
     await a.raw('POST', '/api/me/photo', PNG);
     assert.equal((await a.post('/api/me/submit')).status, 200);

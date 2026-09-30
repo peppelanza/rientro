@@ -119,7 +119,7 @@ export default class extends Page {
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
-      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
+      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
       case 'background': return p.background_area ? null : 'Scegli la tua area';
       case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
       case 'tempo': return p.time_commitment ? null : 'Scegli quanto tempo vuoi dedicare';
@@ -160,6 +160,29 @@ export default class extends Page {
     const keys = this.steps.map(x => x[0]);
     const i = keys.indexOf(this.state.step);
     this.goTo(i > 0 ? keys[i - 1] : 'benvenuto');
+  }
+
+  // Signed in with LinkedIn (or Google): their photo becomes the first profile photo, but only if it
+  // shows a face. Otherwise nothing is said, the member just picks one.
+  async trySuggestedPhoto() {
+    const s = this.state;
+    s.triedSuggested = true;
+    try {
+      const r = await fetch('/api/me/suggested-photo');
+      if (!r.ok) return;
+      const blob = await r.blob();
+      if (s.p.photo_url || await faceProblem(blob, { strict: true })) return;
+      const file = new File([blob], 'foto.jpg', { type: blob.type });
+      s.up = { kind: 'photo', name: file.name, loaded: 0, total: file.size };
+      this.__rerender();
+      const out = await upload('/api/me/photo', file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); });
+      s.p.photo_url = out.url;
+    } catch { /* silent: the member uploads a photo as usual */ } finally {
+      s.up = null;
+      s.p.suggested_photo_url = null;
+      api('DELETE', '/api/me/suggested-photo').catch(() => {});
+      this.__rerender();
+    }
   }
 
   async uploadFile(kind, file, { recorded = false } = {}) {
@@ -233,7 +256,10 @@ export default class extends Page {
     const is = k => s.step === k;
     const blocker = this.blocker(s.step);
     this.lastBlocker = blocker;
-    if (s.step === 'presentati') warmUpFaceCheck(); // the photo check needs its model: fetch it now
+    if (s.step === 'presentati') {
+      warmUpFaceCheck(); // the photo check needs its model: fetch it now
+      if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
+    }
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');

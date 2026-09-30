@@ -20,15 +20,16 @@ function load() {
 // Start loading early (e.g. when the photo step opens), so the check is quick
 export const warmUpFaceCheck = () => { load().catch(() => {}); };
 
-// null when the photo is fine, else the message for the member
-export async function faceProblem(file) {
+// null when the photo is fine, else the message for the member. strict: a photo that couldn't be
+// checked doesn't pass either (used for the sign-in provider's photo, never shown if unchecked)
+export async function faceProblem(file, { strict = false } = {}) {
   let d, bitmap;
   try {
     d = await load();
     bitmap = await createImageBitmap(file);
   } catch (err) {
     console.warn('[face] check skipped:', err);
-    return null;
+    return strict ? 'unchecked' : null;
   }
   try {
     const area = bitmap.width * bitmap.height;

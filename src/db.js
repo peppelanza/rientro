@@ -35,6 +35,8 @@ export function openDb(file = config.dbPath) {
   migrateUserColumns(db);
   migrateIdeaStages(db);
   migrateChecks(db);
+  // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
+  db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
   seed(db);
   return db;
 }
@@ -51,7 +53,7 @@ function migrateUserColumns(db) {
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
-  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER',
+  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER', suggested_photo_url: 'TEXT',
 };
 export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));

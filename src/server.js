@@ -278,6 +278,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
       // Fill in the name from LinkedIn only where the profile has none yet
       db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
+      // The LinkedIn photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)
+      if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
       return out;
     });
     if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
@@ -341,7 +343,31 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/experiences', async ({ user, req }) => { legal(user); return profiles.saveExperience(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/experiences/:id', async ({ user, req, params }) => profiles.saveExperience(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/experiences/:id', ({ user, params }) => profiles.deleteRow(db, 'experiences', user.id, params.id));
-  route('POST', '/api/me/photo', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo')); });
+  route('POST', '/api/me/photo', async ({ user, req }) => {
+    legal(user);
+    const out = attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo'));
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    return out;
+  });
+  // The sign-in provider's photo, passed through so the browser can check it for a face (face.js)
+  // and upload it as the profile photo. Only from the providers' image hosts; cleared once tried.
+  route('GET', '/api/me/suggested-photo', async ({ user, res }) => {
+    const { suggested_photo_url: src } = db.prepare('SELECT suggested_photo_url FROM profiles WHERE user_id = ?').get(user.id) ?? {};
+    const host = src && new URL(src).hostname;
+    if (!host || !(host === 'media.licdn.com' || host.endsWith('.licdn.com') || host.endsWith('.googleusercontent.com'))) throw new HttpError(404, 'not_found');
+    let r;
+    try { r = await linkedinFetch(src, { signal: AbortSignal.timeout(10_000), redirect: 'error' }); } catch { throw new HttpError(404, 'not_found'); }
+    const type = r.headers.get('content-type') || '';
+    if (!r.ok || !/^image\/(jpeg|png|webp)$/.test(type.split(';')[0])) throw new HttpError(404, 'not_found');
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length > config.maxPhotoBytes) throw new HttpError(404, 'not_found');
+    res.writeHead(200, { 'Content-Type': type.split(';')[0], 'Cache-Control': 'no-store', 'Content-Length': buf.length });
+    res.end(buf);
+  }, { raw: true });
+  route('DELETE', '/api/me/suggested-photo', ({ user }) => {
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    return { ok: true };
+  });
   route('POST', '/api/me/video', async ({ user, req }) => {
     legal(user);
     return attachUpload(db, user, 'profile_video', await checkVideo(await receiveUpload(req, 'profile_video')));
