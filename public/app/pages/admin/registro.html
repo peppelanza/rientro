@@ -1,6 +1,6 @@
 <!-- Admin log + processing register (spec §41). Built with design 06 table patterns (45a, 48a). -->
 <div class="admin-layout">
-<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Registro</h1><sc-if value="{{ tLog }}"><div role="tablist" style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="{{ tLog.l }}" tone="{{ tLog.tone }}" size="sm" on-click="{{ tLog.fn }}" host-role="tab" host-aria-selected="{{ tLog.on }}"></dc-import><dc-import name="UI Chip" label="{{ tReg.l }}" tone="{{ tReg.tone }}" size="sm" on-click="{{ tReg.fn }}" host-role="tab" host-aria-selected="{{ tReg.on }}"></dc-import></div></sc-if></div>
 <sc-if value="{{ isLog }}">

@@ -1,6 +1,6 @@
 <!-- From design/Rientro 06 Admin v2 · artboard 48a (segnalazioni). -->
 <div class="admin-layout">
-<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Segnalazioni</h1><sc-if value="{{ tOpen }}"><div role="tablist" style="display:flex;gap:6px"><dc-import name="UI Chip" label="{{ tOpen.l }}" tone="{{ tOpen.tone }}" size="sm" on-click="{{ tOpen.fn }}" host-role="tab" host-aria-selected="{{ tOpen.on }}"></dc-import><dc-import name="UI Chip" label="{{ tClosed.l }}" tone="{{ tClosed.tone }}" size="sm" on-click="{{ tClosed.fn }}" host-role="tab" host-aria-selected="{{ tClosed.on }}"></dc-import></div></sc-if></div>
 <sc-if value="{{ reports }}"><div class="admin-table" style="background:#FFFFFF;border-radius:24px">

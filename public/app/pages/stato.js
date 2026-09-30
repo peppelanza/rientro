@@ -7,7 +7,6 @@ export const title = 'Il tuo profilo';
 export default class extends Page {
   async load() {
     const me = await getMe(true);
-    if (me.user.role === 'admin') return go('/admin');
     this.state.me = me;
     if (me.user.status === 'approved' && me.launched) {
       // 25a: three people whose background is one of those the member is looking for

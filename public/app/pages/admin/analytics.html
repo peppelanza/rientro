@@ -1,6 +1,6 @@
 <!-- From design/Rientro 06 Admin v2 · artboard 49a (analytics). -->
 <div class="admin-layout">
-<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Analytics</h1><div style="width:240px;max-width:100%"><dc-import name="App Segmented" label="Periodo" options="{{ periodOpts }}" value="{{ period }}" dc-props="{{ periodProps }}"></dc-import></div></div>
 <sc-if value="{{ total }}">

@@ -14,5 +14,5 @@ export class AdminPage extends Page {
     await this.loadAdmin?.();
   }
   async refreshCounts() { this.counts = await api('GET', '/api/admin/sidebar'); }
-  side(active) { return { active, counts: this.counts || {}, email: this.me?.user.email || '' }; }
+  side(active) { return { active, counts: this.counts || {}, email: this.me?.user.email || '', site: this.me?.site_url || '/' }; }
 }

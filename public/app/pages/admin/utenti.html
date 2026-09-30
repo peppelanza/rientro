@@ -1,6 +1,6 @@
 <!-- From design/Rientro 06 Admin v2 · artboard 45a (tabella utenti). -->
 <div class="admin-layout">
-<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}"></dc-import>
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Utenti <span style="font-family:'Geist Mono',monospace;font-size:14px;color:#8C84AE;font-weight:400;letter-spacing:0">{{ total }}</span></h1><dc-import name="UI Button" label="Esporta CSV" variant="light" size="sm" on-click="{{ exportCsv }}"></dc-import></div>
 <sc-if value="{{ users }}">

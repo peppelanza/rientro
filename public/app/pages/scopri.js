@@ -46,7 +46,7 @@ function mark(text, needle) {
 export default class extends Page {
   async load() {
     const [me, cat] = await Promise.all([getMe(), getCatalog()]);
-    if (me.user.role !== 'admin' && me.user.status !== 'approved') return go('/stato');
+    if (me.user.status !== 'approved') return go('/stato');
     if (!me.launched && me.user.role !== 'admin') return go('/profilo');
     Object.assign(this.state, { me, cat, f: readFilters(), sort: 'recent', showFilters: false, moreBg: false, moreSectors: false, counts: {} });
     const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${apiQuery(this.state.f)}`), api('GET', '/api/comuni/counts')]);

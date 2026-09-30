@@ -18,6 +18,11 @@ export const config = {
   linkedinClientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
+  // The admin panel lives only on its own host (e.g. admin.rientro.it): anyone who isn't a signed-in
+  // admin gets a plain 404 there, and /admin on the main site is a 404 too. Empty = /admin on the
+  // same host (development, tests). In production it defaults to admin.<domain of BASE_URL>.
+  adminHost: (process.env.ADMIN_HOST ?? (process.env.NODE_ENV === 'production'
+    ? `admin.${new URL(process.env.BASE_URL || 'http://localhost').hostname.replace(/^www\./, '')}` : '')).toLowerCase(),
   sessionTtlDays: 30,
   loginCodeTtlMinutes: 10,
   loginCodeMaxAttempts: 5,
@@ -52,6 +57,11 @@ export const config = {
 
 // Versions of user-facing texts. Bump when the text changes; the version is stamped
 // on every preference_events row so we can prove what the user saw.
+// With a separate admin host the session cookie is shared by the whole domain (rientro.it), so the
+// admin signs in once on www and is signed in on admin.rientro.it too.
+export const cookieDomain = () => (config.adminHost ? config.adminHost.split('.').slice(1).join('.') : '');
+export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).protocol}//${config.adminHost}/admin` : '/admin');
+
 export const LEGAL_VERSIONS = {
   privacy: '2026-09-30',
   terms: '2026-09-30',

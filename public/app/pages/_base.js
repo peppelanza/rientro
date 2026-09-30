@@ -32,5 +32,5 @@ export async function peekMe() {
   return r.ok ? r.json() : null;
 }
 
-export const homeFor = me => (!me ? '/accedi' : me.user.role === 'admin' ? '/admin'
+export const homeFor = me => (!me ? '/accedi'
   : me.user.status === 'approved' ? (me.launched ? '/scopri' : '/profilo') : me.user.status === 'onboarding' ? '/onboarding' : '/stato');

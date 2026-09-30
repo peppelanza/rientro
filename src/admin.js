@@ -41,7 +41,7 @@ export function dashboard(db, admin, query) {
   const days = { '7': 7, '30': 30, '90': 90, all: 3650 }[query.get('period') || '30'] ?? 30;
   const from = since(days);
   const prev = since(days * 2);
-  const users = allProfiles(db, "u.role = 'member'");
+  const users = allProfiles(db);
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
   const newUsers = users.filter(u => u.created_at >= from).length;
   const prevUsers = users.filter(u => u.created_at >= prev && u.created_at < from).length;
@@ -97,7 +97,7 @@ export function listUsers(db, admin, query) {
   const source = query.get('source') || '';
   const q = (query.get('q') || '').trim().toLowerCase();
   const page = Math.max(1, Number(query.get('page')) || 1);
-  let rows = allProfiles(db, "u.role = 'member'").sort((a, b) => b.created_at.localeCompare(a.created_at));
+  let rows = allProfiles(db).sort((a, b) => b.created_at.localeCompare(a.created_at));
   rows = rows.filter(u => (!status || u.status === status) && (!intent || u.primary_intent === intent)
     && (!place || u.desired_comuni.includes(place)) && (!source || u.source === source)
     && (!q || [u.first_name, u.last_name, u.email, u.lives_in_city].filter(Boolean).join(' ').toLowerCase().includes(q)));
@@ -164,7 +164,9 @@ export function review(db, admin, userId, body) {
   const note = text(body.note, 'Nota', { max: 1000 }) ?? null;
   if ((action === 'request_changes' || action === 'reject') && !note) throw bad('note_required', 'Scrivi una nota per l’utente.');
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-  if (!user || user.role === 'admin') throw new HttpError(404, 'not_found');
+  if (!user) throw new HttpError(404, 'not_found');
+  // Admins are members too and can approve their own profile, but not lock themselves out
+  if (user.id === admin.id && ['reject', 'suspend'].includes(action)) throw bad('self_review', 'Non puoi rifiutare o sospendere il tuo account.');
   const live = rawProfile(db, userId);
   const hasPending = Object.keys(live.pending_changes).length > 0;
   tx(db, () => {
@@ -207,7 +209,7 @@ export function review(db, admin, userId, body) {
 // --- Approvals queue (47a) ----------------------------------------------------------------
 
 export function approvals(db, admin) {
-  const rows = allProfiles(db, "u.role = 'member' AND u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))")
+  const rows = allProfiles(db, "u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))")
     .sort((a, b) => (a.submitted_at || a.updated_at).localeCompare(b.submitted_at || b.updated_at));
   const waits = rows.map(u => hoursAgo(u.status === 'in_review' ? u.submitted_at : u.updated_at));
   audit(db, admin.id, 'approvals.list', null, { count: rows.length });
@@ -292,7 +294,7 @@ export function reportChat(db, admin, id) {
 export function analytics(db, admin, query) {
   const days = { '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
   const from = since(days);
-  const users = allProfiles(db, "u.role = 'member'");
+  const users = allProfiles(db);
   const approved = users.filter(u => u.status === 'approved');
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
   const requests = count('SELECT COUNT(*) AS n FROM connections WHERE created_at >= ?', from);
@@ -357,7 +359,7 @@ export function exportCsv(db, admin, body) {
   let rows;
   if (dataset === 'users') {
     const status = oneOf(body.status || undefined, Object.keys(STATUS_LABEL), 'status');
-    rows = allProfiles(db, "u.role = 'member'").filter(u => !status || u.status === status);
+    rows = allProfiles(db).filter(u => !status || u.status === status);
   } else if (dataset === 'connections') {
     rows = db.prepare(`SELECT c.*, pa.first_name || ' ' || pa.last_name AS from_name, pb.first_name || ' ' || pb.last_name AS to_name
       FROM connections c LEFT JOIN profiles pa ON pa.user_id = c.requester_id LEFT JOIN profiles pb ON pb.user_id = c.addressee_id`).all();
@@ -379,7 +381,7 @@ export function recentExports(db) {
 
 export function sidebarCounts(db) {
   return {
-    users: db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'member'").get().n,
+    users: db.prepare('SELECT COUNT(*) AS n FROM users').get().n,
     approvals: db.prepare(`SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id
       WHERE u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
