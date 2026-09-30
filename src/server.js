@@ -135,7 +135,10 @@ function serveFile(res, file) {
   // Font files never change (new versions get new names); place lists and images change only with
   // a new build: cache them for a day.
   const cache = file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2') ? 'public, max-age=31536000, immutable'
-    : file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
+    : file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400'
+    // App code and styles: always fetched fresh, so a browser (or proxy) never mixes an old script
+    // with a new stylesheet after a deploy
+    : /\.(js|css|html)$/.test(file) ? 'no-store' : 'no-cache';
   reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
 }
 

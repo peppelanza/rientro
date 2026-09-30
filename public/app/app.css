@@ -299,6 +299,9 @@ body { padding-top: var(--lb, 0px); }
 .cj-box:focus-within { box-shadow: 0 0 0 4px rgba(108,77,245,.18), 0 14px 36px rgba(108,77,245,.22); }
 .cj-input { cursor: pointer; flex: 1; min-width: 0; font: 600 24px 'Geist', sans-serif; color: #1A1726; letter-spacing: -.01em; }
 .cj-input::placeholder { color: #8C84AE; font-weight: 500; }
+/* "scegli la città" is the pill's label: it stays until you type (no fade on focus, which also made it blink
+   when the click opens the list) */
+.cj-input:focus::placeholder, .cj-input::placeholder { opacity: 1; transition: none; }
 .cj-chevron { flex: none; pointer-events: none; }
 .cj-list { overscroll-behavior: contain; position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 20; max-height: 340px; overflow-y: auto; padding: 6px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 18px 40px rgba(80,60,160,.18); display: flex; flex-direction: column; font-size: 16px; letter-spacing: 0; color: #1A1726; }
 .cj-head { padding: 8px 12px 6px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #8C84AE; }
@@ -307,7 +310,7 @@ body { padding-top: var(--lb, 0px); }
    mouse is (.is-hover, set from the pointer on every move and scroll: see refreshHover). After an arrow
    key (.dd-kb) the keyboard's option wins until the mouse moves again. */
 .dd-opt { background: transparent; }
-.dd-opt[aria-selected="true"], .dd-opt.is-hover { background: #EAE4FF; color: #4B2FD6; }
+.dd-opt[aria-selected="true"], .dd-opt.is-hover { background: #F1EFF8; }
 /* The pill is a button while the list is closed; a text field once it's open and you can type */
 .cj-open .cj-input { cursor: text; }
 .dd-list.has-hover:not(.dd-kb) .dd-opt[aria-selected="true"]:not(.is-hover) { background: transparent; }
@@ -382,6 +385,10 @@ body { padding-top: var(--lb, 0px); }
 
 /* Sign-in with LinkedIn / Google: the providers' own colours and logos */
 .sso-rec { display: flex; flex-direction: column; gap: 10px; }
+/* "Consigliato" and "oppure": centred between two lines */
+.sso-divider { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #8C84AE; }
+.sso-divider span { flex: 1; height: 1px; background: #DCD7EC; }
+.sso-divider-accent { font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #6C4DF5; }
 .sso-btn { width: 100%; height: 52px; padding: 0 22px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 12px; font: 500 16px 'Geist', sans-serif; white-space: nowrap; cursor: pointer; transition: background .15s, box-shadow .15s; }
 .sso-icon { width: 20px; height: 20px; flex: none; }
 .sso-linkedin { border: none; background: #0A66C2; color: #FFFFFF; box-shadow: 0 8px 20px rgba(10,102,194,.28); }
