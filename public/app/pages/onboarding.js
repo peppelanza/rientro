@@ -5,6 +5,7 @@ import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } f
 import { flagBurst } from '../flags.js';
 import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { canTakePhoto, takePhoto } from '../camera.js';
 import { preparePhoto, warmUpFaceCheck } from '../face.js';
 import { Page } from './_base.js';
 
@@ -391,6 +392,7 @@ export default class extends Page {
       photoHint: !!p.photo_url && !!p.photo_check && p.photo_check !== 'unchecked',
       photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? 'Cambia foto' : 'Obbligatoria · si deve vedere il tuo volto',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
+      canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       firstName: p.first_name ?? '', lastName: p.last_name ?? '', bio: p.bio ?? '',
       firstProps: { onInput: v => { p.first_name = v; this.touch(); } },
       lastProps: { onInput: v => { p.last_name = v; this.touch(); } },

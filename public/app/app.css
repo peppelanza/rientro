@@ -429,3 +429,12 @@ body { padding-top: var(--lb, 0px); }
 /* Cloudflare Turnstile (sign-in): shows only when Cloudflare asks for a click */
 .ts-box { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1000; }
 .ts-box:empty { display: none; }
+
+/* "Scatta una foto" (camera.js): square stage with a guide for the face */
+.cam-stage { aspect-ratio: 1 / 1; max-height: 60vh; margin: 0 auto; width: 100%; }
+.cam-still { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam-still[hidden] { display: none; }
+.cam-guide { position: absolute; left: 50%; top: 45%; width: 46%; aspect-ratio: 3 / 4; transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,.7); border-radius: 50%; pointer-events: none; }
+.cam-still:not([hidden]) ~ .cam-guide { display: none; }
+.cam-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid #DCD7EC; background: #FFFFFF; color: #1A1726; font: 500 13px 'Geist', sans-serif; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.cam-btn:hover { border-color: #6C4DF5; color: #3E2BA8; }
