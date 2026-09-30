@@ -66,3 +66,25 @@ test('the admin is a member: onboarding, review, approval of their own profile',
     assert.equal((await a.get('/api/profiles')).status, 200);
   } finally { config.adminHost = 'admin.rientro.test'; }
 });
+
+test('photos that fail the browser check never block: they wait in "Foto da controllare"', async () => {
+  config.adminHost = '';
+  try {
+    const { PNG } = await import('./helpers.js');
+    const a = await t.asAdmin();
+    const m = await t.login('senzavolto@x.it');
+    assert.equal((await m.raw('POST', '/api/me/photo', PNG, { 'x-photo-check': 'no_face' })).status, 200);
+    const list = (await a.get('/api/admin/photo-checks')).body;
+    const row = list.find(r => r.id === m.id);
+    assert.equal(row.reason, 'Nessun volto riconosciuto');
+    assert.ok(row.photo_url);
+    assert.equal((await a.get('/api/admin/sidebar')).body.photos >= 1, true);
+    // Members can't see or clear the list
+    assert.equal((await m.get('/api/admin/photo-checks')).status, 403);
+    assert.equal((await a.post(`/api/admin/photo-checks/${m.id}/ok`)).status, 200);
+    assert.ok(!(await a.get('/api/admin/photo-checks')).body.some(r => r.id === m.id));
+    // A new photo that passes clears any flag; unknown values are ignored
+    await m.raw('POST', '/api/me/photo', PNG, { 'x-photo-check': 'boh' });
+    assert.ok(!(await a.get('/api/admin/photo-checks')).body.some(r => r.id === m.id));
+  } finally { config.adminHost = 'admin.rientro.test'; }
+});

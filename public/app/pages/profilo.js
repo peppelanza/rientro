@@ -93,7 +93,8 @@ export default class extends Page {
     if (video && file.size > 200 * 1024 * 1024) { toast('Il video supera i 200 MB.', { tone: 'err' }); return; }
     const problem = video && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
-    // Only photos of a face, framed on it (see face.js)
+    // Photos framed on the face and checked (see face.js)
+    let photoCheck = null;
     if (kind === 'photo') {
       s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
       this.__rerender();
@@ -101,13 +102,15 @@ export default class extends Page {
       s.up = null;
       if (out.problem) { this.__rerender(); toast(out.problem, { tone: 'err' }); return; }
       file = out.file;
+      // A check that didn't pass never stops the member: the photo goes to the admin's checks
+      if (out.flag) photoCheck = out.flag;
       if (file.size > 5 * 1024 * 1024) { this.__rerender(); toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     }
     s.up = { kind, loaded: 0, total: file.size, name: file.name };
     this.__rerender();
-    upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
+    upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); }, photoCheck ? { 'x-photo-check': photoCheck } : {})
       .then(r => {
-        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); s.newVideo = true; } else { s.me.profile.photo_url = r.url; s.p.photo_url = r.url; }
+        if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); s.newVideo = true; } else { Object.assign(s.me.profile, { photo_url: r.url, photo_check: photoCheck }); Object.assign(s.p, { photo_url: r.url, photo_check: photoCheck }); }
         toast(r.pending_review ? 'Foto caricata. Sarà online dopo la revisione.' : video ? 'Video caricato.' : 'Foto aggiornata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
@@ -150,7 +153,7 @@ export default class extends Page {
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),
       // intestazione
-      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
+      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },
       livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,

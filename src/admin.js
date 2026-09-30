@@ -228,7 +228,9 @@ export function approvals(db, admin) {
 export function reviewChecks(p) {
   const bio = (p.bio || '').length;
   return [
-    p.photo_url ? { t: '✓ Foto', d: 'Caricata · verifica il volto', tone: 'ok' } : { t: '! Foto', d: 'Mancante', tone: 'warn' },
+    !p.photo_url ? { t: '! Foto', d: 'Mancante', tone: 'warn' }
+      : p.photo_check ? { t: '! Foto', d: `${PHOTO_CHECKS[p.photo_check] ?? 'Da verificare'} · controllo automatico`, tone: 'warn' }
+      : { t: '✓ Foto', d: 'Volto riconosciuto', tone: 'ok' },
     p.linkedin_url ? { t: '✓ LinkedIn', d: 'Indicato', tone: 'ok' } : { t: '— LinkedIn', d: 'Non indicato', tone: 'none' },
     bio >= 150 ? { t: '✓ Su di me', d: `${bio} caratteri`, tone: 'ok' } : { t: '! Su di me', d: `Solo ${bio} caratteri`, tone: 'warn' },
     p.video_url ? { t: '✓ Video', d: 'Caricato', tone: 'ok' } : { t: '— Video', d: 'Non caricato', tone: 'none' },
@@ -385,6 +387,7 @@ export function sidebarCounts(db) {
     approvals: db.prepare(`SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id
       WHERE u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
+    photos: db.prepare('SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id WHERE p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL').get().n,
   };
 }
 
@@ -399,4 +402,28 @@ export function auditLog(db, admin) {
 
 export function processingRegister(db) {
   return db.prepare('SELECT * FROM processing_register ORDER BY purpose').all();
+}
+
+// Photos that didn't pass the browser's automatic check (face.js): reviewed after sign-up, nobody is held up
+export const PHOTO_CHECKS = {
+  no_face: 'Nessun volto riconosciuto', small_face: 'Volto troppo piccolo', multiple_faces: 'Più persone',
+  low_res: 'Risoluzione bassa', unchecked: 'Controllo non eseguito',
+};
+export function photoChecks(db, admin) {
+  const rows = allProfiles(db, 'p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL');
+  audit(db, admin.id, 'photos.list', null, { count: rows.length });
+  return rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(u => {
+    // An approved member's new photo waits in pending_changes: show that one
+    const file = u.pending_changes.photo_file_id ?? u.photo_file_id;
+    return {
+      id: u.id, name: name(u) || '—', email: u.email, status: u.status, check: u.photo_check, reason: PHOTO_CHECKS[u.photo_check] ?? u.photo_check,
+      photo_url: file ? `/api/files/${file}` : null, updated_at: u.updated_at,
+    };
+  });
+}
+export function photoCheckOk(db, admin, userId) {
+  const r = db.prepare('UPDATE profiles SET photo_check = NULL WHERE user_id = ?').run(userId);
+  if (!r.changes) throw new HttpError(404, 'not_found');
+  audit(db, admin.id, 'photo.ok', userId);
+  return { ok: true };
 }

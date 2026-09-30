@@ -218,7 +218,7 @@ function streamFile(req, res, f) {
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/stato$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|segnalazioni|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
@@ -347,7 +347,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/photo', async ({ user, req }) => {
     legal(user);
     const out = attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo'));
-    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    // The browser's check (face.js) never blocks: a photo that didn't pass goes to "Foto da controllare"
+    const check = ['no_face', 'small_face', 'multiple_faces', 'low_res', 'unchecked'].includes(req.headers['x-photo-check']) ? req.headers['x-photo-check'] : null;
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL, photo_check = ? WHERE user_id = ?').run(check, user.id);
     return out;
   });
   // The sign-in provider's photo, passed through so the browser can check it for a face (face.js)
@@ -452,6 +454,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/approvals', ({ user }) => admin.approvals(db, user), adm);
+  route('GET', '/api/admin/photo-checks', ({ user }) => admin.photoChecks(db, user), adm);
+  route('POST', '/api/admin/photo-checks/:id/ok', ({ user, params }) => admin.photoCheckOk(db, user, params.id), adm);
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
