@@ -23,9 +23,10 @@ const sign = v => crypto.createHmac('sha256', config.pseudonymSecret).update(`li
 export function startLinkedin(next) {
   const state = crypto.randomBytes(24).toString('base64url');
   const payload = Buffer.from(JSON.stringify({ s: state, n: next || null, t: Date.now() })).toString('base64url');
-  const url = new URL(AUTHORIZE);
-  url.search = new URLSearchParams({ response_type: 'code', client_id: config.linkedinClientId, redirect_uri: redirectUri(), state, scope: 'openid profile email' });
-  return { url: url.toString(), cookieValue: `${payload}.${sign(payload)}`, maxAge: STATE_TTL_SECONDS };
+  // Encoded by hand: LinkedIn wants the scopes separated by %20 (URLSearchParams would write "+")
+  const q = { response_type: 'code', client_id: config.linkedinClientId, redirect_uri: redirectUri(), state, scope: 'openid profile email' };
+  const url = `${AUTHORIZE}?${Object.entries(q).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')}`;
+  return { url, cookieValue: `${payload}.${sign(payload)}`, maxAge: STATE_TTL_SECONDS };
 }
 
 // Returns { next } if the callback's state matches the cookie (and is fresh), else null.
