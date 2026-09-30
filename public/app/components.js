@@ -266,7 +266,7 @@ def('App City Jump', String.raw`
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
 </div></sc-if>
 </div>
-<sc-if value="{{ sheet }}"><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
+<sc-if value="{{ sheet }}"><div class="cj-sheet-backdrop" aria-hidden="true"></div><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
 <div class="cj-sheet-top">
 <button type="button" class="cj-sheet-close" aria-label="Chiudi" onClick="{{ close }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
 <label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Cerca la tua città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ sheetKey }}"></label>
