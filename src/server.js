@@ -6,7 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
 import * as auth from './auth.js';
-import { catalog } from './catalog.js';
+import { catalog, COMUNI } from './catalog.js';
 import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
@@ -133,6 +133,25 @@ function serveFile(res, file) {
   // Place lists and images change only with a new build: cache them for a day.
   const cache = file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400' : 'no-cache';
   reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
+}
+
+// Unknown addresses get a real page with status 404 (not the JSON the API uses)
+function sendNotFound(res) {
+  reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' }, fs.readFileSync(path.join(config.publicDir, '404.html')));
+}
+
+// /accedi?citta=… only for real comuni. Any casing is accepted and redirected to the official
+// name (so the page shows "Torino", not "torino"); a name that isn't a comune is a 404.
+const COMUNE_BY_FOLDED = new Map(COMUNI.map(c => [c[0].toLocaleLowerCase('it'), c[0]]));
+function checkCity(url) {
+  if (!url.searchParams.has('citta')) return 'ok';
+  const raw = url.searchParams.get('citta').trim();
+  if (!raw) return 'ok';
+  const name = COMUNE_BY_FOLDED.get(raw.toLocaleLowerCase('it'));
+  if (!name) return 'missing';
+  if (name === url.searchParams.get('citta')) return 'ok';
+  url.searchParams.set('citta', name);
+  return `${url.pathname}?${url.searchParams}`;
 }
 
 function serveStatic(res, pathname) {
@@ -361,6 +380,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
+        if (p === '/accedi') {
+          const city = checkCity(url);
+          if (city === 'missing') return sendNotFound(res);
+          if (city !== 'ok') { res.writeHead(302, { Location: city }); res.end(); return; }
+        }
         if (PUBLIC_PAGES.some(re => re.test(p))) return appPage('app.html');
         const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
         if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {
@@ -374,7 +398,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         }
         if ((p === '/design' || p.startsWith('/design/')) && !config.production) return appPage('design.html');
         if (p.startsWith('/dc/gen/') && config.production && /\/rientro-/.test(p)) throw new HttpError(404, 'not_found');
-        if (!serveStatic(res, p)) throw new HttpError(404, 'not_found');
+        if (!serveStatic(res, p)) return sendNotFound(res);
         return;
       }
 

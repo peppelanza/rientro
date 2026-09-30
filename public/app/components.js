@@ -254,6 +254,37 @@ def('App Select', String.raw`
 // App City Jump — "Scopri chi rientra a [città ▾]": takes the visitor to sign-up with that city.
 // Empty, the list shows Italy's 15 largest cities; typing searches every comune.
 
+// Empty query: the 15 largest cities; otherwise names starting with it, then names containing it.
+function searchCities(list, query) {
+  const q = fold(query.trim()).out;
+  if (!q) return list.slice(0, 15);
+  return [...list.filter(c => c.key.startsWith(q)), ...list.filter(c => !c.key.startsWith(q) && c.key.includes(q))].slice(0, 10);
+}
+
+// The phone sheet's result list. It re-renders on its own while the person types (App City Jump
+// calls setQuery), so the search field and the sheet around it are never rebuilt: no flicker, and
+// the keyboard and autocorrect keep working on the same field. Props: comuni, query, onPick,
+// onReady(list).
+def('App City Options', String.raw`
+<div class="cj-sheet-options">
+<sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="false" class="cj-sopt" onClick="{{ m.tap }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
+<sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
+<sc-if value="{{ loading }}"><span class="cj-head">Carico le città…</span></sc-if>
+</div>`, class extends DCLogic {
+  setQuery(query) { this.state.query = query; this.__rerender?.(); }
+  renderVals() {
+    this.props.onReady?.(this);
+    const comuni = this.props.comuni;
+    const query = this.state.query ?? this.props.query ?? '';
+    const found = comuni ? searchCities(comuni, query) : [];
+    return {
+      matches: found.map(c => ({ name: c.name, region: c.region, tap: () => this.props.onPick?.(c.name) })),
+      top: !!comuni && !query.trim(), none: !!comuni && !!query.trim() && !found.length, loading: !comuni,
+    };
+  }
+});
+
 def('App City Jump', String.raw`
 <div class="city-jump">
 <label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
@@ -266,17 +297,12 @@ def('App City Jump', String.raw`
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
 </div></sc-if>
 </div>
-<sc-if value="{{ sheet }}"><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
-<div class="cj-sheet-top">
+<sc-if value="{{ sheet }}"><div class="cj-sheet-backdrop" aria-hidden="true"></div><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
+<div class="cj-sheet-top {{ anim }}">
 <button type="button" class="cj-sheet-close" aria-label="Chiudi" onClick="{{ close }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
-<label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Cerca la tua città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ sheetKey }}"></label>
+<label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Cerca la tua città" value="{{ query }}" onInput="{{ sheetInput }}" onKeyDown="{{ sheetKey }}"></label>
 </div>
-<div id="city-sheet-list" data-key="city-sheet-list" class="cj-sheet-list" role="listbox" aria-label="Città">
-<sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
-<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="false" class="cj-sopt" onClick="{{ m.tap }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
-<sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
-<sc-if value="{{ loading }}"><span class="cj-head">Carico le città…</span></sc-if>
-</div>
+<div id="city-sheet-list" data-key="city-sheet-list" class="cj-sheet-list {{ anim }}" role="listbox" aria-label="Città"><dc-import name="App City Options" dc-props="{{ listProps }}"></dc-import></div>
 </div></sc-if>
 </div>`, class extends DCLogic {
   state = { query: '', open: false, idx: 0, comuni: null, sheet: false };
@@ -288,7 +314,8 @@ def('App City Jump', String.raw`
   openSheet() {
     if (this.state.sheet) return;
     this.load();
-    this.setState({ sheet: true, open: false });
+    this.setState({ sheet: true, sheetFresh: true, open: false });
+    this.state.sheetFresh = false; // later renders (the city list arriving) don't replay the animation
     document.getElementById('city-sheet-input')?.focus(); // inside the tap, so iOS shows the keyboard
     document.documentElement.classList.add('cj-locked');
     const vv = window.visualViewport;
@@ -344,9 +371,7 @@ def('App City Jump', String.raw`
   renderVals() {
     const { query, open, idx, comuni } = this.state;
     const q = fold(query.trim()).out;
-    const list = comuni ?? [];
-    const found = !q ? list.slice(0, 15)
-      : [...list.filter(c => c.key.startsWith(q)), ...list.filter(c => !c.key.startsWith(q) && c.key.includes(q))].slice(0, 10);
+    const found = searchCities(comuni ?? [], query);
     const matches = found.map((c, i) => ({
       name: c.name, region: c.region, active: i === idx ? 'true' : 'false',
       pick: e => { e.preventDefault(); this.go(c.name); },
@@ -357,10 +382,20 @@ def('App City Jump', String.raw`
     return {
       query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
       phone, sheet: this.state.sheet, loading: !comuni,
+      // The open animation plays once, not on every later render of the sheet
+      anim: this.state.sheetFresh ? 'cj-anim' : '',
+      listProps: { comuni, query, onPick: name => this.go(name), onReady: list => { this.list = list; } },
+      sheetInput: e => {
+        this.state.query = e.target.value;
+        this.list?.setQuery(e.target.value);
+        const box = document.getElementById('city-sheet-list');
+        if (box) box.scrollTop = 0;
+      },
       close: () => this.closeSheet(),
       boxClick: () => { if (this.phone) this.openSheet(); },
       sheetKey: e => {
-        if (e.key === 'Enter' && found[0]) { e.preventDefault(); this.go(found[0].name); }
+        const first = searchCities(this.state.comuni ?? [], this.state.query)[0];
+        if (e.key === 'Enter' && first) { e.preventDefault(); this.go(first.name); }
         else if (e.key === 'Escape') this.closeSheet();
       },
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),

@@ -344,19 +344,39 @@ body { padding-top: var(--lb, 0px); }
 @keyframes spark { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 18%, 55% { opacity: 1; scale: 1; rotate: 45deg; } 80% { opacity: 0; scale: .2; rotate: 90deg; } }
 @media (prefers-reduced-motion: reduce) { .hero-sparks .spark { animation: none; opacity: .9; } }
 
-/* Home city picker on phones: full-screen sheet with the search field on top. Its height follows
-   the visible viewport (--vvh/--vvt, set while it's open), so the list ends above the keyboard. */
-.cj-locked, .cj-locked body { overflow: hidden; }
-.cj-sheet { position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); z-index: 200; display: flex; flex-direction: column; background: #F6F4FC; font-family: 'Geist', sans-serif; font-size: 17px; letter-spacing: 0; color: #1A1726; animation: cj-sheet-in .2s ease-out; }
-.cj-sheet-top { flex: none; display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; background: #FFFFFF; box-shadow: 0 6px 20px rgba(80,60,160,.08); }
-.cj-sheet-close { flex: none; width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; }
-.cj-sheet-field { flex: 1; min-width: 0; height: 52px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 999px; border: 2px solid #6C4DF5; background: #FFFFFF; color: #6C4DF5; cursor: text; }
+/* Home city picker on phones: full-screen sheet with the search field on top, in the brand's
+   dark blue; the backdrop hides the page entirely (also behind the keyboard and during iOS
+   viewport shifts). Its height follows the visible viewport (--vvh/--vvt, set while it's open),
+   so the list ends above the keyboard. */
+.cj-locked, .cj-locked body { overflow: hidden; background: #1A1726; }
+.cj-sheet-backdrop { position: fixed; left: 0; right: 0; top: -50vh; bottom: -50vh; z-index: 199; background: #1A1726; }
+.cj-sheet { position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); z-index: 200; display: flex; flex-direction: column; background: #1A1726; font-family: 'Geist', sans-serif; font-size: 17px; letter-spacing: 0; color: #FFFFFF; }
+.cj-sheet-top { flex: none; display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.cj-sheet-close { flex: none; width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%; background: #2A2638; color: #FFFFFF; display: flex; align-items: center; justify-content: center; }
+.cj-sheet-field { flex: 1; min-width: 0; height: 52px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 999px; border: 2px solid #6C4DF5; background: #FFFFFF; color: #6C4DF5; box-shadow: 0 0 0 4px rgba(108,77,245,.25); cursor: text; }
 .cj-sheet-field input { flex: 1; min-width: 0; height: 100%; padding: 0; border: none; outline: none; background: transparent; font: 500 17px 'Geist', sans-serif; color: #1A1726; -webkit-appearance: none; appearance: none; }
 .cj-sheet-field input::placeholder { color: #8C84AE; }
-.cj-sheet-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
-.cj-sheet-list .cj-head { padding: 10px 12px 8px; }
-.cj-sopt { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.cj-sopt:active { background: #EDE9FB; }
-.cj-sopt + .cj-sopt { border-top: 1px solid #ECE8F7; }
-@keyframes cj-sheet-in { from { opacity: 0; translate: 0 16px; } to { opacity: 1; translate: 0 0; } }
-@media (prefers-reduced-motion: reduce) { .cj-sheet { animation: none; } }
+.cj-sheet-field input:focus::placeholder { opacity: 1; } /* focused from the start, so keep the hint */
+.cj-sheet-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); }
+.cj-sheet-list .cj-head { padding: 10px 12px 8px; color: #8C84AE; }
+.cj-sopt { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cj-sopt .cj-meta { color: #A8A2C2; }
+.cj-sopt:active { background: #2A2638; }
+.cj-sopt + .cj-sopt { border-top: 1px solid rgba(255,255,255,.08); }
+.cj-sheet-options { display: flex; flex-direction: column; }
+.cj-sheet-top.cj-anim { animation: cj-sheet-in .2s ease-out; }
+.cj-sheet-list.cj-anim { animation: cj-sheet-in .24s ease-out; }
+@keyframes cj-sheet-in { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .cj-anim { animation: none; } }
+
+/* 404 page (public/404.html, served with status 404 for unknown addresses) */
+.nf-page { min-height: 100vh; margin: 0; background: #E9E6F5; color: #1A1726; font-family: 'Geist', sans-serif; display: flex; flex-direction: column; }
+.nf-top { padding: 28px var(--gutter) 0; }
+.nf-logo { display: inline-flex; align-items: baseline; gap: 3px; font: italic 400 28px/1 'Instrument Serif', serif; color: #1A1726; text-decoration: none; }
+.nf-logo span { width: 7px; height: 7px; border-radius: 50%; background: #6C4DF5; }
+.nf-main { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 20px; padding: 48px var(--gutter) 96px; }
+.nf-code { font-family: 'Geist Mono', monospace; font-size: 13px; letter-spacing: .08em; color: #6B6680; }
+.nf-title { margin: 0; font: 600 clamp(40px, 6vw, 76px)/1 'Unbounded', sans-serif; letter-spacing: -.06em; max-width: 900px; text-wrap: balance; }
+.nf-title em { font: italic 400 1.15em 'Instrument Serif', serif; letter-spacing: -.03em; color: #6C4DF5; }
+.nf-text { margin: 0; max-width: 520px; font-size: 18px; line-height: 1.5; color: #4A4560; }
+.nf-button { margin-top: 8px; height: 52px; padding: 0 26px; display: inline-flex; align-items: center; border-radius: 999px; background: #6C4DF5; color: #FFFFFF; font-size: 16px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 20px rgba(108,77,245,.28); }
