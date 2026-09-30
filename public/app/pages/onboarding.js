@@ -5,7 +5,7 @@ import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } f
 import { flagBurst } from '../flags.js';
 import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
-import { faceProblem, warmUpFaceCheck } from '../face.js';
+import { preparePhoto, warmUpFaceCheck } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
@@ -170,9 +170,8 @@ export default class extends Page {
     try {
       const r = await fetch('/api/me/suggested-photo');
       if (!r.ok) return;
-      const blob = await r.blob();
-      if (s.p.photo_url || await faceProblem(blob, { strict: true })) return;
-      const file = new File([blob], 'foto.jpg', { type: blob.type });
+      const { file } = await preparePhoto(new File([await r.blob()], 'foto.jpg'), { strict: true });
+      if (!file || s.p.photo_url) return;
       s.up = { kind: 'photo', name: file.name, loaded: 0, total: file.size };
       this.__rerender();
       const out = await upload('/api/me/photo', file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); });
@@ -193,14 +192,15 @@ export default class extends Page {
     // Recordings are already 15–60 s; for picked files check now instead of after the upload
     const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
-    if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
-    // Only photos of a face (see face.js)
+    // Only photos of a face, framed on it (see face.js)
     if (kind === 'photo') {
       s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
       this.__rerender();
-      const noFace = await faceProblem(file);
+      const out = await preparePhoto(file);
       s.up = null;
-      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+      if (out.problem) { this.__rerender(); toast(out.problem, { tone: 'err' }); return; }
+      file = out.file;
+      if (file.size > 5 * 1024 * 1024) { this.__rerender(); toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
