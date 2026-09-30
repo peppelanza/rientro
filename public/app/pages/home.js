@@ -5,7 +5,7 @@ export const title = 'Rientra in Italia o al Sud e trova persone con cui costrui
 
 // Content copied from the design logic (Rientro 01 Landing e Accesso v2).
 export const forWho = [
-  { torna: true, t: 'Chi sta tornando', d: "Anni all'estero, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
+  { torna: true, t: 'Chi sta tornando', d: "Anni fuori, competenze da riportare. Vuoi tornare con un progetto, non solo con un trasloco." },
   { pensa: true, t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' },
   { tornato: true, t: 'Chi è già tornato', d: 'Sei rientrato da poco e cerchi persone con un percorso come il tuo con cui costruire qualcosa nella tua città.' },
 ];
@@ -20,7 +20,7 @@ const faq = [
   ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
 ].map(([q, a]) => ({ q, a }));
 const steps = [
-  { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Con LinkedIn si compila quasi da solo.' },
+  { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Raccontaci di te.' },
   { n: '02', t: 'Scopri chi torna', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
   { n: '03', t: 'Connettiti e parla', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
 ];
