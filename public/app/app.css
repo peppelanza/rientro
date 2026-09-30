@@ -331,3 +331,15 @@ body { padding-top: var(--lb, 0px); }
   .site-header header > div { gap: 12px !important; padding-left: 20px !important; min-width: 0; }
   .site-header header > div { background: rgba(255,255,255,.94) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 }
+
+/* Home hero: sparks twinkling around "con cui costruire" (sized in em, so they follow the text) */
+.hero-sparks { position: relative; display: inline-block; }
+.hero-sparks .spark { position: absolute; display: block; width: .22em; height: .22em; pointer-events: none; animation: spark 2.8s ease-in-out infinite; }
+.hero-sparks .spark svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.hero-sparks .s1 { bottom: -.14em; left: 42%; width: .13em; height: .13em; color: #B9A8FF; animation-delay: -.4s; }
+.hero-sparks .s2 { top: .02em; right: -.44em; width: .36em; height: .36em; color: #6C4DF5; }
+.hero-sparks .s3 { bottom: -.16em; right: 6%; width: .18em; height: .18em; color: #8E7FE0; animation-delay: -1.6s; }
+.hero-sparks .s4 { top: .46em; right: -.66em; width: .17em; height: .17em; color: #B9A8FF; animation-delay: -2.2s; }
+.hero-sparks .s5 { top: .12em; right: 30%; width: .12em; height: .12em; color: #B9A8FF; animation-delay: -1s; }
+@keyframes spark { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 18%, 55% { opacity: 1; scale: 1; rotate: 45deg; } 80% { opacity: 0; scale: .2; rotate: 90deg; } }
+@media (prefers-reduced-motion: reduce) { .hero-sparks .spark { animation: none; opacity: .9; } }
