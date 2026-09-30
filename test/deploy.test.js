@@ -40,3 +40,20 @@ test('in production the code is shown only behind the preview password', async (
     assert.match((await ask({ authorization: basic('segreto') })).dev_code, /^\d{6}$/);
   } finally { config.production = false; config.previewPassword = ''; }
 });
+
+test('sign-in page accepts only real comuni in ?citta=; unknown addresses are an HTML 404', async () => {
+  const get = p => fetch(`${t.base}${p}`, { redirect: 'manual' });
+  assert.equal((await get('/accedi?citta=Torino')).status, 200);
+  assert.equal((await get(`/accedi?citta=${encodeURIComponent("Sant'Agata de' Goti")}`)).status, 200);
+  assert.equal((await get('/accedi?citta=')).status, 200);
+  const lower = await get('/accedi?citta=torino&next=%2Fprofilo');
+  assert.equal(lower.status, 302);
+  assert.equal(lower.headers.get('location'), '/accedi?citta=Torino&next=%2Fprofilo');
+  for (const p of ['/accedi?citta=cacca', '/accedi?citta=Torin', '/pagina-che-non-esiste']) {
+    const r = await get(p);
+    assert.equal(r.status, 404, p);
+    assert.match(r.headers.get('content-type'), /text\/html/);
+    assert.match(await r.text(), /Questa pagina/);
+  }
+  assert.equal((await get('/api/non-esiste')).headers.get('content-type').includes('json'), true);
+});
