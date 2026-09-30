@@ -201,15 +201,13 @@ button { font: inherit; }
 .way-rays { animation: place-twinkle 2s ease-in-out infinite; }
 .way-seek { animation: place-twinkle 2.4s ease-in-out infinite; }
 .way-reply { animation: way-reply 4s ease-in-out infinite; }
-.way-nodes circle { transform-box: fill-box; transform-origin: center; animation: place-bob 3s ease-in-out infinite; }
-.way-nodes circle:nth-child(2) { animation-delay: -.8s; } .way-nodes circle:nth-child(3) { animation-delay: -1.6s; } .way-nodes circle:nth-child(4) { animation-delay: -2.4s; }
 .way-steam path { animation: way-steam 2.6s ease-in-out infinite; }
 .way-steam path:nth-child(2) { animation-delay: -.9s; } .way-steam path:nth-child(3) { animation-delay: -1.8s; }
 @keyframes way-reply { 0%, 35% { opacity: 0; translate: 0 6px; } 50%, 90% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 0; } }
 @keyframes way-steam { 0% { opacity: 0; translate: 0 6px; } 40% { opacity: 1; } 100% { opacity: 0; translate: 0 -8px; } }
 @media (max-width: 1024px) { .way-card { min-height: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .way-rays, .way-seek, .way-reply, .way-nodes circle, .way-steam path { animation: none; }
+  .way-rays, .way-seek, .way-reply, .way-steam path { animation: none; }
 }
 
 /* In-page video recorder (public/app/video.js) */
@@ -306,12 +304,12 @@ body { padding-top: var(--lb, 0px); }
 .cj-head { padding: 8px 12px 6px; font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #8C84AE; }
 /* Dropdown options (home city list, comune pickers): one highlight. The keyboard's option
    (aria-selected) is highlighted until the mouse is over the list; then the option under the
-   mouse is, via native :hover, which also follows wheel and trackpad scrolling. After an arrow
+   mouse is (.is-hover, set from the pointer on every move and scroll: see trackHover). After an arrow
    key (.dd-kb) the keyboard's option wins until the mouse moves again. */
 .dd-opt { background: transparent; }
-.dd-opt[aria-selected="true"], .dd-list .dd-opt:hover { background: #F1EFF8; }
-.dd-list:not(.dd-kb):hover .dd-opt[aria-selected="true"]:not(:hover) { background: transparent; }
-.dd-kb .dd-opt:hover:not([aria-selected="true"]) { background: transparent; }
+.dd-opt[aria-selected="true"], .dd-opt.is-hover { background: #F1EFF8; }
+.dd-list.has-hover:not(.dd-kb) .dd-opt[aria-selected="true"]:not(.is-hover) { background: transparent; }
+.dd-kb .dd-opt.is-hover:not([aria-selected="true"]) { background: transparent; }
 .cj-opt { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 14px; cursor: pointer; }
 .cj-meta { font-size: 13px; color: #8C84AE; white-space: nowrap; }
 /* Small screens: text and picker stay on one line */
@@ -335,12 +333,12 @@ body { padding-top: var(--lb, 0px); }
 /* Home hero: sparks twinkling around "con cui costruire" (sized in em, so they follow the text) */
 .hero-sparks { position: relative; display: inline-block; }
 .hero-sparks .spark { position: absolute; display: block; width: .22em; height: .22em; pointer-events: none; animation: spark 2.8s ease-in-out infinite; }
-.hero-sparks .spark svg { display: block; width: 100%; height: 100%; fill: currentColor; }
-.hero-sparks .s1 { bottom: -.14em; left: 42%; width: .13em; height: .13em; color: #B9A8FF; animation-delay: -.4s; }
-.hero-sparks .s2 { top: .02em; right: -.44em; width: .36em; height: .36em; color: #6C4DF5; }
-.hero-sparks .s3 { bottom: -.16em; right: 6%; width: .18em; height: .18em; color: #8E7FE0; animation-delay: -1.6s; }
-.hero-sparks .s4 { top: .46em; right: -.66em; width: .17em; height: .17em; color: #B9A8FF; animation-delay: -2.2s; }
-.hero-sparks .s5 { top: .12em; right: 30%; width: .12em; height: .12em; color: #B9A8FF; animation-delay: -1s; }
+.hero-sparks .spark svg { display: block; width: 100%; height: 100%; fill: currentColor; filter: drop-shadow(0 0 .06em rgba(108,77,245,.55)); }
+.hero-sparks .s1 { bottom: -.14em; left: 42%; width: .13em; height: .13em; color: #FFFFFF; animation-delay: -.4s; }
+.hero-sparks .s2 { top: .02em; right: -.44em; width: .36em; height: .36em; color: #FFFFFF; }
+.hero-sparks .s3 { bottom: -.16em; right: 6%; width: .18em; height: .18em; color: #FFFFFF; animation-delay: -1.6s; }
+.hero-sparks .s4 { top: .46em; right: -.66em; width: .17em; height: .17em; color: #FFFFFF; animation-delay: -2.2s; }
+.hero-sparks .s5 { top: .12em; right: 30%; width: .12em; height: .12em; color: #FFFFFF; animation-delay: -1s; }
 @keyframes spark { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 18%, 55% { opacity: 1; scale: 1; rotate: 45deg; } 80% { opacity: 0; scale: .2; rotate: 90deg; } }
 @media (prefers-reduced-motion: reduce) { .hero-sparks .spark { animation: none; opacity: .9; } }
 
