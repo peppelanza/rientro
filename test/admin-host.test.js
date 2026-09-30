@@ -126,3 +126,17 @@ test('an explicit image suspends the account at once; the admin can undo it', as
     assert.equal((await a.post(`/api/admin/blocked/${row.id}`, { action: 'confirm' })).status, 409);
   } finally { config.adminHost = 'admin.rientro.test'; }
 });
+
+test('in production any other subdomain gets the same 404 page as the admin host', async () => {
+  const was = config.production;
+  config.production = true;
+  try {
+    const main = new URL(config.baseUrl).host;
+    const other = await get('/', { host: 'fjdisjsfio.rientro.test' });
+    const adminNo = await get('/', admin);
+    assert.equal(other.status, 404);
+    assert.equal(other.body, adminNo.body);
+    assert.equal((await get('/app/app.css', { host: 'qualcosa.rientro.test' })).status, 200);
+    assert.equal((await get('/', { host: main })).status, 200);
+  } finally { config.production = was; }
+});

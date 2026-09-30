@@ -3,6 +3,7 @@
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { canTakePhoto, takePhoto } from '../camera.js';
 import { preparePhoto } from '../face.js';
 import { Page } from './_base.js';
 
@@ -162,6 +163,7 @@ export default class extends Page {
       // intestazione
       photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
+      canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },
       livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,
       livesProps: { onSelect: v => this.set({ lives_in: v, lives_in_city: null, lives_in_country: v === 'italy' ? 'Italia' : '' }) },
