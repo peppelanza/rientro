@@ -34,8 +34,9 @@ export async function faceProblem(file, { strict = false } = {}) {
   try {
     const area = bitmap.width * bitmap.height;
     const faces = d.detect(bitmap).detections.map(f => f.boundingBox.width * f.boundingBox.height).sort((a, b) => b - a);
-    if (!faces.length) return 'Non vediamo un volto in questa foto. Carica una foto in cui si veda bene il tuo viso.';
-    if (faces[0] / area < 0.015) return 'Il volto è troppo piccolo: scegli una foto più ravvicinata.';
+    // No face found, or one too small (the short-range model misses faces far from the camera):
+    // same advice either way
+    if (!faces.length || faces[0] / area < 0.015) return 'Non riusciamo a vedere bene il tuo viso. Usa una foto in cui il volto sia in primo piano, come un mezzo busto.';
     // Someone else next to you, about as big: not a profile photo
     if (faces.filter(a => a >= faces[0] * 0.35).length > 1) return 'Nella foto dovresti esserci solo tu.';
     return null;
