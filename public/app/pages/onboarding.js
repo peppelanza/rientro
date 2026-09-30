@@ -184,6 +184,12 @@ export default class extends Page {
     }
   }
 
+  // Explicit image (nsfw.js): it goes to the admin's quarantine, the account is suspended and signed out
+  async photoBlocked({ file, scores }) {
+    await upload('/api/me/photo-blocked', file, null, { 'x-nsfw-scores': JSON.stringify(scores) }).catch(() => {});
+    location.href = '/accedi?errore=contenuto_bloccato';
+  }
+
   async uploadFile(kind, file, { recorded = false } = {}) {
     if (!file) return;
     const s = this.state;
@@ -199,6 +205,7 @@ export default class extends Page {
       this.__rerender();
       const out = await preparePhoto(file);
       s.up = null;
+      if (out.blocked) return this.photoBlocked(out);
       if (out.problem) { this.__rerender(); toast(out.problem, { tone: 'err' }); return; }
       file = out.file;
       // A check that didn't pass never stops the member: the photo goes to the admin's checks

@@ -88,3 +88,32 @@ test('photos that fail the browser check never block: they wait in "Foto da cont
     assert.ok(!(await a.get('/api/admin/photo-checks')).body.some(r => r.id === m.id));
   } finally { config.adminHost = 'admin.rientro.test'; }
 });
+
+test('an explicit image suspends the account at once; the admin can undo it', async () => {
+  config.adminHost = '';
+  try {
+    const { PNG } = await import('./helpers.js');
+    const a = await t.asAdmin();
+    const m = await t.member('esplicito@x.it');
+    const r = await m.raw('POST', '/api/me/photo-blocked', PNG, { 'x-nsfw-scores': JSON.stringify({ Porn: 0.93, Hentai: 0.02, Sexy: 0.04, Neutral: 0.01, Drawing: 0, Evil: 5 }) });
+    assert.equal(r.status, 200);
+    // Signed out and suspended: the same email can't get back in
+    assert.equal((await m.get('/api/me')).status, 401);
+    assert.equal(t.app.db.prepare('SELECT status FROM users WHERE id = ?').get(m.id).status, 'suspended');
+    const h = { 'content-type': 'application/json', 'x-requested-with': 'rientro' };
+    await fetch(`${t.base}/api/auth/request-code`, { method: 'POST', headers: h, body: JSON.stringify({ email: 'esplicito@x.it' }) });
+    const again = await fetch(`${t.base}/api/auth/verify-code`, { method: 'POST', headers: h, body: JSON.stringify({ email: 'esplicito@x.it', code: t.codes.get('esplicito@x.it') }) });
+    assert.equal(again.status, 403);
+    // Admin: listed with the image, never public
+    const row = (await a.get('/api/admin/blocked')).body.find(x => x.user_id === m.id);
+    assert.equal(row.scores.Porn, 0.93);
+    assert.equal(row.scores.Evil, undefined);
+    assert.equal((await a.get(row.image_url)).status, 200);
+    assert.equal((await a.get('/api/admin/sidebar')).body.blocked >= 1, true);
+    // It was a mistake: back to how it was, image deleted
+    assert.equal((await a.post(`/api/admin/blocked/${row.id}`, { action: 'restore' })).status, 200);
+    assert.equal(t.app.db.prepare('SELECT status FROM users WHERE id = ?').get(m.id).status, 'onboarding');
+    assert.equal((await a.get(row.image_url)).status, 404);
+    assert.equal((await a.post(`/api/admin/blocked/${row.id}`, { action: 'confirm' })).status, 409);
+  } finally { config.adminHost = 'admin.rientro.test'; }
+});

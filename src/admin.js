@@ -387,6 +387,7 @@ export function sidebarCounts(db) {
     approvals: db.prepare(`SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id
       WHERE u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
+    blocked: db.prepare('SELECT COUNT(*) AS n FROM blocked_uploads WHERE resolved_at IS NULL').get().n,
     photos: db.prepare('SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id WHERE p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL').get().n,
   };
 }

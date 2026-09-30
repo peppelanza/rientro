@@ -1,3 +1,5 @@
+import { nsfwCheck, warmUpNsfwCheck } from './nsfw.js';
+
 // Profile photos must show a face: checked in the browser with the MediaPipe Face Detector
 // (self-hosted in /vendor) before the upload. The admin review stays the real gate, so if the
 // detector can't load (old browser, network) the photo goes through.
@@ -27,13 +29,14 @@ async function isHeicFile(file) {
 }
 
 // Start loading early (e.g. when the photo step opens), so the check is quick
-export const warmUpFaceCheck = () => { load().catch(() => {}); };
+export const warmUpFaceCheck = () => { load().catch(() => {}); warmUpNsfwCheck(); };
 
 // Checks the photo and frames it on the face. Never blocks: returns { file } to upload plus
 // { flag } when a check didn't pass, so the photo lands in the admin's "Foto da controllare" after
 // sign-up. Flags: no_face, small_face, multiple_faces, low_res, unchecked (the detector couldn't run).
 // With a face, the file is a square JPEG centred on it (which also drops the camera's metadata such
 // as GPS). { problem } only when the file can't be opened at all (a HEIC that won't convert).
+// { blocked, scores, file } when the image is explicit (nsfw.js): the caller sends it to quarantine.
 // strict: for the sign-in provider's photo, used only if it passes every check.
 export async function preparePhoto(file, { strict = false } = {}) {
   // iPhone photos (HEIC) become JPEG first; most browsers can't read them
@@ -46,8 +49,11 @@ export async function preparePhoto(file, { strict = false } = {}) {
       return { problem: 'Non riusciamo ad aprire questa foto. Salvala come JPG e riprova.' };
     }
   }
+  // Explicit images are stopped here, before anything else (nsfw.js)
+  const nsfw = await nsfwCheck(file);
+  if (nsfw?.blocked) return strict ? { flag: 'nsfw' } : { blocked: true, scores: nsfw.scores, file };
   const result = await check(file);
-  return strict && result.flag ? { flag: result.flag } : result;
+  return strict && (result.flag || !nsfw) ? { flag: result.flag ?? 'unchecked' } : result;
 }
 
 async function check(file) {

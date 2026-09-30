@@ -3,6 +3,7 @@ import { now, subjectRef, tx } from './db.js';
 import { deleteFilesOf } from './files.js';
 import { getCommunicationPreferences, getJobPreferences, preferenceHistory } from './preferences.js';
 import { getOwnProfile } from './profiles.js';
+import { quarantineFilesOf } from './moderation.js';
 import { HttpError, only, text } from './validate.js';
 
 // Design 40a: "Ricevi un archivio con tutto quello che Rientro conserva su di te".
@@ -62,6 +63,7 @@ export function eraseAccount(db, user, reason = null) {
   const purgeAfter = new Date();
   purgeAfter.setMonth(purgeAfter.getMonth() + config.ledgerRetentionMonthsAfterDeletion);
   const removeFromDisk = deleteFilesOf(db, user.id);
+  const removeQuarantine = quarantineFilesOf(db, user.id);
   tx(db, () => {
     // Keep pseudonymous proof of past choices until purge_after; drop the identity now.
     db.prepare('UPDATE preference_events SET user_id = NULL, purge_after = ? WHERE user_id = ?').run(purgeAfter.toISOString(), user.id);
@@ -76,6 +78,7 @@ export function eraseAccount(db, user, reason = null) {
     if (reason) db.prepare('INSERT INTO deletion_feedback (reason, created_at) VALUES (?, ?)').run(reason, now().slice(0, 7));
   });
   removeFromDisk();
+  removeQuarantine();
   return { deleted: true, ledger_subject_ref: subjectRef(user.id).slice(0, 12), ledger_purge_after: purgeAfter.toISOString() };
 }
 

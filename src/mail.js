@@ -37,3 +37,14 @@ export function sendDeletionScheduledEmail(email, eraseOn) {
     html: `<p>Ciao,</p><p>abbiamo ricevuto la tua richiesta di eliminare l'account Rientro. Da ora il tuo profilo non è più visibile a nessuno.</p><p>Il <strong>${date}</strong> cancelleremo definitivamente l'account e tutti i dati collegati (profilo, foto, video, connessioni e messaggi).</p><p>Se hai cambiato idea, ti basta <a href="${url}">accedere</a> prima di quella data e ritroverai tutto com'era.</p><p>Il team di Rientro</p>`,
   });
 }
+
+// Sent when the admin lifts a suspension that followed a blocked image (moderation.js): it was a mistake
+export function sendAccountRestoredEmail(email) {
+  const url = `${config.baseUrl}/accedi`;
+  return sendEmail({
+    to: email,
+    subject: 'Il tuo account Rientro è di nuovo attivo',
+    text: `Ciao,\n\nabbiamo controllato l'immagine che avevi caricato: il blocco automatico era un errore e ci scusiamo per il disagio. Il tuo account è di nuovo attivo e puoi accedere come prima: ${url}\n\nIl team di Rientro`,
+    html: `<p>Ciao,</p><p>abbiamo controllato l'immagine che avevi caricato: il blocco automatico era un errore e ci scusiamo per il disagio.</p><p>Il tuo account è di nuovo attivo e puoi <a href="${url}">accedere</a> come prima.</p><p>Il team di Rientro</p>`,
+  });
+}

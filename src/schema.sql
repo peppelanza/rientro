@@ -361,3 +361,21 @@ CREATE TRIGGER IF NOT EXISTS preference_events_no_early_delete
 BEFORE DELETE ON preference_events
 WHEN OLD.purge_after IS NULL OR OLD.purge_after > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 BEGIN SELECT RAISE(ABORT, 'preference_events can only be purged after purge_after'); END;
+
+-- ---------------------------------------------------------------------------
+-- Explicit images stopped in the browser (NSFWJS, public/app/nsfw.js). The image is kept in
+-- quarantine only for the admin to check (deleted after 30 days), the account is suspended at once.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS blocked_uploads (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  storage_key   TEXT,                 -- file in UPLOAD_DIR/quarantine, NULL once deleted
+  mime          TEXT,
+  scores        TEXT NOT NULL,        -- NSFWJS probabilities, JSON
+  prev_status   TEXT NOT NULL,        -- account status to restore if it was a mistake
+  created_at    TEXT NOT NULL,
+  resolved_at   TEXT,
+  resolution    TEXT CHECK (resolution IS NULL OR resolution IN ('restored', 'confirmed')),
+  resolved_by   TEXT
+);
+CREATE INDEX IF NOT EXISTS blocked_uploads_open ON blocked_uploads (resolved_at, created_at);

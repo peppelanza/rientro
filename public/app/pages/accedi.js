@@ -8,6 +8,7 @@ const LINKEDIN_ERRORS = {
   linkedin_email: 'Il tuo account LinkedIn non ha un’email verificata. Verificala su LinkedIn oppure continua con email.',
   linkedin_non_attivo: 'L’accesso con LinkedIn non è ancora attivo. Per ora continua con email: ci vuole un minuto.',
   sospeso: 'Questo account è sospeso. Scrivici se pensi sia un errore.',
+  contenuto_bloccato: 'Abbiamo bloccato l’immagine che hai caricato perché sembra un contenuto esplicito, e sospeso l’account. Se è un errore lo verifichiamo noi e ti avvisiamo via email.',
 };
 
 export const title = 'Accedi a Rientro';

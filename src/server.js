@@ -5,6 +5,7 @@ import zlib from 'node:zlib';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
+import * as moderation from './moderation.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
@@ -218,7 +219,7 @@ function streamFile(req, res, f) {
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/stato$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|segnalazioni|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
@@ -352,6 +353,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     db.prepare('UPDATE profiles SET suggested_photo_url = NULL, photo_check = ? WHERE user_id = ?').run(check, user.id);
     return out;
   });
+  // An image the browser found explicit (nsfw.js): quarantined for the admin, account suspended now
+  route('POST', '/api/me/photo-blocked', async ({ user, req, res }) => {
+    moderation.blockUpload(db, user, await readBody(req, config.maxPhotoBytes * 2), req.headers['x-nsfw-scores']);
+    send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
+  }, { raw: true });
   // The sign-in provider's photo, passed through so the browser can check it for a face (face.js)
   // and upload it as the profile photo. Only from the providers' image hosts; cleared once tried.
   route('GET', '/api/me/suggested-photo', async ({ user, res }) => {
@@ -454,6 +460,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/approvals', ({ user }) => admin.approvals(db, user), adm);
+  route('GET', '/api/admin/blocked', ({ user }) => moderation.listBlocked(db, user), adm);
+  route('GET', '/api/admin/blocked/:id/image', ({ user, params, res }) => {
+    const { mime, buf } = moderation.blockedImage(db, user, params.id);
+    res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-store', 'Content-Length': buf.length });
+    res.end(buf);
+  }, { ...adm, raw: true });
+  route('POST', '/api/admin/blocked/:id', async ({ user, params, req }) => moderation.resolveBlocked(db, user, params.id, (await readJson(req)).action), adm);
   route('GET', '/api/admin/photo-checks', ({ user }) => admin.photoChecks(db, user), adm);
   route('POST', '/api/admin/photo-checks/:id/ok', ({ user, params }) => admin.photoCheckOk(db, user, params.id), adm);
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
