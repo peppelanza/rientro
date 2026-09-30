@@ -19,9 +19,35 @@
 </section>
 <section class="r-grid-1" style="padding:var(--section-gap) var(--gutter);display:grid;grid-template-columns:240px repeat(3,minmax(0,1fr));gap:16px">
 <dc-import name="UI Eyebrow" text="Tre modi di iniziare"></dc-import>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="idea"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Racconta cosa vuoi fare e quali competenze ti mancano.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="explore"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma cerchi con chi lavorarci.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Parti dalle persone. L'idea arriva parlando.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
-<div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:14px;box-shadow:0 14px 40px rgba(80,60,160,.10)"><div><dc-import name="UI Badge" kind="neutral" label="Fare rete"></dc-import></div><span style="font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Vuoi semplicemente fare networking.</span><span style="font-size:15px;line-height:1.55;color:#4A4560">Conosci chi è rientrato o sta per farlo, nella tua città o dove vorresti vivere. Un caffè, un consiglio, un contatto in più.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div>
+<div class="way-card"><div class="place-art way-art"><svg viewBox="0 0 240 150" aria-hidden="true">
+<circle cx="120" cy="88" r="46" fill="#DCD4FF"/>
+<circle class="place-ripple" cx="120" cy="66" r="26" fill="none" stroke="#6C4DF5" stroke-width="2"/>
+<g class="way-rays" stroke="#6C4DF5" stroke-width="3" stroke-linecap="round"><path d="M120 26v-8"/><path d="M94 38l-6-6"/><path d="M146 38l6-6"/><path d="M82 62h-8"/><path d="M158 62h8"/></g>
+<path d="M120 42a24 24 0 0 0-14 43.5V94h28v-8.5A24 24 0 0 0 120 42z" fill="#FFFFFF"/>
+<path d="M109 74l5 7 6-9 6 9 5-7" fill="none" stroke="#6C4DF5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<g fill="#6C4DF5" opacity=".85"><rect x="107" y="96" width="26" height="7" rx="3.5"/><rect x="111" y="105" width="18" height="7" rx="3.5"/></g>
+<path class="place-route" d="M58 118 C 84 146, 156 146, 182 118" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"/>
+<g fill="#6C4DF5" opacity=".85"><circle cx="44" cy="104" r="9"/><path d="M26 140c0-12 8-20 18-20s18 8 18 20z"/></g>
+<g class="way-seek" fill="none" stroke="#6C4DF5" stroke-width="2" stroke-dasharray="3 4"><circle cx="196" cy="104" r="9"/><path d="M178 140c0-12 8-20 18-20s18 8 18 20z"/></g>
+</svg></div><div class="way-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Hai un'idea e cerchi chi la costruisca con te.</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">Racconta cosa vuoi fare e quali competenze ti mancano.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div></div>
+<div class="way-card"><div class="place-art way-art"><svg viewBox="0 0 240 150" aria-hidden="true">
+<circle cx="120" cy="86" r="44" fill="#DCD4FF"/>
+<g class="place-route" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"><path d="M64 110 C 78 104, 86 98, 94 92"/><path d="M176 110 C 162 104, 154 98, 146 92"/></g>
+<path d="M104 68h32a16 16 0 0 1 0 32h-12l-8 8v-8h-12a16 16 0 0 1 0-32z" fill="#FFFFFF"/>
+<g class="who-dots" fill="#6C4DF5"><circle cx="110" cy="84" r="3"/><circle cx="120" cy="84" r="3"/><circle cx="130" cy="84" r="3"/></g>
+<g fill="#6C4DF5" opacity=".85"><circle cx="50" cy="104" r="9"/><path d="M32 140c0-12 8-20 18-20s18 8 18 20z"/><circle cx="190" cy="104" r="9"/><path d="M172 140c0-12 8-20 18-20s18 8 18 20z"/></g>
+<g class="way-reply"><circle cx="120" cy="22" r="14" fill="#FFFFFF"/><g transform="translate(120 21)"><path d="M0-9a7 7 0 0 0-4 12.7V6h8V3.7A7 7 0 0 0 0-9z" fill="#6C4DF5"/><rect x="-3.5" y="7.5" width="7" height="3" rx="1.5" fill="#6C4DF5"/></g></g>
+</svg></div><div class="way-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Non hai ancora un'idea, ma cerchi con chi lavorarci.</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">Parti dalle persone. L'idea arriva parlando.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div></div>
+<div class="way-card"><div class="place-art way-art"><svg viewBox="0 0 240 150" aria-hidden="true">
+<g class="place-route" fill="none" stroke="#1A1726" stroke-width="1.6" stroke-dasharray="4 6" stroke-linecap="round"><path d="M42 42 L82 66"/><path d="M58 122 L84 106"/><path d="M198 40 L158 66"/><path d="M186 124 L160 108"/></g>
+<g class="way-nodes" fill="#6C4DF5" opacity=".85"><circle cx="38" cy="38" r="7"/><circle cx="54" cy="126" r="6"/><circle cx="202" cy="36" r="6"/><circle cx="190" cy="128" r="7"/></g>
+<circle cx="120" cy="88" r="46" fill="#DCD4FF"/>
+<ellipse cx="120" cy="124" rx="34" ry="5" fill="#B9A8FF"/>
+<path d="M144 88h5a10 10 0 0 1 0 20h-5" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+<path d="M96 84h48v20a18 18 0 0 1-18 18h-12a18 18 0 0 1-18-18z" fill="#FFFFFF"/>
+<ellipse cx="120" cy="84" rx="24" ry="4" fill="#6C4DF5" opacity=".85"/>
+<g class="way-steam" fill="none" stroke="#6C4DF5" stroke-width="3" stroke-linecap="round"><path d="M110 72c-5-6 5-10 0-17"/><path d="M120 70c-5-6 5-10 0-17"/><path d="M130 72c-5-6 5-10 0-17"/></g>
+</svg></div><div class="way-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.035em">Vuoi semplicemente fare networking.</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">Conosci chi è rientrato o sta per farlo, nella tua città o dove vorresti vivere. Un caffè, un consiglio, un contatto in più.</span><div style="flex:1"></div><div><dc-import name="UI Button" label="Inizia →" variant="accent" on-click="{{ enter }}"></dc-import></div></div></div>
 </section>
 <section id="come-funziona"  style="margin:0 var(--gutter);padding:72px var(--card-pad);border-radius:28px;background:#1A1726;color:#FFFFFF;display:flex;flex-direction:column;gap:40px">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em">Come funziona</h2></div>

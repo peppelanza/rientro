@@ -193,6 +193,25 @@ button { font: inherit; }
 @keyframes who-beat { 0%, 100% { scale: 1; } 15% { scale: 1.18; } 30% { scale: 1; } 45% { scale: 1.1; } }
 @media (max-width: 720px) { .who-art svg { height: 130px; } }
 
+/* Home · Tre modi di iniziare: tall cards with an illustration on top, same style as "Per chi è" */
+.way-card { display: flex; flex-direction: column; min-height: 520px; background: linear-gradient(180deg, #FFFFFF, #F6F4FC); border-radius: 28px; overflow: hidden; box-shadow: 0 14px 40px rgba(80,60,160,.10); }
+.way-art { background: none; }
+.way-art svg { height: 190px; }
+.way-text { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 24px 32px 32px; }
+.way-rays { animation: place-twinkle 2s ease-in-out infinite; }
+.way-seek { animation: place-twinkle 2.4s ease-in-out infinite; }
+.way-reply { animation: way-reply 4s ease-in-out infinite; }
+.way-nodes circle { transform-box: fill-box; transform-origin: center; animation: place-bob 3s ease-in-out infinite; }
+.way-nodes circle:nth-child(2) { animation-delay: -.8s; } .way-nodes circle:nth-child(3) { animation-delay: -1.6s; } .way-nodes circle:nth-child(4) { animation-delay: -2.4s; }
+.way-steam path { animation: way-steam 2.6s ease-in-out infinite; }
+.way-steam path:nth-child(2) { animation-delay: -.9s; } .way-steam path:nth-child(3) { animation-delay: -1.8s; }
+@keyframes way-reply { 0%, 35% { opacity: 0; translate: 0 6px; } 50%, 90% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 0; } }
+@keyframes way-steam { 0% { opacity: 0; translate: 0 6px; } 40% { opacity: 1; } 100% { opacity: 0; translate: 0 -8px; } }
+@media (max-width: 1024px) { .way-card { min-height: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .way-rays, .way-seek, .way-reply, .way-nodes circle, .way-steam path { animation: none; }
+}
+
 /* In-page video recorder (public/app/video.js) */
 .rec-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(26,23,38,.55); display: flex; align-items: center; justify-content: center; padding: 16px; font-family: 'Geist', sans-serif; }
 .rec-dialog { width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow: auto; background: #FFFFFF; border-radius: 28px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(26,23,38,.3); color: #1A1726; }
