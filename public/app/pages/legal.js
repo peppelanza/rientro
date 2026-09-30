@@ -1,5 +1,5 @@
-// Legal pages (design 05 · 43b "riassunto prima del testo"). The privacy and cookie policies are
-// final texts (30 September 2026); the Terms are still a DRAFT, marked on the page.
+// Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
+// Cookie Policy, final texts of 30 September 2026. Changing one: bump its LEGAL_VERSIONS entry.
 // No cookie banner (43c): today only the technical session cookie is used.
 import { Page } from './_base.js';
 
@@ -96,7 +96,7 @@ const DOCS = {
         'Non prendiamo decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogo su di te (art. 22 GDPR). Ogni profilo viene letto da una persona prima di essere pubblicato, e le decisioni di moderazione sono prese da persone.',
       ]],
       ['Modifiche a questa informativa', [
-        'Potremo aggiornare questa informativa, per esempio quando attiveremo nuove funzioni come l’accesso delle aziende. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento e la versione. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
+        'Potremo aggiornare questa informativa. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
       ]],
     ],
     purposes: [
@@ -111,16 +111,80 @@ const DOCS = {
     ],
   },
   termini: {
-    title: 'Termini e condizioni', updated: 'AGGIORNATI IL [DATA]', draft: true,
+    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 30 SETTEMBRE 2026',
     summary: [
-      ['A cosa serve', 'Trovare co-founder e persone con cui creare un progetto in Italia.'],
-      ['Profili rivisti', 'Ogni profilo viene letto da una persona del team prima di andare online.'],
-      ['Rispetto', 'Messaggi solo dopo l’accettazione. Segnalazioni e blocchi sempre disponibili.'],
-      ['Gratuito', 'Al lancio, per tutti.'],
+      ['A cosa serve', 'Conoscere persone che rientrano in Italia o al Sud, per fare rete o costruire un progetto insieme.'],
+      ['Profili rivisti', 'Ogni profilo viene letto da una persona del team prima di andare online. Un account a testa, con dati veri.'],
+      ['Rispetto', 'Messaggi solo dopo che una richiesta di connessione è stata accettata. Segnalazioni e blocchi sempre disponibili.'],
+      ['Gratuito', 'Iscriversi e usare Rientro è gratuito. Puoi cancellare il tuo account quando vuoi.'],
     ],
     sections: [
-      ['Oggetto del servizio', ['[TESTO LEGALE DA FORNIRE]']], ['Iscrizione', ['[REQUISITI DI ISCRIZIONE]']], ['Regole di condotta', ['[REGOLE, MODERAZIONE E SOSPENSIONE]']],
-      ['Contenuti', ['[PROPRIETÀ DEI CONTENUTI E LICENZA D’USO]']], ['Responsabilità', ['[LIMITAZIONI DI RESPONSABILITÀ]']], ['Legge applicabile', ['[LEGGE APPLICABILE, FORO COMPETENTE, MODIFICHE AI TERMINI]']],
+      ['Chi siamo e a cosa servono questi Termini', [
+        'Rientro è un servizio gestito da Giuseppe Lanzafame, Via Curia 9, Catania (CT), Italia (di seguito “Rientro”, “noi”). Per qualsiasi comunicazione scrivi a privacy@rientro.it.',
+        'Questi Termini regolano l’uso del sito rientro.it e dei servizi di Rientro. Iscrivendoti dichiari di averli letti e di accettarli. Il modo in cui trattiamo i tuoi dati personali è descritto nella Privacy Policy, che fa parte di questo accordo insieme alla Cookie Policy.',
+      ]],
+      ['Il servizio', [
+        'Rientro è una community online per chi è rientrato, sta per rientrare o pensa di rientrare in Italia o al Sud. Permette di creare un profilo, scoprire altre persone, inviare richieste di connessione e, una volta accettate, scambiarsi messaggi.',
+        'Fino alla data di lancio indicata sul sito (1° gennaio 2027) puoi iscriverti e preparare il tuo profilo; la ricerca delle persone, le connessioni e i messaggi si attivano dal lancio.',
+        'In futuro potremo permettere ad aziende registrate e verificate di trovare i profili e contattare i membri dentro Rientro, secondo quanto descritto nella Privacy Policy. Te lo comunicheremo prima e potrai scegliere di non essere visibile alle aziende.',
+        'Rientro mette in contatto le persone ma non partecipa ai rapporti che nascono tra loro: non è un’agenzia per il lavoro, non fa intermediazione, non offre consulenza legale, fiscale o finanziaria e non garantisce che troverai un socio, un progetto o un lavoro. Le guide pubblicate sul sito, come quella sul rientro dei cervelli, hanno scopo informativo e non sostituiscono il parere di un professionista.',
+      ]],
+      ['Chi può iscriversi', [
+        '• Devi avere almeno 18 anni.',
+        '• Puoi avere un solo account, personale: non puoi crearlo per conto di altri né cederlo.',
+        '• Le informazioni che inserisci devono essere vere, aggiornate e riferite a te, a partire da nome, foto e video.',
+        '• Accedi con un codice monouso inviato alla tua email oppure con LinkedIn o Google. Sei responsabile di custodire l’accesso alla tua email e ai tuoi account collegati: tutto ciò che avviene con il tuo account si presume fatto da te. Se sospetti un accesso non autorizzato, esci da tutti i dispositivi dalle impostazioni e scrivici.',
+      ]],
+      ['Revisione dei profili', [
+        'Prima di essere visibile agli altri membri, ogni profilo viene letto da una persona del team. Possiamo chiederti di modificarlo o non approvarlo se non rispetta questi Termini, se sembra falso o incompleto, o se non è in linea con lo scopo di Rientro; in questi casi ti spieghiamo il motivo. Anche le modifiche successive ai dati principali del profilo possono essere riviste prima di essere pubblicate.',
+      ]],
+      ['Regole di condotta', [
+        'Rientro funziona se ci si può fidare delle persone che si incontrano. Per questo, usando il servizio, ti impegni a non:',
+        '• creare profili falsi, usare foto o dati di altre persone o spacciarti per qualcun altro;',
+        '• molestare, minacciare, insultare o discriminare altri membri, anche per origine, genere, orientamento sessuale, religione, disabilità o opinioni;',
+        '• inviare spam, catene, pubblicità o offerte commerciali non richieste, o usare Rientro per vendere servizi;',
+        '• pubblicare o inviare contenuti illegali, sessualmente espliciti, violenti o che violino diritti di terzi, compresi diritto d’autore e marchi;',
+        '• diffondere dati personali di altre persone, comprese le conversazioni private, senza il loro consenso;',
+        '• raccogliere dati dal servizio con strumenti automatici (scraping, bot), aggirare le misure di sicurezza o interferire con il funzionamento del sito;',
+        '• usare Rientro per scopi illeciti o in modo contrario allo scopo della community.',
+        'Una richiesta di connessione rifiutata va rispettata: non insistere e non contattare la persona in altri modi usando dati ottenuti su Rientro.',
+      ]],
+      ['I contenuti che pubblichi', [
+        'Testi, foto, video e messaggi che pubblichi restano tuoi. Ci concedi soltanto il permesso, gratuito e non esclusivo, di conservarli, adattarli tecnicamente (per esempio ridimensionare una foto o convertire un video) e mostrarli dentro Rientro alle persone che possono vederli secondo le tue impostazioni, per il solo scopo di far funzionare il servizio. Il permesso termina quando cancelli il contenuto o l’account, salvo i tempi tecnici di cancellazione indicati nella Privacy Policy.',
+        'Dichiari di avere il diritto di pubblicare ciò che carichi e che foto e video ritraggono te o persone che hanno acconsentito. Sei responsabile dei contenuti che pubblichi e dei messaggi che invii.',
+      ]],
+      ['Segnalazioni, moderazione e sospensione', [
+        'Puoi segnalare un profilo o un messaggio e bloccare una persona in qualsiasi momento. Chiunque, anche senza account, può segnalarci contenuti che ritiene illegali scrivendo a privacy@rientro.it, indicando dove si trovano e perché li considera illegali: esaminiamo ogni segnalazione in modo diligente e obiettivo e informiamo chi l’ha fatta dell’esito, come previsto dal Regolamento UE 2022/2065 sui servizi digitali (Digital Services Act). L’indirizzo privacy@rientro.it è anche il punto di contatto per le autorità e per i destinatari del servizio ai sensi degli artt. 11 e 12 dello stesso Regolamento; puoi scriverci in italiano o in inglese.',
+        'Se un contenuto o un comportamento viola questi Termini o la legge possiamo, in modo proporzionato alla gravità: rimuovere il contenuto, limitarne la visibilità, sospendere l’account o, nei casi gravi o ripetuti, chiuderlo. Salvo urgenze o obblighi di legge, ti informiamo della decisione spiegandone i motivi, e puoi chiederne il riesame scrivendo a privacy@rientro.it.',
+        'Per gestire una segnalazione un moderatore può leggere la conversazione tra chi segnala e la persona segnalata, come descritto nella Privacy Policy.',
+      ]],
+      ['Proprietà intellettuale di Rientro', [
+        'Il nome e il logo Rientro, il design del sito, i testi redazionali, le illustrazioni e il software sono di Rientro o dei rispettivi titolari e sono protetti dalla legge. Non puoi copiarli, modificarli o usarli al di fuori del normale uso del servizio senza il nostro permesso scritto.',
+      ]],
+      ['Gratuità del servizio', [
+        'Iscriversi e usare Rientro è gratuito. Se in futuro introdurremo funzioni a pagamento te lo comunicheremo in anticipo con condizioni chiare e separate, e nessun addebito avverrà senza il tuo consenso esplicito. Le funzioni oggi gratuite descritte in questi Termini non diventeranno a pagamento per chi è già iscritto senza un preavviso e la possibilità di cancellare l’account.',
+      ]],
+      ['Disponibilità del servizio', [
+        'Facciamo del nostro meglio perché Rientro sia sempre disponibile e sicuro, ma il servizio può avere interruzioni per manutenzione, aggiornamenti o cause che non dipendono da noi. Possiamo modificare, migliorare o togliere funzioni; se una modifica riduce in modo rilevante il servizio te lo comunichiamo per tempo.',
+      ]],
+      ['Responsabilità', [
+        'Ogni membro è responsabile di ciò che pubblica e dei rapporti che instaura con gli altri. Rientro rivede i profili ma non può verificare tutto ciò che le persone dichiarano: usa prudenza prima di condividere dati personali, investire denaro o incontrare qualcuno di persona, e segnalaci ogni comportamento sospetto.',
+        'Rientro risponde dei danni causati con dolo o colpa grave e negli altri casi in cui la legge non consente di limitare la responsabilità. Negli altri casi, trattandosi di un servizio gratuito, non rispondiamo di danni indiretti o di perdite legate all’uso che i membri fanno delle informazioni e dei contatti ottenuti tramite Rientro. Nulla in questi Termini limita i diritti che ti riconosce la legge come consumatore, in particolare il Codice del Consumo (D.lgs. 206/2005).',
+      ]],
+      ['Durata e cancellazione dell’account', [
+        'Questo accordo dura finché hai un account. Puoi cancellarlo in qualsiasi momento da Impostazioni: il profilo sparisce subito e hai 30 giorni per ripensarci accedendo di nuovo, poi i dati vengono cancellati definitivamente, come descritto nella Privacy Policy.',
+        'Possiamo chiudere un account in caso di violazioni gravi o ripetute di questi Termini, come indicato al punto 7. Se dovessimo interrompere del tutto il servizio, ti avviseremo con almeno 30 giorni di anticipo e potrai scaricare i tuoi dati prima della chiusura.',
+      ]],
+      ['Modifiche ai Termini', [
+        'Possiamo aggiornare questi Termini, per esempio per nuove funzioni o nuove norme. Se le modifiche sono rilevanti te le comunichiamo via email o dentro Rientro almeno 15 giorni prima che si applichino, e ti chiederemo di prenderne visione al primo accesso successivo; se non sei d’accordo puoi cancellare l’account in qualsiasi momento. Le modifiche imposte dalla legge o necessarie per la sicurezza possono applicarsi subito.',
+      ]],
+      ['Legge applicabile e controversie', [
+        'Questi Termini sono regolati dalla legge italiana. Se sei un consumatore restano salve le tutele inderogabili previste dalla legge del Paese in cui risiedi, e per qualsiasi controversia è competente il giudice del luogo in cui risiedi o hai il domicilio. Se usi Rientro per la tua attività professionale, è competente in via esclusiva il Foro di Catania.',
+        'Prima di rivolgerti al giudice ti invitiamo a scriverci a privacy@rientro.it: la maggior parte dei problemi si risolve così. Resta ferma la possibilità di ricorrere agli strumenti di risoluzione extragiudiziale delle controversie previsti dalla legge, come la mediazione.',
+      ]],
+      ['Disposizioni finali', [
+        'Se una clausola di questi Termini risultasse invalida, le altre restano valide. Il fatto che non facciamo valere un diritto in un determinato momento non significa che vi rinunciamo. Questi Termini sono redatti in italiano, che prevale su eventuali traduzioni.',
+      ]],
     ],
   },
   cookie: {
@@ -144,7 +208,6 @@ const DOCS = {
 
 export default class extends Page {
   async load() {
-    this.state.legal = await fetch('/api/legal').then(r => r.json()).catch(() => null);
     const doc = DOCS[this.props.params.doc];
     document.title = `${doc.title} · Rientro`;
     if (location.hash) requestAnimationFrame(() => document.querySelector(location.hash)?.scrollIntoView());
@@ -162,11 +225,10 @@ export default class extends Page {
       isPurposes: extra === 'purposes',
     }));
     return {
-      tabs, title: doc.title, updated: doc.updated, version: this.state.legal?.versions?.[key === 'termini' ? 'terms' : key === 'cookie' ? 'cookies' : 'privacy'] ?? '',
+      tabs, title: doc.title, updated: doc.updated,
       summary: doc.summary.map(([t, d]) => ({ t, d })), sections,
-      menu: [{ l: 'In breve', href: '#in-breve' }, ...sections.map(s => ({ l: s.t, href: `#${s.id}` }))],
+      tocProps: { items: [{ label: 'In breve', href: '#in-breve' }, ...sections.map(s => ({ label: s.t, href: `#${s.id}` }))] },
       purposes: (doc.purposes ?? []).map(([t, what, data, basis]) => ({ t, what, data, basis })),
-      draft: !!doc.draft,
     };
   }
 }

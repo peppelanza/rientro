@@ -6,8 +6,7 @@
 <dc-import name="App Onboarding Bar" step="0" total="{{ total }}"></dc-import>
 <main style="flex:1;display:flex;align-items:center;justify-content:center;padding:44px var(--gutter) 80px">
 <div style="width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px"><dc-import name="UI Eyebrow" text="{{ welcomeName }}"></dc-import><h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:52px;line-height:1.02;font-weight:600;letter-spacing:-.055em">Costruiamo il profilo&nbsp;che<br><span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#6C4DF5;font-size:60px;letter-spacing:-.02em">ti presenta.</span></h1><p style="margin:0;font-size:18px;line-height:1.5;color:#4A4560;max-width:500px">{{ questions }}</p>
-<sc-if value="{{ needsLegal }}"><div role="alert" style="max-width:500px;border-radius:22px;background:#FFFFFF;padding:16px 18px;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.5;color:#4A4560">Abbiamo aggiornato i <a href="/legal/termini" style="color:#1A1726">Termini</a> e la <a href="/legal/privacy" style="color:#1A1726">Privacy Policy</a>. Per continuare, confermali.<div><dc-import name="UI Button" label="Ho letto e accetto" size="sm" on-click="{{ acceptLegal }}"></dc-import></div></div></sc-if>
-<dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" on-click="{{ start }}" host-aria-disabled="{{ needsLegal }}"></dc-import></div>
+<dc-import name="UI Button" label="Iniziamo" variant="accent" size="lg" on-click="{{ start }}"></dc-import></div>
 </main></div>
 </sc-if>
 
@@ -219,6 +218,7 @@
 <sc-if value="{{ isPreview }}">
 <div style="min-height:100vh;background:#E9E6F5">
 <div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedranno gli altri membri. Instagram, X e calendario restano nascosti fino all'accettazione.</span><div style="flex:1"></div><button type="button" onClick="{{ backToQuestions }}" style="border:none;background:none;padding:0;font:inherit;color:#C9C0F0;cursor:pointer">Torna alle domande</button><dc-import name="UI Button" label="Invia per la revisione" variant="light" size="sm" on-click="{{ submit }}" host-aria-disabled="{{ pvMissing }}"></dc-import></div>
+<sc-if value="{{ needsLegal }}"><p style="margin:10px var(--gutter) 0;font-size:13px;line-height:1.5;color:#6B6680">Inviando il profilo accetti i <a href="/legal/termini" target="_blank" style="color:#1A1726">Termini</a> e confermi di aver letto la <a href="/legal/privacy" target="_blank" style="color:#1A1726">Privacy Policy</a>, aggiornati il 30 settembre 2026.</p></sc-if>
 <sc-if value="{{ pvMissing }}"><div role="alert" style="margin:12px var(--gutter) 0;border-radius:20px;background:#FDE8E8;color:#912018;padding:12px 18px;font-size:14px">Prima di inviare, completa: {{ pvMissing }}.</div></sc-if>
 <div class="r-grid-1" style="padding:40px var(--gutter) 56px;display:grid;grid-template-columns:340px 1fr;gap:48px">
 <div style="display:flex;flex-direction:column;gap:16px">

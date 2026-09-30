@@ -12,6 +12,10 @@ export const config = {
   publicDir: path.join(root, 'public'),
   // Used to pseudonymise subject references in the ledgers. Must be set in production.
   pseudonymSecret: process.env.PSEUDONYM_SECRET || 'dev-only-pseudonym-secret',
+  // Sign In with LinkedIn (OpenID Connect). Both set = the LinkedIn button works; the app's redirect
+  // URL registered on LinkedIn must be <BASE_URL>/api/auth/linkedin/callback.
+  linkedinClientId: process.env.LINKEDIN_CLIENT_ID || '',
+  linkedinClientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   sessionTtlDays: 30,
@@ -50,7 +54,7 @@ export const config = {
 // on every preference_events row so we can prove what the user saw.
 export const LEGAL_VERSIONS = {
   privacy: '2026-09-30',
-  terms: '2026-09-draft-1',
+  terms: '2026-09-30',
   cookies: '2026-09-30',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
