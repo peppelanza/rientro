@@ -1,0 +1,17 @@
+<!-- Admin · "Contenuti bloccati": explicit images stopped at upload (nsfw.js). Built with the design 06 card patterns. -->
+<div class="admin-layout">
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
+<main class="admin-main">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Contenuti bloccati</h1>
+<span style="font-size:14px;color:#6B6680;line-height:1.5;max-width:760px">Immagini riconosciute come esplicite al caricamento. L'immagine non è mai stata pubblicata e l'account è stato sospeso subito: con quella email non si può più accedere. Se era un errore, riattivalo: l'immagine diventa la sua foto profilo e riceverà un'email. Se confermi il blocco l'immagine si cancella, e comunque dopo 30 giorni.</span></div>
+<sc-if value="{{ empty }}"><div style="background:#FFFFFF;border-radius:24px;padding:28px;font-size:14px;color:#6B6680">Nessun contenuto bloccato.</div></sc-if>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
+<sc-for list="{{ rows }}" as="r"><section style="background:#FFFFFF;border-radius:24px;padding:12px;display:flex;flex-direction:column;gap:10px">
+<sc-if value="{{ r.hasImage }}"><details style="border-radius:16px;overflow:hidden;background:#1A1726"><summary style="list-style:none;cursor:pointer;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#C9C0F0;font-size:13px">Mostra immagine</summary><img src="{{ r.image_url }}" alt="Immagine bloccata" style="display:block;width:100%;height:auto"></details></sc-if>
+<sc-if value="{{ r.noImage }}"><div style="aspect-ratio:1/1;border-radius:16px;background:#F1EFF8;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8C84AE">Immagine cancellata</div></sc-if>
+<div style="display:flex;flex-direction:column;gap:4px;padding:0 4px"><a href="{{ r.href }}" style="font-size:15px;font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:12px;color:#6B6680;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.email }}</span><span style="font-size:12px;color:#8C84AE">{{ r.when }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680">{{ r.score }}</span></div>
+<sc-if value="{{ r.open }}"><div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 4px 4px"><dc-import name="UI Button" label="Era un errore, riattiva" size="sm" variant="secondary" on-click="{{ r.restore }}"></dc-import><dc-import name="UI Button" label="Confermo" size="sm" variant="primary" on-click="{{ r.confirm }}"></dc-import></div></sc-if>
+<sc-if value="{{ r.outcome }}"><div style="padding:0 4px 4px"><dc-import name="UI Badge" kind="neutral" label="{{ r.outcome }}"></dc-import></div></sc-if>
+</section></sc-for>
+</div>
+</main></div>

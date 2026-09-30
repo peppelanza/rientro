@@ -170,18 +170,24 @@ export default class extends Page {
     try {
       const r = await fetch('/api/me/suggested-photo');
       if (!r.ok) return;
-      const { file } = await preparePhoto(new File([await r.blob()], 'foto.jpg'), { strict: true });
+      const { file } = await preparePhoto(new File([await r.blob()], 'foto.jpg'), { strict: true }); // only if every check passes
       if (!file || s.p.photo_url) return;
       s.up = { kind: 'photo', name: file.name, loaded: 0, total: file.size };
       this.__rerender();
       const out = await upload('/api/me/photo', file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); });
-      s.p.photo_url = out.url;
+      Object.assign(s.p, { photo_url: out.url, photo_check: null });
     } catch { /* silent: the member uploads a photo as usual */ } finally {
       s.up = null;
       s.p.suggested_photo_url = null;
       api('DELETE', '/api/me/suggested-photo').catch(() => {});
       this.__rerender();
     }
+  }
+
+  // Explicit image (nsfw.js): it goes to the admin's quarantine, the account is suspended and signed out
+  async photoBlocked({ file, scores }) {
+    await upload('/api/me/photo-blocked', file, null, { 'x-nsfw-scores': JSON.stringify(scores) }).catch(() => {});
+    location.href = '/accedi?errore=contenuto_bloccato';
   }
 
   async uploadFile(kind, file, { recorded = false } = {}) {
@@ -192,22 +198,26 @@ export default class extends Page {
     // Recordings are already 15–60 s; for picked files check now instead of after the upload
     const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
-    // Only photos of a face, framed on it (see face.js)
+    // Photos framed on the face and checked (see face.js)
+    let photoCheck = null;
     if (kind === 'photo') {
       s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
       this.__rerender();
       const out = await preparePhoto(file);
       s.up = null;
+      if (out.blocked) return this.photoBlocked(out);
       if (out.problem) { this.__rerender(); toast(out.problem, { tone: 'err' }); return; }
       file = out.file;
+      // A check that didn't pass never stops the member: the photo goes to the admin's checks
+      if (out.flag) photoCheck = out.flag;
       if (file.size > 5 * 1024 * 1024) { this.__rerender(); toast('La foto supera 5 MB.', { tone: 'err' }); return; }
     }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
-    upload(`/api/me/${kind === 'video' ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
+    upload(`/api/me/${kind === 'video' ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); }, photoCheck ? { 'x-photo-check': photoCheck } : {})
       .then(r => {
         // Show the file just sent: the server converts it in the background
-        if (isVideo) { s.p.video_url = r.url; setPreview(s, file); } else s.p.photo_url = r.url;
+        if (isVideo) { s.p.video_url = r.url; setPreview(s, file); } else Object.assign(s.p, { photo_url: r.url, photo_check: photoCheck });
         toast(isVideo ? 'Video caricato.' : 'Foto caricata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
@@ -377,6 +387,8 @@ export default class extends Page {
       // 11a
       photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: up?.checking ? 'Controllo…' : `${pct}%`,
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
+      // A check that didn't pass (face.js): just a suggestion, the admin looks at it later
+      photoHint: !!p.photo_url && !!p.photo_check && p.photo_check !== 'unchecked',
       photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? 'Cambia foto' : 'Obbligatoria · si deve vedere il tuo volto',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       firstName: p.first_name ?? '', lastName: p.last_name ?? '', bio: p.bio ?? '',

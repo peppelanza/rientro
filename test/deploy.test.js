@@ -53,7 +53,10 @@ test('sign-in page accepts only real comuni in ?citta=; unknown addresses are an
     const r = await get(p);
     assert.equal(r.status, 404, p);
     assert.match(r.headers.get('content-type'), /text\/html/);
-    assert.match(await r.text(), /Questa pagina/);
+    const html = await r.text();
+    assert.match(html, /Questa pagina/);
+    // The comune explanation only where a city was asked for
+    assert.equal(/comune italiano/.test(html), p.includes('citta='), p);
   }
   assert.equal((await get('/api/non-esiste')).headers.get('content-type').includes('json'), true);
 });
@@ -82,4 +85,36 @@ test('face check library: self-hosted, WebAssembly allowed by the CSP, cached fo
   assert.match(r.headers.get('cache-control'), /immutable/);
   assert.match(r.headers.get('content-security-policy'), /script-src 'self' 'wasm-unsafe-eval'/);
   assert.equal((await fetch(`${t.base}/vendor/mediapipe-1.0.1/blaze_face_short_range.tflite`)).status, 200);
+  // iPhone photos: HEIC decoder (worker from a blob: URL)
+  assert.match(r.headers.get('content-security-policy'), /worker-src 'self' blob:/);
+  assert.equal((await fetch(`${t.base}/vendor/heic-to-1.5.2/heic-to.js`)).status, 200);
+});
+
+test('sign-up email checks: throwaway domains, domains without mail, bot check', async () => {
+  const { checkEmailDomain, receivesMail } = await import('../src/email-check.js');
+  await assert.rejects(checkEmailDomain('a@mailinator.com'), /temporanei/);
+  await assert.rejects(checkEmailDomain('a@inbox.10minutemail.com'), /temporanei/);
+  const resolver = mx => ({ resolveMx: async () => mx, resolve4: async () => { throw Object.assign(new Error(), { code: 'ENOTFOUND' }); } });
+  const nope = { resolveMx: async () => { throw Object.assign(new Error(), { code: 'ENOTFOUND' }); }, resolve4: async () => { throw Object.assign(new Error(), { code: 'ENOTFOUND' }); } };
+  assert.equal(await receivesMail('gmail.test', resolver([{ exchange: 'mx.gmail.test', priority: 5 }])), true);
+  assert.equal(await receivesMail('nomail.test', resolver([{ exchange: '.', priority: 0 }])), false); // null MX
+  assert.equal(await receivesMail('nonesiste.test', nope), false);
+  const broken = { resolveMx: async () => { throw Object.assign(new Error(), { code: 'ESERVFAIL' }); } };
+  assert.equal(await receivesMail('dnsrotto.test', broken), null); // DNS trouble: let it through
+  await assert.rejects(checkEmailDomain('a@nonesiste.test', nope), /non può ricevere email/);
+  await checkEmailDomain('a@dnsrotto.test', broken);
+
+  // Turnstile: on only with both keys; the token is verified with Cloudflare
+  const { verifyTurnstile } = await import('../src/turnstile.js');
+  await verifyTurnstile(undefined, '1.2.3.4'); // off
+  Object.assign(config, { turnstileSiteKey: 'site', turnstileSecret: 'secret' });
+  try {
+    const cf = ok => async (url, opts) => { assert.match(String(url), /siteverify$/); assert.match(opts.body, /secret=secret/); return Response.json({ success: ok }); };
+    await assert.rejects(verifyTurnstile(undefined, '1.2.3.4', cf(true)), /robot/);
+    await assert.rejects(verifyTurnstile('tok', '1.2.3.4', cf(false)), /robot/);
+    await verifyTurnstile('tok', '1.2.3.4', cf(true));
+    assert.equal((await (await fetch(`${t.base}/api/public/launch`)).json()).turnstile, 'site');
+    const code = await fetch(`${t.base}/api/auth/request-code`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-requested-with': 'rientro' }, body: JSON.stringify({ email: 'bot@x.it' }) });
+    assert.equal(code.status, 400);
+  } finally { Object.assign(config, { turnstileSiteKey: '', turnstileSecret: '' }); }
 });

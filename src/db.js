@@ -53,7 +53,7 @@ function migrateUserColumns(db) {
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
-  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER', suggested_photo_url: 'TEXT',
+  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER', suggested_photo_url: 'TEXT', photo_check: 'TEXT',
 };
 export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));

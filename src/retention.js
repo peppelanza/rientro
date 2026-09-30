@@ -7,6 +7,7 @@
 //     feedback after 24 months
 import { config } from './config.js';
 import { subjectRef } from './db.js';
+import { purgeQuarantine } from './moderation.js';
 import { eraseAccount, purgeExpired } from './privacy.js';
 
 const monthsBefore = (date, months) => { const d = new Date(date); d.setMonth(d.getMonth() - months); return d.toISOString(); };
@@ -32,6 +33,8 @@ export function runRetention(db, { at = new Date() } = {}) {
   out.closed_reports = n(db.prepare("DELETE FROM reports WHERE status <> 'open' AND COALESCE(resolved_at, created_at) < ?").run(monthsBefore(at, R.closedReportsMonths)));
   out.admin_log = n(db.prepare('DELETE FROM admin_audit_log WHERE created_at < ?').run(monthsBefore(at, R.adminLogMonths)));
   out.export_log = n(db.prepare('DELETE FROM data_exports WHERE created_at < ?').run(monthsBefore(at, R.exportLogMonths)));
+  // 4. Images stopped as explicit (moderation.js): 30 days in quarantine at most
+  out.quarantine = purgeQuarantine(db, new Date(at.getTime() - 30 * 86_400_000).toISOString());
   out.leaving_feedback = n(db.prepare('DELETE FROM deletion_feedback WHERE created_at < ?').run(monthsBefore(at, R.exportLogMonths).slice(0, 7)));
   return out;
 }

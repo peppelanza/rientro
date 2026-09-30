@@ -425,3 +425,7 @@ body { padding-top: var(--lb, 0px); }
 @keyframes postcard-in { from { opacity: 0; translate: 0 -18px; rotate: 14deg; } }
 @media (prefers-reduced-motion: reduce) { .postcard { animation: none; transition: none; } }
 @media (max-width: 1100px) { .postcard { scale: .8; transform-origin: top right; top: 32px; right: 32px; } }
+
+/* Cloudflare Turnstile (sign-in): shows only when Cloudflare asks for a click */
+.ts-box { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1000; }
+.ts-box:empty { display: none; }

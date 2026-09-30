@@ -8,6 +8,7 @@ const ACTION = {
   'user.approve': 'Ha approvato', 'user.request_changes': 'Ha richiesto modifiche', 'user.reject': 'Ha rifiutato', 'user.suspend': 'Ha sospeso', 'user.unsuspend': 'Ha riattivato',
   'approvals.list': 'Ha aperto la coda approvazioni', 'reports.list': 'Ha consultato le segnalazioni', 'report.dismiss': 'Ha ignorato una segnalazione',
   'report.suspend': 'Ha sospeso da segnalazione', 'report.request_changes': 'Ha richiesto modifiche da segnalazione', 'report.view_chat': 'Ha letto una chat segnalata',
+  'photos.list': 'Ha aperto le foto da controllare', 'blocked.list': 'Ha aperto i contenuti bloccati', 'blocked.view_image': 'Ha visto un\'immagine bloccata', 'blocked.restore': 'Ha riattivato un account bloccato', 'blocked.confirm': 'Ha confermato un blocco', 'photo.ok': 'Ha confermato una foto',
   'analytics.view': 'Ha aperto le analytics', 'export.csv': 'Ha esportato un CSV', 'audit.view': 'Ha aperto il registro accessi',
 };
 

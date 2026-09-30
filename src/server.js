@@ -5,6 +5,9 @@ import zlib from 'node:zlib';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
+import * as moderation from './moderation.js';
+import { checkEmailDomain } from './email-check.js';
+import { turnstileEnabled, verifyTurnstile } from './turnstile.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
@@ -28,8 +31,10 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
+    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
     "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
+    "frame-src https://challenges.cloudflare.com", // Cloudflare Turnstile on sign-in (turnstile.js)
+    "worker-src 'self' blob:", // HEIC photos are decoded in a worker (vendor/heic-to)
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',
@@ -167,12 +172,17 @@ function serveFile(res, file) {
 const gzipped = new Map();
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
-function plainNotFound(res) {
-  reply(res, 404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' }, Buffer.from('404 Not Found'));
-}
-
-function sendNotFound(res) {
-  reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' }, fs.readFileSync(path.join(config.publicDir, '404.html')));
+// Unknown addresses get a real page with status 404 (not the JSON the API uses). city: the text for
+// /accedi?citta=<not a comune>. home: where its links go (the main site, when on the admin host).
+const NOT_FOUND_TEXT = {
+  page: 'L’indirizzo potrebbe essere sbagliato, oppure la pagina è stata spostata.',
+  city: 'Il link potrebbe essere sbagliato, oppure la città indicata non è un comune italiano.',
+};
+function sendNotFound(res, { kind = 'page', home = '/' } = {}) {
+  const html = fs.readFileSync(path.join(config.publicDir, '404.html'), 'utf8')
+    .replace('{{text}}', NOT_FOUND_TEXT[kind])
+    .replaceAll('href="/"', `href="${home}"`);
+  reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' }, Buffer.from(html));
 }
 
 // /accedi?citta=… only for real comuni. Any casing is accepted and redirected to the official
@@ -217,11 +227,11 @@ function streamFile(req, res, f) {
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/stato$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|segnalazioni|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch } = {}) {
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -234,8 +244,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // ---- auth (2a, 5a, 5b)
   route('POST', '/api/auth/request-code', async ({ req }) => {
-    const body = await readJson(req);
+    const { turnstile_token: token, ...body } = await readJson(req);
     limitIp(clientIp(req));
+    await verifyTurnstile(token, clientIp(req), turnstileFetch);
+    // Throwaway addresses and domains that can't receive mail get no code (email-check.js)
+    await emailDomainCheck(auth.normaliseEmail(body.email));
     const { email, code } = auth.requestCode(db, body);
     limitEmail(email);
     await sendLoginCode(email, code);
@@ -305,7 +318,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
   }), pub);
-  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled() }), pub);
+  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled(), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
     if (!t) throw new HttpError(404, 'not_found');
@@ -346,9 +359,16 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/photo', async ({ user, req }) => {
     legal(user);
     const out = attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo'));
-    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    // The browser's check (face.js) never blocks: a photo that didn't pass goes to "Foto da controllare"
+    const check = ['no_face', 'small_face', 'multiple_faces', 'low_res', 'unchecked'].includes(req.headers['x-photo-check']) ? req.headers['x-photo-check'] : null;
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL, photo_check = ? WHERE user_id = ?').run(check, user.id);
     return out;
   });
+  // An image the browser found explicit (nsfw.js): quarantined for the admin, account suspended now
+  route('POST', '/api/me/photo-blocked', async ({ user, req, res }) => {
+    moderation.blockUpload(db, user, await readBody(req, config.maxPhotoBytes * 2), req.headers['x-nsfw-scores']);
+    send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
+  }, { raw: true });
   // The sign-in provider's photo, passed through so the browser can check it for a face (face.js)
   // and upload it as the profile photo. Only from the providers' image hosts; cleared once tried.
   route('GET', '/api/me/suggested-photo', async ({ user, res }) => {
@@ -451,6 +471,15 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/approvals', ({ user }) => admin.approvals(db, user), adm);
+  route('GET', '/api/admin/blocked', ({ user }) => moderation.listBlocked(db, user), adm);
+  route('GET', '/api/admin/blocked/:id/image', ({ user, params, res }) => {
+    const { mime, buf } = moderation.blockedImage(db, user, params.id);
+    res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-store', 'Content-Length': buf.length });
+    res.end(buf);
+  }, { ...adm, raw: true });
+  route('POST', '/api/admin/blocked/:id', async ({ user, params, req }) => moderation.resolveBlocked(db, user, params.id, (await readJson(req)).action), adm);
+  route('GET', '/api/admin/photo-checks', ({ user }) => admin.photoChecks(db, user), adm);
+  route('POST', '/api/admin/photo-checks/:id/ok', ({ user, params }) => admin.photoCheckOk(db, user, params.id), adm);
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
@@ -481,7 +510,12 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         const adminPath = ADMIN_PAGES.some(re => re.test(p)) || p.startsWith('/api/admin/');
         if (onAdminHost) {
           const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
-          if (user?.role !== 'admin' || user.status === 'suspended') return plainNotFound(res);
+          if (user?.role !== 'admin' || user.status === 'suspended') {
+            // The 404 page's own styles and fonts (public anyway); everything else is a 404 that
+            // says nothing about what's here, with its links going to the main site
+            if (/^\/(fonts\/[\w.-]+|dc\/base\.css|app\/app\.css|favicon\.svg)$/.test(p) && serveStatic(res, p)) return;
+            return sendNotFound(res, { home: `${config.baseUrl}/` });
+          }
           if (p === '/') { res.writeHead(302, { Location: '/admin' }); res.end(); return; }
           if (!adminPath && (PUBLIC_PAGES.some(re => re.test(p)) || MEMBER_PAGES.some(re => re.test(p)))) {
             res.writeHead(302, { Location: config.baseUrl + p + url.search }); res.end(); return;
@@ -501,7 +535,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
         if (p === '/accedi') {
           const city = checkCity(url);
-          if (city === 'missing') return sendNotFound(res);
+          if (city === 'missing') return sendNotFound(res, { kind: 'city' });
           if (city !== 'ok') { res.writeHead(302, { Location: city }); res.end(); return; }
         }
         if (PUBLIC_PAGES.some(re => re.test(p))) return appPage('app.html');

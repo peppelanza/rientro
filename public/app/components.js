@@ -127,7 +127,7 @@ def('App Admin Sidebar', String.raw`
     const email = this.props.email || '';
     const items = [
       ['dashboard', 'Dashboard', '/admin', ''], ['utenti', 'Utenti', '/admin/utenti', c.users ? c.users.toLocaleString('it-IT') : ''],
-      ['approvazioni', 'Approvazioni', '/admin/approvazioni', c.approvals ? String(c.approvals) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
+      ['approvazioni', 'Approvazioni', '/admin/approvazioni', c.approvals ? String(c.approvals) : ''], ['foto', 'Foto da controllare', '/admin/foto', c.photos ? String(c.photos) : ''], ['bloccati', 'Contenuti bloccati', '/admin/bloccati', c.blocked ? String(c.blocked) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
       ['analytics', 'Analytics', '/admin/analytics', ''], ['esportazioni', 'Esportazioni', '/admin/esportazioni', ''], ['registro', 'Registro accessi', '/admin/registro', ''],
     ].map(([k, label, href, count]) => ({
       label, href, count, hasCount: !!count, current: k === a ? 'page' : false,

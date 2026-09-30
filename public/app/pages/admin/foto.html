@@ -1,0 +1,17 @@
+<!-- Admin · "Foto da controllare": photos that didn't pass the automatic check (face.js). Built with the design 06 card patterns. -->
+<div class="admin-layout">
+<dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
+<main class="admin-main">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Foto da controllare</h1>
+<span style="font-size:14px;color:#6B6680;line-height:1.5;max-width:720px">Foto profilo che non hanno superato il controllo automatico del volto. Nessuno viene bloccato: l'iscrizione prosegue e la foto si controlla qui. Se va bene, confermala; se no, apri il profilo e chiedi di cambiarla.</span></div>
+<sc-if value="{{ empty }}"><div style="background:#FFFFFF;border-radius:24px;padding:28px;font-size:14px;color:#6B6680">Nessuna foto da controllare.</div></sc-if>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+<sc-for list="{{ rows }}" as="r"><section style="background:#FFFFFF;border-radius:24px;padding:12px;display:flex;flex-direction:column;gap:10px">
+<dc-import name="App Photo" ratio="1/1" radius="16px" src="{{ r.photo_url }}" alt="{{ r.name }}" label="SENZA FOTO"></dc-import>
+<div style="display:flex;flex-direction:column;gap:4px;padding:0 4px"><a href="{{ r.href }}" style="font-size:15px;font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:12px;color:#6B6680;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.email }}</span>
+<span style="font-size:12px;color:#8C84AE">{{ r.status }} · {{ r.when }}</span></div>
+<div style="padding:0 4px"><dc-import name="UI Badge" kind="neutral" label="{{ r.reason }}"></dc-import></div>
+<div style="display:flex;gap:8px;padding:0 4px 4px"><dc-import name="UI Button" label="Va bene" size="sm" variant="primary" on-click="{{ r.ok }}"></dc-import><a href="{{ r.href }}" style="height:36px;padding:0 14px;border-radius:999px;border:1px solid #DCD7EC;display:inline-flex;align-items:center;font-size:13px;color:#1A1726;text-decoration:none">Apri profilo</a></div>
+</section></sc-for>
+</div>
+</main></div>

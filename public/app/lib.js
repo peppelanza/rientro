@@ -18,11 +18,12 @@ export async function api(method, path, body, { raw = false } = {}) {
 }
 
 // Upload with progress (photo, video)
-export function upload(path, file, onProgress) {
+export function upload(path, file, onProgress, headers = {}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', path);
     xhr.setRequestHeader('x-requested-with', 'rientro');
+    for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v);
     xhr.upload.onprogress = e => e.lengthComputable && onProgress?.(e.loaded, e.total);
     xhr.onload = () => {
       let data = null;

@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   birth_year             INTEGER,
   -- Photo of the LinkedIn/Google account, offered as the first profile photo if it shows a face (then cleared)
   suggested_photo_url    TEXT,
+  -- Automatic check of the profile photo that didn't pass (face.js): reviewed by the admin after sign-up
+  photo_check            TEXT,
   age_band               TEXT CHECK (age_band IS NULL OR age_band IN ('18-24', '25-29', '30-34', '35-39', '40-44', '45-50+')),
   bio                    TEXT,
   photo_file_id          TEXT REFERENCES files(id) ON DELETE SET NULL,
@@ -359,3 +361,21 @@ CREATE TRIGGER IF NOT EXISTS preference_events_no_early_delete
 BEFORE DELETE ON preference_events
 WHEN OLD.purge_after IS NULL OR OLD.purge_after > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 BEGIN SELECT RAISE(ABORT, 'preference_events can only be purged after purge_after'); END;
+
+-- ---------------------------------------------------------------------------
+-- Explicit images stopped in the browser (NSFWJS, public/app/nsfw.js). The image is kept in
+-- quarantine only for the admin to check (deleted after 30 days), the account is suspended at once.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS blocked_uploads (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  storage_key   TEXT,                 -- file in UPLOAD_DIR/quarantine, NULL once deleted
+  mime          TEXT,
+  scores        TEXT NOT NULL,        -- NSFWJS probabilities, JSON
+  prev_status   TEXT NOT NULL,        -- account status to restore if it was a mistake
+  created_at    TEXT NOT NULL,
+  resolved_at   TEXT,
+  resolution    TEXT CHECK (resolution IS NULL OR resolution IN ('restored', 'confirmed')),
+  resolved_by   TEXT
+);
+CREATE INDEX IF NOT EXISTS blocked_uploads_open ON blocked_uploads (resolved_at, created_at);
