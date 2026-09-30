@@ -9,7 +9,7 @@ export const PROCESSING_REGISTER = [
     description: 'Creare e gestire l’account: iscrizione, accesso con codice via email o con LinkedIn/Google, sessioni, assistenza.',
     data_categories: 'email, dati ricevuti da LinkedIn/Google (nome, cognome, email, foto), sessioni (hash), user agent',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
-    retention: 'Fino alla cancellazione dell’account; 24 mesi di inattività → avviso, cancellazione dopo 30 giorni; codici 10 minuti; sessioni 30 giorni',
+    retention: 'Fino alla cancellazione dell’account: alla richiesta l’account è nascosto e disconnesso, cancellato definitivamente dopo 30 giorni salvo nuovo accesso; codici 10 minuti; sessioni 30 giorni',
     recipients: 'Render (hosting, UE), Brevo (email, UE); LinkedIn e Google titolari autonomi per il login',
   },
   {
@@ -30,7 +30,7 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'service_email',
-    description: 'Email di servizio: codice di accesso, avvisi di richieste/messaggi/stato del profilo, avviso di inattività, comunicazioni sul servizio.',
+    description: 'Email di servizio: codice di accesso, avvisi di richieste/messaggi/stato del profilo, conferma della richiesta di cancellazione, comunicazioni sul servizio.',
     data_categories: 'email, dati del singolo avviso',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b); notifiche configurabili dalle impostazioni',
     retention: 'Non conservate oltre l’invio (registri di invio presso Brevo secondo le sue policy)',

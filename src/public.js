@@ -39,7 +39,7 @@ export function territory(db, raw) {
   if (!isRegion && !isCity) return null;
   const cities = isRegion ? COMUNI.filter(c => c[2] === place).map(c => c[0]) : [place];
   const rows = db.prepare(
-    `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1`,
+    `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
   ).all().map(p => ({ ...p, desired: JSON.parse(p.desired_comuni), sectors: JSON.parse(p.sectors) }));
   const wants = rows.filter(p => p.desired.some(c => cities.includes(c)));
   const livesThere = rows.filter(p => p.lives_in === 'italy' && cities.includes(p.lives_in_city));

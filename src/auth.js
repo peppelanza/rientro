@@ -58,8 +58,12 @@ export function verifyCode(db, body, userAgent) {
       // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
       acknowledge(db, user.id);
     }
-    // Signing in is activity: it also cancels a pending inactivity deletion (retention.js)
-    if (!isNew) db.prepare('UPDATE users SET last_seen_at = ?, inactivity_notice_at = NULL WHERE id = ?').run(now(), user.id);
+    // Signing in within 30 days of a deletion request cancels it: the account comes back as it was
+    const restored = !isNew && !!user.deletion_requested_at;
+    if (restored) {
+      db.prepare('UPDATE users SET deletion_requested_at = NULL, deletion_reason = NULL WHERE id = ?').run(user.id);
+      user = { ...user, deletion_requested_at: null, deletion_reason: null };
+    }
     if (row.marketing_opt_in) {
       db.prepare(
         `INSERT INTO communication_preferences (user_id, marketing_email, updated_at) VALUES (?, 1, ?)
@@ -74,7 +78,7 @@ export function verifyCode(db, body, userAgent) {
     db.prepare(
       'INSERT INTO sessions (token_hash, user_id, created_at, last_used_at, expires_at, user_agent) VALUES (?, ?, ?, ?, ?, ?)',
     ).run(sha256(sessionToken), user.id, now(), now(), inMinutes(config.sessionTtlDays * 1440), (userAgent || '').slice(0, 200));
-    return { sessionToken, user, isNew };
+    return { sessionToken, user, isNew, restored };
   });
 }
 
@@ -87,7 +91,7 @@ export function userForSession(db, rawToken) {
   if (user) {
     const ts = now();
     db.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').run(ts, hash);
-    db.prepare('UPDATE users SET last_seen_at = ?, inactivity_notice_at = NULL WHERE id = ?').run(ts, user.id);
+    db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(ts, user.id);
   }
   return user ?? null;
 }

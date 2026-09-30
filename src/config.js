@@ -30,8 +30,7 @@ export const config = {
   ledgerRetentionMonthsAfterDeletion: 36,
   // Retention (privacy policy §9), applied daily by src/retention.js.
   retention: {
-    inactiveMonths: 24,       // no sign-in for this long → email warning
-    inactiveGraceDays: 30,    // still no sign-in this long after the warning → account deleted
+    deletionGraceDays: 30,    // a member's own deletion request: recoverable by signing in for this long
     closedReportsMonths: 24,  // resolved/dismissed reports
     adminLogMonths: 24,       // admin access log
     exportLogMonths: 24,      // record of data-export requests, anonymous leaving feedback

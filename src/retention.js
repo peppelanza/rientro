@@ -1,8 +1,8 @@
 // Retention rules from the privacy policy (§9), applied once a day by the server (see server.js).
 // Each rule really deletes rows; tests in test/retention.test.js cover every one of them.
+//   · accounts whose owner asked to delete them 30 or more days ago and hasn't signed in since
+//     (signing in cancels the request: auth.verifyCode)
 //   · expired sign-in codes and sessions; consent proof 36 months after account deletion
-//   · accounts with no sign-in for 24 months: warning email, then deletion 30 days later if the
-//     person still hasn't signed in (never without a warning: no email provider, no deletion)
 //   · resolved/dismissed reports, admin access log, data-export records and anonymous leaving
 //     feedback after 24 months
 import { config } from './config.js';
@@ -11,44 +11,22 @@ import { eraseAccount, purgeExpired } from './privacy.js';
 
 const monthsBefore = (date, months) => { const d = new Date(date); d.setMonth(d.getMonth() - months); return d.toISOString(); };
 
-export async function runRetention(db, { sendInactivityNotice = null, at = new Date() } = {}) {
+export function runRetention(db, { at = new Date() } = {}) {
   const R = config.retention;
   const n = r => Number(r.changes);
-  const out = purgeExpired(db);
 
-  // 1. Warn members inactive for 24 months (admins are never removed this way)
-  out.inactivity_notices = 0;
-  if (sendInactivityNotice) {
-    const deleteOn = new Date(at.getTime() + R.inactiveGraceDays * 86_400_000);
-    const cutoff = monthsBefore(at, R.inactiveMonths);
-    // No warning pending, or a stale one from before a later sign-in
-    const due = db.prepare(`SELECT id, email FROM users WHERE role = 'member'
-      AND (inactivity_notice_at IS NULL OR inactivity_notice_at < COALESCE(last_seen_at, created_at))
-      AND COALESCE(last_seen_at, created_at) < ?`).all(cutoff);
-    for (const u of due) {
-      try {
-        await sendInactivityNotice(u.email, deleteOn);
-        // Only if they are still inactive: they may have signed in while the email was being sent
-        db.prepare('UPDATE users SET inactivity_notice_at = ? WHERE id = ? AND COALESCE(last_seen_at, created_at) < ?').run(at.toISOString(), u.id, cutoff);
-        out.inactivity_notices++;
-      } catch (err) { console.error('[retention] inactivity notice failed', err?.message ?? err); }
-    }
+  // 1. Deletion requests past their 30 days: erase for good, and note it (pseudonymously) in the admin log
+  const due = new Date(at.getTime() - R.deletionGraceDays * 86_400_000).toISOString();
+  const log = db.prepare("INSERT INTO admin_audit_log (admin_id, action, target_ref, details, created_at) VALUES ('system', 'retention.account_erased', ?, ?, ?)");
+  let erased = 0;
+  for (const u of db.prepare('SELECT * FROM users WHERE deletion_requested_at IS NOT NULL AND deletion_requested_at <= ?').all(due)) {
+    eraseAccount(db, u, u.deletion_reason);
+    log.run(subjectRef(u.id).slice(0, 12), JSON.stringify({ requested_at: u.deletion_requested_at }), new Date().toISOString());
+    erased++;
   }
 
-  // 2. Delete accounts warned at least 30 days ago with no sign-in since (signing in clears the warning)
-  const warnedBefore = new Date(at.getTime() - R.inactiveGraceDays * 86_400_000).toISOString();
-  const expired = db.prepare(`SELECT * FROM users WHERE role = 'member' AND inactivity_notice_at IS NOT NULL
-    AND inactivity_notice_at <= ? AND COALESCE(last_seen_at, created_at) < inactivity_notice_at`).all(warnedBefore);
-  const log = db.prepare("INSERT INTO admin_audit_log (admin_id, action, target_ref, details, created_at) VALUES ('system', 'retention.inactive_account_deleted', ?, ?, ?)");
-  out.inactive_accounts_deleted = 0;
-  for (const u of expired) {
-    // Re-read inside the loop: skip anyone who signed in since the query above
-    const still = db.prepare('SELECT * FROM users WHERE id = ? AND inactivity_notice_at IS NOT NULL').get(u.id);
-    if (!still) continue;
-    eraseAccount(db, still);
-    out.inactive_accounts_deleted++;
-    log.run(subjectRef(u.id).slice(0, 12), JSON.stringify({ warned_at: u.inactivity_notice_at, last_seen_at: u.last_seen_at ?? u.created_at }), new Date().toISOString());
-  }
+  // 2. Expired codes and sessions, consent proof past its date (after step 1, which sets those dates)
+  const out = { accounts_erased: erased, ...purgeExpired(db) };
 
   // 3. Records kept for 24 months
   out.closed_reports = n(db.prepare("DELETE FROM reports WHERE status <> 'open' AND COALESCE(resolved_at, created_at) < ?").run(monthsBefore(at, R.closedReportsMonths)));

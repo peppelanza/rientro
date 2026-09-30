@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TEXT NOT NULL,
   updated_at    TEXT NOT NULL,
   last_seen_at  TEXT,
-  -- set when the 24-month inactivity warning is emailed; cleared on the next sign-in
-  inactivity_notice_at TEXT
+  -- Own deletion request: the account is hidden at once and erased 30 days later unless the
+  -- member signs in again (privacy policy §9). The optional reason is kept until then.
+  deletion_requested_at TEXT,
+  deletion_reason       TEXT
 );
 
 -- 6-digit sign-in codes (design 5a/5b). Only a salted hash of the code is stored.

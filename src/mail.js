@@ -26,14 +26,14 @@ export function sendLoginCodeEmail(email, code) {
   }).catch(() => { throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.'); });
 }
 
-// Privacy policy §9: 24 months without signing in → this warning; 30 days later the account is deleted.
-export function sendInactivityEmail(email, deleteOn) {
-  const date = deleteOn.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' });
+// Sent when a member asks to delete their account (privacy policy §9): how to change their mind.
+export function sendDeletionScheduledEmail(email, eraseOn) {
+  const date = new Date(eraseOn).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' });
   const url = `${config.baseUrl}/accedi`;
   return sendEmail({
     to: email,
-    subject: 'Il tuo account Rientro sta per essere eliminato',
-    text: `Ciao,\n\nnon accedi a Rientro da due anni. Come indicato nella nostra privacy policy, il ${date} elimineremo il tuo account e tutti i dati collegati (profilo, foto, video, connessioni e messaggi).\n\nSe vuoi tenerlo, ti basta accedere prima di quella data: ${url}\n\nSe invece non ti serve più, non devi fare nulla.\n\nIl team di Rientro`,
-    html: `<p>Ciao,</p><p>non accedi a Rientro da due anni. Come indicato nella nostra <a href="${config.baseUrl}/legal/privacy">privacy policy</a>, il <strong>${date}</strong> elimineremo il tuo account e tutti i dati collegati (profilo, foto, video, connessioni e messaggi).</p><p>Se vuoi tenerlo, ti basta <a href="${url}">accedere</a> prima di quella data.</p><p>Se invece non ti serve più, non devi fare nulla.</p><p>Il team di Rientro</p>`,
+    subject: 'Abbiamo ricevuto la richiesta di eliminare il tuo account',
+    text: `Ciao,\n\nabbiamo ricevuto la tua richiesta di eliminare l'account Rientro. Da ora il tuo profilo non è più visibile a nessuno.\n\nIl ${date} cancelleremo definitivamente l'account e tutti i dati collegati (profilo, foto, video, connessioni e messaggi).\n\nSe hai cambiato idea, ti basta accedere prima di quella data e ritroverai tutto com'era: ${url}\n\nIl team di Rientro`,
+    html: `<p>Ciao,</p><p>abbiamo ricevuto la tua richiesta di eliminare l'account Rientro. Da ora il tuo profilo non è più visibile a nessuno.</p><p>Il <strong>${date}</strong> cancelleremo definitivamente l'account e tutti i dati collegati (profilo, foto, video, connessioni e messaggi).</p><p>Se hai cambiato idea, ti basta <a href="${url}">accedere</a> prima di quella data e ritroverai tutto com'era.</p><p>Il team di Rientro</p>`,
   });
 }

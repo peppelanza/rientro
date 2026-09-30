@@ -41,15 +41,23 @@ export function exportData(db, user) {
   };
 }
 
-// Design 41a/41b: two steps, "Scrivi ELIMINA per confermare", optional reason.
+// Design 41a/41b: two steps, "Scrivi ELIMINA per confermare", optional reason. The account is
+// hidden from everyone and signed out at once; retention.js erases it 30 days later unless the
+// member signs in again before then (auth.verifyCode restores it).
 export function deleteAccount(db, user, body) {
   only(body, ['confirm', 'reason']);
   if (body.confirm !== 'ELIMINA') throw new HttpError(400, 'confirm_required', 'Scrivi ELIMINA per confermare.');
-  return eraseAccount(db, user, text(body.reason, 'Motivo', { max: 200 }) ?? null);
+  const reason = text(body.reason, 'Motivo', { max: 200 }) ?? null;
+  const at = now();
+  tx(db, () => {
+    db.prepare('UPDATE users SET deletion_requested_at = ?, deletion_reason = ? WHERE id = ?').run(at, reason, user.id);
+    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+  });
+  const erase_on = new Date(Date.parse(at) + config.retention.deletionGraceDays * 86_400_000).toISOString();
+  return { deleted: true, erase_on };
 }
 
-// Deletes an account and everything tied to it. Used by the member's own request and by the
-// inactivity rule in retention.js.
+// Erases an account and everything tied to it, for good (retention.js, 30 days after the request).
 export function eraseAccount(db, user, reason = null) {
   const purgeAfter = new Date();
   purgeAfter.setMonth(purgeAfter.getMonth() + config.ledgerRetentionMonthsAfterDeletion);

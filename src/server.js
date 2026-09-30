@@ -12,7 +12,7 @@ import { openDb } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
-import { canSendEmail, sendInactivityEmail, sendLoginCodeEmail } from './mail.js';
+import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail } from './mail.js';
 import { runRetention } from './retention.js';
 import * as profiles from './profiles.js';
 import { territory } from './public.js';
@@ -214,13 +214,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/auth/verify-code', async ({ req, res }) => {
     const body = await readJson(req);
     limitVerify(`v:${clientIp(req)}`);
-    const { sessionToken, user } = auth.verifyCode(db, body, req.headers['user-agent']);
+    const { sessionToken, user, restored } = auth.verifyCode(db, body, req.headers['user-agent']);
     if (user.status === 'suspended') {
       auth.logout(db, sessionToken);
       throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
     }
     const next = user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato';
-    send(res, 200, { ok: true, next }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
+    send(res, 200, { ok: true, next, restored }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
   }, { ...pub, raw: true });
 
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
@@ -302,7 +302,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     send(res, 200, exportData(db, user), { 'Content-Disposition': 'attachment; filename="rientro-i-miei-dati.json"' });
   }, { raw: true, allowSuspended: true });
   route('DELETE', '/api/me', async ({ user, req, res }) => {
-    send(res, 200, deleteAccount(db, user, await readJson(req)), { 'Set-Cookie': sessionCookie('', 0) });
+    const out = deleteAccount(db, user, await readJson(req));
+    // The confirmation email (how to change one's mind) must not hold up or undo the request
+    if (canSendEmail()) sendDeletionScheduledEmail(user.email, out.erase_on).catch(err => console.error('[email] deletion notice', err?.message ?? err));
+    send(res, 200, out, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true, allowSuspended: true });
 
   // ---- members
@@ -445,8 +448,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   sweepVideoConversions(db);
   setInterval(() => sweepVideoConversions(db), 10 * 60_000).unref();
   // Retention rules of the privacy policy: at start and then once a day
-  const retain = () => runRetention(db, { sendInactivityNotice: canSendEmail() ? sendInactivityEmail : null })
-    .then(r => console.log('[retention]', JSON.stringify(r))).catch(err => console.error('[retention]', err));
+  const retain = () => {
+    try { console.log('[retention]', JSON.stringify(runRetention(db))); } catch (err) { console.error('[retention]', err); }
+  };
   retain();
   setInterval(retain, 24 * 3600_000).unref();
 }

@@ -165,3 +165,12 @@ export function download(filename, blob) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// A message to show once on the next page (after a redirect), e.g. "account ripristinato".
+const FLASH = 'rientro-flash';
+export function flash(message) { try { sessionStorage.setItem(FLASH, message); } catch {} }
+export function showFlash() {
+  let m = null;
+  try { m = sessionStorage.getItem(FLASH); sessionStorage.removeItem(FLASH); } catch {}
+  if (m) toast(m, { ms: 7000 });
+}
