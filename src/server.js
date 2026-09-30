@@ -321,7 +321,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/legal', async ({ user, req }) => auth.acknowledgeLegal(db, user.id, await readJson(req)));
 
   // Updated Terms/Privacy must be acknowledged before changing the profile, except during onboarding:
-  // there they are confirmed when the profile is sent for review (/api/me/submit below).
+  // updated documents are asked for once the profile has been sent (the prompt on the member pages).
   const legal = user => { if (user.status !== 'onboarding') auth.requireLegal(db, user.id); };
   route('PATCH', '/api/me/profile', async ({ user, req }) => { legal(user); return profiles.updateProfile(db, user, await readJson(req)); });
   route('POST', '/api/me/education', async ({ user, req }) => { legal(user); return profiles.saveEducation(db, user.id, await readJson(req)); });
@@ -338,7 +338,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user }) => { auth.requireLegal(db, user.id); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
+  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
     legal(user);

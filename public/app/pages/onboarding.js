@@ -52,7 +52,7 @@ export default class extends Page {
     const want = new URLSearchParams(location.search).get('passo');
     const known = [...STEPS.map(s => s[0]), 'anteprima'];
     Object.assign(this.state, {
-      me, cat, p, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
+      me, cat, p, savedAt: null, sectorQuery: '',
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
       edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
@@ -208,8 +208,6 @@ export default class extends Page {
   })();
 
   submit = this.act(async () => {
-    // Sending the profile is also where updated Terms/Privacy are confirmed (see the line above the button)
-    if (!this.state.legalOk) { await api('POST', '/api/me/legal', { accept: true }); this.state.legalOk = true; }
     const me = await api('POST', '/api/me/submit');
     setMe(me);
     go('/stato');
@@ -274,7 +272,6 @@ export default class extends Page {
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
-      needsLegal: !s.legalOk,
       start: () => this.goTo(steps[0][0]),
 
       // 7a
