@@ -5,7 +5,7 @@ import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { HttpError, bad, bool, oneOf, only, text } from './validate.js';
 
-// Discovery and connecting open on launch day (design 01 pre-lancio); admins can always use them.
+// Discovery and connecting open on launch day (design 01 pre-lancio); admins can preview them before.
 export function requireLaunched(user) {
   if (!isLaunched() && user.role !== 'admin') {
     throw new HttpError(403, 'not_launched', 'Scoprire persone e connettersi sarà possibile dal 1° gennaio 2027.');
@@ -13,7 +13,7 @@ export function requireLaunched(user) {
 }
 
 function requireApproved(user) {
-  if (user.status !== 'approved' && user.role !== 'admin') {
+  if (user.status !== 'approved') {
     throw new HttpError(403, 'not_approved', 'Potrai connetterti quando il tuo profilo sarà approvato.');
   }
 }

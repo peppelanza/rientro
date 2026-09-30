@@ -46,7 +46,6 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 export default class extends Page {
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
-    if (me.user.role === 'admin') return go('/admin');
     if (me.user.status === 'approved') return go('/profilo');
     if (me.user.status === 'in_review' || me.user.status === 'rejected') return go('/stato');
     const p = structuredClone(me.profile);

@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
-import { config, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
+import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb, tx } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
@@ -20,7 +20,10 @@ import { territory } from './public.js';
 import * as social from './social.js';
 import { HttpError } from './validate.js';
 
-const SESSION_COOKIE = config.production ? '__Host-rientro_session' : 'rientro_session';
+// A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
+// still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
+const SESSION_COOKIE = config.production ? '__Secure-rientro_session' : 'rientro_session';
+const LEGACY_SESSION_COOKIE = '__Host-rientro_session';
 const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
@@ -85,10 +88,13 @@ function cookie(name, value, maxAgeSeconds, { path = '/', httpOnly = true } = {}
   return [`${name}=${value}`, `Path=${path}`, ...(httpOnly ? ['HttpOnly'] : []), 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
 }
 const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : null);
-const homeFor = user => (user.role === 'admin' ? '/admin' : user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato');
+// Admins are members too: the portal treats them like everyone else (the panel is on its own host)
+const homeFor = user => (user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato');
 
 function sessionCookie(value, maxAgeSeconds) {
-  return [`${SESSION_COOKIE}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
+  const domain = cookieDomain();
+  const main = [`${SESSION_COOKIE}=${value}`, 'Path=/', ...(domain ? [`Domain=${domain}`] : []), 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
+  return config.production ? [main, `${LEGACY_SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`] : [main];
 }
 
 function readBody(req, limit) {
@@ -150,6 +156,10 @@ function serveFile(res, file) {
 }
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
+function plainNotFound(res) {
+  reply(res, 404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' }, Buffer.from('404 Not Found'));
+}
+
 function sendNotFound(res) {
   reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' }, fs.readFileSync(path.join(config.publicDir, '404.html')));
 }
@@ -260,7 +270,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       return out;
     });
     if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
-    const set = [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
+    const set = [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), ...sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
     if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
     res.writeHead(302, { Location: safeNext(state.next) ?? homeFor(user), 'Set-Cookie': set });
     res.end();
@@ -300,6 +310,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     job_seeking_notice: { text: JOB_SEEKING_NOTICE_TEXT, version: LEGAL_VERSIONS.job_seeking_notice },
     counts: social.badgeCounts(db, user),
     launched: isLaunched(),
+    ...(user.role === 'admin' ? { admin_url: adminUrl(), site_url: `${config.baseUrl}/` } : {}),
   });
   route('GET', '/api/me', ({ user }) => me(user));
   // Public pages ask who's signed in without triggering a 401.
@@ -356,13 +367,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // ---- members
   route('GET', '/api/profiles', ({ user, url }) => {
     social.requireLaunched(user);
-    if (user.status !== 'approved' && user.role !== 'admin') throw new HttpError(403, 'not_approved', 'Potrai scoprire altre persone quando il tuo profilo sarà approvato.');
+    if (user.status !== 'approved') throw new HttpError(403, 'not_approved', 'Potrai scoprire altre persone quando il tuo profilo sarà approvato.');
     return profiles.discover(db, user, profiles.parseDiscoverQuery(url.searchParams));
   });
   route('GET', '/api/profiles/:id', ({ user, params }) => {
     if (user.id !== params.id) {
       social.requireLaunched(user);
-      if (user.status !== 'approved' && user.role !== 'admin') throw new HttpError(403, 'not_approved');
+      if (user.status !== 'approved') throw new HttpError(403, 'not_approved');
     }
     return profiles.publicProfile(db, user, params.id);
   });
@@ -420,10 +431,29 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
     const url = new URL(req.url, config.baseUrl);
     const cookies = parseCookies(req.headers.cookie);
+    cookies[SESSION_COOKIE] ??= cookies[LEGACY_SESSION_COOKIE];
     const p = url.pathname;
     try {
       // Health check for the host (no data, never behind the preview password)
       if (p === '/healthz') { send(res, 200, { ok: true }); return; }
+      // Separate admin host: a plain 404 for everyone but a signed-in admin, who finds only the panel
+      // (and the files and APIs it needs) there; the member pages send them back to the main site.
+      // On the main site the panel doesn't exist.
+      if (config.adminHost) {
+        const onAdminHost = (req.headers.host || '').toLowerCase().replace(/:\d+$/, '') === config.adminHost;
+        const adminPath = ADMIN_PAGES.some(re => re.test(p)) || p.startsWith('/api/admin/');
+        if (onAdminHost) {
+          const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
+          if (user?.role !== 'admin' || user.status === 'suspended') return plainNotFound(res);
+          if (p === '/') { res.writeHead(302, { Location: '/admin' }); res.end(); return; }
+          if (!adminPath && (PUBLIC_PAGES.some(re => re.test(p)) || MEMBER_PAGES.some(re => re.test(p)))) {
+            res.writeHead(302, { Location: config.baseUrl + p + url.search }); res.end(); return;
+          }
+        } else if (adminPath) {
+          if (p.startsWith('/api/')) throw new HttpError(404, 'not_found');
+          return sendNotFound(res);
+        }
+      }
       if (config.previewPassword && !openDuringPreview(p) && !previewAllowed(req)) {
         res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Rientro anteprima", charset="UTF-8"', 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end('Anteprima riservata. Chiedi la password al team Rientro.');

@@ -36,7 +36,6 @@ export default class extends Page {
 
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
-    if (me.user.role === 'admin') return go('/admin');
     if (me.user.status === 'onboarding') return go('/onboarding');
     const want = qs().get('sezione') || location.hash.slice(1);
     Object.assign(this.state, {

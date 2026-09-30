@@ -21,7 +21,7 @@ const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', '
 export default class extends Page {
   async load() {
     const me = await getMe();
-    if (me.user.role !== 'admin' && (me.user.status !== 'approved' || !me.launched)) return go('/stato');
+    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go('/stato');
     Object.assign(this.state, { me, query: '', draft: '', menuOpen: false });
     this.state.threads = await api('GET', '/api/threads');
     const id = this.props.params.id;

@@ -10,7 +10,7 @@ const ini = n => n.split(' ').map(w => w[0]).join('').slice(0, 2);
 export default class extends Page {
   async load() {
     const me = await getMe();
-    if (me.user.role !== 'admin' && (me.user.status !== 'approved' || !me.launched)) return go('/stato');
+    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go('/stato');
     this.state.me = me;
     this.state.tab = ['ricevute', 'inviate'].includes(qs().get('tab')) ? qs().get('tab') : 'connessioni';
     this.state.data = await api('GET', '/api/connections');
