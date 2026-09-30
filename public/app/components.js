@@ -145,6 +145,8 @@ def('App Onboarding Bar', String.raw`
 <div style="border-radius:999px;background:{{ bg }};border:{{ bd }};padding:12px 24px 12px 26px;display:flex;flex-direction:column;gap:10px">
 <div style="display:flex;align-items:center;gap:18px">
 <a href="/" aria-label="Rientro" style="text-decoration:none"><dc-import name="UI Logo" size="24" tone="{{ tone }}"></dc-import></a>
+<div style="flex:1"></div>
+<button type="button" onClick="{{ logout }}" style="height:32px;padding:0 14px;border:1px solid {{ exitBorder }};border-radius:999px;background:transparent;color:{{ exitColor }};font:500 13px 'Geist',sans-serif;cursor:pointer">Esci</button>
 </div>
 <div role="progressbar" aria-valuemin="1" aria-valuemax="{{ total }}" aria-valuenow="{{ step }}" aria-valuetext="{{ label }}" aria-label="Avanzamento" style="display:grid;grid-template-columns:repeat({{ total }},1fr);gap:4px">
 <sc-for list="{{ segs }}" as="s"><div style="height:5px;border-radius:3px;background:{{ s.c }}"></div></sc-for>
@@ -158,6 +160,9 @@ def('App Onboarding Bar', String.raw`
       segs, step, total, label: `${step} di ${total}`,
       bg: dark ? '#2A2638' : 'rgba(255,255,255,.72)', bd: dark ? '1px solid #3A3550' : '1px solid #FFFFFF',
       tone: dark ? 'light' : 'dark',
+      // Leave onboarding (progress is saved at every step) and sign out
+      exitBorder: dark ? '#3A3550' : '#DCD7EC', exitColor: dark ? '#C9C0F0' : '#6B6680',
+      logout: async () => { await fetch('/api/auth/logout', { method: 'POST', headers: { 'x-requested-with': 'rientro' } }); location.href = '/'; },
     };
   }
 });
