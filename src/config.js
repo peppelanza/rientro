@@ -54,7 +54,7 @@ export const config = {
 // on every preference_events row so we can prove what the user saw.
 export const LEGAL_VERSIONS = {
   privacy: '2026-09-30',
-  terms: '2026-09-draft-1',
+  terms: '2026-09-30',
   cookies: '2026-09-30',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',

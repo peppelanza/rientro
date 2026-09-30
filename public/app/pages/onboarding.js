@@ -83,7 +83,7 @@ export default class extends Page {
     if (e.target.closest?.('textarea, button, a, select, [role=button], [role=radio], [role=checkbox], [role=option], [role=dialog]')) return;
     const s = this.state;
     if (!s.ready || s.edu || s.exp) return;
-    if (s.step === 'benvenuto') { if (s.legalOk) { e.preventDefault(); this.goTo(this.steps[0][0]); } return; }
+    if (s.step === 'benvenuto') { e.preventDefault(); this.goTo(this.steps[0][0]); return; }
     if (!this.steps.some(([k]) => k === s.step)) return;
     e.preventDefault();
     this.next();
@@ -206,15 +206,13 @@ export default class extends Page {
   })();
 
   submit = this.act(async () => {
+    // Sending the profile is also where updated Terms/Privacy are confirmed (see the line above the button)
+    if (!this.state.legalOk) { await api('POST', '/api/me/legal', { accept: true }); this.state.legalOk = true; }
     const me = await api('POST', '/api/me/submit');
     setMe(me);
     go('/stato');
   });
 
-  acceptLegal = this.act(async () => {
-    await api('POST', '/api/me/legal', { accept: true });
-    this.state.legalOk = true;
-  });
 
   renderVals() {
     const s = this.state;
@@ -274,8 +272,8 @@ export default class extends Page {
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
-      needsLegal: !s.legalOk, acceptLegal: this.acceptLegal,
-      start: () => { if (s.legalOk) this.goTo(steps[0][0]); },
+      needsLegal: !s.legalOk,
+      start: () => this.goTo(steps[0][0]),
 
       // 7a
       // Choosing where you live moves straight on to the country/city step

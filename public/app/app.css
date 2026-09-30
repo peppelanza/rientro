@@ -409,3 +409,10 @@ body { padding-top: var(--lb, 0px); }
 .legal-card-grid { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; font-size: 13.5px; color: #4A4560; }
 .legal-card-k { color: #8C84AE; }
 @media (max-width: 720px) { .legal-card-grid { grid-template-columns: 1fr; gap: 2px; } .legal-card-k { margin-top: 6px; } }
+
+/* One-time dialog after Terms/Privacy are updated (main.js) */
+.legal-update { width: min(460px, calc(100vw - 32px)); box-sizing: border-box; background: #FFFFFF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px; font-family: 'Geist', sans-serif; color: #1A1726; }
+.legal-update h2 { margin: 0; font: 600 22px/1.2 'Unbounded', sans-serif; letter-spacing: -.04em; }
+.legal-update p { margin: 0; font-size: 15px; line-height: 1.55; color: #4A4560; }
+.legal-update a { color: #1A1726; }
+.legal-update-err { color: #B42318 !important; font-size: 14px !important; }

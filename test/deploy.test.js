@@ -57,3 +57,21 @@ test('sign-in page accepts only real comuni in ?citta=; unknown addresses are an
   }
   assert.equal((await get('/api/non-esiste')).headers.get('content-type').includes('json'), true);
 });
+
+test('updated Terms/Privacy: onboarding continues and confirms on submit; approved members are asked first', async () => {
+  const stale = id => t.app.db.prepare("UPDATE legal_acknowledgements SET version = 'old' WHERE user_id = ?").run(id);
+  // Still onboarding: can keep filling in the profile; sending it needs the confirmation
+  const o = await t.member('onboarding-legal@x.it');
+  stale(o.id);
+  assert.equal((await o.patch('/api/me/profile', { bio: 'Ciao' })).status, 200);
+  assert.equal((await o.post('/api/me/submit')).status, 409);
+  assert.equal((await o.post('/api/me/legal', { accept: true })).status, 200);
+  assert.equal((await o.post('/api/me/submit')).status, 200);
+  // Approved member: profile changes wait for the confirmation
+  const a = await t.approved('approvato-legal@x.it');
+  stale(a.id);
+  assert.equal((await a.get('/api/me')).body.legal.needs.length, 2);
+  assert.equal((await a.patch('/api/me/profile', { bio: 'Ciao' })).status, 409);
+  await a.post('/api/me/legal', { accept: true });
+  assert.equal((await a.patch('/api/me/profile', { bio: 'Ciao' })).status, 200);
+});
