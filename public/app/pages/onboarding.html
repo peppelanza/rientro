@@ -93,7 +93,7 @@
 <sc-if value="{{ is_presentati }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:20px">
 <h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Presentati</h2>
 <div class="r-grid-1" style="display:grid;grid-template-columns:160px 1fr;gap:28px">
-<label style="display:flex;flex-direction:column;gap:10px;align-items:center;cursor:pointer"><input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" onChange="{{ pickPhoto }}" aria-label="Carica foto profilo">
+<label style="display:flex;flex-direction:column;gap:10px;align-items:center;cursor:pointer"><input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" onChange="{{ pickPhoto }}" aria-label="Carica foto profilo">
 <div style="position:relative;width:148px;height:148px;border-radius:50%;border:{{ photoBorder }};box-sizing:border-box;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:13px;overflow:hidden">
 <sc-if value="{{ photo }}"><img class="media-fill" src="{{ photo }}" alt="La tua foto"></sc-if>
 <sc-if value="{{ noPhoto }}"><span style="font-size:22px;color:#6C4DF5">+</span><span style="font-weight:600">Carica foto</span></sc-if>

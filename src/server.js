@@ -30,6 +30,7 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
     "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
+    "worker-src 'self' blob:", // HEIC photos are decoded in a worker (vendor/heic-to)
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',

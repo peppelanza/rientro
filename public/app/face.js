@@ -17,6 +17,15 @@ function load() {
   return detector;
 }
 
+const HEIC = '/vendor/heic-to-1.5.2/heic-to.js';
+// By type or name when the system says so, else by the file's first bytes ("ftyp" + a HEIF brand)
+async function isHeicFile(file) {
+  if (/^image\/hei[cf]/.test(file.type) || /\.hei[cf]$/i.test(file.name || '')) return true;
+  const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const text = String.fromCharCode(...head.slice(4, 12));
+  return text.startsWith('ftyp') && /^(heic|heix|hevc|hevx|mif1|msf1)$/.test(text.slice(4));
+}
+
 // Start loading early (e.g. when the photo step opens), so the check is quick
 export const warmUpFaceCheck = () => { load().catch(() => {}); };
 
@@ -25,6 +34,16 @@ export const warmUpFaceCheck = () => { load().catch(() => {}); };
 // member. If the detector can't run the original goes through as it is, unless strict (the sign-in
 // provider's photo, never used unchecked).
 export async function preparePhoto(file, { strict = false } = {}) {
+  // iPhone photos (HEIC) become JPEG first; most browsers can't read them
+  if (await isHeicFile(file)) {
+    try {
+      const { heicTo } = await import(HEIC);
+      file = new File([await heicTo({ blob: file, type: 'image/jpeg', quality: 0.92 })], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch (err) {
+      console.warn('[face] HEIC conversion failed:', err);
+      return { problem: 'Non riusciamo ad aprire questa foto. Salvala come JPG e riprova.' };
+    }
+  }
   let d, bitmap;
   try {
     d = await load();

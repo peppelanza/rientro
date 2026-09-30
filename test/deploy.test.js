@@ -82,4 +82,7 @@ test('face check library: self-hosted, WebAssembly allowed by the CSP, cached fo
   assert.match(r.headers.get('cache-control'), /immutable/);
   assert.match(r.headers.get('content-security-policy'), /script-src 'self' 'wasm-unsafe-eval'/);
   assert.equal((await fetch(`${t.base}/vendor/mediapipe-1.0.1/blaze_face_short_range.tflite`)).status, 200);
+  // iPhone photos: HEIC decoder (worker from a blob: URL)
+  assert.match(r.headers.get('content-security-policy'), /worker-src 'self' blob:/);
+  assert.equal((await fetch(`${t.base}/vendor/heic-to-1.5.2/heic-to.js`)).status, 200);
 });
