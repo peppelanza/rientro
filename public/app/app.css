@@ -378,3 +378,12 @@ body { padding-top: var(--lb, 0px); }
 .nf-title em { font: italic 400 1.15em 'Instrument Serif', serif; letter-spacing: -.03em; color: #6C4DF5; }
 .nf-text { margin: 0; max-width: 520px; font-size: 18px; line-height: 1.5; color: #4A4560; }
 .nf-button { margin-top: 8px; height: 52px; padding: 0 26px; display: inline-flex; align-items: center; border-radius: 999px; background: #6C4DF5; color: #FFFFFF; font-size: 16px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 20px rgba(108,77,245,.28); }
+
+/* Sign-in with LinkedIn / Google: the providers' own colours and logos */
+.sso-rec { display: flex; flex-direction: column; gap: 10px; }
+.sso-btn { width: 100%; height: 52px; padding: 0 22px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 12px; font: 500 16px 'Geist', sans-serif; white-space: nowrap; cursor: pointer; transition: background .15s, box-shadow .15s; }
+.sso-icon { width: 20px; height: 20px; flex: none; }
+.sso-linkedin { border: none; background: #0A66C2; color: #FFFFFF; box-shadow: 0 8px 20px rgba(10,102,194,.28); }
+.sso-linkedin:hover { background: #004182; }
+.sso-google, .sso-plain { border: 1px solid #DCD7EC; background: #FFFFFF; color: #1A1726; }
+.sso-google:hover, .sso-plain:hover { background: #F6F4FC; }
