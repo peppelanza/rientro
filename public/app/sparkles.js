@@ -2,7 +2,7 @@
 // a steady trickle of four-point stars, each born at a random size and spot, growing from 0 to
 // full size and back while turning 180°, some in front of the letters and some behind. A few
 // live at a time; finished ones are removed. Paused when off-screen or in a background tab.
-// With reduced motion: three still sparkles, no animation.
+// Gold, as in Comeau's original (hsl(50deg 100% 50%)). With reduced motion: three still sparkles.
 
 const PATH = 'M26.5 25.5C19.0043 33.3697 0 34 0 34C0 34 19.1013 35.3684 26.5 43.5C33.234 50.901 34 68 34 68C34 68 36.9884 50.7065 44.5 43.5C51.6431 36.647 68 34 68 34C68 34 51.6947 32.0939 44.5 25.5C36.5605 18.2235 34 0 34 0C34 0 33.6591 17.9837 26.5 25.5Z';
 const LIFE = 700; // ms, must match .sparkle animation
