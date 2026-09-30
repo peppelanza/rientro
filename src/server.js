@@ -178,6 +178,12 @@ const NOT_FOUND_TEXT = {
   page: 'L’indirizzo potrebbe essere sbagliato, oppure la pagina è stata spostata.',
   city: 'Il link potrebbe essere sbagliato, oppure la città indicata non è un comune italiano.',
 };
+// The site's own hosts: www (BASE_URL), the bare domain and the admin host
+function knownHost(host) {
+  const main = new URL(config.baseUrl).hostname;
+  return host === main || host === main.replace(/^www\./, '') || host === config.adminHost;
+}
+
 function sendNotFound(res, { kind = 'page', home = '/' } = {}) {
   const html = fs.readFileSync(path.join(config.publicDir, '404.html'), 'utf8')
     .replace('{{text}}', NOT_FOUND_TEXT[kind])
@@ -505,8 +511,15 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       // Separate admin host: a plain 404 for everyone but a signed-in admin, who finds only the panel
       // (and the files and APIs it needs) there; the member pages send them back to the main site.
       // On the main site the panel doesn't exist.
+      // Any other subdomain (with a wildcard *.rientro.it in the DNS) gets the same 404 page as a
+      // stranger on the admin host, so the admin host doesn't stand out
+      const host = (req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+      if (config.production && config.adminHost && !knownHost(host)) {
+        if (/^\/(fonts\/[\w.-]+|dc\/base\.css|app\/app\.css|favicon\.svg)$/.test(p) && serveStatic(res, p)) return;
+        return sendNotFound(res, { home: `${config.baseUrl}/` });
+      }
       if (config.adminHost) {
-        const onAdminHost = (req.headers.host || '').toLowerCase().replace(/:\d+$/, '') === config.adminHost;
+        const onAdminHost = host === config.adminHost;
         const adminPath = ADMIN_PAGES.some(re => re.test(p)) || p.startsWith('/api/admin/');
         if (onAdminHost) {
           const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
