@@ -257,8 +257,8 @@ def('App Select', String.raw`
 def('App City Jump', String.raw`
 <div class="city-jump">
 <label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
-<div class="cj-box" onMouseDown="{{ boxDown }}">
-<input id="city-jump" data-key="city-jump" class="cj-input bare-input" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
+<input id="city-jump" data-key="city-jump" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
 <sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
@@ -266,8 +266,54 @@ def('App City Jump', String.raw`
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
 </div></sc-if>
 </div>
+<sc-if value="{{ sheet }}"><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
+<div class="cj-sheet-top">
+<button type="button" class="cj-sheet-close" aria-label="Chiudi" onClick="{{ close }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+<label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Cerca la tua città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ sheetKey }}"></label>
+</div>
+<div id="city-sheet-list" data-key="city-sheet-list" class="cj-sheet-list" role="listbox" aria-label="Città">
+<sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
+<sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="false" class="cj-sopt" onClick="{{ m.tap }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
+<sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
+<sc-if value="{{ loading }}"><span class="cj-head">Carico le città…</span></sc-if>
+</div>
+</div></sc-if>
 </div>`, class extends DCLogic {
-  state = { query: '', open: false, idx: 0, comuni: null };
+  state = { query: '', open: false, idx: 0, comuni: null, sheet: false };
+  // Phones get a full-screen picker instead of the dropdown: the pill looks the same but only
+  // opens it (read-only, so it never raises the keyboard itself). The sheet has the search field
+  // at the top and the list below, sized to the visible viewport so the keyboard never covers
+  // it; the phone's back button closes it.
+  get phone() { return matchMedia('(max-width: 720px)').matches; }
+  openSheet() {
+    if (this.state.sheet) return;
+    this.load();
+    this.setState({ sheet: true, open: false });
+    document.getElementById('city-sheet-input')?.focus(); // inside the tap, so iOS shows the keyboard
+    document.documentElement.classList.add('cj-locked');
+    const vv = window.visualViewport;
+    this.fit = () => {
+      const root = document.documentElement.style;
+      root.setProperty('--vvh', `${vv ? vv.height : window.innerHeight}px`);
+      root.setProperty('--vvt', `${vv ? vv.offsetTop : 0}px`);
+    };
+    this.fit();
+    vv?.addEventListener('resize', this.fit);
+    vv?.addEventListener('scroll', this.fit);
+    history.pushState({ cjSheet: true }, '');
+    window.addEventListener('popstate', this.popped);
+  }
+  closeSheet(fromHistory) {
+    if (!this.state.sheet) return;
+    const vv = window.visualViewport;
+    vv?.removeEventListener('resize', this.fit);
+    vv?.removeEventListener('scroll', this.fit);
+    document.documentElement.classList.remove('cj-locked');
+    window.removeEventListener('popstate', this.popped);
+    this.setState({ sheet: false, query: '' });
+    if (!fromHistory && history.state?.cjSheet) history.back();
+  }
+  popped = () => { if (this.state.sheet) this.closeSheet(true); };
   // The mouse highlight is plain CSS :hover (see .dd-opt). Pointing at an option only moves the
   // keyboard position there, without a re-render, so the arrows continue from it; after arrow keys
   // it hands the highlight back to the mouse. Chrome also sends a mousemove when the list is
@@ -277,14 +323,6 @@ def('App City Jump', String.raw`
     this.mx = e.clientX; this.my = e.clientY;
     if (this.state.kb) this.setState({ kb: false, idx: i }); else this.state.idx = i;
   }
-  // Tapping outside closes the list: mobile Safari doesn't blur the field on a tap elsewhere
-  componentDidMount() { document.addEventListener('pointerdown', this.outside, true); }
-  componentWillUnmount() { document.removeEventListener('pointerdown', this.outside, true); }
-  outside = e => {
-    if (!this.state.open || e.target.closest?.('.city-jump')) return;
-    document.getElementById('city-jump')?.blur();
-    this.setState({ open: false });
-  };
   async load() {
     if (this.state.comuni) return;
     const cat = await getCatalog().catch(() => null);
@@ -312,14 +350,24 @@ def('App City Jump', String.raw`
     const matches = found.map((c, i) => ({
       name: c.name, region: c.region, active: i === idx ? 'true' : 'false',
       pick: e => { e.preventDefault(); this.go(c.name); },
+      tap: () => this.go(c.name),
       hover: e => this.pointAt(e, i),
     }));
+    const phone = this.phone;
     return {
-      query, open: open && !!comuni, matches, top: !q, none: !!q && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
+      query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '',
+      phone, sheet: this.state.sheet, loading: !comuni,
+      close: () => this.closeSheet(),
+      boxClick: () => { if (this.phone) this.openSheet(); },
+      sheetKey: e => {
+        if (e.key === 'Enter' && found[0]) { e.preventDefault(); this.go(found[0].name); }
+        else if (e.key === 'Escape') this.closeSheet();
+      },
       input: e => this.setState({ query: e.target.value, open: true, idx: 0 }),
-      focus: () => { this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
+      focus: () => { if (this.phone) return this.openSheet(); this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
       // The chevron and the rest of the pill open the list too (and close it when it's open)
       boxDown: e => {
+        if (this.phone) { e.preventDefault(); return; } // the tap's click opens the full-screen picker
         if (e.target.closest('.cj-list') || e.target.tagName === 'INPUT') return;
         e.preventDefault();
         const input = document.getElementById('city-jump');

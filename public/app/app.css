@@ -193,6 +193,25 @@ button { font: inherit; }
 @keyframes who-beat { 0%, 100% { scale: 1; } 15% { scale: 1.18; } 30% { scale: 1; } 45% { scale: 1.1; } }
 @media (max-width: 720px) { .who-art svg { height: 130px; } }
 
+/* Home · Tre modi di iniziare: tall cards with an illustration on top, same style as "Per chi è" */
+.way-card { display: flex; flex-direction: column; min-height: 520px; background: linear-gradient(180deg, #FFFFFF, #F6F4FC); border-radius: 28px; overflow: hidden; box-shadow: 0 14px 40px rgba(80,60,160,.10); }
+.way-art { background: none; }
+.way-art svg { height: 190px; }
+.way-text { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 24px 32px 32px; }
+.way-rays { animation: place-twinkle 2s ease-in-out infinite; }
+.way-seek { animation: place-twinkle 2.4s ease-in-out infinite; }
+.way-reply { animation: way-reply 4s ease-in-out infinite; }
+.way-nodes circle { transform-box: fill-box; transform-origin: center; animation: place-bob 3s ease-in-out infinite; }
+.way-nodes circle:nth-child(2) { animation-delay: -.8s; } .way-nodes circle:nth-child(3) { animation-delay: -1.6s; } .way-nodes circle:nth-child(4) { animation-delay: -2.4s; }
+.way-steam path { animation: way-steam 2.6s ease-in-out infinite; }
+.way-steam path:nth-child(2) { animation-delay: -.9s; } .way-steam path:nth-child(3) { animation-delay: -1.8s; }
+@keyframes way-reply { 0%, 35% { opacity: 0; translate: 0 6px; } 50%, 90% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 0; } }
+@keyframes way-steam { 0% { opacity: 0; translate: 0 6px; } 40% { opacity: 1; } 100% { opacity: 0; translate: 0 -8px; } }
+@media (max-width: 1024px) { .way-card { min-height: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .way-rays, .way-seek, .way-reply, .way-nodes circle, .way-steam path { animation: none; }
+}
+
 /* In-page video recorder (public/app/video.js) */
 .rec-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(26,23,38,.55); display: flex; align-items: center; justify-content: center; padding: 16px; font-family: 'Geist', sans-serif; }
 .rec-dialog { width: 100%; max-width: 560px; max-height: calc(100vh - 32px); overflow: auto; background: #FFFFFF; border-radius: 28px; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 24px 60px rgba(26,23,38,.3); color: #1A1726; }
@@ -312,3 +331,32 @@ body { padding-top: var(--lb, 0px); }
   .site-header header > div { gap: 12px !important; padding-left: 20px !important; min-width: 0; }
   .site-header header > div { background: rgba(255,255,255,.94) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 }
+
+/* Home hero: sparks twinkling around "con cui costruire" (sized in em, so they follow the text) */
+.hero-sparks { position: relative; display: inline-block; }
+.hero-sparks .spark { position: absolute; display: block; width: .22em; height: .22em; pointer-events: none; animation: spark 2.8s ease-in-out infinite; }
+.hero-sparks .spark svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.hero-sparks .s1 { bottom: -.14em; left: 42%; width: .13em; height: .13em; color: #B9A8FF; animation-delay: -.4s; }
+.hero-sparks .s2 { top: .02em; right: -.44em; width: .36em; height: .36em; color: #6C4DF5; }
+.hero-sparks .s3 { bottom: -.16em; right: 6%; width: .18em; height: .18em; color: #8E7FE0; animation-delay: -1.6s; }
+.hero-sparks .s4 { top: .46em; right: -.66em; width: .17em; height: .17em; color: #B9A8FF; animation-delay: -2.2s; }
+.hero-sparks .s5 { top: .12em; right: 30%; width: .12em; height: .12em; color: #B9A8FF; animation-delay: -1s; }
+@keyframes spark { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 18%, 55% { opacity: 1; scale: 1; rotate: 45deg; } 80% { opacity: 0; scale: .2; rotate: 90deg; } }
+@media (prefers-reduced-motion: reduce) { .hero-sparks .spark { animation: none; opacity: .9; } }
+
+/* Home city picker on phones: full-screen sheet with the search field on top. Its height follows
+   the visible viewport (--vvh/--vvt, set while it's open), so the list ends above the keyboard. */
+.cj-locked, .cj-locked body { overflow: hidden; }
+.cj-sheet { position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); z-index: 200; display: flex; flex-direction: column; background: #F6F4FC; font-family: 'Geist', sans-serif; font-size: 17px; letter-spacing: 0; color: #1A1726; animation: cj-sheet-in .2s ease-out; }
+.cj-sheet-top { flex: none; display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; background: #FFFFFF; box-shadow: 0 6px 20px rgba(80,60,160,.08); }
+.cj-sheet-close { flex: none; width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; }
+.cj-sheet-field { flex: 1; min-width: 0; height: 52px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 999px; border: 2px solid #6C4DF5; background: #FFFFFF; color: #6C4DF5; cursor: text; }
+.cj-sheet-field input { flex: 1; min-width: 0; height: 100%; padding: 0; border: none; outline: none; background: transparent; font: 500 17px 'Geist', sans-serif; color: #1A1726; -webkit-appearance: none; appearance: none; }
+.cj-sheet-field input::placeholder { color: #8C84AE; }
+.cj-sheet-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.cj-sheet-list .cj-head { padding: 10px 12px 8px; }
+.cj-sopt { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cj-sopt:active { background: #EDE9FB; }
+.cj-sopt + .cj-sopt { border-top: 1px solid #ECE8F7; }
+@keyframes cj-sheet-in { from { opacity: 0; translate: 0 16px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .cj-sheet { animation: none; } }
