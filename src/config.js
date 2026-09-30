@@ -5,7 +5,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 export const config = {
   port: Number(process.env.PORT || 3000),
-  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+  baseUrl: (process.env.BASE_URL || 'http://localhost:3000').replace(/\/+$/, ''), // no trailing slash: links add their own
   production: process.env.NODE_ENV === 'production',
   dbPath: process.env.DB_PATH || path.join(root, 'data', 'rientro.db'),
   uploadDir: process.env.UPLOAD_DIR || path.join(root, 'data', 'uploads'),
