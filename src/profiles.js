@@ -1,6 +1,9 @@
-import { AGE_BANDS, AREAS, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
+import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
+
+// A: has an idea, B: looking for one with others, C: networking only (no idea step)
+const INTENTS = ['has_idea', 'seeking_idea', 'networking'];
 
 const values = pairs => pairs.map(p => p[0]);
 const bool = (v, f) => { if (v === undefined) return undefined; if (v === true || v === false) return v ? 1 : 0; throw bad('invalid_field', `${f} non valido`); };
@@ -50,13 +53,18 @@ const EDITABLE = {
   always_in_italy: v => bool(v, 'Ho sempre vissuto in Italia'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
-  primary_intent: v => oneOf(v, ['has_idea', 'seeking_idea'], 'Obiettivo'),
+  primary_intent: v => oneOf(v, INTENTS, 'Obiettivo'),
   idea_title: v => text(v, 'In una frase', { max: 140 }),
   idea_description: v => text(v, 'Descrizione', { max: 1000 }),
   idea_stage: v => oneOf(v, values(IDEA_STAGES), 'A che punto sei'),
   first_name: v => text(v, 'Nome', { max: 60 }),
   last_name: v => text(v, 'Cognome', { max: 60 }),
-  age_band: v => oneOf(v, values(AGE_BANDS), 'Fascia d’età'),
+  birth_year: v => {
+    if (v === undefined || v === null || v === '') return v === '' ? null : v;
+    const y = new Date().getFullYear();
+    if (!Number.isInteger(v) || v > y - 18 || v < y - 100) throw bad('invalid_field', 'Indica un anno di nascita valido: su Rientro si entra da maggiorenni.');
+    return v;
+  },
   bio: v => text(v, 'Su di me', { max: 600 }),
   background_area: v => oneOf(v, AREAS, 'Background'),
   current_role: v => text(v, 'Ruolo attuale', { max: 80 }),
@@ -151,11 +159,13 @@ export function updateProfile(db, user, body) {
   }
   // "Ho sempre vissuto in Italia" overrides where from and when
   if (live.always_in_italy === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_after: null, arrived_before: null });
-  if (live.arrived_from_country?.trim().toLowerCase() === 'italia') throw bad('invalid_field', 'Indica il paese estero da cui sei arrivato.');
-  if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
-  else if (next.lives_in === 'abroad' && next.lives_in_country?.trim().toLowerCase() === 'italia') {
-    throw bad('invalid_field', 'Se vivi in Italia, scegli «Vivo già in Italia».');
+  // The birth year stays private: others see the age band, kept in step here and every day after
+  if ('birth_year' in live) {
+    if (live.birth_year === null && user.status !== 'onboarding') throw bad('invalid_field', 'Indica il tuo anno di nascita.');
+    live.age_band = ageBandFor(live.birth_year);
   }
+  // "Vivo fuori" includes the North, and the city before coming back may be Italian too
+  if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
     throw bad('invalid_field', 'Cerca competenze diverse dal tuo background.');
   }
@@ -235,6 +245,7 @@ export function missingForSubmit(p) {
   if (!p.primary_intent) missing.push('Obiettivo');
   if (!p.photo_url) missing.push('Foto');
   if (!p.first_name || !p.last_name) missing.push('Nome e cognome');
+  if (!p.birth_year) missing.push('Anno di nascita');
   if (!p.background_area) missing.push('Background');
   if (!p.seeking_backgrounds.length) missing.push('Chi stai cercando');
   if (!p.time_commitment) missing.push('Tempo');
@@ -346,6 +357,7 @@ export function card(db, viewer, p, viewerP) {
     from: p.lives_in_city ?? '',
     to: p.desired_comuni.slice(0, 2).join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
+    intent: p.primary_intent,
     idea_title: p.idea_title,
     seeks: p.seeking_backgrounds.join(', '),
     tags: p.sectors.slice(0, 3).join(' · '),
@@ -374,7 +386,7 @@ export function parseDiscoverQuery(q) {
   const arr = k => (q.get(k) ? q.get(k).split(',').map(s => s.trim()).filter(Boolean).slice(0, 20) : []);
   return {
     lives: ['italy', 'abroad'].includes(q.get('lives')) ? q.get('lives') : '',
-    intent: arr('intent').filter(x => ['has_idea', 'seeking_idea'].includes(x)),
+    intent: arr('intent').filter(x => INTENTS.includes(x)),
     backgrounds: arr('backgrounds').filter(x => AREAS.includes(x)),
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
     desired: arr('desired'),
@@ -403,7 +415,7 @@ export function discover(db, viewer, filters) {
     total: results.length,
     people: results.slice(0, 60).map(p => card(db, viewer, p, viewerP)),
     counts: {
-      intent: { has_idea: count('intent', p => p.primary_intent === 'has_idea'), seeking_idea: count('intent', p => p.primary_intent === 'seeking_idea') },
+      intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
       backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => p.desired_comuni.includes(c))])),
     },
@@ -417,4 +429,15 @@ export function comuneCounts(db) {
     `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
   ).all()) for (const c of JSON.parse(desired_comuni)) counts[c] = (counts[c] || 0) + 1;
   return counts;
+}
+
+// Age bands follow the birth year as the years go by (run at start and once a day)
+export function refreshAgeBands(db, now = new Date()) {
+  const set = db.prepare('UPDATE profiles SET age_band = ? WHERE user_id = ?');
+  let changed = 0;
+  for (const r of db.prepare('SELECT user_id, birth_year, age_band FROM profiles WHERE birth_year IS NOT NULL').all()) {
+    const band = ageBandFor(r.birth_year, now);
+    if (band !== r.age_band) { set.run(band, r.user_id); changed++; }
+  }
+  return changed;
 }

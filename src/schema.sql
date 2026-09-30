@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 -- ---------------------------------------------------------------------------
 -- Profile (16-step onboarding). Public serialisation is allowlisted in profiles.js.
--- No date of birth: the design asks for an age band only.
+-- Birth year only (no full date of birth); others see just the age band derived from it.
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS profiles (
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   desired_comuni         TEXT NOT NULL DEFAULT '[]',
   desired_unknown        INTEGER NOT NULL DEFAULT 0,
   -- 3 Obiettivo (job-seeking lives in job_preferences, never here)
-  primary_intent         TEXT CHECK (primary_intent IS NULL OR primary_intent IN ('has_idea', 'seeking_idea')),
+  primary_intent         TEXT CHECK (primary_intent IS NULL OR primary_intent IN ('has_idea', 'seeking_idea', 'networking')),
   -- 4 Idea (or "what you'd like to build" for seeking_idea)
   idea_title             TEXT,
   idea_description       TEXT,
@@ -74,7 +74,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   -- 5 Presentati
   first_name             TEXT,
   last_name              TEXT,
-  age_band               TEXT CHECK (age_band IS NULL OR age_band IN ('25-29', '30-34', '35-39', '40-44', '45-50+')),
+  birth_year             INTEGER,
+  -- Photo of the LinkedIn/Google account, offered as the first profile photo if it shows a face (then cleared)
+  suggested_photo_url    TEXT,
+  age_band               TEXT CHECK (age_band IS NULL OR age_band IN ('18-24', '25-29', '30-34', '35-39', '40-44', '45-50+')),
   bio                    TEXT,
   photo_file_id          TEXT REFERENCES files(id) ON DELETE SET NULL,
   -- 6 Background

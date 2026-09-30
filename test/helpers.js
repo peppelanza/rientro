@@ -15,7 +15,7 @@ export const PNG = Buffer.from('89504e470d0a1a0a0000000d494844520000000100000001
 export const COMPLETE_PROFILE = {
   lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma',
   desired_comuni: ['Milano', 'Bologna'], primary_intent: 'has_idea',
-  first_name: 'Test', last_name: 'Utente', age_band: '35-39', bio: 'x'.repeat(160),
+  first_name: 'Test', last_name: 'Utente', birth_year: 1988, bio: 'x'.repeat(160),
   background_area: 'Prodotto', current_role: 'Product Manager', seeking_backgrounds: ['Tech / Engineering'],
   sectors: ['AI', 'Fintech'], time_commitment: 'full_time', start_when: '6_months',
 };

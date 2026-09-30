@@ -42,7 +42,7 @@ export function checkLinkedinState(cookieValue, state) {
   return { next: data.n };
 }
 
-// code → { email, emailVerified, firstName, lastName }. Throws on any failure (network, rejected code…).
+// code → { email, emailVerified, firstName, lastName, picture }. Throws on any failure (network, rejected code…).
 export async function linkedinProfile(code, fetchImpl = fetch) {
   const tokenRes = await fetchImpl(TOKEN, {
     method: 'POST',
@@ -61,5 +61,6 @@ export async function linkedinProfile(code, fetchImpl = fetch) {
     emailVerified: u.email_verified === true || u.email_verified === 'true',
     firstName: typeof u.given_name === 'string' ? u.given_name.trim().slice(0, 60) : null,
     lastName: typeof u.family_name === 'string' ? u.family_name.trim().slice(0, 60) : null,
+    picture: typeof u.picture === 'string' && u.picture.startsWith('https://') ? u.picture.slice(0, 2000) : null,
   };
 }

@@ -3,16 +3,18 @@
 // come back.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
-import { ARRIVED_WHEN, loadCitta, loadPaesi } from '../places.js';
+import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { faceProblem, warmUpFaceCheck } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
 
+
 const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
-  ['presentati', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
-  ['risultato', 'Su di te'], ['video', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
+  ['presentati', 'Su di te'], ['video', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
+  ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
   ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
 ];
 
@@ -24,7 +26,7 @@ const FIELDS = {
   dove: ['desired_comuni', 'desired_unknown'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
-  presentati: ['first_name', 'last_name', 'age_band', 'bio'],
+  presentati: ['first_name', 'last_name', 'birth_year', 'bio'],
   background: ['background_area', 'current_role', 'current_company', 'years_experience'],
   risultato: ['achievement'],
   video: ['video_connections_only'],
@@ -52,7 +54,7 @@ export default class extends Page {
     const want = new URLSearchParams(location.search).get('passo');
     const known = [...STEPS.map(s => s[0]), 'anteprima'];
     Object.assign(this.state, {
-      me, cat, p, legalOk: !me.legal.needs.length, savedAt: null, sectorQuery: '',
+      me, cat, p, savedAt: null, sectorQuery: '',
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
       edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
@@ -88,8 +90,11 @@ export default class extends Page {
     this.next();
   };
 
-  // "Da dove sei arrivato" only for who already lives in Italy
-  get steps() { return this.state.p?.lives_in === 'italy' ? STEPS : STEPS.filter(([k]) => k !== 'arrivo'); }
+  // "Da dove sei arrivato" only for who already came back; the idea step only for who has one
+  get steps() {
+    const p = this.state.p;
+    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'idea' || p?.primary_intent === 'has_idea'));
+  }
 
   goTo(step) {
     this.state.step = step;
@@ -112,9 +117,9 @@ export default class extends Page {
       case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
       case 'arrivo': return p.always_in_italy ? null : !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
-      case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle due opzioni';
+      case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
-      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : null;
+      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
       case 'background': return p.background_area ? null : 'Scegli la tua area';
       case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
       case 'tempo': return p.time_commitment ? null : 'Scegli quanto tempo vuoi dedicare';
@@ -157,6 +162,29 @@ export default class extends Page {
     this.goTo(i > 0 ? keys[i - 1] : 'benvenuto');
   }
 
+  // Signed in with LinkedIn (or Google): their photo becomes the first profile photo, but only if it
+  // shows a face. Otherwise nothing is said, the member just picks one.
+  async trySuggestedPhoto() {
+    const s = this.state;
+    s.triedSuggested = true;
+    try {
+      const r = await fetch('/api/me/suggested-photo');
+      if (!r.ok) return;
+      const blob = await r.blob();
+      if (s.p.photo_url || await faceProblem(blob, { strict: true })) return;
+      const file = new File([blob], 'foto.jpg', { type: blob.type });
+      s.up = { kind: 'photo', name: file.name, loaded: 0, total: file.size };
+      this.__rerender();
+      const out = await upload('/api/me/photo', file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); });
+      s.p.photo_url = out.url;
+    } catch { /* silent: the member uploads a photo as usual */ } finally {
+      s.up = null;
+      s.p.suggested_photo_url = null;
+      api('DELETE', '/api/me/suggested-photo').catch(() => {});
+      this.__rerender();
+    }
+  }
+
   async uploadFile(kind, file, { recorded = false } = {}) {
     if (!file) return;
     const s = this.state;
@@ -166,6 +194,14 @@ export default class extends Page {
     const problem = isVideo && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
     if (!isVideo && file.size > 5 * 1024 * 1024) { toast('La foto supera 5 MB.', { tone: 'err' }); return; }
+    // Only photos of a face (see face.js)
+    if (kind === 'photo') {
+      s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
+      this.__rerender();
+      const noFace = await faceProblem(file);
+      s.up = null;
+      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+    }
     s.up = { kind, name: file.name, loaded: 0, total: file.size, started: Date.now() };
     this.__rerender();
     upload(`/api/me/${kind === 'video' ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
@@ -205,8 +241,6 @@ export default class extends Page {
   })();
 
   submit = this.act(async () => {
-    // Sending the profile is also where updated Terms/Privacy are confirmed (see the line above the button)
-    if (!this.state.legalOk) { await api('POST', '/api/me/legal', { accept: true }); this.state.legalOk = true; }
     const me = await api('POST', '/api/me/submit');
     setMe(me);
     go('/stato');
@@ -222,6 +256,10 @@ export default class extends Page {
     const is = k => s.step === k;
     const blocker = this.blocker(s.step);
     this.lastBlocker = blocker;
+    if (s.step === 'presentati') {
+      warmUpFaceCheck(); // the photo check needs its model: fetch it now
+      if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
+    }
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');
@@ -239,7 +277,7 @@ export default class extends Page {
 
     // Preview (23a)
     const pvFacts = [
-      ['Età', cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
+      ['Età', ageBandLabel(p.birth_year) ?? cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
       ['Rientro', p.lives_in !== 'italy' ? null : p.always_in_italy ? 'Ha sempre vissuto in Italia' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
@@ -264,14 +302,13 @@ export default class extends Page {
       cityPickerProps: { onChange: list => this.set({ lives_in_city: list.at(-1) ?? null }) },
       desiredProps: { onChange: list => this.set({ desired_comuni: list, desired_unknown: list.length ? false : p.desired_unknown }) },
       stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
-      ageProps: { onSelect: v => this.set({ age_band: v || null }) },
+      birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.__rerender(); } },
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
       locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
       startProps: { onSelect: v => this.set({ start_when: v || null }) },
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
-      needsLegal: !s.legalOk,
       start: () => this.goTo(steps[0][0]),
 
       // 7a
@@ -321,8 +358,10 @@ export default class extends Page {
       unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
 
       // 9a / 10a
-      intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
-      intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
+      // One click: choosing moves on (to the idea step for A, straight to "Presentati" for B and C)
+      intentA: card(p.primary_intent === 'has_idea', () => { this.set({ primary_intent: 'has_idea' }); this.next(); }),
+      intentB: card(p.primary_intent === 'seeking_idea', () => { this.set({ primary_intent: 'seeking_idea' }); this.next(); }),
+      intentC: card(p.primary_intent === 'networking', () => { this.set({ primary_intent: 'networking' }); this.next(); }),
 
       cat,
 
@@ -336,7 +375,7 @@ export default class extends Page {
       stageOpts: opts(cat.ideaStages), stage: p.idea_stage,
 
       // 11a
-      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: `${pct}%`,
+      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: up?.checking ? 'Controllo…' : `${pct}%`,
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
       photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? 'Cambia foto' : 'Obbligatoria · si deve vedere il tuo volto',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
@@ -344,7 +383,6 @@ export default class extends Page {
       firstProps: { onInput: v => { p.first_name = v; this.touch(); } },
       lastProps: { onInput: v => { p.last_name = v; this.touch(); } },
       bioProps: { onInput: v => { p.bio = v; } },
-      ageOpts: opts(cat.ageBands), age: p.age_band,
 
       // 12a
       areas: cat.areas.map(t => ({ t, ...card(p.background_area === t, () => this.set({ background_area: t, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== t) })) })),

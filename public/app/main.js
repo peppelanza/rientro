@@ -55,7 +55,7 @@ async function boot() {
 }
 
 // Terms or Privacy updated since the member last confirmed them: a one-time dialog on the app pages.
-// Not on public pages, sign-in, legal pages or onboarding (there it's confirmed when sending the profile).
+// Not on public pages, sign-in, legal pages or onboarding (it's asked once the profile has been sent).
 const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding']);
 async function askLegalUpdate() {
   const me = await getMe().catch(() => null);

@@ -15,7 +15,7 @@ export const PROCESSING_REGISTER = [
   {
     purpose: 'community',
     description: 'Mostrare il profilo ai membri approvati, suggerire persone affini, connessioni e notifiche in app.',
-    data_categories: 'nome, foto, video, fascia d’età, luoghi, rientro, comuni desiderati, obiettivo e idea, background, formazione, esperienze, settori, cosa cerca, link',
+    data_categories: 'nome, foto, video, anno di nascita (visibile solo come fascia d’età), luoghi, rientro, comuni desiderati, obiettivo e idea, background, formazione, esperienze, settori, cosa cerca, link',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
     retention: 'Fino alla cancellazione dell’account',
     recipients: 'Membri approvati; Instagram/X/calendario solo alle connessioni; mai l’email',

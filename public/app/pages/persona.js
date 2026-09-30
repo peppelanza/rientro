@@ -1,5 +1,5 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, getMe, go, toast } from '../lib.js';
+import { api, getMe, go, INTENT_BADGE, toast } from '../lib.js';
 import { block, connect, report } from '../social.js';
 import { Page } from './_base.js';
 
@@ -51,7 +51,7 @@ export default class extends Page {
       loading: false, notFound: false, ready: true, me: s.me, name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city, places: p.places, hasPlaces: !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: p.desired_unknown,
-      badgeKind: p.primary_intent === 'has_idea' ? 'idea' : 'explore', badgeLabel: p.primary_intent === 'has_idea' ? "Ha già un'idea" : "Cerca un'idea insieme",
+      badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],
       seeks: p.seeking.backgrounds.join(', ') || '—', seeksEyebrow: `${p.first_name} cerca`,
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',

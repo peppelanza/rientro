@@ -77,9 +77,9 @@ test('signing up records the terms and privacy notice acknowledgement', async ()
   assert.deepEqual(me.legal.needs, []);
 });
 
-test('living abroad cannot name Italy as the country', async () => {
+test('"vivo fuori" can be in Italy too (the North)', async () => {
   const u = await t.login('abroad@x.it');
-  assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Italia', lives_in_city: 'Roma' })).status, 400);
+  assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Italia', lives_in_city: 'Milano' })).status, 200);
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Regno Unito', lives_in_city: 'Londra' })).status, 200);
   assert.equal((await u.patch('/api/me/profile', { lives_in: 'italy', lives_in_city: 'Roma' })).status, 200);
 });
@@ -98,4 +98,29 @@ test('idea stages are the three new ones, and old stored stages move over', asyn
   migrateIdeaStages(db);
   assert.equal((await v.get('/api/me')).body.profile.idea_stage, 'revenue');
   t2.close();
+});
+
+test('third intent: networking', async () => {
+  const u = await t.login('net@x.it');
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'networking' })).status, 200);
+  assert.equal((await u.get('/api/me')).body.profile.primary_intent, 'networking');
+  assert.equal((await u.patch('/api/me/profile', { primary_intent: 'altro' })).status, 400);
+});
+
+test('birth year: private, shown as an age band that moves up with the years', async () => {
+  const { refreshAgeBands } = await import('../src/profiles.js');
+  const y = new Date().getFullYear();
+  const u = await t.login('anno@x.it');
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 10 })).status, 400); // under 18
+  assert.equal((await u.patch('/api/me/profile', { birth_year: '1990' })).status, 400);
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 29 })).status, 200);
+  const me = (await u.get('/api/me')).body.profile;
+  assert.equal(me.birth_year, y - 29);
+  assert.equal(me.age_band, '25-29');
+  // A year later
+  assert.equal(refreshAgeBands(t.app.db, new Date(y + 1, 5, 1)), 1);
+  assert.equal((await u.get('/api/me')).body.profile.age_band, '30-34');
+  refreshAgeBands(t.app.db);
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 20 })).status, 200);
+  assert.equal((await u.get('/api/me')).body.profile.age_band, '18-24');
 });

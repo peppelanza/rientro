@@ -28,7 +28,7 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self'", "style-src 'self'",
+    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
     "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
   ].join('; '),
@@ -142,18 +142,29 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
+const MIME = { '.wasm': 'application/wasm', '.mjs': 'text/javascript; charset=utf-8', '.tflite': 'application/octet-stream', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
 
 function serveFile(res, file) {
   // Font files never change (new versions get new names); place lists and images change only with
   // a new build: cache them for a day.
-  const cache = file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2') ? 'public, max-age=31536000, immutable'
+  // Vendored libraries live in a folder named after their version, so they never change either.
+  const vendor = file.includes(`${path.sep}vendor${path.sep}`);
+  const cache = vendor || (file.includes(`${path.sep}fonts${path.sep}`) && file.endsWith('.woff2')) ? 'public, max-age=31536000, immutable'
     : file.includes(`${path.sep}data${path.sep}`) || file.includes(`${path.sep}img${path.sep}`) ? 'public, max-age=86400'
     // App code and styles: always fetched fresh, so a browser (or proxy) never mixes an old script
     // with a new stylesheet after a deploy
     : /\.(js|css|html)$/.test(file) ? 'no-store' : 'no-cache';
-  reply(res, 200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache }, fs.readFileSync(file));
+  const headers = { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': cache };
+  // The 12 MB WebAssembly file: compressed once, not on every request
+  if (vendor && /\bgzip\b/.test(res.req?.headers['accept-encoding'] || '')) {
+    if (!gzipped.has(file)) gzipped.set(file, zlib.gzipSync(fs.readFileSync(file)));
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' });
+    res.end(gzipped.get(file));
+    return;
+  }
+  reply(res, 200, headers, fs.readFileSync(file));
 }
+const gzipped = new Map();
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
 function plainNotFound(res) {
@@ -267,6 +278,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
       // Fill in the name from LinkedIn only where the profile has none yet
       db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
+      // The LinkedIn photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)
+      if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
       return out;
     });
     if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
@@ -321,7 +334,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/legal', async ({ user, req }) => auth.acknowledgeLegal(db, user.id, await readJson(req)));
 
   // Updated Terms/Privacy must be acknowledged before changing the profile, except during onboarding:
-  // there they are confirmed when the profile is sent for review (/api/me/submit below).
+  // updated documents are asked for once the profile has been sent (the prompt on the member pages).
   const legal = user => { if (user.status !== 'onboarding') auth.requireLegal(db, user.id); };
   route('PATCH', '/api/me/profile', async ({ user, req }) => { legal(user); return profiles.updateProfile(db, user, await readJson(req)); });
   route('POST', '/api/me/education', async ({ user, req }) => { legal(user); return profiles.saveEducation(db, user.id, await readJson(req)); });
@@ -330,7 +343,31 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/me/experiences', async ({ user, req }) => { legal(user); return profiles.saveExperience(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/experiences/:id', async ({ user, req, params }) => profiles.saveExperience(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/experiences/:id', ({ user, params }) => profiles.deleteRow(db, 'experiences', user.id, params.id));
-  route('POST', '/api/me/photo', async ({ user, req }) => { legal(user); return attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo')); });
+  route('POST', '/api/me/photo', async ({ user, req }) => {
+    legal(user);
+    const out = attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo'));
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    return out;
+  });
+  // The sign-in provider's photo, passed through so the browser can check it for a face (face.js)
+  // and upload it as the profile photo. Only from the providers' image hosts; cleared once tried.
+  route('GET', '/api/me/suggested-photo', async ({ user, res }) => {
+    const { suggested_photo_url: src } = db.prepare('SELECT suggested_photo_url FROM profiles WHERE user_id = ?').get(user.id) ?? {};
+    const host = src && new URL(src).hostname;
+    if (!host || !(host === 'media.licdn.com' || host.endsWith('.licdn.com') || host.endsWith('.googleusercontent.com'))) throw new HttpError(404, 'not_found');
+    let r;
+    try { r = await linkedinFetch(src, { signal: AbortSignal.timeout(10_000), redirect: 'error' }); } catch { throw new HttpError(404, 'not_found'); }
+    const type = r.headers.get('content-type') || '';
+    if (!r.ok || !/^image\/(jpeg|png|webp)$/.test(type.split(';')[0])) throw new HttpError(404, 'not_found');
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length > config.maxPhotoBytes) throw new HttpError(404, 'not_found');
+    res.writeHead(200, { 'Content-Type': type.split(';')[0], 'Cache-Control': 'no-store', 'Content-Length': buf.length });
+    res.end(buf);
+  }, { raw: true });
+  route('DELETE', '/api/me/suggested-photo', ({ user }) => {
+    db.prepare('UPDATE profiles SET suggested_photo_url = NULL WHERE user_id = ?').run(user.id);
+    return { ok: true };
+  });
   route('POST', '/api/me/video', async ({ user, req }) => {
     legal(user);
     return attachUpload(db, user, 'profile_video', await checkVideo(await receiveUpload(req, 'profile_video')));
@@ -338,7 +375,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user }) => { auth.requireLegal(db, user.id); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
+  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
     legal(user);
@@ -528,4 +565,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   };
   retain();
   setInterval(retain, 24 * 3600_000).unref();
+  // Age bands move up with the birth year
+  const ages = () => { try { profiles.refreshAgeBands(db); } catch (err) { console.error('[ages]', err); } };
+  ages();
+  setInterval(ages, 24 * 3600_000).unref();
 }

@@ -1,15 +1,16 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own; for approved
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
-import { ARRIVED_WHEN, loadCitta, loadPaesi } from '../places.js';
+import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
+import { faceProblem } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'age_band', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement', 'video_connections_only']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -92,6 +93,14 @@ export default class extends Page {
     if (file.size > (video ? 200 : 5) * 1024 * 1024) { toast(video ? 'Il video supera i 200 MB.' : 'La foto supera 5 MB.', { tone: 'err' }); return; }
     const problem = video && !recorded && durationProblem(await videoDuration(file));
     if (problem) { toast(problem, { tone: 'err' }); return; }
+    // Only photos of a face (see face.js)
+    if (kind === 'photo') {
+      s.up = { kind, name: file.name, loaded: 0, total: 0, checking: true };
+      this.__rerender();
+      const noFace = await faceProblem(file);
+      s.up = null;
+      if (noFace) { this.__rerender(); toast(noFace, { tone: 'err' }); return; }
+    }
     s.up = { kind, loaded: 0, total: file.size, name: file.name };
     this.__rerender();
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); })
@@ -139,10 +148,10 @@ export default class extends Page {
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),
       // intestazione
-      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? `${pct}%` : '',
+      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
-      ageOpts: opts(cat.ageBands), ageProps: { onSelect: v => this.set({ age_band: v || null }) }, age: p.age_band,
-      livesOpts: [{ v: 'italy', l: 'In Italia' }, { v: 'abroad', l: "All'estero" }], lives: p.lives_in,
+      birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },
+      livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,
       livesProps: { onSelect: v => this.set({ lives_in: v, lives_in_city: null, lives_in_country: v === 'italy' ? 'Italia' : '' }) },
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', comuni: cat.comuni,
       paesi: s.paesi.map(x => [x[1]]), countrySel: p.lives_in === 'abroad' && p.lives_in_country ? [p.lives_in_country] : [],
@@ -168,6 +177,7 @@ export default class extends Page {
       // obiettivo
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
       intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),
+      intentC: card(p.primary_intent === 'networking', () => this.set({ primary_intent: 'networking' })),
       hasIdea: p.primary_intent === 'has_idea', stageOpts: opts(cat.ideaStages), stage: p.idea_stage, stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
 
       // percorso

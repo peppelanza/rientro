@@ -9,7 +9,13 @@ export const SECTORS = ['AI', 'SaaS', 'PropTech', 'Fintech', 'Climate', 'Turismo
 
 export const SOURCES = ['Passaparola, un amico o collega', 'LinkedIn', 'Instagram', 'Articolo, podcast o newsletter', 'Un evento', 'Altro'];
 
-export const AGE_BANDS = [['25-29', '25–29'], ['30-34', '30–34'], ['35-39', '35–39'], ['40-44', '40–44'], ['45-50+', '45–50+']];
+export const AGE_BANDS = [['18-24', '18–24'], ['25-29', '25–29'], ['30-34', '30–34'], ['35-39', '35–39'], ['40-44', '40–44'], ['45-50+', '45–50+']];
+// Age band shown to others, from the birth year (the year alone: everyone moves up on 1 January)
+export function ageBandFor(birthYear, now = new Date()) {
+  if (!birthYear) return null;
+  const age = now.getFullYear() - birthYear;
+  return age < 25 ? '18-24' : age < 30 ? '25-29' : age < 35 ? '30-34' : age < 40 ? '35-39' : age < 45 ? '40-44' : '45-50+';
+}
 export const YEARS = [['0-3', '0–3'], ['4-7', '4–7'], ['8-12', '8–12'], ['13+', '13+']];
 
 // Codes reuse values the database already allows (schema CHECK), so no schema change was needed

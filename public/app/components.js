@@ -2,7 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
-import { getCatalog } from './lib.js';
+import { getCatalog, INTENT_BADGE } from './lib.js';
 
 const def = (name, template, Component) => register({ name, template, propsMeta: {}, Component });
 const b = v => v === true || v === 'true';
@@ -782,7 +782,7 @@ def('App Person Card', String.raw`
     }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
     return {
       p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}`,
-      badge: p.idea ? "Ha già un'idea" : "Cerca un'idea insieme", badgeKind: p.idea ? 'idea' : 'explore',
+      badge: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[0], badgeKind: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[1],
       hasComp: !!p.comp, action,
       secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',
     };

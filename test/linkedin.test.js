@@ -1,7 +1,7 @@
 // Sign In with LinkedIn: state check, verified email only, same account as email sign-in.
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { startApp } from './helpers.js';
+import { PNG, startApp } from './helpers.js';
 
 const { config } = await import('../src/config.js');
 config.linkedinClientId = 'client-id';
@@ -10,6 +10,7 @@ config.linkedinClientSecret = 'client-secret';
 // A fake LinkedIn: the code decides who comes back
 const people = {
   'code-anna': { email: 'Anna@Esempio.it', email_verified: true, given_name: 'Anna', family_name: 'Verdi' },
+  'code-foto': { email: 'foto@esempio.it', email_verified: true, given_name: 'Foto', family_name: 'Grafa', picture: 'https://media.licdn.com/dms/image/foto.jpg' },
   'code-unverified': { email: 'nove@esempio.it', email_verified: false, given_name: 'Nove', family_name: 'Rificata' },
 };
 const calls = [];
@@ -24,6 +25,7 @@ async function linkedinFetch(url, opts = {}) {
     const code = opts.headers.authorization.replace('Bearer tok-', '');
     return Response.json({ sub: code, ...people[code] });
   }
+  if (String(url) === 'https://media.licdn.com/dms/image/foto.jpg') return new Response(PNG, { headers: { 'content-type': 'image/png' } });
   throw new Error('unexpected ' + url);
 }
 
@@ -100,4 +102,19 @@ test('without credentials the button explains it is not active yet', async () =>
     assert.equal((await get('/api/auth/linkedin/start')).headers.get('location'), '/accedi?errore=linkedin_non_attivo');
     assert.equal((await (await get('/api/public/launch')).json()).linkedin, false);
   } finally { config.linkedinClientId = id; }
+});
+
+test('the LinkedIn photo is offered once, through our server, for the browser face check', async () => {
+  const { state, cookie } = await start();
+  const r = await get(`/api/auth/linkedin/callback?code=code-foto&state=${state}`, cookie);
+  const session = r.headers.getSetCookie().find(c => /^rientro_session=[^;]+/.test(c) && !c.startsWith('rientro_session=;')).split(';')[0];
+  const h = { cookie: session, 'x-requested-with': 'rientro' };
+  const photo = await fetch(`${t.base}/api/me/suggested-photo`, { headers: h });
+  assert.equal(photo.status, 200);
+  assert.equal(photo.headers.get('content-type'), 'image/png');
+  assert.equal((await fetch(`${t.base}/api/me/suggested-photo`, { method: 'DELETE', headers: h })).status, 200);
+  assert.equal((await fetch(`${t.base}/api/me/suggested-photo`, { headers: h })).status, 404);
+  // Only from the providers' image hosts
+  t.app.db.prepare("UPDATE profiles SET suggested_photo_url = 'https://evil.example/x.jpg' WHERE suggested_photo_url IS NULL").run();
+  assert.equal((await fetch(`${t.base}/api/me/suggested-photo`, { headers: h })).status, 404);
 });

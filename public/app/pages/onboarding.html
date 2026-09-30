@@ -28,7 +28,7 @@
 <g class="place-plane"><path d="M11 0C11-1.4 9.6-2 8-2H3L-3-10H-6.5L-3-2H-8L-10.5-5H-12.5L-11 0-12.5 5H-10.5L-8 2H-3L-6.5 10H-3L3 2H8C9.6 2 11 1.4 11 0Z" fill="#1A1726"/></g>
 <g class="place-pin" transform="translate(214 70)"><path d="M0 0c-7-9-11-14-11-20a11 11 0 0 1 22 0c0 6-4 11-11 20z" fill="#6C4DF5"/><circle cy="-20" r="4" fill="#FFFFFF"/></g>
 </svg></div>
-<div class="place-text"><span class="place-title">Vivo all'estero</span><span class="place-desc">Sei fuori dall'Italia e pensi di tornare</span></div>
+<div class="place-text"><span class="place-title">Vivo fuori</span><span class="place-desc">Sei all'estero o al Nord e pensi di tornare</span></div>
 </div>
 <div role="radio" tabindex="0" aria-checked="{{ livesItaly.aria }}" class="{{ italyClass }}" onClick="{{ livesItaly.fn }}" onKeyDown="{{ placeKey }}">
 <div class="place-art"><svg viewBox="0 0 240 150" aria-hidden="true">
@@ -47,7 +47,7 @@
 <ellipse class="place-ripple" cx="132" cy="76" rx="10" ry="3" fill="none" stroke="#6C4DF5" stroke-width="1.6"/>
 <g class="place-pin" transform="translate(132 72)"><path d="M0 0c-7-9-11-14-11-20a11 11 0 0 1 22 0c0 6-4 11-11 20z" fill="#6C4DF5"/><circle cy="-20" r="4" fill="#FFFFFF"/></g>
 </svg></div>
-<div class="place-text"><span class="place-title">Vivo già in Italia</span><span class="place-desc">Sei già qui e cerchi con chi costruire</span></div>
+<div class="place-text"><span class="place-title">Sono già rientrato</span><span class="place-desc">Hai fatto il passo e cerchi con chi costruire</span></div>
 </div>
 </div>
 </div></sc-if>
@@ -61,7 +61,7 @@
 </div></sc-if>
 
 <sc-if value="{{ is_arrivo }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:26px">
-<div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivevi prima?</h2><span style="font-size:16px;color:#6B6680">Prima di rientrare in Italia, e quando è stato il rientro.</span></div>
+<div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove vivevi prima?</h2><span style="font-size:16px;color:#6B6680">Prima di rientrare, e quando è successo.</span></div>
 <sc-if value="{{ notAlwaysItaly }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Paese</span><dc-import name="App Comune Picker" comuni="{{ paesi }}" selected="{{ fromCountrySel }}" max="1" size="lg" field="from-country" noun="paese" placeholder="Cerca il paese" dc-props="{{ fromCountryProps }}"></dc-import></div>
 <sc-if value="{{ hasFromCountry }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Città</span><dc-import name="App Comune Picker" comuni="{{ cittaFrom }}" selected="{{ fromCitySel }}" max="1" size="lg" field="from-city" noun="città" free-text="{{ true }}" placeholder="Cerca la città" none-text="Nessuna città trovata" dc-props="{{ fromCityProps }}"></dc-import><sc-if value="{{ noFromCity }}"><span style="font-size:13px;color:#6B6680">Non la trovi? Scrivila e scegli «Usa».</span></sc-if></div></sc-if>
 <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando è stato il rientro?</span><dc-import name="App Segmented" label="Quando è stato il rientro" options="{{ periodOpts }}" value="{{ period }}" dc-props="{{ periodProps }}"></dc-import></div></sc-if>
@@ -77,9 +77,9 @@
 <dc-import name="App Checkbox" label="Non lo so ancora" checked="{{ unknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ unknown }}"></dc-import>
 </div></sc-if>
 
-<sc-if value="{{ is_obiettivo }}"><div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:22px">
+<sc-if value="{{ is_obiettivo }}"><div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:22px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Cosa stai cercando su Rientro?</h2><span style="font-size:16px;color:#6B6680">Scegline una. Potrai cambiarla in seguito.</span></div>
-<div role="radiogroup" aria-label="Obiettivo" class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><dc-import name="UI Option Card" letter="A" size="lg" selected="{{ intentA.on }}" title="Ho già un'idea e cerco un socio" desc="Racconterai il progetto e le competenze che ti mancano." on-click="{{ intentA.fn }}" host-role="radio" host-aria-checked="{{ intentA.aria }}"></dc-import><dc-import name="UI Option Card" letter="B" size="lg" selected="{{ intentB.on }}" title="Non ho ancora un'idea e cerco qualcuno con cui trovarla" desc="Racconterai cosa ti interessa e con chi vorresti lavorare." on-click="{{ intentB.fn }}" host-role="radio" host-aria-checked="{{ intentB.aria }}"></dc-import></div>
+<div role="radiogroup" aria-label="Obiettivo" class="r-grid-1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px"><dc-import name="UI Option Card" letter="A" size="lg" selected="{{ intentA.on }}" title="Ho già un'idea e cerco un socio" desc="Racconterai il progetto e le competenze che ti mancano." on-click="{{ intentA.fn }}" host-role="radio" host-aria-checked="{{ intentA.aria }}"></dc-import><dc-import name="UI Option Card" letter="B" size="lg" selected="{{ intentB.on }}" title="Non ho ancora un'idea e cerco qualcuno con cui trovarla" desc="Racconterai cosa ti interessa e con chi vorresti lavorare." on-click="{{ intentB.fn }}" host-role="radio" host-aria-checked="{{ intentB.aria }}"></dc-import><dc-import name="UI Option Card" letter="C" size="lg" selected="{{ intentC.on }}" title="Voglio semplicemente fare networking" desc="Un caffè, un consiglio, un contatto in più con chi è rientrato o sta per farlo." on-click="{{ intentC.fn }}" host-role="radio" host-aria-checked="{{ intentC.aria }}"></dc-import></div>
 </div></sc-if>
 
 
@@ -101,7 +101,7 @@
 </div><span style="font-size:12px;color:{{ photoNoteColor }};text-align:center;text-decoration:underline;text-underline-offset:3px">{{ photoNote }}</span></label>
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><dc-import name="App Field" label="Nome" field="first-name" value="{{ firstName }}" autocomplete="given-name" dc-props="{{ firstProps }}"></dc-import><dc-import name="App Field" label="Cognome" field="last-name" value="{{ lastName }}" autocomplete="family-name" dc-props="{{ lastProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fascia d'età</span><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" dc-props="{{ ageProps }}"></dc-import></div>
+<div style="max-width:240px"><dc-import name="App Field" label="Anno di nascita" field="birth-year" value="{{ birthYear }}" inputmode="numeric" maxlength="4" autocomplete="bday-year" placeholder="Es. 1990" foot="Agli altri mostriamo solo la fascia d’età" dc-props="{{ birthProps }}"></dc-import></div>
 <dc-import name="App Field" label="Su di me" rows="3" field="bio" value="{{ bio }}" maxlength="600" foot="Chi sei, cosa ti muove, perché ora" dc-props="{{ bioProps }}"></dc-import>
 </div></div>
 </div></sc-if>
@@ -164,7 +164,7 @@
 <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:#4A4560;cursor:pointer"><input type="checkbox" class="sr-only" checked="{{ videoPrivate }}" onChange="{{ toggleVideoPrivate }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;flex:none;box-sizing:border-box;background:{{ videoPrivBg }};border:{{ videoPrivBd }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ videoPrivMark }}</span>Mostralo solo alle mie connessioni</label>
 </div>
 <div class="r-hide-sm" style="display:flex;flex-direction:column;gap:14px;padding:20px;margin-top:100px;background:#FFFFFF;border-radius:24px;align-self:start"><dc-import name="UI Eyebrow" text="Cosa dire"></dc-import>
-<div style="display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45"><span>Chi sei e cosa hai fatto finora</span><span>Cosa vuoi costruire, o con chi</span><span>Perché l'Italia, perché adesso</span></div>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45"><span>Chi sei e cosa hai fatto finora</span><span>Cosa cerchi su Rientro</span><span>Perché rientrare</span></div>
 <div style="height:1px;background:#ECE8F7"></div>
 <span style="font-size:13px;color:#8C84AE;line-height:1.5">Da 15 a 60 secondi. Facoltativo.</span></div>
 </div></sc-if>
@@ -218,7 +218,6 @@
 <sc-if value="{{ isPreview }}">
 <div style="min-height:100vh;background:#E9E6F5">
 <div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedranno gli altri membri. Instagram, X e calendario restano nascosti fino all'accettazione.</span><div style="flex:1"></div><button type="button" onClick="{{ backToQuestions }}" style="border:none;background:none;padding:0;font:inherit;color:#C9C0F0;cursor:pointer">Torna alle domande</button><dc-import name="UI Button" label="Invia per la revisione" variant="light" size="sm" on-click="{{ submit }}" host-aria-disabled="{{ pvMissing }}"></dc-import></div>
-<sc-if value="{{ needsLegal }}"><p style="margin:10px var(--gutter) 0;font-size:13px;line-height:1.5;color:#6B6680">Inviando il profilo accetti i <a href="/legal/termini" target="_blank" style="color:#1A1726">Termini</a> e confermi di aver letto la <a href="/legal/privacy" target="_blank" style="color:#1A1726">Privacy Policy</a>, aggiornati il 30 settembre 2026.</p></sc-if>
 <sc-if value="{{ pvMissing }}"><div role="alert" style="margin:12px var(--gutter) 0;border-radius:20px;background:#FDE8E8;color:#912018;padding:12px 18px;font-size:14px">Prima di inviare, completa: {{ pvMissing }}.</div></sc-if>
 <div class="r-grid-1" style="padding:40px var(--gutter) 56px;display:grid;grid-template-columns:340px 1fr;gap:48px">
 <div style="display:flex;flex-direction:column;gap:16px">
