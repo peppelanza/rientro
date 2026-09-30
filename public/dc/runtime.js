@@ -407,7 +407,7 @@ function releaseHold() {
 }
 if (typeof document !== 'undefined') {
   document.addEventListener('pointerdown', e => {
-    if (!e.target?.matches?.('input[data-key], textarea[data-key]')) return;
+    if (!e.target?.matches?.('input[data-key]:not([readonly]), textarea[data-key]:not([readonly])')) return;
     holding = true; clearTimeout(holdTimer);
     holdTimer = setTimeout(releaseHold, 1000);
   }, true);

@@ -343,3 +343,20 @@ body { padding-top: var(--lb, 0px); }
 .hero-sparks .s5 { top: .12em; right: 30%; width: .12em; height: .12em; color: #B9A8FF; animation-delay: -1s; }
 @keyframes spark { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 18%, 55% { opacity: 1; scale: 1; rotate: 45deg; } 80% { opacity: 0; scale: .2; rotate: 90deg; } }
 @media (prefers-reduced-motion: reduce) { .hero-sparks .spark { animation: none; opacity: .9; } }
+
+/* Home city picker on phones: full-screen sheet with the search field on top. Its height follows
+   the visible viewport (--vvh/--vvt, set while it's open), so the list ends above the keyboard. */
+.cj-locked, .cj-locked body { overflow: hidden; }
+.cj-sheet { position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100dvh); z-index: 200; display: flex; flex-direction: column; background: #F6F4FC; font-family: 'Geist', sans-serif; font-size: 17px; letter-spacing: 0; color: #1A1726; animation: cj-sheet-in .2s ease-out; }
+.cj-sheet-top { flex: none; display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; background: #FFFFFF; box-shadow: 0 6px 20px rgba(80,60,160,.08); }
+.cj-sheet-close { flex: none; width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; }
+.cj-sheet-field { flex: 1; min-width: 0; height: 52px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 10px; border-radius: 999px; border: 2px solid #6C4DF5; background: #FFFFFF; color: #6C4DF5; cursor: text; }
+.cj-sheet-field input { flex: 1; min-width: 0; height: 100%; padding: 0; border: none; outline: none; background: transparent; font: 500 17px 'Geist', sans-serif; color: #1A1726; -webkit-appearance: none; appearance: none; }
+.cj-sheet-field input::placeholder { color: #8C84AE; }
+.cj-sheet-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.cj-sheet-list .cj-head { padding: 10px 12px 8px; }
+.cj-sopt { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cj-sopt:active { background: #EDE9FB; }
+.cj-sopt + .cj-sopt { border-top: 1px solid #ECE8F7; }
+@keyframes cj-sheet-in { from { opacity: 0; translate: 0 16px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .cj-sheet { animation: none; } }
