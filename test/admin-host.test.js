@@ -110,10 +110,14 @@ test('an explicit image suspends the account at once; the admin can undo it', as
     assert.equal(row.scores.Evil, undefined);
     assert.equal((await a.get(row.image_url)).status, 200);
     assert.equal((await a.get('/api/admin/sidebar')).body.blocked >= 1, true);
-    // It was a mistake: back to how it was, image deleted
+    // It was a mistake: back to how it was, and the image becomes the profile photo
+    const before = t.app.db.prepare('SELECT photo_file_id FROM profiles WHERE user_id = ?').get(m.id).photo_file_id;
     assert.equal((await a.post(`/api/admin/blocked/${row.id}`, { action: 'restore' })).status, 200);
     assert.equal(t.app.db.prepare('SELECT status FROM users WHERE id = ?').get(m.id).status, 'onboarding');
-    assert.equal((await a.get(row.image_url)).status, 404);
+    const after = t.app.db.prepare('SELECT photo_file_id FROM profiles WHERE user_id = ?').get(m.id).photo_file_id;
+    assert.ok(after && after !== before);
+    assert.equal((await a.get(`/api/files/${after}`)).status, 200);
+    assert.equal((await a.get(row.image_url)).status, 404); // out of quarantine
     assert.equal((await a.post(`/api/admin/blocked/${row.id}`, { action: 'confirm' })).status, 409);
   } finally { config.adminHost = 'admin.rientro.test'; }
 });

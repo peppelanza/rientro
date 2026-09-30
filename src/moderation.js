@@ -8,6 +8,7 @@ import path from 'node:path';
 import { audit } from './admin.js';
 import { config } from './config.js';
 import { newId, now, tx } from './db.js';
+import { attachUpload } from './files.js';
 import { sendAccountRestoredEmail } from './mail.js';
 import { HttpError } from './validate.js';
 
@@ -61,8 +62,9 @@ export function blockedImage(db, admin, id) {
   return { mime: r.mime, buf: fs.readFileSync(file(r.storage_key)) };
 }
 
-// restore: it was a mistake, the account goes back to how it was and the member is told by email.
-// confirm: it stays suspended. Either way the image is deleted now.
+// restore: it was a mistake, so the image wasn't explicit: it becomes the profile photo it was meant
+// to be (the admin has just looked at it, no further review), the account goes back to how it was
+// and the member is told by email. confirm: it stays suspended and the image is deleted now.
 export async function resolveBlocked(db, admin, id, action) {
   if (!['restore', 'confirm'].includes(action)) throw new HttpError(400, 'invalid_field', 'Azione non valida.');
   const r = db.prepare('SELECT * FROM blocked_uploads WHERE id = ?').get(id);
@@ -75,7 +77,13 @@ export async function resolveBlocked(db, admin, id, action) {
     if (action === 'restore' && user.status === 'suspended') db.prepare('UPDATE users SET status = ?, updated_at = ? WHERE id = ?').run(r.prev_status, now(), user.id);
     audit(db, admin.id, action === 'restore' ? 'blocked.restore' : 'blocked.confirm', user.id);
   });
-  if (r.storage_key) fs.rmSync(file(r.storage_key), { force: true });
+  if (r.storage_key && action === 'restore' && r.mime && fs.existsSync(file(r.storage_key))) {
+    const buf = fs.readFileSync(file(r.storage_key));
+    const key = crypto.randomBytes(24).toString('hex');
+    fs.renameSync(file(r.storage_key), path.join(config.uploadDir, key));
+    attachUpload(db, { ...user, status: 'onboarding' }, 'profile_photo', { key, mime: r.mime, size: buf.length, sha256: crypto.createHash('sha256').update(buf).digest('hex') });
+    db.prepare('UPDATE profiles SET photo_check = NULL WHERE user_id = ?').run(user.id);
+  } else if (r.storage_key) fs.rmSync(file(r.storage_key), { force: true });
   if (action === 'restore') await sendAccountRestoredEmail(user.email).catch(err => console.error('[mail] restored', err?.message ?? err));
   return { ok: true };
 }
