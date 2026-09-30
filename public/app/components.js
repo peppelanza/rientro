@@ -485,6 +485,41 @@ def('App City Jump', String.raw`
   }
 });
 
+// App Toc — "In questa guida" / "Indice" of the long pages (Rientro dei cervelli, legal pages): a
+// sticky list of links to the sections, the one being read highlighted as you scroll (tocSpy).
+// Props: eyebrow, items [{ label, href: '#id' }].
+def('App Toc', String.raw`
+<div class="toc">
+<dc-import name="UI Eyebrow" text="{{ eyebrow }}"></dc-import>
+<div style="height:10px"></div>
+<sc-for list="{{ items }}" as="i"><a href="{{ i.href }}" class="toc-link">{{ i.label }}</a></sc-for>
+</div>`, class extends DCLogic {
+  renderVals() {
+    requestAnimationFrame(tocSpy); // links were (re)drawn: mark the current one
+    return { eyebrow: this.props.eyebrow ?? 'Indice', items: this.props.items ?? [] };
+  }
+});
+
+// Highlights the link of the last section whose top has passed under the header; at the very
+// bottom of the page, the last one (a short final section may never reach the top).
+function tocSpy() {
+  const links = [...document.querySelectorAll('.toc-link')];
+  if (!links.length) return;
+  const lb = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lb')) || 0;
+  let current = links[0];
+  for (const a of links) {
+    const section = document.getElementById(decodeURIComponent(a.getAttribute('href').slice(1)));
+    if (section && section.getBoundingClientRect().top <= 140 + lb) current = a;
+  }
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) current = links[links.length - 1];
+  for (const a of links) a.setAttribute('aria-current', a === current ? 'true' : 'false');
+}
+if (typeof window !== 'undefined') {
+  let queued = false;
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; tocSpy(); }); } }, { passive: true });
+  addEventListener('resize', () => tocSpy(), { passive: true });
+}
+
 // App Site Header — the public pages' header (home, Rientro dei cervelli, territori): logo, the same
 // menu in the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli' | 'territori'),
 // onEnter(). Home sections are linked as /#section from the other pages.

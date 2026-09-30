@@ -96,7 +96,7 @@ const DOCS = {
         'Non prendiamo decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogo su di te (art. 22 GDPR). Ogni profilo viene letto da una persona prima di essere pubblicato, e le decisioni di moderazione sono prese da persone.',
       ]],
       ['Modifiche a questa informativa', [
-        'Potremo aggiornare questa informativa, per esempio quando attiveremo nuove funzioni come l’accesso delle aziende. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento e la versione. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
+        'Potremo aggiornare questa informativa. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
       ]],
     ],
     purposes: [
@@ -144,7 +144,6 @@ const DOCS = {
 
 export default class extends Page {
   async load() {
-    this.state.legal = await fetch('/api/legal').then(r => r.json()).catch(() => null);
     const doc = DOCS[this.props.params.doc];
     document.title = `${doc.title} · Rientro`;
     if (location.hash) requestAnimationFrame(() => document.querySelector(location.hash)?.scrollIntoView());
@@ -162,9 +161,9 @@ export default class extends Page {
       isPurposes: extra === 'purposes',
     }));
     return {
-      tabs, title: doc.title, updated: doc.updated, version: this.state.legal?.versions?.[key === 'termini' ? 'terms' : key === 'cookie' ? 'cookies' : 'privacy'] ?? '',
+      tabs, title: doc.title, updated: doc.updated,
       summary: doc.summary.map(([t, d]) => ({ t, d })), sections,
-      menu: [{ l: 'In breve', href: '#in-breve' }, ...sections.map(s => ({ l: s.t, href: `#${s.id}` }))],
+      tocProps: { items: [{ label: 'In breve', href: '#in-breve' }, ...sections.map(s => ({ label: s.t, href: `#${s.id}` }))] },
       purposes: (doc.purposes ?? []).map(([t, what, data, basis]) => ({ t, what, data, basis })),
       draft: !!doc.draft,
     };
