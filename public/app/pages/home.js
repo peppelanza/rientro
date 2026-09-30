@@ -1,4 +1,5 @@
 import { Page, homeFor, peekMe } from './_base.js';
+import { startSparkles } from '../sparkles.js';
 
 export const title = 'Rientra in Italia o al Sud e trova persone con cui costruire';
 
@@ -32,6 +33,7 @@ const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marc
 // profiles are hidden; the countdown lives in the pre-launch bar (launchbar.js) on every page.
 export default class extends Page {
   async load() {
+    startSparkles();
     const [me, launch] = await Promise.all([peekMe(), fetch('/api/public/launch').then(r => r.json()).catch(() => ({ launched: true }))]);
     Object.assign(this.state, { me, launched: launch.launched });
   }
