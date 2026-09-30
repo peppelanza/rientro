@@ -34,7 +34,7 @@ export function openDb(file = config.dbPath) {
   addProfileColumns(db);
   migrateUserColumns(db);
   migrateIdeaStages(db);
-  migrateIntentCheck(db);
+  migrateChecks(db);
   seed(db);
   return db;
 }
@@ -51,7 +51,7 @@ function migrateUserColumns(db) {
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
-  always_in_italy: 'INTEGER NOT NULL DEFAULT 0',
+  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER',
 };
 export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));
@@ -81,21 +81,24 @@ export function migrateIdeaStages(db) {
   }
 }
 
-// The third intent ("networking") came after launch. A CHECK constraint can't be altered, but
-// widening its list doesn't change how rows are stored, so the table definition is edited in place
-// (sqlite.org/lang_altertable.html, "other kinds of table schema changes").
-function migrateIntentCheck(db) {
+// CHECK lists widened after launch: the third intent ("networking") and the 18–24 age band. A CHECK
+// constraint can't be altered, but widening its list doesn't change how rows are stored, so the
+// table definition is edited in place (sqlite.org/lang_altertable.html, "other kinds of table schema changes").
+const WIDENED_CHECKS = [
+  ["primary_intent IN ('has_idea', 'seeking_idea')", "primary_intent IN ('has_idea', 'seeking_idea', 'networking')"],
+  ["age_band IN ('25-29',", "age_band IN ('18-24', '25-29',"],
+];
+function migrateChecks(db) {
   const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'profiles'").get();
-  const old = "primary_intent IN ('has_idea', 'seeking_idea')";
-  if (!sql.includes(old)) return;
+  const next = WIDENED_CHECKS.reduce((acc, [from, to]) => acc.replace(from, to), sql);
+  if (next === sql) return;
   const v = db.prepare('PRAGMA schema_version').get().schema_version;
   db.exec('PRAGMA writable_schema = ON');
   try {
-    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'profiles'")
-      .run(sql.replace(old, "primary_intent IN ('has_idea', 'seeking_idea', 'networking')"));
+    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'profiles'").run(next);
     db.exec(`PRAGMA schema_version = ${v + 1}`);
   } finally { db.exec('PRAGMA writable_schema = OFF'); }
-  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('profiles: intent migration failed');
+  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('profiles: CHECK migration failed');
 }
 
 function seed(db) {

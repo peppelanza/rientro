@@ -106,3 +106,21 @@ test('third intent: networking', async () => {
   assert.equal((await u.get('/api/me')).body.profile.primary_intent, 'networking');
   assert.equal((await u.patch('/api/me/profile', { primary_intent: 'altro' })).status, 400);
 });
+
+test('birth year: private, shown as an age band that moves up with the years', async () => {
+  const { refreshAgeBands } = await import('../src/profiles.js');
+  const y = new Date().getFullYear();
+  const u = await t.login('anno@x.it');
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 10 })).status, 400); // under 18
+  assert.equal((await u.patch('/api/me/profile', { birth_year: '1990' })).status, 400);
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 29 })).status, 200);
+  const me = (await u.get('/api/me')).body.profile;
+  assert.equal(me.birth_year, y - 29);
+  assert.equal(me.age_band, '25-29');
+  // A year later
+  assert.equal(refreshAgeBands(t.app.db, new Date(y + 1, 5, 1)), 1);
+  assert.equal((await u.get('/api/me')).body.profile.age_band, '30-34');
+  refreshAgeBands(t.app.db);
+  assert.equal((await u.patch('/api/me/profile', { birth_year: y - 20 })).status, 200);
+  assert.equal((await u.get('/api/me')).body.profile.age_band, '18-24');
+});

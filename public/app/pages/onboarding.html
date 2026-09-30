@@ -101,7 +101,7 @@
 </div><span style="font-size:12px;color:{{ photoNoteColor }};text-align:center;text-decoration:underline;text-underline-offset:3px">{{ photoNote }}</span></label>
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><dc-import name="App Field" label="Nome" field="first-name" value="{{ firstName }}" autocomplete="given-name" dc-props="{{ firstProps }}"></dc-import><dc-import name="App Field" label="Cognome" field="last-name" value="{{ lastName }}" autocomplete="family-name" dc-props="{{ lastProps }}"></dc-import></div>
-<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fascia d'età</span><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" dc-props="{{ ageProps }}"></dc-import></div>
+<div style="max-width:240px"><dc-import name="App Field" label="Anno di nascita" field="birth-year" value="{{ birthYear }}" inputmode="numeric" maxlength="4" autocomplete="bday-year" placeholder="Es. 1990" foot="Agli altri mostriamo solo la fascia d’età" dc-props="{{ birthProps }}"></dc-import></div>
 <dc-import name="App Field" label="Su di me" rows="3" field="bio" value="{{ bio }}" maxlength="600" foot="Chi sei, cosa ti muove, perché ora" dc-props="{{ bioProps }}"></dc-import>
 </div></div>
 </div></sc-if>

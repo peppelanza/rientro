@@ -3,11 +3,12 @@
 // come back.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
-import { ARRIVED_WHEN, loadCitta, loadPaesi } from '../places.js';
+import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
+
 
 const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
@@ -24,7 +25,7 @@ const FIELDS = {
   dove: ['desired_comuni', 'desired_unknown'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
-  presentati: ['first_name', 'last_name', 'age_band', 'bio'],
+  presentati: ['first_name', 'last_name', 'birth_year', 'bio'],
   background: ['background_area', 'current_role', 'current_company', 'years_experience'],
   risultato: ['achievement'],
   video: ['video_connections_only'],
@@ -117,7 +118,7 @@ export default class extends Page {
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
-      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : null;
+      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
       case 'background': return p.background_area ? null : 'Scegli la tua area';
       case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
       case 'tempo': return p.time_commitment ? null : 'Scegli quanto tempo vuoi dedicare';
@@ -240,7 +241,7 @@ export default class extends Page {
 
     // Preview (23a)
     const pvFacts = [
-      ['Età', cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
+      ['Età', ageBandLabel(p.birth_year) ?? cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
       ['Rientro', p.lives_in !== 'italy' ? null : p.always_in_italy ? 'Ha sempre vissuto in Italia' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
@@ -265,7 +266,7 @@ export default class extends Page {
       cityPickerProps: { onChange: list => this.set({ lives_in_city: list.at(-1) ?? null }) },
       desiredProps: { onChange: list => this.set({ desired_comuni: list, desired_unknown: list.length ? false : p.desired_unknown }) },
       stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
-      ageProps: { onSelect: v => this.set({ age_band: v || null }) },
+      birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.__rerender(); } },
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
       locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
       startProps: { onSelect: v => this.set({ start_when: v || null }) },
@@ -346,7 +347,6 @@ export default class extends Page {
       firstProps: { onInput: v => { p.first_name = v; this.touch(); } },
       lastProps: { onInput: v => { p.last_name = v; this.touch(); } },
       bioProps: { onInput: v => { p.bio = v; } },
-      ageOpts: opts(cat.ageBands), age: p.age_band,
 
       // 12a
       areas: cat.areas.map(t => ({ t, ...card(p.background_area === t, () => this.set({ background_area: t, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== t) })) })),

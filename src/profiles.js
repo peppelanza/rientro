@@ -1,4 +1,4 @@
-import { AGE_BANDS, AREAS, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
+import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
@@ -60,6 +60,12 @@ const EDITABLE = {
   first_name: v => text(v, 'Nome', { max: 60 }),
   last_name: v => text(v, 'Cognome', { max: 60 }),
   age_band: v => oneOf(v, values(AGE_BANDS), 'Fascia d’età'),
+  birth_year: v => {
+    if (v === undefined || v === null || v === '') return v === '' ? null : v;
+    const y = new Date().getFullYear();
+    if (!Number.isInteger(v) || v > y - 18 || v < y - 100) throw bad('invalid_field', 'Indica un anno di nascita valido: su Rientro si entra da maggiorenni.');
+    return v;
+  },
   bio: v => text(v, 'Su di me', { max: 600 }),
   background_area: v => oneOf(v, AREAS, 'Background'),
   current_role: v => text(v, 'Ruolo attuale', { max: 80 }),
@@ -154,6 +160,8 @@ export function updateProfile(db, user, body) {
   }
   // "Ho sempre vissuto in Italia" overrides where from and when
   if (live.always_in_italy === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_after: null, arrived_before: null });
+  // The birth year stays private: others see the age band, kept in step here and every day after
+  if ('birth_year' in live) live.age_band = ageBandFor(live.birth_year);
   // "Vivo fuori" includes the North, and the city before coming back may be Italian too
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
@@ -418,4 +426,15 @@ export function comuneCounts(db) {
     `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
   ).all()) for (const c of JSON.parse(desired_comuni)) counts[c] = (counts[c] || 0) + 1;
   return counts;
+}
+
+// Age bands follow the birth year as the years go by (run at start and once a day)
+export function refreshAgeBands(db, now = new Date()) {
+  const set = db.prepare('UPDATE profiles SET age_band = ? WHERE user_id = ?');
+  let changed = 0;
+  for (const r of db.prepare('SELECT user_id, birth_year, age_band FROM profiles WHERE birth_year IS NOT NULL').all()) {
+    const band = ageBandFor(r.birth_year, now);
+    if (band !== r.age_band) { set.run(band, r.user_id); changed++; }
+  }
+  return changed;
 }

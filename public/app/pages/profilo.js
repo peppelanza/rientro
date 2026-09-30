@@ -1,7 +1,7 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own; for approved
 // members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
-import { ARRIVED_WHEN, loadCitta, loadPaesi } from '../places.js';
+import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { Page } from './_base.js';
 
@@ -9,7 +9,7 @@ export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'age_band', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement', 'video_connections_only']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -141,7 +141,7 @@ export default class extends Page {
       // intestazione
       photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoPct: s.up?.kind === 'photo' ? `${pct}%` : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
-      ageOpts: opts(cat.ageBands), ageProps: { onSelect: v => this.set({ age_band: v || null }) }, age: p.age_band,
+      birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },
       livesOpts: [{ v: 'abroad', l: 'Vivo fuori' }, { v: 'italy', l: 'Sono già rientrato' }], lives: p.lives_in,
       livesProps: { onSelect: v => this.set({ lives_in: v, lives_in_city: null, lives_in_country: v === 'italy' ? 'Italia' : '' }) },
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', comuni: cat.comuni,

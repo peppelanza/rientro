@@ -8,7 +8,7 @@ export const title = 'Scopri chi torna';
 export const tabbar = true;
 
 const LIST_KEYS = ['intent', 'backgrounds', 'sectors', 'desired'];
-const AGES = [['25-29', '25–29', ['25-29']], ['30-34', '30–34', ['30-34']], ['35-39', '35–39', ['35-39']], ['40+', '40+', ['40-44', '45-50+']]];
+const AGES = [['18-24', '18–24', ['18-24']], ['25-29', '25–29', ['25-29']], ['30-34', '30–34', ['30-34']], ['35-39', '35–39', ['35-39']], ['40+', '40+', ['40-44', '45-50+']]];
 const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insieme", networking: 'Networking' };
 
 function readFilters() {
