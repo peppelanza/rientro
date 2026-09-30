@@ -336,7 +336,7 @@ body { padding-top: var(--lb, 0px); }
 .hs-text { position: relative; z-index: 1; }
 .hs-layer { position: absolute; inset: 0; pointer-events: none; }
 .sparkle { position: absolute; display: block; pointer-events: none; animation: sparkle-in-out 700ms ease-in-out forwards; }
-.sparkle svg { display: block; width: 100%; height: 100%; fill: hsl(50deg 100% 50%); overflow: visible; filter: drop-shadow(0 0 .02em hsl(38deg 100% 42% / .55)) drop-shadow(0 0 .08em hsl(48deg 100% 55% / .45)); animation: sparkle-spin 1000ms linear; }
+.sparkle svg { display: block; width: 100%; height: 100%; fill: hsl(50deg 100% 50%); overflow: visible; filter: drop-shadow(0 0 .007em hsl(38deg 100% 42% / .55)) drop-shadow(0 0 .027em hsl(48deg 100% 55% / .45)); animation: sparkle-spin 1000ms linear; }
 .sparkle-still, .sparkle-still svg { animation: none; }
 @keyframes sparkle-in-out { 0% { transform: scale(0); } 50% { transform: scale(1); } 100% { transform: scale(0); } }
 @keyframes sparkle-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(180deg); } }
