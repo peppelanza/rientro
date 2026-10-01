@@ -156,3 +156,19 @@ test('visit statistics: Cloudflare beacon on member and public pages only, numbe
     assert.match(err.error, /not authorized/);
   } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '' }); }
 });
+
+test('visit statistics over 24 hours come by the hour', async () => {
+  const { traffic } = await import('../src/web-analytics.js');
+  Object.assign(config, { cfAnalyticsToken: 't', cfAccountId: 'a', cfApiToken: 'k', cfAnalyticsSiteTag: 'tag' });
+  try {
+    let q;
+    const d = await traffic(1, async (url, opts) => {
+      q = JSON.parse(opts.body).query;
+      const r = { count: 3, sum: { visits: 2 }, dimensions: { datetimeHour: '2026-10-01T20:00:00Z' } };
+      return Response.json({ data: { viewer: { accounts: [{ total: [r], days: [r], pages: [], referrers: [], countries: [], devices: [] }] } } });
+    });
+    assert.match(q, /orderBy: \[datetimeHour_ASC\]/);
+    assert.equal(d.hourly, true);
+    assert.equal(d.days[0].date, '2026-10-01T20:00:00Z');
+  } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '', cfAnalyticsSiteTag: '' }); }
+});

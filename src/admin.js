@@ -294,7 +294,7 @@ export function reportChat(db, admin, id) {
 // --- Analytics (49a) ----------------------------------------------------------------------
 
 export function analytics(db, admin, query) {
-  const days = { '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
+  const days = { '1': 1, '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
   const from = since(days);
   const users = allProfiles(db);
   const approved = users.filter(u => u.status === 'approved');

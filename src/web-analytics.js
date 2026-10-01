@@ -34,10 +34,10 @@ async function getSiteTag(fetchImpl) {
   return config.cfAnalyticsToken; // for snippet sites they're often the same
 }
 
-const QUERY = `query($account: string!, $filter: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) {
+const query = bucket => `query($account: string!, $filter: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) {
   viewer { accounts(filter: { accountTag: $account }) {
     total: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 1) { count sum { visits } }
-    days: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 400, orderBy: [date_ASC]) { count sum { visits } dimensions { date } }
+    days: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 400, orderBy: [${bucket}_ASC]) { count sum { visits } dimensions { ${bucket} } }
     pages: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 10, orderBy: [count_DESC]) { count dimensions { requestPath } }
     referrers: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 10, orderBy: [count_DESC]) { count dimensions { refererHost } }
     countries: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 8, orderBy: [count_DESC]) { count dimensions { countryName } }
@@ -52,10 +52,12 @@ export async function traffic(days, fetchImpl = fetch) {
   if (hit && Date.now() - hit.at < 600_000) return hit.data;
   const to = new Date();
   const from = new Date(to.getTime() - days * 86_400_000);
+  // 24 hours: by hour; longer periods: by day
+  const bucket = days === 1 ? 'datetimeHour' : 'date';
   let body;
   try {
     const filter = { AND: [{ datetime_geq: from.toISOString(), datetime_leq: to.toISOString() }, { siteTag: await getSiteTag(fetchImpl) }, { bot: 0 }] };
-    const r = await fetchImpl(`${API}/graphql`, { method: 'POST', headers: auth(), body: JSON.stringify({ query: QUERY, variables: { account: config.cfAccountId, filter } }), signal: AbortSignal.timeout(10_000) });
+    const r = await fetchImpl(`${API}/graphql`, { method: 'POST', headers: auth(), body: JSON.stringify({ query: query(bucket), variables: { account: config.cfAccountId, filter } }), signal: AbortSignal.timeout(10_000) });
     body = await r.json();
   } catch (err) {
     console.error('[web-analytics]', err?.message ?? err);
@@ -71,7 +73,8 @@ export async function traffic(days, fetchImpl = fetch) {
     enabled: true,
     visits: a.total[0]?.sum?.visits ?? 0,
     pageviews: a.total[0]?.count ?? 0,
-    days: a.days.map(r => ({ date: r.dimensions.date, visits: r.sum.visits, pageviews: r.count })),
+    hourly: bucket === 'datetimeHour',
+    days: a.days.map(r => ({ date: r.dimensions[bucket], visits: r.sum.visits, pageviews: r.count })),
     pages: list(a.pages, 'requestPath'),
     referrers: list(a.referrers, 'refererHost'),
     countries: list(a.countries, 'countryName'),
