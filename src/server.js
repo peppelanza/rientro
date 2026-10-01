@@ -8,6 +8,7 @@ import * as admin from './admin.js';
 import * as moderation from './moderation.js';
 import { checkEmailDomain } from './email-check.js';
 import { turnstileEnabled, verifyTurnstile } from './turnstile.js';
+import { beaconTag, traffic } from './web-analytics.js';
 import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
@@ -31,8 +32,11 @@ const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
-    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com", // WebAssembly: the face check on profile photos (face.js) "style-src 'self'",
-    "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self'",
+    "default-src 'self'",
+    // WebAssembly: the photo checks (face.js, nsfw.js); Cloudflare: Turnstile on sign-in, Web Analytics
+    "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+    "style-src 'self'", "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:",
+    "connect-src 'self' https://cloudflareinsights.com", // Cloudflare Web Analytics (web-analytics.js)
     "frame-src https://challenges.cloudflare.com", // Cloudflare Turnstile on sign-in (turnstile.js)
     "worker-src 'self' blob:", // HEIC photos are decoded in a worker (vendor/heic-to)
     "frame-ancestors 'none'", "base-uri 'none'", "form-action 'self'", "object-src 'none'",
@@ -237,7 +241,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|bloccati|se
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -489,6 +493,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
+  route('GET', '/api/admin/traffic', ({ url }) => traffic(Math.min(365, Math.max(1, Number(url.searchParams.get('period')) || 30)), cfFetch), adm);
   route('GET', '/api/admin/analytics', ({ user, url }) => admin.analytics(db, user, url.searchParams), adm);
   route('POST', '/api/admin/exports', async ({ user, req, res }) => {
     const out = admin.exportCsv(db, user, await readJson(req));
@@ -546,12 +551,19 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
+        // The app shell, with Cloudflare's visit counter except in the admin panel (web-analytics.js)
+        const shell = ({ track = true } = {}) => {
+          const tag = track ? beaconTag() : '';
+          if (!tag) return appPage('app.html');
+          const html = fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8').replace('</body>', `${tag}\n</body>`);
+          reply(res, 200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }, Buffer.from(html));
+        };
         if (p === '/accedi') {
           const city = checkCity(url);
           if (city === 'missing') return sendNotFound(res, { kind: 'city' });
           if (city !== 'ok') { res.writeHead(302, { Location: city }); res.end(); return; }
         }
-        if (PUBLIC_PAGES.some(re => re.test(p))) return appPage('app.html');
+        if (PUBLIC_PAGES.some(re => re.test(p))) return shell();
         const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
         if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {
           const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
@@ -560,7 +572,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
             res.end();
             return;
           }
-          return appPage('app.html');
+          return shell({ track: !needsAdmin });
         }
         if ((p === '/design' || p.startsWith('/design/')) && !config.production) return appPage('design.html');
         if (p.startsWith('/dc/gen/') && config.production && /\/rientro-/.test(p)) throw new HttpError(404, 'not_found');
