@@ -5,7 +5,7 @@
 <sc-if value="{{ ready }}">
 <div class="r-page">
 <sc-if value="{{ notSelf }}"><div style="padding:28px var(--gutter) 0;font-size:14px"><a href="/scopri" style="color:#6B6680;text-decoration:none">← Scopri chi torna</a></div></sc-if>
-<sc-if value="{{ self }}"><div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedono gli altri membri. Le modifiche in revisione compariranno dopo l’approvazione.</span><div style="flex:1"></div><a href="/profilo" style="color:#C9C0F0">Torna all’editor</a></div></sc-if>
+<sc-if value="{{ self }}"><div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedono gli altri membri.</span><div style="flex:1"></div><a href="/profilo" style="color:#C9C0F0">Torna all’editor</a></div></sc-if>
 <div class="r-grid-1" style="padding:24px var(--gutter) 0;display:grid;grid-template-columns:360px minmax(0,1fr);gap:48px">
 <div style="display:flex;flex-direction:column;gap:12px">
 <dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ name }}"></dc-import>

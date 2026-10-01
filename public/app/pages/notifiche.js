@@ -14,9 +14,6 @@ function describe(n) {
     case 'connection_request': return { who, rest: ' vuole entrare in contatto con te.', href: `/connessioni/${n.data.connection_id}` };
     case 'connection_accepted': return { who, rest: ' ha accettato la tua richiesta.', href: `/messaggi/${n.actor?.id}` };
     case 'message': return { who, rest: n.data.preview ? ` ti ha scritto: “${n.data.preview}”` : ' ti ha scritto.', href: `/messaggi/${n.actor?.id}` };
-    case 'profile_approved': return { text: n.data.changes_only ? 'Le modifiche al tuo profilo sono online.' : 'Il tuo profilo è stato approvato ed è online.', icon: '✓', ibg: '#E3F5EC', ifg: '#1F7A4F', href: '/profilo' };
-    case 'profile_changes_requested': return { text: n.data.note ? `Ci serve una modifica al profilo: ${n.data.note}` : 'Ci serve una modifica al profilo.', icon: '!', ibg: '#FFF4DC', ifg: '#7A4E00', href: '/stato' };
-    case 'profile_rejected': return { text: 'Il tuo profilo non è stato approvato.', icon: '!', ibg: '#FDE8E8', ifg: '#912018', href: '/stato' };
     default: return { text: 'Aggiornamento dal team Rientro.', icon: 'i', ibg: '#EFEBFF', ifg: '#3E2BA8', href: null };
   }
 }

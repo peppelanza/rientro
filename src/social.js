@@ -14,7 +14,7 @@ export function requireLaunched(user) {
 
 function requireApproved(user) {
   if (user.status !== 'approved') {
-    throw new HttpError(403, 'not_approved', 'Potrai connetterti quando il tuo profilo sarà approvato.');
+    throw new HttpError(403, 'not_approved', 'Completa il profilo per connetterti con le altre persone.');
   }
 }
 

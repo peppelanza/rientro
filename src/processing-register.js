@@ -14,11 +14,11 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'community',
-    description: 'Mostrare il profilo ai membri approvati, suggerire persone affini, connessioni e notifiche in app.',
+    description: 'Mostrare il profilo agli altri membri (online appena pubblicato, senza revisione preventiva), suggerire persone affini, connessioni e notifiche in app.',
     data_categories: 'nome, foto, video, anno di nascita (visibile solo come fascia d’età), luoghi, rientro, comuni desiderati, obiettivo e idea, background, formazione, esperienze, settori, cosa cerca, link',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
     retention: 'Fino alla cancellazione dell’account',
-    recipients: 'Membri approvati; Instagram/X/calendario solo alle connessioni; mai l’email',
+    recipients: 'Altri membri; Instagram/X/calendario solo alle connessioni; mai l’email',
   },
   {
     purpose: 'messaging',
@@ -30,7 +30,7 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'service_email',
-    description: 'Email di servizio: codice di accesso, avvisi di richieste/messaggi/stato del profilo, conferma della richiesta di cancellazione, comunicazioni sul servizio.',
+    description: 'Email di servizio: codice di accesso, avvisi di richieste e messaggi, conferma della richiesta di cancellazione, comunicazioni sul servizio.',
     data_categories: 'email, dati del singolo avviso',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b); notifiche configurabili dalle impostazioni',
     retention: 'Non conservate oltre l’invio (registri di invio presso Brevo secondo le sue policy)',
@@ -54,7 +54,7 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'moderation_and_safety',
-    description: 'Revisione dei profili, segnalazioni e blocchi, prevenzione di abusi, spam, profili falsi e accessi abusivi: controllo anti-bot all’accesso (Cloudflare Turnstile), blocco delle email temporanee, controllo nel browser di volto e contenuti espliciti nelle foto, con quarantena delle immagini bloccate. In caso di segnalazione un moderatore può leggere la chat tra segnalante e segnalato; ogni accesso è registrato.',
+    description: 'Controllo dei profili dopo la pubblicazione, segnalazioni e blocchi, prevenzione di abusi, spam, profili falsi e accessi abusivi: controllo anti-bot all’accesso (Cloudflare Turnstile), blocco delle email temporanee, controllo nel browser di volto e contenuti espliciti nelle foto, con quarantena delle immagini bloccate. In caso di segnalazione un moderatore può leggere la chat tra segnalante e segnalato; ogni accesso è registrato.',
     data_categories: 'dati del profilo, segnalazioni, conversazioni segnalate, immagini bloccate e punteggi del controllo, note admin, registro accessi admin, indirizzo IP (non salvato nel database)',
     proposed_basis: 'Legittimo interesse alla sicurezza della community (art. 6.1.f)',
     retention: 'Segnalazioni chiuse 24 mesi; registro accessi admin 24 mesi; immagini bloccate fino alla decisione e al massimo 30 giorni',

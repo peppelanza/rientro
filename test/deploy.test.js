@@ -156,3 +156,51 @@ test('visit statistics: Cloudflare beacon on member and public pages only, numbe
     assert.match(err.error, /not authorized/);
   } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '' }); }
 });
+
+test('visit statistics over 24 hours come by the hour', async () => {
+  const { traffic } = await import('../src/web-analytics.js');
+  Object.assign(config, { cfAnalyticsToken: 't', cfAccountId: 'a', cfApiToken: 'k', cfAnalyticsSiteTag: 'tag' });
+  try {
+    let q;
+    const d = await traffic(1, async (url, opts) => {
+      const body = JSON.parse(opts.body).query;
+      if (body.includes('refererPath')) return Response.json({ data: { viewer: { accounts: [{ paths: [] }] } } });
+      q = body;
+      const r = { count: 3, sum: { visits: 2 }, dimensions: { datetimeHour: '2026-10-01T20:00:00Z' } };
+      return Response.json({ data: { viewer: { accounts: [{ total: [r], days: [r], pages: [], referrers: [], countries: [], devices: [] }] } } });
+    });
+    assert.match(q, /orderBy: \[datetimeHour_ASC\]/);
+    assert.equal(d.hourly, true);
+    assert.equal(d.days[0].date, '2026-10-01T20:00:00Z');
+  } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '', cfAnalyticsSiteTag: '' }); }
+});
+
+test('visit statistics: the exact page people came from, without our own pages', async () => {
+  const { traffic } = await import('../src/web-analytics.js');
+  Object.assign(config, { cfAnalyticsToken: 't', cfAccountId: 'a', cfApiToken: 'k', cfAnalyticsSiteTag: 'tag' });
+  try {
+    const host = new URL(config.baseUrl).hostname;
+    const d = await traffic(30, async (url, opts) => {
+      const { query } = JSON.parse(opts.body);
+      if (query.includes('refererPath')) {
+        return Response.json({ data: { viewer: { accounts: [{ paths: [
+          { count: 9, dimensions: { refererHost: 'www.linkedin.com', refererPath: '/posts/rientro-123' } },
+          { count: 7, dimensions: { refererHost: host, refererPath: '/territori/milano' } },
+          { count: 5, dimensions: { refererHost: 'www.google.com', refererPath: '/' } },
+          { count: 4, dimensions: { refererHost: '', refererPath: '' } },
+        ] }] } } });
+      }
+      const r = { count: 1, sum: { visits: 1 }, dimensions: { date: '2026-10-01' } };
+      return Response.json({ data: { viewer: { accounts: [{ total: [r], days: [r], pages: [], referrers: [], countries: [], devices: [] }] } } });
+    });
+    assert.deepEqual(d.referrer_pages, [{ l: 'www.linkedin.com/posts/rientro-123', v: 9 }, { l: 'www.google.com', v: 5 }]);
+    // Not available: the rest still works
+    const e = await traffic(90, async (url, opts) => {
+      if (JSON.parse(opts.body).query.includes('refererPath')) return Response.json({ errors: [{ message: 'unknown field refererPath' }] });
+      const r = { count: 1, sum: { visits: 1 }, dimensions: { date: '2026-10-01' } };
+      return Response.json({ data: { viewer: { accounts: [{ total: [r], days: [r], pages: [], referrers: [], countries: [], devices: [] }] } } });
+    });
+    assert.equal(e.referrer_pages, null);
+    assert.equal(e.visits, 1);
+  } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '', cfAnalyticsSiteTag: '' }); }
+});

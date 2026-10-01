@@ -53,21 +53,21 @@ test('main site: no admin panel, not even for the admin', async () => {
   assert.equal((await t.login('altro@x.it').then(m => m.get('/api/me'))).body.admin_url, undefined);
 });
 
-test('the admin is a member: onboarding, review, approval of their own profile', async () => {
+test('the admin is a member: onboarding, then online like everyone', async () => {
   config.adminHost = '';
   try {
     const a = await t.asAdmin();
     const me = (await a.get('/api/me')).body;
     assert.equal(me.user.status, 'onboarding');
-    assert.equal((await a.get('/api/profiles')).status, 403); // not approved yet
+    assert.equal((await a.get('/api/profiles')).status, 403); // profile not sent yet
     await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Catania'], primary_intent: 'has_idea', first_name: 'Admin', last_name: 'Rientro', birth_year: 1988, bio: 'x'.repeat(160), background_area: 'Prodotto', current_role: 'Founder', seeking_backgrounds: ['Tech / Engineering'], sectors: ['AI'], time_commitment: 'full_time', start_when: '6_months' });
     const { PNG } = await import('./helpers.js');
     await a.raw('POST', '/api/me/photo', PNG);
     assert.equal((await a.post('/api/me/submit')).status, 200);
-    assert.ok((await a.get('/api/admin/approvals')).body.queue.some(q => q.id === a.id));
-    assert.equal((await a.post(`/api/admin/users/${a.id}/review`, { action: 'suspend' })).status, 400);
-    assert.equal((await a.post(`/api/admin/users/${a.id}/review`, { action: 'approve' })).status, 200);
-    assert.equal((await a.get('/api/me')).body.user.status, 'approved');
+    assert.equal((await a.get('/api/me')).body.user.status, 'approved'); // online, no review
+    assert.equal((await a.get('/api/admin/approvals')).status, 404);
+    assert.equal((await a.post(`/api/admin/users/${a.id}/review`, { action: 'suspend' })).status, 400); // not yourself
+    assert.equal((await a.post(`/api/admin/users/${a.id}/review`, { action: 'approve' })).status, 400); // gone
     assert.equal((await a.get('/api/profiles')).status, 200);
   } finally { config.adminHost = 'admin.rientro.test'; }
 });

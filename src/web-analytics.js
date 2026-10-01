@@ -34,16 +34,36 @@ async function getSiteTag(fetchImpl) {
   return config.cfAnalyticsToken; // for snippet sites they're often the same
 }
 
-const QUERY = `query($account: string!, $filter: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) {
+const query = bucket => `query($account: string!, $filter: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) {
   viewer { accounts(filter: { accountTag: $account }) {
     total: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 1) { count sum { visits } }
-    days: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 400, orderBy: [date_ASC]) { count sum { visits } dimensions { date } }
+    days: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 400, orderBy: [${bucket}_ASC]) { count sum { visits } dimensions { ${bucket} } }
     pages: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 10, orderBy: [count_DESC]) { count dimensions { requestPath } }
     referrers: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 10, orderBy: [count_DESC]) { count dimensions { refererHost } }
     countries: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 8, orderBy: [count_DESC]) { count dimensions { countryName } }
     devices: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 5, orderBy: [count_DESC]) { count dimensions { deviceType } }
   } }
 }`;
+
+// The exact page people came from (e.g. a LinkedIn post), asked separately: if Cloudflare doesn't
+// give it, the rest of the section still works. Our own pages are left out (moving within the site).
+const REFERRER_PAGES = `query($account: string!, $filter: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) {
+  viewer { accounts(filter: { accountTag: $account }) {
+    paths: rumPageloadEventsAdaptiveGroups(filter: $filter, limit: 40, orderBy: [count_DESC]) { count dimensions { refererHost refererPath } }
+  } }
+}`;
+async function referrerPages(filter, fetchImpl) {
+  try {
+    const r = await fetchImpl(`${API}/graphql`, { method: 'POST', headers: auth(), body: JSON.stringify({ query: REFERRER_PAGES, variables: { account: config.cfAccountId, filter } }), signal: AbortSignal.timeout(10_000) });
+    const rows = (await r.json())?.data?.viewer?.accounts?.[0]?.paths;
+    if (!rows) return null;
+    const own = new URL(config.baseUrl).hostname.replace(/^www\./, '');
+    return rows
+      .filter(x => x.dimensions.refererHost && !x.dimensions.refererHost.replace(/^www\./, '').endsWith(own))
+      .map(x => ({ l: `${x.dimensions.refererHost}${x.dimensions.refererPath && x.dimensions.refererPath !== '/' ? x.dimensions.refererPath : ''}`, v: x.count }))
+      .slice(0, 10);
+  } catch { return null; }
+}
 
 const cache = new Map(); // period → { at, data }, 10 minutes
 export async function traffic(days, fetchImpl = fetch) {
@@ -52,11 +72,17 @@ export async function traffic(days, fetchImpl = fetch) {
   if (hit && Date.now() - hit.at < 600_000) return hit.data;
   const to = new Date();
   const from = new Date(to.getTime() - days * 86_400_000);
-  let body;
+  // 24 hours: by hour; longer periods: by day
+  const bucket = days === 1 ? 'datetimeHour' : 'date';
+  let body, referrerPaths;
   try {
     const filter = { AND: [{ datetime_geq: from.toISOString(), datetime_leq: to.toISOString() }, { siteTag: await getSiteTag(fetchImpl) }, { bot: 0 }] };
-    const r = await fetchImpl(`${API}/graphql`, { method: 'POST', headers: auth(), body: JSON.stringify({ query: QUERY, variables: { account: config.cfAccountId, filter } }), signal: AbortSignal.timeout(10_000) });
+    const [r, paths] = await Promise.all([
+      fetchImpl(`${API}/graphql`, { method: 'POST', headers: auth(), body: JSON.stringify({ query: query(bucket), variables: { account: config.cfAccountId, filter } }), signal: AbortSignal.timeout(10_000) }),
+      referrerPages(filter, fetchImpl),
+    ]);
     body = await r.json();
+    referrerPaths = paths;
   } catch (err) {
     console.error('[web-analytics]', err?.message ?? err);
     return { enabled: true, error: 'Cloudflare non risponde in questo momento.' };
@@ -71,9 +97,11 @@ export async function traffic(days, fetchImpl = fetch) {
     enabled: true,
     visits: a.total[0]?.sum?.visits ?? 0,
     pageviews: a.total[0]?.count ?? 0,
-    days: a.days.map(r => ({ date: r.dimensions.date, visits: r.sum.visits, pageviews: r.count })),
+    hourly: bucket === 'datetimeHour',
+    days: a.days.map(r => ({ date: r.dimensions[bucket], visits: r.sum.visits, pageviews: r.count })),
     pages: list(a.pages, 'requestPath'),
     referrers: list(a.referrers, 'refererHost'),
+    referrer_pages: referrerPaths, // null: not available from Cloudflare
     countries: list(a.countries, 'countryName'),
     devices: list(a.devices, 'deviceType'),
   };

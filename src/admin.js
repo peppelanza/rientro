@@ -3,10 +3,8 @@
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
 import { AGE_BANDS, SOURCES, START, TIME, label } from './catalog.js';
 import { now, subjectRef, tx } from './db.js';
-import { cleanupReplacedPhoto } from './files.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
-import { applyPendingChanges, effectiveProfile, rawProfile } from './profiles.js';
-import { notify } from './social.js';
+import { effectiveProfile, rawProfile } from './profiles.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
 export function audit(db, adminId, action, targetUserId = null, details = {}) {
@@ -16,7 +14,7 @@ export function audit(db, adminId, action, targetUserId = null, details = {}) {
 }
 
 const INTENT = { has_idea: 'Ha già un\'idea', seeking_idea: 'Cerca un\'idea', networking: 'Networking' };
-const STATUS_LABEL = { onboarding: 'Bozza', in_review: 'In revisione', changes_requested: 'Modifiche', approved: 'Approvato', rejected: 'Rifiutato', suspended: 'Sospeso' };
+const STATUS_LABEL = { onboarding: 'In compilazione', approved: 'Online', suspended: 'Sospeso' };
 const DAY = 86400_000;
 const since = days => new Date(Date.now() - days * DAY).toISOString();
 const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
@@ -45,9 +43,8 @@ export function dashboard(db, admin, query) {
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
   const newUsers = users.filter(u => u.created_at >= from).length;
   const prevUsers = users.filter(u => u.created_at >= prev && u.created_at < from).length;
-  const inReview = users.filter(u => u.status === 'in_review');
-  const submitted = users.filter(u => u.submitted_at).length;
-  const approved = users.filter(u => u.status === 'approved').length;
+  const published = users.filter(u => u.status === 'approved').length;
+  const drafting = users.filter(u => u.status === 'onboarding').length;
   const accepted = count("SELECT COUNT(*) AS n FROM connections WHERE status = 'accepted'");
   const acceptedPeriod = count("SELECT COUNT(*) AS n FROM connections WHERE status = 'accepted' AND responded_at >= ?", from);
   const messages = count('SELECT COUNT(*) AS n FROM messages');
@@ -56,7 +53,6 @@ export function dashboard(db, admin, query) {
   const requests = count('SELECT COUNT(*) AS n FROM connections');
   const withMessage = count(`SELECT COUNT(*) AS n FROM connections c WHERE c.status = 'accepted' AND EXISTS (
     SELECT 1 FROM messages m WHERE (m.sender_id = c.requester_id AND m.recipient_id = c.addressee_id) OR (m.sender_id = c.addressee_id AND m.recipient_id = c.requester_id))`);
-  const avgWait = inReview.length ? Math.round(inReview.reduce((s, u) => s + hoursAgo(u.submitted_at), 0) / inReview.length) : 0;
   const delta = (a, b) => (b ? `${a >= b ? '+' : ''}${Math.round(((a - b) / b) * 100)}%` : `+${a}`);
 
   const chartDays = Math.min(days, 30);
@@ -70,8 +66,8 @@ export function dashboard(db, admin, query) {
     kpis: [
       { label: 'Utenti', value: fmt(users.length), delta: `+${fmt(newUsers)}` },
       { label: 'Nuove iscrizioni', value: fmt(newUsers), delta: delta(newUsers, prevUsers) },
-      { label: 'In attesa', value: fmt(inReview.length), delta: `media ${avgWait} h`, tone: 'neutral' },
-      { label: 'Profili approvati', value: fmt(approved), delta: `${pct(approved, submitted)}%` },
+      { label: 'Profili online', value: fmt(published), delta: `${pct(published, users.length)}% degli utenti` },
+      { label: 'In compilazione', value: fmt(drafting), delta: 'onboarding non finito', tone: 'neutral' },
       { label: 'Connessioni', value: fmt(accepted), delta: `+${fmt(acceptedPeriod)}` },
       { label: 'Messaggi', value: fmt(messages), delta: delta(msgPeriod, msgPrev) },
     ],
@@ -80,7 +76,6 @@ export function dashboard(db, admin, query) {
       { l: 'Richieste inviate', v: fmt(requests), w: 100 },
       { l: 'Accettate', v: `${fmt(accepted)} · ${pct(accepted, requests)}%`, w: pct(accepted, requests) },
       { l: 'Con almeno un messaggio', v: `${fmt(withMessage)} · ${pct(withMessage, requests)}%`, w: pct(withMessage, requests) },
-      { l: 'Tasso di approvazione', v: `${pct(approved, submitted)}%`, w: pct(approved, submitted) },
     ],
     cities: topCounts(approvedUsers.flatMap(u => u.desired_comuni), 6),
     sectors: topCounts(approvedUsers.flatMap(u => u.sectors), 6),
@@ -120,13 +115,10 @@ export function getUser(db, admin, userId) {
   if (!user) throw new HttpError(404, 'not_found');
   audit(db, admin.id, 'user.view', userId);
   const p = effectiveProfile(db, userId);
-  const live = rawProfile(db, userId);
   const count = (sql, ...a) => db.prepare(sql).get(...a).n;
   return {
     user: { ...user, status_label: STATUS_LABEL[user.status] },
     profile: p,
-    has_pending_changes: Object.keys(live.pending_changes).length > 0,
-    pending_keys: Object.keys(live.pending_changes),
     job_seeking: getJobPreferences(db, userId),
     preference_history: preferenceHistory(db, userId),
     stats: {
@@ -157,74 +149,33 @@ export function addNote(db, admin, userId, body) {
   return getUser(db, admin, userId).notes;
 }
 
-// Approve / request changes / reject / suspend (46a, 47a)
+// Moderation of a member: suspend (locked out, signed out everywhere) or give the account back.
+// There is no review before a profile goes online.
 export function review(db, admin, userId, body) {
   only(body, ['action', 'note']);
-  const action = oneOf(body.action, ['approve', 'request_changes', 'reject', 'suspend', 'unsuspend'], 'action', { nullable: false });
+  const action = oneOf(body.action, ['suspend', 'unsuspend'], 'action', { nullable: false });
   const note = text(body.note, 'Nota', { max: 1000 }) ?? null;
-  if ((action === 'request_changes' || action === 'reject') && !note) throw bad('note_required', 'Scrivi una nota per l’utente.');
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   if (!user) throw new HttpError(404, 'not_found');
-  // Admins are members too and can approve their own profile, but not lock themselves out
-  if (user.id === admin.id && ['reject', 'suspend'].includes(action)) throw bad('self_review', 'Non puoi rifiutare o sospendere il tuo account.');
+  // Admins are members too, but can't lock themselves out
+  if (user.id === admin.id && action === 'suspend') throw bad('self_review', 'Non puoi sospendere il tuo account.');
   const live = rawProfile(db, userId);
-  const hasPending = Object.keys(live.pending_changes).length > 0;
   tx(db, () => {
     const setStatus = s => db.prepare('UPDATE users SET status = ?, updated_at = ? WHERE id = ?').run(s, now(), userId);
-    if (action === 'approve') {
-      const oldPhoto = live.photo_file_id;
-      applyPendingChanges(db, userId);
-      const newPhoto = rawProfile(db, userId).photo_file_id;
-      if (user.status !== 'approved') {
-        setStatus('approved');
-        db.prepare('UPDATE profiles SET approved_at = ?, review_note = NULL WHERE user_id = ?').run(now(), userId);
-      }
-      cleanupReplacedPhoto(db, oldPhoto, newPhoto);
-      notify(db, userId, 'profile_approved', null, { changes_only: user.status === 'approved' });
-    } else if (action === 'request_changes') {
-      if (user.status === 'approved' && hasPending) {
-        db.prepare("UPDATE profiles SET pending_changes = '{}', review_note = ? WHERE user_id = ?").run(note, userId);
-      } else {
-        setStatus('changes_requested');
-        db.prepare('UPDATE profiles SET review_note = ? WHERE user_id = ?').run(note, userId);
-      }
-      notify(db, userId, 'profile_changes_requested', null, { note });
-    } else if (action === 'reject') {
-      setStatus('rejected');
-      db.prepare('UPDATE profiles SET review_note = ? WHERE user_id = ?').run(note, userId);
-      notify(db, userId, 'profile_rejected', null, { note });
-    } else if (action === 'suspend') {
+    if (action === 'suspend') {
       setStatus('suspended');
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
-    } else if (action === 'unsuspend') {
+    } else {
       if (user.status !== 'suspended') throw bad('not_suspended');
-      setStatus(live.approved_at ? 'approved' : 'in_review');
+      setStatus(live.approved_at ? 'approved' : 'onboarding');
     }
     db.prepare('INSERT INTO review_events (user_id, admin_id, action, note, created_at) VALUES (?, ?, ?, ?, ?)').run(userId, admin.id, action, note, now());
   });
-  audit(db, admin.id, `user.${action}`, userId, { from: user.status, pending: hasPending });
+  audit(db, admin.id, `user.${action}`, userId, { from: user.status });
   return { status: db.prepare('SELECT status FROM users WHERE id = ?').get(userId).status };
 }
 
-// --- Approvals queue (47a) ----------------------------------------------------------------
-
-export function approvals(db, admin) {
-  const rows = allProfiles(db, "u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))")
-    .sort((a, b) => (a.submitted_at || a.updated_at).localeCompare(b.submitted_at || b.updated_at));
-  const waits = rows.map(u => hoursAgo(u.status === 'in_review' ? u.submitted_at : u.updated_at));
-  audit(db, admin.id, 'approvals.list', null, { count: rows.length });
-  return {
-    avg_wait_h: waits.length ? Math.round(waits.reduce((a, b) => a + b, 0) / waits.length) : 0,
-    sla_h: 24,
-    queue: rows.map((u, i) => ({
-      id: u.id, name: name(u) || u.email, wait_h: waits[i], kind: u.status === 'in_review' ? 'new' : 'changes',
-      meta: `${u.background_area?.split(' /')[0] ?? '—'} · ${u.lives_in_city ?? '—'} → ${u.desired_comuni[0] ?? '—'}`,
-      photo_url: u.photo_file_id ? `/api/files/${u.photo_file_id}` : null,
-    })),
-  };
-}
-
-// Automatic checks shown on the review card (47a)
+// Automatic checks shown on the member's admin page
 export function reviewChecks(p) {
   const bio = (p.bio || '').length;
   return [
@@ -269,11 +220,10 @@ export function listReports(db, admin, query) {
 
 export function resolveReport(db, admin, id, body) {
   only(body, ['action', 'note']);
-  const action = oneOf(body.action, ['dismiss', 'suspend', 'request_changes'], 'action', { nullable: false });
+  const action = oneOf(body.action, ['dismiss', 'suspend'], 'action', { nullable: false });
   const r = db.prepare('SELECT * FROM reports WHERE id = ?').get(id);
   if (!r || r.status !== 'open') throw new HttpError(404, 'not_found');
   if (action === 'suspend') review(db, admin, r.reported_id, { action: 'suspend', note: body.note });
-  if (action === 'request_changes') review(db, admin, r.reported_id, { action: 'request_changes', note: body.note || 'Aggiorna il profilo seguendo le regole della community.' });
   db.prepare("UPDATE reports SET status = ?, resolution = ?, resolved_at = ?, resolved_by = ? WHERE reported_id = ? AND status = 'open'")
     .run(action === 'dismiss' ? 'dismissed' : 'resolved', action, now(), admin.id, r.reported_id);
   audit(db, admin.id, `report.${action}`, r.reported_id, { report_id: id });
@@ -294,7 +244,7 @@ export function reportChat(db, admin, id) {
 // --- Analytics (49a) ----------------------------------------------------------------------
 
 export function analytics(db, admin, query) {
-  const days = { '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
+  const days = { '1': 1, '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
   const from = since(days);
   const users = allProfiles(db);
   const approved = users.filter(u => u.status === 'approved');
@@ -384,8 +334,6 @@ export function recentExports(db) {
 export function sidebarCounts(db) {
   return {
     users: db.prepare('SELECT COUNT(*) AS n FROM users').get().n,
-    approvals: db.prepare(`SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id
-      WHERE u.deletion_requested_at IS NULL AND (u.status = 'in_review' OR (u.status = 'approved' AND p.pending_changes != '{}'))`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
     blocked: db.prepare('SELECT COUNT(*) AS n FROM blocked_uploads WHERE resolved_at IS NULL').get().n,
     photos: db.prepare('SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id WHERE p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL').get().n,
@@ -414,8 +362,7 @@ export function photoChecks(db, admin) {
   const rows = allProfiles(db, 'p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL');
   audit(db, admin.id, 'photos.list', null, { count: rows.length });
   return rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(u => {
-    // An approved member's new photo waits in pending_changes: show that one
-    const file = u.pending_changes.photo_file_id ?? u.photo_file_id;
+    const file = u.photo_file_id;
     return {
       id: u.id, name: name(u) || '—', email: u.email, status: u.status, check: u.photo_check, reason: PHOTO_CHECKS[u.photo_check] ?? u.photo_check,
       photo_url: file ? `/api/files/${file}` : null, updated_at: u.updated_at,

@@ -1,6 +1,6 @@
 // Connections (design 04 · 32a connessioni, 32b inviate, 33a stato vuoto).
 import { api, fmtShort, getMe, go, qs, timeAgo, toast } from '../lib.js';
-import { Page } from './_base.js';
+import { homeFor, Page } from './_base.js';
 
 export const title = 'Connessioni';
 export const tabbar = true;
@@ -10,7 +10,7 @@ const ini = n => n.split(' ').map(w => w[0]).join('').slice(0, 2);
 export default class extends Page {
   async load() {
     const me = await getMe();
-    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go('/stato');
+    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
     this.state.me = me;
     this.state.tab = ['ricevute', 'inviate'].includes(qs().get('tab')) ? qs().get('tab') : 'connessioni';
     this.state.data = await api('GET', '/api/connections');

@@ -90,8 +90,6 @@ const EDITABLE = {
 };
 
 const JSON_FIELDS = new Set(['desired_comuni', 'sectors', 'seeking_backgrounds']);
-// Design 37a: "Le modifiche a foto, nome e idea vengono riviste prima di essere pubblicate."
-export const REVIEWED_FIELDS = ['first_name', 'last_name', 'idea_title', 'idea_description', 'photo_file_id'];
 
 export const fileUrl = id => (id ? `/api/files/${id}` : null);
 
@@ -111,8 +109,7 @@ const experiences = (db, userId) => db.prepare(
 export function getOwnProfile(db, userId) {
   const p = rawProfile(db, userId);
   if (!p) return null;
-  const { user_id, ...rest } = p;
-  const pending = p.pending_changes;
+  const { user_id, pending_changes, ...rest } = p;
   return {
     ...rest,
     desired_unknown: p.desired_unknown === 1,
@@ -120,32 +117,23 @@ export function getOwnProfile(db, userId) {
     arrived_when: arrivedWhen(p),
     video_connections_only: p.video_connections_only === 1,
     visible: p.visible === 1,
-    photo_url: fileUrl(pending.photo_file_id ?? p.photo_file_id),
-    live_photo_url: fileUrl(p.photo_file_id),
+    photo_url: fileUrl(p.photo_file_id),
     video_url: fileUrl(p.video_file_id),
     education: education(db, userId),
     experiences: experiences(db, userId),
   };
 }
 
-// Own view with pending edits applied (what the member sees in the editor and preview).
-export function effectiveProfile(db, userId) {
-  const p = getOwnProfile(db, userId);
-  return p && { ...p, ...Object.fromEntries(Object.entries(p.pending_changes).filter(([k]) => k !== 'photo_file_id')) };
-}
+// No review: what the member saves is what the others see. (Kept as a name: used all over.)
+export const effectiveProfile = getOwnProfile;
 
 export function updateProfile(db, user, body) {
   only(body, Object.keys(EDITABLE));
   const current = rawProfile(db, user.id);
   const live = {};
-  const pending = { ...current.pending_changes };
   for (const [key, parse] of Object.entries(EDITABLE)) {
     const v = parse(body[key]);
     if (v === undefined) continue;
-    if (user.status === 'approved' && REVIEWED_FIELDS.includes(key)) {
-      if (v === current[key]) delete pending[key]; else pending[key] = v;
-      continue;
-    }
     live[key] = JSON_FIELDS.has(key) ? JSON.stringify(v) : v;
   }
   const next = { ...current, ...live };
@@ -169,14 +157,15 @@ export function updateProfile(db, user, body) {
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
     throw bad('invalid_field', 'Cerca competenze diverse dal tuo background.');
   }
-  live.pending_changes = JSON.stringify(pending);
   const keys = Object.keys(live);
+  if (!keys.length) return effectiveProfile(db, user.id);
   const params = { $user_id: user.id, $ts: now() };
   for (const k of keys) params[`$${k}`] = live[k];
   db.prepare(`UPDATE profiles SET ${keys.map(k => `${k} = $${k}`).join(', ')}, updated_at = $ts WHERE user_id = $user_id`).run(params);
   return effectiveProfile(db, user.id);
 }
 
+// Before there was no review, edits by members already online waited here: apply them (db.js, once)
 export function applyPendingChanges(db, userId) {
   const p = rawProfile(db, userId);
   const entries = Object.entries(p.pending_changes);
@@ -252,14 +241,17 @@ export function missingForSubmit(p) {
   return missing;
 }
 
-export function submitForReview(db, user) {
+// End of onboarding: the profile goes online straight away (no review; moderation acts afterwards:
+// photo checks, reports, suspension). Status "approved" means "published".
+export function publishProfile(db, user) {
   const p = effectiveProfile(db, user.id);
   const missing = missingForSubmit(p);
   if (missing.length) throw new HttpError(409, 'incomplete', `Completa: ${missing.join(', ')}.`);
-  if (!['onboarding', 'changes_requested'].includes(user.status)) return;
+  if (user.status !== 'onboarding') return;
+  const ts = now();
   tx(db, () => {
-    db.prepare(`UPDATE users SET status = 'in_review', updated_at = ? WHERE id = ?`).run(now(), user.id);
-    db.prepare('UPDATE profiles SET submitted_at = ?, review_note = NULL WHERE user_id = ?').run(now(), user.id);
+    db.prepare(`UPDATE users SET status = 'approved', updated_at = ? WHERE id = ?`).run(ts, user.id);
+    db.prepare('UPDATE profiles SET submitted_at = ?, approved_at = ? WHERE user_id = ?').run(ts, ts, user.id);
   });
 }
 

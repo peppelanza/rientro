@@ -180,25 +180,19 @@ function removeFile(db, id) {
   fs.rmSync(diskPath(f.storage_key), { force: true });
 }
 
-// Photo: for approved members the new photo waits in pending_changes until a moderator approves it.
+// A new photo or video replaces the previous one at once (no review).
 export function attachUpload(db, user, kind, upload) {
   const id = newId();
   const p = rawProfile(db, user.id);
   const column = kind === 'profile_photo' ? 'photo_file_id' : 'video_file_id';
-  const reviewed = kind === 'profile_photo' && user.status === 'approved';
-  const replaced = reviewed ? p.pending_changes.photo_file_id : p[column];
+  const replaced = p[column];
   tx(db, () => {
     db.prepare('INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .run(id, user.id, kind, upload.key, upload.mime, upload.size, upload.sha256, now());
-    if (reviewed) {
-      const pending = { ...p.pending_changes, photo_file_id: id };
-      db.prepare('UPDATE profiles SET pending_changes = ?, updated_at = ? WHERE user_id = ?').run(JSON.stringify(pending), now(), user.id);
-    } else {
-      db.prepare(`UPDATE profiles SET ${column} = ?, updated_at = ? WHERE user_id = ?`).run(id, now(), user.id);
-    }
+    db.prepare(`UPDATE profiles SET ${column} = ?, updated_at = ? WHERE user_id = ?`).run(id, now(), user.id);
   });
   if (replaced && replaced !== id) { cancelConversion(replaced); removeFile(db, replaced); }
-  return { id, url: `/api/files/${id}`, pending_review: reviewed };
+  return { id, url: `/api/files/${id}` };
 }
 
 export function removeVideo(db, userId) {

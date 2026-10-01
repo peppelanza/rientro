@@ -3,6 +3,8 @@ import { api } from '../../lib.js';
 import { AdminPage } from './_admin.js';
 
 export const title = 'Analytics · Admin';
+const PERIOD_LONG = { 1: 'ultime 24 ore', 30: 'ultimi 30 giorni', 90: 'ultimi 90 giorni', 365: 'ultimi 12 mesi' };
+const PERIOD_SHORT = { 1: '24 h', 30: '30 g', 90: '90 g', 365: '12 mesi' };
 // Cloudflare gives country codes (IT, GB…): their Italian names
 const regionNames = new Intl.DisplayNames(['it'], { type: 'region' });
 const countryName = c => { try { return /^[A-Z]{2}$/.test(c) ? regionNames.of(c) : c; } catch { return c; } };
@@ -28,16 +30,20 @@ export default class extends AdminPage {
     const lists = {
       pages: t.pages.map(x => ({ l: x.l, v: n(x.v) })),
       referrers: t.referrers.map(x => ({ l: x.l, v: n(x.v) })),
+      refPages: (t.referrer_pages ?? []).map(x => ({ l: x.l, v: n(x.v), href: `https://${x.l}` })),
       countries: t.countries.map(x => ({ l: countryName(x.l), v: n(x.v) })),
       devices: t.devices.map(x => ({ l: label[x.l.toLowerCase()] ?? x.l, v: n(x.v) })),
     };
     return {
-      visits: n(t.visits), pageviews: n(t.pageviews), periodLabel: this.state.period === '365' ? 'ultimi 12 mesi' : `ultimi ${this.state.period} giorni`,
+      visits: n(t.visits), pageviews: n(t.pageviews), periodLabel: PERIOD_LONG[this.state.period],
       perVisit: t.visits ? `${(t.pageviews / t.visits).toFixed(1).replace('.', ',')} per visita` : '',
       conversion: t.visits ? `${((this.state.d.new_in_period / t.visits) * 100).toFixed(1).replace('.', ',')}%` : '—',
       mobile: t.pageviews ? `${Math.round((mobile / t.pageviews) * 100)}%` : '—',
-      days: t.days.map(d => ({ h: `${(d.visits / max) * 100}%`, title: `${d.date}: ${d.visits} visite, ${d.pageviews} pagine` })),
+      refPagesOff: t.referrer_pages === null,
+      chartTitle: t.hourly ? 'Visite per ora' : 'Visite per giorno',
+      days: t.days.map(d => ({ h: `${(d.visits / max) * 100}%`, title: `${t.hourly ? new Date(d.date).toLocaleString('it-IT', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) : d.date}: ${d.visits} visite, ${d.pageviews} pagine` })),
       ...lists, ...Object.fromEntries(Object.entries(lists).map(([k, v]) => [`no_${k}`, !v.length])),
+      no_refPages: t.referrer_pages !== null && !(t.referrer_pages ?? []).length,
     };
   }
 
@@ -51,8 +57,8 @@ export default class extends AdminPage {
     return {
       loading: false, side: this.side('analytics'),
       tr: this.traffic(), trOff: !s.t?.enabled, trError: s.t?.error ?? '',
-      periodOpts: [{ v: '30', l: '30 g' }, { v: '90', l: '90 g' }, { v: '365', l: '12 mesi' }], period: s.period, periodProps: { onSelect: v => v && this.setPeriod(v) },
-      total: d.total.toLocaleString('it-IT'), newIn: `+${d.new_in_period} in ${s.period === '365' ? '12 mesi' : `${s.period} g`}`,
+      periodOpts: [{ v: '1', l: '24 h' }, { v: '30', l: '30 g' }, { v: '90', l: '90 g' }, { v: '365', l: '12 mesi' }], period: s.period, periodProps: { onSelect: v => v && this.setPeriod(v) },
+      total: d.total.toLocaleString('it-IT'), newIn: `+${d.new_in_period} in ${PERIOD_SHORT[s.period]}`,
       rate: d.requests_per_active, acceptance: `${d.acceptance}%`,
       split: `${d.abroad} / ${d.italy}`, abroadW: `${d.abroad}%`, italyW: `${d.italy}%`,
       methods: d.sign_in_methods.map(m => ({ l: m.l, v: `${m.v}%`, w: `${m.v}%` })),

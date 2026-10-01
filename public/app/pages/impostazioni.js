@@ -9,7 +9,6 @@ export const tabbar = true;
 const NOTIF = [
   ['Nuove richieste di connessione', 'notify_requests'],
   ['Nuovi messaggi', 'notify_messages'],
-  ['Stato del profilo', 'notify_status'],
 ];
 
 export default class extends Page {

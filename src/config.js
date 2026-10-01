@@ -72,7 +72,7 @@ export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).pro
 
 export const LEGAL_VERSIONS = {
   privacy: '2026-10-01',
-  terms: '2026-09-30',
+  terms: '2026-10-01',
   cookies: '2026-10-01',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
