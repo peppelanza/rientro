@@ -1,13 +1,13 @@
 // Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
-// Cookie Policy, final texts of 30 September 2026. Changing one: bump its LEGAL_VERSIONS entry.
-// No cookie banner (43c): today only the technical session cookie is used.
+// Cookie Policy, texts of 1 October 2026. Changing one: bump its LEGAL_VERSIONS entry.
+// No cookie banner (43c): only technical cookies; visit statistics without cookies (Cloudflare Web Analytics).
 import { Page } from './_base.js';
 
 export const title = 'Informazioni legali';
 
 const DOCS = {
   privacy: {
-    title: 'Privacy Policy', updated: 'AGGIORNATA IL 30 SETTEMBRE 2026',
+    title: 'Privacy Policy', updated: 'AGGIORNATA IL 1° OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
       ['Chi lo vede', 'Solo membri approvati e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email.'],
@@ -57,12 +57,13 @@ const DOCS = {
         'Ci affidiamo a pochi fornitori, scelti per le garanzie che offrono e vincolati da un accordo sul trattamento dei dati:',
         '• Render Services, Inc. (Stati Uniti): hosting del sito e del database. I server che usiamo si trovano a Francoforte, in Germania, quindi i dati sono conservati nell’Unione europea.',
         '• Brevo (Sendinblue SAS, Francia): invio delle email di servizio (per esempio il codice di accesso e le notifiche) e, se ci hai dato il consenso, della newsletter.',
-        '• Cloudflare, Inc. (Stati Uniti): verifica anti-bot (Turnstile) quando chiedi il codice di accesso, per proteggere il servizio da iscrizioni automatiche. Il trasferimento verso gli Stati Uniti è coperto dal Data Privacy Framework UE-USA e dalle clausole contrattuali standard.',
+        '• Cloudflare, Inc. (Stati Uniti): verifica anti-bot (Turnstile) quando chiedi il codice di accesso, per proteggere il servizio da iscrizioni automatiche, e statistiche aggregate delle visite senza cookie (Web Analytics). Il trasferimento verso gli Stati Uniti è coperto dal Data Privacy Framework UE-USA e dalle clausole contrattuali standard.',
         'Se accedi con LinkedIn o Google, LinkedIn Ireland Unlimited Company e Google Ireland Limited trattano i dati relativi al tuo accesso come titolari autonomi, secondo le rispettive informative privacy.',
         'Alcuni fornitori hanno sede o sub-fornitori fuori dallo Spazio economico europeo, in particolare negli Stati Uniti. In questi casi il trasferimento avviene solo con le garanzie previste dal GDPR: la decisione di adeguatezza della Commissione europea per le aziende aderenti all’EU-U.S. Data Privacy Framework oppure le Clausole contrattuali standard approvate dalla Commissione (artt. 45 e 46 GDPR). Puoi chiederci copia delle garanzie scrivendo a privacy@rientro.it.',
       ]],
       ['Cookie', [
-        'Usiamo un solo cookie tecnico, necessario a tenerti connesso. Non usiamo cookie di analisi, di profilazione o pubblicitari, e i caratteri tipografici del sito sono ospitati sui nostri server: visitare Rientro non comunica il tuo indirizzo IP a servizi di terze parti. Trovi i dettagli nella Cookie Policy.',
+        'Usiamo solo cookie tecnici, necessari a tenerti connesso e a far funzionare l’accesso. Non usiamo cookie di analisi, di profilazione o pubblicitari, e i caratteri tipografici del sito sono ospitati sui nostri server.',
+        'Statistiche delle visite: per sapere quante persone visitano il sito, da dove arrivano (per esempio da LinkedIn o da Google) e quali pagine guardano, usiamo Cloudflare Web Analytics. Non usa cookie né altri identificativi salvati sul tuo dispositivo e non ti segue su altri siti: Cloudflare riceve il tuo indirizzo IP e informazioni tecniche sulla visita (pagina, provenienza, paese, tipo di dispositivo e browser) e ci restituisce solo numeri aggregati. Non la usiamo nelle pagine di amministrazione. Base giuridica: il nostro legittimo interesse a capire come viene usato il sito e a migliorarlo (art. 6.1.f). Trovi i dettagli nella Cookie Policy.',
       ]],
       ['Per quanto tempo conserviamo i dati', [
         'Conserviamo i dati solo per il tempo necessario alle finalità per cui li raccogliamo. Le cancellazioni indicate qui sotto avvengono automaticamente, ogni giorno:',
@@ -191,18 +192,20 @@ const DOCS = {
     ],
   },
   cookie: {
-    title: 'Cookie Policy', updated: 'AGGIORNATA IL 30 SETTEMBRE 2026',
+    title: 'Cookie Policy', updated: 'AGGIORNATA IL 1° OTTOBRE 2026',
     summary: [
-      ['Solo un cookie tecnico', 'Usiamo solo il cookie necessario a tenerti connesso dopo l’accesso.'],
-      ['Nessun tracciamento', 'Niente cookie di analisi, profilazione o pubblicità, e nessun servizio di terze parti caricato dalle pagine. Per questo non ti mostriamo un banner.'],
+      ['Solo cookie tecnici', 'Usiamo solo i cookie necessari a tenerti connesso e a far funzionare l’accesso.'],
+      ['Nessun tracciamento', 'Niente cookie di analisi, profilazione o pubblicità. Contiamo le visite con uno strumento che non usa cookie. Per questo non ti mostriamo un banner.'],
     ],
     sections: [
       ['Cosa sono i cookie', ['I cookie sono piccoli file di testo che un sito salva nel tuo browser. Alcuni sono tecnici, cioè necessari al funzionamento del sito; altri servono a misurare le visite o a mostrare pubblicità e richiedono il tuo consenso (art. 122 del D.lgs. 196/2003 e Linee guida del Garante del 10 giugno 2021).']],
       ['Cookie che usiamo', [
-        '• Nome: __Host-rientro_session. Tipo: tecnico, di prima parte. Finalità: mantenere la sessione dopo l’accesso. Durata: 30 giorni, oppure fino a quando esci da Rientro. Il cookie è protetto (HttpOnly, Secure, SameSite=Lax) e contiene solo un codice casuale: non contiene dati personali leggibili.',
-        'Essendo strettamente necessario, questo cookie non richiede il tuo consenso. Se lo blocchi dalle impostazioni del browser non potrai accedere all’area riservata.',
+        '• Nome: __Secure-rientro_session. Tipo: tecnico, di prima parte (valido su rientro.it e sui suoi sottodomini). Finalità: mantenere la sessione dopo l’accesso. Durata: 30 giorni, oppure fino a quando esci da Rientro. Il cookie è protetto (HttpOnly, Secure, SameSite=Lax) e contiene solo un codice casuale: non contiene dati personali leggibili.',
+        '• Nome: rientro_li_state. Tipo: tecnico, di prima parte. Finalità: proteggere l’accesso con LinkedIn da richieste contraffatte. Durata: 10 minuti, solo durante l’accesso con LinkedIn.',
+        '• Nome: rientro_flash. Tipo: tecnico, di prima parte. Finalità: mostrarti una sola volta un messaggio dopo l’accesso (per esempio quando un account viene ripristinato). Durata: 2 minuti.',
+        'Essendo strettamente necessari, questi cookie non richiedono il tuo consenso. Se li blocchi dalle impostazioni del browser non potrai accedere all’area riservata.',
       ]],
-      ['Servizi di terze parti', ['Le pagine di Rientro non caricano risorse da servizi esterni: anche i caratteri tipografici sono ospitati sui nostri server. Visitare il sito non comunica quindi il tuo indirizzo IP a terzi. L’unica eccezione è il passaggio in cui chiedi il codice di accesso via email: lì usiamo Cloudflare Turnstile per verificare che non sia un programma automatico, e Cloudflare riceve il tuo indirizzo IP e alcune informazioni tecniche sul browser, senza cookie di profilazione. Se accedi con LinkedIn o Google verrai indirizzato alle loro pagine, dove si applicano le rispettive cookie policy.']],
+      ['Servizi di terze parti', ['I caratteri tipografici e le librerie del sito sono ospitati sui nostri server. Le pagine caricano un solo servizio esterno, Cloudflare Web Analytics, che conta le visite senza usare cookie né altri identificativi salvati sul tuo dispositivo: Cloudflare riceve il tuo indirizzo IP e informazioni tecniche sulla visita, e a noi restituisce solo numeri aggregati. Nel passaggio in cui chiedi il codice di accesso via email usiamo anche Cloudflare Turnstile per verificare che non sia un programma automatico: anche in questo caso Cloudflare riceve il tuo indirizzo IP e alcune informazioni tecniche sul browser, senza cookie di profilazione. Se accedi con LinkedIn o Google verrai indirizzato alle loro pagine, dove si applicano le rispettive cookie policy.']],
       ['Memoria locale del browser', ['Per alcune comodità, come ricordare una scelta dell’interfaccia, il sito può usare la memoria locale del tuo browser. Questi dati restano sul tuo dispositivo, non ci vengono inviati e non servono a tracciarti.']],
       ['Modifiche', ['Se in futuro aggiungeremo strumenti di analisi o altri cookie non tecnici, te lo chiederemo prima con un banner in cui “Rifiuta” e “Accetta” avranno la stessa evidenza, e registreremo la tua scelta. Per domande: privacy@rientro.it.']],
     ],

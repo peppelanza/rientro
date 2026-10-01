@@ -19,6 +19,11 @@ export const config = {
   // Cloudflare Turnstile (bot check on sign-in): both set = on. See turnstile.js.
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
   turnstileSecret: process.env.TURNSTILE_SECRET_KEY || '',
+  // Cloudflare Web Analytics (visits, no cookies) and reading them in the admin. See web-analytics.js.
+  cfAnalyticsToken: process.env.CF_ANALYTICS_TOKEN || '',
+  cfAnalyticsSiteTag: process.env.CF_ANALYTICS_SITE_TAG || '',
+  cfAccountId: process.env.CLOUDFLARE_ACCOUNT_ID || '',
+  cfApiToken: process.env.CLOUDFLARE_API_TOKEN || '',
   // Comma-separated emails that get the admin role when they first sign in.
   adminEmails: (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
   // The admin panel lives only on its own host (e.g. admin.rientro.it): anyone who isn't a signed-in
@@ -66,9 +71,9 @@ export const cookieDomain = () => (config.adminHost ? config.adminHost.split('.'
 export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).protocol}//${config.adminHost}/admin` : '/admin');
 
 export const LEGAL_VERSIONS = {
-  privacy: '2026-09-30',
+  privacy: '2026-10-01',
   terms: '2026-09-30',
-  cookies: '2026-09-30',
+  cookies: '2026-10-01',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
 };

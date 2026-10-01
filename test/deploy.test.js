@@ -118,3 +118,41 @@ test('sign-up email checks: throwaway domains, domains without mail, bot check',
     assert.equal(code.status, 400);
   } finally { Object.assign(config, { turnstileSiteKey: '', turnstileSecret: '' }); }
 });
+
+test('visit statistics: Cloudflare beacon on member and public pages only, numbers read back for the admin', async () => {
+  const { traffic } = await import('../src/web-analytics.js');
+  // Off: no script, admin shows "not connected"
+  assert.doesNotMatch(await (await fetch(`${t.base}/`)).text(), /cloudflareinsights/);
+  assert.equal((await traffic(30)).enabled, false);
+  Object.assign(config, { cfAnalyticsToken: 'beacon-token', cfAccountId: 'acc', cfApiToken: 'api' });
+  try {
+    const home = await fetch(`${t.base}/`);
+    assert.match(await home.text(), /static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"beacon-token","spa":true\}'/);
+    const csp = home.headers.get('content-security-policy');
+    assert.match(csp, /script-src [^;]*https:\/\/static\.cloudflareinsights\.com/);
+    assert.match(csp, /connect-src 'self' https:\/\/cloudflareinsights\.com/);
+    assert.match(csp, /style-src 'self'/);
+    // Not in the admin panel
+    const a = await t.asAdmin();
+    assert.doesNotMatch(await (await fetch(`${t.base}/admin`, { headers: { cookie: a.cookie } })).text(), /cloudflareinsights/);
+    // Reading the numbers back (GraphQL), with the site tag looked up from the beacon token
+    const row = (d, count, visits) => ({ count, sum: { visits }, dimensions: d });
+    const cf = async (url, opts) => {
+      if (String(url).includes('/rum/site_info/list')) return Response.json({ result: [{ site_tag: 'tag-1', site_token: 'beacon-token' }] });
+      const body = JSON.parse(opts.body);
+      assert.equal(body.variables.filter.AND[1].siteTag, 'tag-1');
+      return Response.json({ data: { viewer: { accounts: [{
+        total: [row({}, 120, 50)], days: [row({ date: '2026-09-30' }, 70, 30), row({ date: '2026-10-01' }, 50, 20)],
+        pages: [row({ requestPath: '/' }, 80)], referrers: [row({ refererHost: 'www.linkedin.com' }, 30), row({ refererHost: '' }, 20)],
+        countries: [row({ countryName: 'IT' }, 90)], devices: [row({ deviceType: 'mobile' }, 70), row({ deviceType: 'desktop' }, 50)],
+      }] } } });
+    };
+    const d = await traffic(7, cf);
+    assert.equal(d.visits, 50);
+    assert.equal(d.pageviews, 120);
+    assert.deepEqual(d.days.map(x => x.visits), [30, 20]);
+    assert.deepEqual(d.referrers.map(x => x.l), ['www.linkedin.com', '(diretto)']);
+    const err = await traffic(14, async () => Response.json({ errors: [{ message: 'not authorized' }] }));
+    assert.match(err.error, /not authorized/);
+  } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '' }); }
+});

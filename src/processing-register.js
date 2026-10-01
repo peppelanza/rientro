@@ -1,6 +1,6 @@
 // Record of processing activities (art. 30 GDPR), kept in code so it is versioned with the features
 // it describes. Seeded into the processing_register table on boot and shown in the admin area.
-// It mirrors the privacy policy of 30 September 2026 (public/app/pages/legal.js): change both together.
+// It mirrors the privacy policy of 1 October 2026 (public/app/pages/legal.js): change both together.
 // Retention periods are enforced by src/retention.js.
 
 export const PROCESSING_REGISTER = [
@@ -54,19 +54,19 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'moderation_and_safety',
-    description: 'Revisione dei profili, segnalazioni e blocchi, prevenzione di abusi, spam, profili falsi e accessi abusivi. In caso di segnalazione un moderatore può leggere la chat tra segnalante e segnalato; ogni accesso è registrato.',
-    data_categories: 'dati del profilo, segnalazioni, conversazioni segnalate, note admin, registro accessi admin, indirizzo IP (non salvato nel database)',
+    description: 'Revisione dei profili, segnalazioni e blocchi, prevenzione di abusi, spam, profili falsi e accessi abusivi: controllo anti-bot all’accesso (Cloudflare Turnstile), blocco delle email temporanee, controllo nel browser di volto e contenuti espliciti nelle foto, con quarantena delle immagini bloccate. In caso di segnalazione un moderatore può leggere la chat tra segnalante e segnalato; ogni accesso è registrato.',
+    data_categories: 'dati del profilo, segnalazioni, conversazioni segnalate, immagini bloccate e punteggi del controllo, note admin, registro accessi admin, indirizzo IP (non salvato nel database)',
     proposed_basis: 'Legittimo interesse alla sicurezza della community (art. 6.1.f)',
-    retention: 'Segnalazioni chiuse 24 mesi; registro accessi admin 24 mesi',
-    recipients: 'Titolare e persone autorizzate con ruolo admin',
+    retention: 'Segnalazioni chiuse 24 mesi; registro accessi admin 24 mesi; immagini bloccate fino alla decisione e al massimo 30 giorni',
+    recipients: 'Titolare e persone autorizzate con ruolo admin; Cloudflare (Turnstile)',
   },
   {
     purpose: 'statistics',
-    description: 'Statistiche aggregate interne e conteggi pubblici per città (mai gruppi sotto le 5 persone).',
-    data_categories: 'dati aggregati non identificativi',
+    description: 'Statistiche aggregate interne e conteggi pubblici per città (mai gruppi sotto le 5 persone); conteggio delle visite al sito senza cookie (Cloudflare Web Analytics, non nelle pagine admin).',
+    data_categories: 'dati aggregati non identificativi; per le visite: indirizzo IP e dati tecnici della visita, trattati da Cloudflare, che ci restituisce solo aggregati',
     proposed_basis: 'Legittimo interesse (art. 6.1.f)',
-    retention: 'Calcolate al momento, non conservate',
-    recipients: 'Titolare; conteggi aggregati pubblici',
+    retention: 'Calcolate al momento, non conservate; visite: secondo i tempi di Cloudflare Web Analytics (piano gratuito, alcuni mesi)',
+    recipients: 'Titolare; conteggi aggregati pubblici; Cloudflare (Web Analytics)',
   },
   {
     purpose: 'preference_ledger',
