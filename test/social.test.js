@@ -9,14 +9,14 @@ let t;
 before(async () => { t = await startApp(); });
 after(() => t.close());
 
-test('onboarding: submit requires the essentials, then goes to review', async () => {
+test('onboarding: submit requires the essentials, then the profile is online', async () => {
   const u = await t.login('fresh@x.it');
   const r = await u.post('/api/me/submit');
   assert.equal(r.status, 409);
   assert.match(r.body.message, /Foto/);
   const m = await t.member('complete@x.it');
   const s = await m.post('/api/me/submit');
-  assert.equal(s.body.user.status, 'in_review');
+  assert.equal(s.body.user.status, 'approved');
 });
 
 test('who lives in Italy says where from and when; "ho sempre vissuto in Italia" overrides it', async () => {
@@ -127,15 +127,34 @@ test('reports reach moderation; resolving can suspend; suspended users are locke
   assert.equal(login.status, 403);
 });
 
-test('request changes sends the note to the member', async () => {
-  const u = await t.member('fixme@x.it');
-  await u.post('/api/me/submit');
+test('moderation is only suspend / give back; old review states are migrated', async () => {
+  const u = await t.approved('modera@x.it');
   const admin = await t.asAdmin();
-  await admin.post(`/api/admin/users/${u.id}/review`, { action: 'request_changes', note: 'Aggiungi una foto in cui si veda il volto.' });
-  const me = (await u.get('/api/me')).body;
-  assert.equal(me.user.status, 'changes_requested');
-  assert.equal(me.profile.review_note, 'Aggiungi una foto in cui si veda il volto.');
-  assert.equal((await u.post('/api/me/submit')).body.user.status, 'in_review');
+  for (const action of ['approve', 'request_changes', 'reject']) {
+    assert.equal((await admin.post(`/api/admin/users/${u.id}/review`, { action, note: 'x' })).status, 400, action);
+  }
+  assert.equal((await admin.post(`/api/admin/users/${u.id}/review`, { action: 'suspend' })).status, 200);
+  assert.equal((await admin.post(`/api/admin/users/${u.id}/review`, { action: 'unsuspend' })).status, 200);
+  assert.equal(t.app.db.prepare('SELECT status FROM users WHERE id = ?').get(u.id).status, 'approved');
+  // Database from before: waiting / changes requested → online, edits applied; rejected → suspended
+  const { openDb } = await import('../src/db.js');
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'rientro-mig-')), 'db.sqlite');
+  let db = openDb(file);
+  const ts = new Date().toISOString();
+  for (const [id, status, pending] of [['a', 'in_review', '{}'], ['b', 'changes_requested', '{}'], ['c', 'rejected', '{}'], ['d', 'approved', JSON.stringify({ first_name: 'Nuovo' })]]) {
+    db.prepare('INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(id, `${id}@x.it`, 'member', status, ts, ts);
+    db.prepare('INSERT INTO profiles (user_id, first_name, pending_changes, updated_at) VALUES (?, ?, ?, ?)').run(id, 'Vecchio', pending, ts);
+  }
+  db.close();
+  db = openDb(file);
+  const st = Object.fromEntries(db.prepare('SELECT id, status FROM users').all().map(r => [r.id, r.status]));
+  assert.deepEqual(st, { a: 'approved', b: 'approved', c: 'suspended', d: 'approved' });
+  assert.equal(db.prepare("SELECT first_name FROM profiles WHERE user_id = 'd'").get().first_name, 'Nuovo');
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM profiles WHERE pending_changes != '{}'").get().n, 0);
+  db.close();
 });
 
 test('dashboard and analytics compute without errors', async () => {

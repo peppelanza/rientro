@@ -47,17 +47,17 @@ test('unapproved profiles are hidden and cannot browse', async () => {
   assert.equal((await hidden.get('/api/profiles')).status, 403);
 });
 
-test('photo/name edits by approved members wait for review', async () => {
+test('edits by members already online show at once (no review)', async () => {
   const u = await t.approved('edits@x.it', { first_name: 'Primo' });
   const v = await t.approved('watcher@x.it');
   await u.patch('/api/me/profile', { first_name: 'Secondo', bio: 'y'.repeat(170) });
-  assert.equal((await v.get(`/api/profiles/${u.id}`)).body.first_name, 'Primo');
-  assert.equal((await v.get(`/api/profiles/${u.id}`)).body.bio, 'y'.repeat(170)); // non-reviewed field is live
-  assert.equal((await u.get('/api/me')).body.profile.first_name, 'Secondo');
-  const a = await t.asAdmin();
-  assert.ok((await a.get('/api/admin/approvals')).body.queue.some(q => q.id === u.id && q.kind === 'changes'));
-  await a.post(`/api/admin/users/${u.id}/review`, { action: 'approve' });
   assert.equal((await v.get(`/api/profiles/${u.id}`)).body.first_name, 'Secondo');
+  assert.equal((await v.get(`/api/profiles/${u.id}`)).body.bio, 'y'.repeat(170));
+  const { PNG } = await import('./helpers.js');
+  const before = (await v.get(`/api/profiles/${u.id}`)).body.photo_url;
+  const up = await u.raw('POST', '/api/me/photo', PNG);
+  assert.equal(up.body.pending_review, undefined);
+  assert.notEqual((await v.get(`/api/profiles/${u.id}`)).body.photo_url, before);
 });
 
 test('admin endpoints require the admin role and every access is audited', async () => {

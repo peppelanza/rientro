@@ -54,11 +54,9 @@ export async function startApp(opts = {}) {
 
   async function approved(email, profile) {
     const u = await member(email, profile);
+    // No review: sending the profile puts it online
     const s = await u.post('/api/me/submit');
     if (s.status !== 200) throw new Error(`submit: ${JSON.stringify(s.body)}`);
-    const a = await asAdmin();
-    const r = await a.post(`/api/admin/users/${u.id}/review`, { action: 'approve' });
-    if (r.status !== 200) throw new Error(`approve: ${JSON.stringify(r.body)}`);
     return u;
   }
 

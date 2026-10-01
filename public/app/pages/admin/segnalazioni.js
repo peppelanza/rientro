@@ -63,7 +63,7 @@ export default class extends AdminPage {
           ...r, rbg, rfg, d: r.details || '—', age: r.age_h >= 24 ? `${Math.floor(r.age_h / 24)} G` : `${r.age_h} H`, ac: r.age_h >= 24 ? '#B42318' : '#6B6680',
           profile: () => go(`/admin/utenti/${r.reported_id}`), resolution: RESOLUTION[r.resolution] ?? r.status,
           isHarass: r.reason === 'harassment', notHarass: r.reason !== 'harassment', hasChat: !!r.reporter_id,
-          chat: () => this.chat(r), dismiss: () => this.resolve(r, 'dismiss'), suspend: () => this.resolve(r, 'suspend'), changes: () => this.resolve(r, 'request_changes'),
+          chat: () => this.chat(r), dismiss: () => this.resolve(r, 'dismiss'), suspend: () => this.resolve(r, 'suspend'),
           isFake: r.reason === 'fake_profile',
         };
       }),

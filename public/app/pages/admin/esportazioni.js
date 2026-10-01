@@ -30,7 +30,7 @@ export default class extends AdminPage {
     const s = this.state;
     if (!s.recent) return { loading: true, side: this.side('esportazioni') };
     const all = COLUMNS[s.dataset];
-    const statusLabel = { onboarding: 'Bozza', in_review: 'In revisione', changes_requested: 'Modifiche', approved: 'Approvato', rejected: 'Rifiutato', suspended: 'Sospeso' };
+    const statusLabel = { onboarding: 'In compilazione', approved: 'Online', suspended: 'Sospeso' };
     return {
       loading: false, side: this.side('esportazioni'),
       datasetOpts: [{ v: 'users', l: 'Utenti' }, { v: 'connections', l: 'Connessioni' }, { v: 'reports', l: 'Segnalazioni' }], dataset: s.dataset,

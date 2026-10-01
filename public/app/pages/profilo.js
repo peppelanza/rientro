@@ -1,5 +1,5 @@
-// Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own; for approved
-// members, changes to photo, name and idea go to review first (profiles.REVIEWED_FIELDS).
+// Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
+// once (there's no review).
 import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -20,7 +20,6 @@ const SECTIONS = [
   ['italia', "Cosa mi manca dell'Italia", ['misses_italy']],
   ['link', 'Link', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
 ];
-const REVIEWED = ['first_name', 'last_name', 'idea_title', 'idea_description'];
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 
@@ -77,12 +76,11 @@ export default class extends Page {
     const s = this.state;
     const body = Object.fromEntries(this.sec[2].map(k => [k, nz(s.p[k])]));
     if (body.lives_in === 'italy') delete body.lives_in_country;
-    const reviewedChanged = s.me.user.status === 'approved' && REVIEWED.some(k => (s.p[k] ?? null) !== (s.me.profile[k] ?? null));
     const saved = await api('PATCH', '/api/me/profile', body);
     s.me.profile = { ...s.me.profile, ...saved };
     s.p = structuredClone(s.me.profile);
     s.dirty = false;
-    toast(reviewedChanged ? 'Salvato. Le modifiche a nome e idea saranno online dopo la revisione.' : 'Modifiche salvate.');
+    toast('Modifiche salvate.');
   });
 
   cancel() { const s = this.state; s.p = structuredClone(s.me.profile); s.dirty = false; this.__rerender(); }
@@ -119,7 +117,7 @@ export default class extends Page {
     upload(`/api/me/${video ? 'video' : 'photo'}`, file, (loaded, total) => { s.up = { ...s.up, loaded, total }; this.__rerender(); }, photoCheck ? { 'x-photo-check': photoCheck } : {})
       .then(r => {
         if (video) { s.me.profile.video_url = r.url; s.p.video_url = r.url; setPreview(s, file); s.newVideo = true; } else { Object.assign(s.me.profile, { photo_url: r.url, photo_check: photoCheck }); Object.assign(s.p, { photo_url: r.url, photo_check: photoCheck }); }
-        toast(r.pending_review ? 'Foto caricata. Sarà online dopo la revisione.' : video ? 'Video caricato.' : 'Foto aggiornata.');
+        toast(video ? 'Video caricato.' : 'Foto aggiornata.');
       })
       .catch(err => { if (err.status !== 0) toast(err.message, { tone: 'err' }); })
       .finally(() => { s.up = null; this.__rerender(); });
@@ -141,7 +139,6 @@ export default class extends Page {
     if (!s.p) return { loading: true, me: s.me || {} };
     const { p, cat, me } = s;
     const is = k => s.section === k;
-    const pending = Object.keys(me.profile.pending_changes || {});
     const status = me.user.status;
     const card = (on, fn) => ({ on, fn, aria: on ? 'true' : 'false' });
     const toggleIn = (l, v, max) => (l.includes(v) ? l.filter(x => x !== v) : l.length >= max ? l : [...l, v]);
@@ -153,15 +150,13 @@ export default class extends Page {
       loading: false, me, cat, t,
       menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { e.preventDefault(); this.goSection(k); } })),
       activeLabel: this.sec[1], heading: this.sec[1],
-      badgeKind: status === 'approved' ? (pending.length ? 'neutral' : 'success') : 'neutral',
-      badgeLabel: status === 'approved' ? (pending.length ? 'Modifiche in revisione' : 'Online') : status === 'in_review' ? 'In revisione' : status === 'changes_requested' ? 'Modifiche richieste' : 'Non pubblicato',
-      showReviewNote: status === 'approved' && ['intestazione', 'obiettivo'].includes(s.section),
-      hasPending: pending.length > 0,
+      badgeKind: status === 'approved' ? 'success' : 'neutral',
+      badgeLabel: status === 'approved' ? 'Online' : 'Non pubblicato',
       dirty: s.dirty, saveVariant: s.dirty ? 'primary' : 'secondary', save: this.save, cancel: () => this.cancel(),
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),
       // intestazione
-      photo: p.photo_url, photoPending: pending.includes('photo_file_id'), photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
+      photo: p.photo_url, photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },

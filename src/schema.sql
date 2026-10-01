@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
   id            TEXT PRIMARY KEY,
   email         TEXT NOT NULL UNIQUE COLLATE NOCASE,
   role          TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('member', 'admin')),
-  -- onboarding → in_review → approved | changes_requested | rejected; suspended by moderation
+  -- onboarding → approved (= online as soon as the profile is sent; no review); suspended by moderation.
+  -- in_review, changes_requested and rejected are no longer used (db.js migrateNoReview).
   status        TEXT NOT NULL DEFAULT 'onboarding'
                 CHECK (status IN ('onboarding', 'in_review', 'changes_requested', 'approved', 'rejected', 'suspended')),
   created_at    TEXT NOT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   -- State
   visible                INTEGER NOT NULL DEFAULT 1,       -- 38a "Visibilità profilo"
   onboarding_step        TEXT,
-  pending_changes        TEXT NOT NULL DEFAULT '{}',       -- photo/name/idea edits awaiting review
+  pending_changes        TEXT NOT NULL DEFAULT '{}',       -- no longer used (there's no review)
   review_note            TEXT,                             -- note sent with "modifiche richieste"
   submitted_at           TEXT,
   approved_at            TEXT,

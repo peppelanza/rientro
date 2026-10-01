@@ -2,7 +2,7 @@
 import { api, getMe, go } from '../../lib.js';
 import { Page } from '../_base.js';
 
-export const STATUS_KIND = { approved: 'success', in_review: 'neutral', changes_requested: 'explore', onboarding: 'neutral', rejected: 'neutral', suspended: 'neutral' };
+export const STATUS_KIND = { approved: 'success', onboarding: 'neutral', suspended: 'neutral' };
 export const initials = n => (n || '?').split(/[ @.]/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
 export class AdminPage extends Page {

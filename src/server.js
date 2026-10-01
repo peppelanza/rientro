@@ -98,7 +98,7 @@ function cookie(name, value, maxAgeSeconds, { path = '/', httpOnly = true } = {}
 }
 const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : null);
 // Admins are members too: the portal treats them like everyone else (the panel is on its own host)
-const homeFor = user => (user.status === 'approved' ? '/scopri' : user.status === 'onboarding' ? '/onboarding' : '/stato');
+const homeFor = user => (user.status === 'onboarding' ? '/onboarding' : '/scopri');
 
 function sessionCookie(value, maxAgeSeconds) {
   const domain = cookieDomain();
@@ -235,9 +235,9 @@ function streamFile(req, res, f) {
 // --- pages ---------------------------------------------------------------------------------
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
-const MEMBER_PAGES = [/^\/onboarding$/, /^\/stato$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
+const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|approvazioni|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
@@ -405,7 +405,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.submitForReview(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
+  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
     legal(user);
@@ -434,7 +434,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // ---- members
   route('GET', '/api/profiles', ({ user, url }) => {
     social.requireLaunched(user);
-    if (user.status !== 'approved') throw new HttpError(403, 'not_approved', 'Potrai scoprire altre persone quando il tuo profilo sarà approvato.');
+    if (user.status !== 'approved') throw new HttpError(403, 'not_approved', 'Completa il profilo per scoprire le altre persone.');
     return profiles.discover(db, user, profiles.parseDiscoverQuery(url.searchParams));
   });
   route('GET', '/api/profiles/:id', ({ user, params }) => {
@@ -480,7 +480,6 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, adm);
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
-  route('GET', '/api/admin/approvals', ({ user }) => admin.approvals(db, user), adm);
   route('GET', '/api/admin/blocked', ({ user }) => moderation.listBlocked(db, user), adm);
   route('GET', '/api/admin/blocked/:id/image', ({ user, params, res }) => {
     const { mime, buf } = moderation.blockedImage(db, user, params.id);
@@ -563,6 +562,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
           if (city === 'missing') return sendNotFound(res, { kind: 'city' });
           if (city !== 'ok') { res.writeHead(302, { Location: city }); res.end(); return; }
         }
+        // The old "profilo in revisione" page (links in past notifications and emails)
+        if (p === '/stato') { res.writeHead(302, { Location: '/profilo' }); res.end(); return; }
         if (PUBLIC_PAGES.some(re => re.test(p))) return shell();
         const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
         if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {

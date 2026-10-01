@@ -35,6 +35,7 @@ export function openDb(file = config.dbPath) {
   migrateUserColumns(db);
   migrateIdeaStages(db);
   migrateChecks(db);
+  migrateNoReview(db);
   // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
   db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
   seed(db);
@@ -101,6 +102,27 @@ function migrateChecks(db) {
     db.exec(`PRAGMA schema_version = ${v + 1}`);
   } finally { db.exec('PRAGMA writable_schema = OFF'); }
   if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('profiles: CHECK migration failed');
+}
+
+// Profiles used to wait for a review before going online. Without it: whoever had sent theirs is
+// online, edits waiting for approval are applied, and a rejected profile stays locked (suspended,
+// the admin can give it back). Runs once (nothing left to change afterwards).
+function migrateNoReview(db) {
+  db.exec("UPDATE profiles SET approved_at = COALESCE(approved_at, submitted_at, updated_at) WHERE user_id IN (SELECT id FROM users WHERE status IN ('in_review', 'changes_requested'))");
+  db.exec("UPDATE users SET status = 'approved' WHERE status IN ('in_review', 'changes_requested')");
+  db.exec("UPDATE users SET status = 'suspended' WHERE status = 'rejected'");
+  db.exec("DELETE FROM notifications WHERE kind IN ('profile_approved', 'profile_changes_requested', 'profile_rejected')");
+  const columns = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));
+  for (const r of db.prepare("SELECT user_id, pending_changes FROM profiles WHERE pending_changes != '{}'").all()) {
+    let pending = {};
+    try { pending = JSON.parse(r.pending_changes); } catch {}
+    const entries = Object.entries(pending).filter(([k]) => columns.has(k) && k !== 'user_id');
+    const old = db.prepare('SELECT photo_file_id FROM profiles WHERE user_id = ?').get(r.user_id).photo_file_id;
+    if (entries.length) db.prepare(`UPDATE profiles SET ${entries.map(([k]) => `${k} = ?`).join(', ')} WHERE user_id = ?`).run(...entries.map(([, v]) => v), r.user_id);
+    db.prepare("UPDATE profiles SET pending_changes = '{}' WHERE user_id = ?").run(r.user_id);
+    // A replaced photo is no longer used: its file record goes
+    if (pending.photo_file_id && old && old !== pending.photo_file_id) db.prepare('DELETE FROM files WHERE id = ?').run(old);
+  }
 }
 
 function seed(db) {

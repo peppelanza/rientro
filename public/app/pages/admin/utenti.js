@@ -34,7 +34,7 @@ export default class extends AdminPage {
       loading: false, side: this.side('utenti'), total: d.total.toLocaleString('it-IT'),
       q: f.q, qProps: { onEnter: v => this.set({ q: v.trim() }), onBlur: v => v.trim() !== f.q && this.set({ q: v.trim() }) },
       filters: [
-        sel('Stato', 'status', [['onboarding', 'Bozza'], ['in_review', 'In revisione'], ['changes_requested', 'Modifiche'], ['approved', 'Approvato'], ['rejected', 'Rifiutato'], ['suspended', 'Sospeso']]),
+        sel('Stato', 'status', [['onboarding', 'In compilazione'], ['approved', 'Online'], ['suspended', 'Sospeso']]),
         sel('Intento', 'intent', [['has_idea', "Ha già un'idea"], ['seeking_idea', "Cerca un'idea"], ['networking', 'Networking']]),
         sel('Fonte', 'source', cat.sources.map(x => [x, x])),
       ].map(x => ({ ...x, options: x.options.map(([v, l]) => ({ v, l })), placeholder: `${x.label}: tutti` })),

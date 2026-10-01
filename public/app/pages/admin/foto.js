@@ -4,7 +4,7 @@ import { api, fmtDate, toast } from '../../lib.js';
 import { AdminPage } from './_admin.js';
 
 export const title = 'Foto da controllare · Admin';
-const STATUS = { onboarding: 'In onboarding', in_review: 'In revisione', approved: 'Approvato', changes_requested: 'Modifiche richieste', rejected: 'Non approvato', suspended: 'Sospeso' };
+const STATUS = { onboarding: 'In compilazione', approved: 'Online', suspended: 'Sospeso' };
 
 export default class extends AdminPage {
   async loadAdmin() { this.state.rows = await api('GET', '/api/admin/photo-checks'); }

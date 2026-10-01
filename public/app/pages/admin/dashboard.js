@@ -30,7 +30,7 @@ export default class extends AdminPage {
       periodProps: { onSelect: v => v && this.setPeriod(v) },
       range: d.signups.length ? `${dm(d.signups[0].day)} – ${dm(d.signups.at(-1).day)} ${new Date().getFullYear()}` : '',
       kpis: d.kpis.map(k => ({ ...k, tone: k.tone ?? 'positive' })),
-      signups: d.signups.map(x => ({ a: `${(x.signups / max) * 100}%`, b: `${(x.approved / max) * 100}%`, title: `${x.day}: ${x.signups} iscrizioni, ${x.approved} approvati` })),
+      signups: d.signups.map(x => ({ a: `${(x.signups / max) * 100}%`, b: `${(x.approved / max) * 100}%`, title: `${x.day}: ${x.signups} iscrizioni, ${x.approved} profili pubblicati` })),
       ticks: ticks.map(t => ({ t })),
       funnel: d.funnel.map((f, i) => ({ ...f, w: `${f.w}%`, c: funnelColors[i] })),
       cities: bar(d.cities), inds: bar(d.sectors), noCities: !d.cities.length, noInds: !d.sectors.length,

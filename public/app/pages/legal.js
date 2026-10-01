@@ -10,7 +10,7 @@ const DOCS = {
     title: 'Privacy Policy', updated: 'AGGIORNATA IL 1° OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
-      ['Chi lo vede', 'Solo membri approvati e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email.'],
+      ['Chi lo vede', 'Solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email.'],
       ['Cosa non facciamo', 'Non vendiamo i tuoi dati e non li cediamo a terzi per il loro marketing. Nessun cookie di tracciamento o pubblicità.'],
       ['Il controllo è tuo', 'Scarica o elimina tutto dalle impostazioni quando vuoi. Newsletter e notifiche si gestiscono in un clic. Per tutto il resto: privacy@rientro.it.'],
     ],
@@ -44,7 +44,7 @@ const DOCS = {
         'Tutti gli altri dati sono facoltativi: se non li inserisci il tuo profilo sarà semplicemente meno completo. Anche il consenso alla newsletter è facoltativo e negarlo non ha alcuna conseguenza sull’uso di Rientro.',
       ]],
       ['Chi può vedere i tuoi dati', [
-        '• Gli altri membri approvati di Rientro vedono il tuo profilo. Instagram, X e il link al calendario sono visibili solo alle persone con cui sei connesso. La tua email non viene mai mostrata a nessuno.',
+        '• Gli altri membri di Rientro vedono il tuo profilo da quando lo pubblichi. Instagram, X e il link al calendario sono visibili solo alle persone con cui sei connesso. La tua email non viene mai mostrata a nessuno.',
         '• Le tue connessioni vedono i messaggi che vi scambiate: i messaggi sono visibili solo a chi partecipa alla conversazione.',
         '• Aziende verificate: stiamo preparando la possibilità per le aziende di registrarsi a Rientro e contattare i membri dentro la piattaforma, come avviene su LinkedIn. Quando la attiveremo, le aziende verificate vedranno il tuo profilo come lo vedono i membri e potranno scriverti tramite Rientro; non riceveranno la tua email né altri dati fuori dalla piattaforma. Prima dell’attivazione ti avviseremo e troverai nelle impostazioni un interruttore per non essere visibile alle aziende.',
         '• Il pubblico non vede il tuo profilo: le pagine pubbliche del sito, come quelle dedicate alle città, mostrano solo numeri aggregati, e mai gruppi di meno di 5 persone.',
@@ -106,7 +106,7 @@ const DOCS = {
     purposes: [
       ['Creare e gestire il tuo account', 'Registrazione, accesso con codice via email o con LinkedIn e Google, sessioni, assistenza.', 'Email, dati ricevuti da LinkedIn o Google, dati tecnici di sessione.', 'Esecuzione del contratto, cioè dei Termini che accetti iscrivendoti (art. 6.1.b).'],
       ['Farti conoscere e far funzionare la community', 'Mostrare il tuo profilo agli altri membri, suggerirti persone affini, gestire richieste di connessione, messaggi e notifiche in app.', 'Dati del profilo, connessioni, messaggi.', 'Esecuzione del contratto (art. 6.1.b).'],
-      ['Email di servizio', 'Codice di accesso, avvisi su nuove richieste, messaggi e stato del profilo, conferma della richiesta di cancellazione dell’account, comunicazioni importanti sul servizio e sui tuoi dati. Dalle impostazioni scegli quali notifiche ricevere via email.', 'Email, dati necessari al singolo avviso.', 'Esecuzione del contratto (art. 6.1.b).'],
+      ['Email di servizio', 'Codice di accesso, avvisi su nuove richieste e messaggi, conferma della richiesta di cancellazione dell’account, comunicazioni importanti sul servizio e sui tuoi dati. Dalle impostazioni scegli quali notifiche ricevere via email.', 'Email, dati necessari al singolo avviso.', 'Esecuzione del contratto (art. 6.1.b).'],
       ['Newsletter e comunicazioni promozionali', 'Novità su Rientro, eventi e iniziative. Solo se ci dai il consenso; puoi revocarlo quando vuoi dalle impostazioni o dal link in ogni email.', 'Email, nome.', 'Consenso (art. 6.1.a), separato e facoltativo.'],
       ['Visibilità alle aziende verificate (in arrivo)', 'Permettere alle aziende registrate e verificate di trovare il tuo profilo e contattarti dentro Rientro. Prima dell’attivazione ti avviseremo e potrai scegliere di non essere visibile.', 'Dati del profilo visibili ai membri.', 'Esecuzione del contratto (art. 6.1.b): è parte del servizio descritto nei Termini.'],
       ['Sicurezza, moderazione e prevenzione degli abusi', 'Rivedere i profili prima della pubblicazione, gestire segnalazioni e blocchi, prevenire accessi abusivi, spam e profili falsi.', 'Dati del profilo, segnalazioni, conversazioni oggetto di segnalazione, dati tecnici (incluso l’indirizzo IP).', 'Legittimo interesse a garantire una community sicura e affidabile (art. 6.1.f). Puoi opporti scrivendo a privacy@rientro.it.'],
@@ -115,7 +115,7 @@ const DOCS = {
     ],
   },
   termini: {
-    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 30 SETTEMBRE 2026',
+    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 1° OTTOBRE 2026',
     summary: [
       ['A cosa serve', 'Conoscere persone che rientrano in Italia o al Sud, per fare rete o costruire un progetto insieme.'],
       ['Profili rivisti', 'Ogni profilo viene letto da una persona del team prima di andare online. Un account a testa, con dati veri.'],
@@ -139,8 +139,8 @@ const DOCS = {
         '• Le informazioni che inserisci devono essere vere, aggiornate e riferite a te, a partire da nome, foto e video.',
         '• Accedi con un codice monouso inviato alla tua email oppure con LinkedIn o Google. Sei responsabile di custodire l’accesso alla tua email e ai tuoi account collegati: tutto ciò che avviene con il tuo account si presume fatto da te. Se sospetti un accesso non autorizzato, esci da tutti i dispositivi dalle impostazioni e scrivici.',
       ]],
-      ['Revisione dei profili', [
-        'Prima di essere visibile agli altri membri, ogni profilo viene letto da una persona del team. Possiamo chiederti di modificarlo o non approvarlo se non rispetta questi Termini, se sembra falso o incompleto, o se non è in linea con lo scopo di Rientro; in questi casi ti spieghiamo il motivo. Anche le modifiche successive ai dati principali del profilo possono essere riviste prima di essere pubblicate.',
+      ['Pubblicazione e controllo dei profili', [
+        'Il tuo profilo è visibile agli altri membri appena lo pubblichi alla fine dell’iscrizione, e le modifiche successive compaiono subito. Dopo la pubblicazione possiamo controllare i profili, anche con l’aiuto di controlli automatici sulle foto, e in base alle segnalazioni: se un profilo non rispetta questi Termini, sembra falso o non è in linea con lo scopo di Rientro, possiamo chiederti di correggerlo, nasconderlo o sospendere l’account, spiegandoti il motivo.',
       ]],
       ['Regole di condotta', [
         'Rientro funziona se ci si può fidare delle persone che si incontrano. Per questo, usando il servizio, ti impegni a non:',

@@ -7,7 +7,7 @@ import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, valid
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { canTakePhoto, takePhoto } from '../camera.js';
 import { preparePhoto, warmUpFaceCheck } from '../face.js';
-import { Page } from './_base.js';
+import { homeFor, Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
 
@@ -49,8 +49,7 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 export default class extends Page {
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
-    if (me.user.status === 'approved') return go('/profilo');
-    if (me.user.status === 'in_review' || me.user.status === 'rejected') return go('/stato');
+    if (me.user.status !== 'onboarding') return go('/profilo');
     const p = structuredClone(me.profile);
     const want = new URLSearchParams(location.search).get('passo');
     const known = [...STEPS.map(s => s[0]), 'anteprima'];
@@ -252,9 +251,11 @@ export default class extends Page {
   })();
 
   submit = this.act(async () => {
+    // No review: the profile is online as soon as it's sent
     const me = await api('POST', '/api/me/submit');
     setMe(me);
-    go('/stato');
+    go(homeFor(me));
+    toast('Il tuo profilo è online.');
   });
 
 

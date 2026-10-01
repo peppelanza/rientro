@@ -2,7 +2,7 @@
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
 import { api, fmtDate, fmtTime, getMe, go, threadTime } from '../lib.js';
 import { block, report } from '../social.js';
-import { Page } from './_base.js';
+import { homeFor, Page } from './_base.js';
 
 export const title = 'Messaggi';
 export const tabbar = true;
@@ -21,7 +21,7 @@ const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', '
 export default class extends Page {
   async load() {
     const me = await getMe();
-    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go('/stato');
+    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
     Object.assign(this.state, { me, query: '', draft: '', menuOpen: false });
     this.state.threads = await api('GET', '/api/threads');
     const id = this.props.params.id;

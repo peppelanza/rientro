@@ -17,7 +17,7 @@ def('App Nav', String.raw`
 <sc-for list="{{ items }}" as="it">
 <a href="{{ it.href }}" class="r-hide-sm" aria-current="{{ it.current }}" style="height:42px;padding:0 16px;border-radius:999px;background:{{ it.bg }};color:{{ it.fg }};display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#6C4DF5;color:#FFFFFF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.count }}</span></sc-if></a>
 </sc-for>
-<sc-if value="{{ pendingNote }}"><a href="/stato" class="r-hide-sm" style="height:42px;padding:0 16px;border-radius:999px;background:#FFF3D6;color:#8A5A00;display:flex;align-items:center;gap:8px;text-decoration:none"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>{{ pendingNote }}</a></sc-if>
+<sc-if value="{{ pendingNote }}"><a href="/onboarding" class="r-hide-sm" style="height:42px;padding:0 16px;border-radius:999px;background:#FFF3D6;color:#8A5A00;display:flex;align-items:center;gap:8px;text-decoration:none"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>{{ pendingNote }}</a></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ showSearch }}"><form role="search" onSubmit="{{ search }}" class="r-hide-sm" style="width:280px;height:44px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-sizing:border-box;font-size:13px;font-weight:400;color:#8C84AE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input name="q" value="{{ q }}" aria-label="Cerca" placeholder="Cerca persone, città, settori" class="bare-input" style="font-size:13px"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border-radius:999px;background:#FFFFFF">⌘K</span></form></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
@@ -42,9 +42,9 @@ def('App Nav', String.raw`
       ['scopri', 'Scopri chi torna', '/scopri', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
       ['messaggi', 'Messaggi', '/messaggi', c.unread_messages], ['notifiche', 'Notifiche', '/notifiche', c.notifications],
     ].map(([k, label, href, n]) => ({ label, href, count: n, hasCount: !!n, current: k === a ? 'page' : false, bg: k === a ? '#1A1726' : 'transparent', fg: k === a ? '#FFFFFF' : '#6B6680' })) : [];
-    const pendingNote = !approved ? { onboarding: 'Completa il profilo', in_review: 'Profilo in revisione', changes_requested: 'Modifiche richieste', rejected: 'Profilo non approvato' }[u.status] : null;
+    const pendingNote = u.status === 'onboarding' ? 'Completa il profilo' : null;
     const menu = [
-      { l: 'Il tuo profilo', href: approved ? '/profilo' : (u.status === 'onboarding' ? '/onboarding' : '/stato'), fg: '#1A1726' },
+      { l: 'Il tuo profilo', href: u.status === 'onboarding' ? '/onboarding' : '/profilo', fg: '#1A1726' },
       { l: 'Impostazioni', href: '/impostazioni', fg: '#1A1726' },
       ...(me.admin_url ? [{ l: 'Admin', href: me.admin_url, fg: '#6C4DF5' }] : []),
     ];
@@ -127,7 +127,7 @@ def('App Admin Sidebar', String.raw`
     const email = this.props.email || '';
     const items = [
       ['dashboard', 'Dashboard', '/admin', ''], ['utenti', 'Utenti', '/admin/utenti', c.users ? c.users.toLocaleString('it-IT') : ''],
-      ['approvazioni', 'Approvazioni', '/admin/approvazioni', c.approvals ? String(c.approvals) : ''], ['foto', 'Foto da controllare', '/admin/foto', c.photos ? String(c.photos) : ''], ['bloccati', 'Contenuti bloccati', '/admin/bloccati', c.blocked ? String(c.blocked) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
+      ['foto', 'Foto da controllare', '/admin/foto', c.photos ? String(c.photos) : ''], ['bloccati', 'Contenuti bloccati', '/admin/bloccati', c.blocked ? String(c.blocked) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
       ['analytics', 'Analytics', '/admin/analytics', ''], ['esportazioni', 'Esportazioni', '/admin/esportazioni', ''], ['registro', 'Registro accessi', '/admin/registro', ''],
     ].map(([k, label, href, count]) => ({
       label, href, count, hasCount: !!count, current: k === a ? 'page' : false,
