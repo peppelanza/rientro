@@ -30,6 +30,7 @@ export default class extends AdminPage {
     const lists = {
       pages: t.pages.map(x => ({ l: x.l, v: n(x.v) })),
       referrers: t.referrers.map(x => ({ l: x.l, v: n(x.v) })),
+      refPages: (t.referrer_pages ?? []).map(x => ({ l: x.l, v: n(x.v), href: `https://${x.l}` })),
       countries: t.countries.map(x => ({ l: countryName(x.l), v: n(x.v) })),
       devices: t.devices.map(x => ({ l: label[x.l.toLowerCase()] ?? x.l, v: n(x.v) })),
     };
@@ -38,9 +39,11 @@ export default class extends AdminPage {
       perVisit: t.visits ? `${(t.pageviews / t.visits).toFixed(1).replace('.', ',')} per visita` : '',
       conversion: t.visits ? `${((this.state.d.new_in_period / t.visits) * 100).toFixed(1).replace('.', ',')}%` : '—',
       mobile: t.pageviews ? `${Math.round((mobile / t.pageviews) * 100)}%` : '—',
+      refPagesOff: t.referrer_pages === null,
       chartTitle: t.hourly ? 'Visite per ora' : 'Visite per giorno',
       days: t.days.map(d => ({ h: `${(d.visits / max) * 100}%`, title: `${t.hourly ? new Date(d.date).toLocaleString('it-IT', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) : d.date}: ${d.visits} visite, ${d.pageviews} pagine` })),
       ...lists, ...Object.fromEntries(Object.entries(lists).map(([k, v]) => [`no_${k}`, !v.length])),
+      no_refPages: t.referrer_pages !== null && !(t.referrer_pages ?? []).length,
     };
   }
 
