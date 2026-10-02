@@ -332,6 +332,6 @@ test('profile preview (?anteprima) is exactly what a member who is not connected
     assert.equal(preview.links.instagram_handle, undefined);
     assert.equal(preview.connection.status, 'none');
     // Without ?anteprima the owner still gets everything (the editor uses it)
-    assert.equal((await me.get(`/api/profiles/${me.id}`)).body.links.instagram_handle, 'mia.ig');
+    assert.equal((await me.get(`/api/profiles/${me.id}`)).body.links.instagram_handle, '@mia.ig');
   } finally { t.close(); }
 });
