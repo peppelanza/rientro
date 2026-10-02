@@ -17,7 +17,8 @@ import { openDb, tx } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
-import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail } from './mail.js';
+import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
+import { sendNotificationDigests } from './email-digest.js';
 import { runRetention } from './retention.js';
 import { checkLinkedinState, linkedinEnabled, linkedinProfile, startLinkedin, STATE_COOKIE } from './linkedin.js';
 import * as profiles from './profiles.js';
@@ -250,7 +251,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|an
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, sendWelcome = defaultSendWelcome, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -277,7 +278,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/auth/verify-code', async ({ req, res }) => {
     const body = await readJson(req);
     limitVerify(`v:${clientIp(req)}`);
-    const { sessionToken, user, restored } = auth.verifyCode(db, body, req.headers['user-agent']);
+    const { sessionToken, user, restored, isNew } = auth.verifyCode(db, body, req.headers['user-agent']);
+    if (isNew) sendWelcome(user.email);
     if (user.status === 'suspended') {
       auth.logout(db, sessionToken);
       throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
@@ -306,7 +308,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     let email;
     try { email = auth.normaliseEmail(profile.email); } catch { return back(res, 'linkedin_email'); }
     if (!profile.emailVerified) return back(res, 'linkedin_email');
-    const { sessionToken, user, restored } = tx(db, () => {
+    const { sessionToken, user, restored, isNew } = tx(db, () => {
       const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
       // Fill in the name from LinkedIn only where the profile has none yet
       db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
@@ -314,6 +316,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
       return out;
     });
+    if (isNew) sendWelcome(user.email);
     if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
     const set = [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), ...sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
     if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
@@ -662,6 +665,12 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   return { db, handle, server: http.createServer(handle) };
 }
 
+// Welcome email on sign-up (mail.js): never holds up the sign-in, and only with an email provider
+function defaultSendWelcome(email) {
+  if (!canSendEmail()) return;
+  sendWelcomeEmail(email).catch(err => console.error('[welcome]', err.message));
+}
+
 async function defaultSendLoginCode(email, code) {
   if (canSendEmail()) return sendLoginCodeEmail(email, code);
   if (showCodeOnPage()) { if (!config.production) console.log(`\n[dev] Codice di accesso per ${email}: ${code}\n`); return; }
@@ -684,4 +693,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const ages = () => { try { profiles.refreshAgeBands(db); } catch (err) { console.error('[ages]', err); } };
   ages();
   setInterval(ages, 24 * 3600_000).unref();
+  // Email for requests and messages still unread after 15 minutes, grouped (email-digest.js)
+  let digesting = false;
+  setInterval(async () => {
+    if (digesting) return;
+    digesting = true;
+    try { await sendNotificationDigests(db); } catch (err) { console.error('[digest]', err); } finally { digesting = false; }
+  }, 60_000).unref();
 }

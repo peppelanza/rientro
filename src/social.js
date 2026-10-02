@@ -18,7 +18,7 @@ function requireApproved(user) {
   }
 }
 
-const nameOf = (db, id) => {
+export const nameOf = (db, id) => {
   const p = db.prepare('SELECT first_name, last_name FROM profiles WHERE user_id = ?').get(id);
   return [p?.first_name, p?.last_name].filter(Boolean).join(' ');
 };
@@ -30,7 +30,8 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
   if (kind === 'message') {
     const existing = db.prepare("SELECT id FROM notifications WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").get(userId, actorId);
     if (existing) {
-      db.prepare('UPDATE notifications SET data = ?, created_at = ? WHERE id = ?').run(JSON.stringify(data), now(), existing.id);
+      // A new burst after an email: the 15-minute wait for the next one starts again (email-digest.js)
+      db.prepare('UPDATE notifications SET data = ?, created_at = ?, emailed_at = NULL WHERE id = ?').run(JSON.stringify(data), now(), existing.id);
       return;
     }
   }
@@ -161,7 +162,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
     ).get(viewer.id, c.id, c.id, viewer.id);
     const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').get(c.id, viewer.id).n;
     return {
-      id: c.id, name: c.name, role: c.role, photo_url: c.photo_url,
+      id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, photo_url: c.photo_url,
       last: last ? `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}` : 'Nuova connessione: scrivi per primo',
       time: last?.created_at ?? c.since, unread: unread > 0,
     };

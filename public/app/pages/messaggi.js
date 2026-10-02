@@ -131,8 +131,10 @@ export default class extends Page {
     if (!s.threads) return { loading: true, me: s.me || {} };
     const q = s.query.trim();
     const threads = s.threads.map(t => ({
-      ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), role: t.role.split(' · ')[0],
-      bg: t.id === s.active ? '#FFFFFF' : 'transparent', sh: t.id === s.active ? '0 8px 24px rgba(80,60,160,.10)' : 'none',
+      ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), // Where they live → where they want to go, instead of the job title
+      route: t.from && t.to ? `${t.from} → ${t.to}` : t.from || t.role.split(' · ')[0],
+      // Unread conversations are tinted, like unread notifications; the open one is white
+      bg: t.id === s.active ? '#FFFFFF' : t.unread ? '#EFEBFF' : 'transparent', sh: t.id === s.active ? '0 8px 24px rgba(80,60,160,.10)' : 'none',
       w: t.unread ? 600 : 500, c: t.unread ? '#1A1726' : '#8C84AE', active: t.id === s.active ? 'page' : false,
       open: e => { e.preventDefault(); this.select(t.id); },
     }));
@@ -149,7 +151,6 @@ export default class extends Page {
       items.push({ msg: true, from: m.mine ? 'me' : 'them', text: m.body, time: lastOfRun ? (m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : fmtTime(m.created_at)) : '', align: m.mine ? 'flex-end' : 'flex-start' });
     });
     const since = s.thread?.connection.since;
-    const noteBy = s.thread?.connection.note_from_me ? 'TUA' : `DI ${(p?.first_name || '').toUpperCase()}`;
     const L = p?.links || {};
     const links = [
       ['LinkedIn ↗', L.linkedin_url], ['Sito ↗', L.website_url], ['Instagram ↗', L.instagram_handle && `https://instagram.com/${L.instagram_handle.replace(/^@/, '')}`],
@@ -170,7 +171,7 @@ export default class extends Page {
       sub: p ? [p.current_role, p.lives_in_city && p.desired_comuni.length ? `${p.lives_in_city} → ${p.desired_comuni[0]}` : p.lives_in_city].filter(Boolean).join(' · ') : '',
       profileHref: p ? `/persone/${p.id}` : '#', goProfile: () => go(`/persone/${p.id}`),
       back: () => { history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender(); },
-      noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}${s.thread.connection.note ? ` · LA NOTA ${noteBy}` : ''}` : '',
+      noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
       composeInput: e => { s.draft = e.target.value; },

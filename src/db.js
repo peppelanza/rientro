@@ -50,6 +50,9 @@ function migrateUserColumns(db) {
   if (!have.has('deletion_requested_at')) db.exec('ALTER TABLE users ADD COLUMN deletion_requested_at TEXT');
   if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
   if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
+  const notifCols = new Set(db.prepare('PRAGMA table_info(notifications)').all().map(c => c.name));
+  // Email digests (email-digest.js): what is already there was seen in the app before emails existed
+  if (!notifCols.has('emailed_at')) db.exec("ALTER TABLE notifications ADD COLUMN emailed_at TEXT; UPDATE notifications SET emailed_at = created_at;");
   const sessionCols = new Set(db.prepare('PRAGMA table_info(sessions)').all().map(c => c.name));
   if (!sessionCols.has('impersonator_id')) db.exec('ALTER TABLE sessions ADD COLUMN impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE');
 }

@@ -10,7 +10,7 @@
 <div style="display:grid;grid-template-columns:1fr 60px;font-size:14px;margin-top:6px">
 <sc-for list="{{ notif }}" as="n"><span style="padding:10px 0;border-top:1px solid #ECE8F7;display:flex;flex-direction:column;gap:2px;justify-content:center">{{ n.t }}<sc-if value="{{ n.hasD }}"><span style="font-size:12px;color:#8C84AE">{{ n.d }}</span></sc-if></span><span style="padding:10px 0;border-top:1px solid #ECE8F7;display:flex;justify-content:center;align-items:center"><dc-import name="UI Checkbox" label="" checked="{{ n.e }}" on-click="{{ n.toggleE }}" host-role="checkbox" host-aria-checked="{{ n.e }}" host-aria-label="{{ n.eAria }}"></dc-import></span></sc-for>
 </div>
-<span style="display:block;font-size:12px;color:#8C84AE;margin-top:10px">Le notifiche via email partiranno quando attiveremo l’invio automatico.</span></section>
+<span style="display:block;font-size:12px;color:#8C84AE;margin-top:10px">Ti scriviamo solo se un messaggio o una richiesta resta da leggere per 15 minuti, e mettiamo tutto in un’unica email.</span></section>
 </main></div>
 <dc-import name="App TabBar" active="profilo" me="{{ me }}"></dc-import>
 </div>

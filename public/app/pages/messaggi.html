@@ -17,7 +17,7 @@
 <dc-import name="App Photo" size="44" src="{{ t.photo }}" initials="{{ t.ini }}"></dc-import>
 <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
 <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:14px;font-weight:{{ t.w }}">{{ t.name }}</span><span style="font-size:11px;color:#8C84AE;font-family:'Geist Mono',monospace">{{ t.time }}</span></div>
-<span style="font-size:12px;color:#8C84AE">{{ t.role }}</span>
+<span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.route }}</span>
 <div style="display:flex;gap:8px;align-items:center"><span style="font-size:13px;color:{{ t.c }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ t.last }}</span><sc-if value="{{ t.unread }}"><span aria-label="Non letto" style="width:9px;height:9px;border-radius:50%;background:#6C4DF5;flex:none"></span></sc-if></div>
 </div></div></a></sc-for>
 <sc-if value="{{ noMatch }}"><span style="padding:12px;font-size:13px;color:#8C84AE">Nessuna conversazione trovata.</span></sc-if>

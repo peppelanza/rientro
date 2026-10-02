@@ -253,3 +253,68 @@ test('profile visibility: only an admin hides and shows a profile; in-app notifi
     assert.ok((await b.get('/api/notifications')).body.items.some(n => n.kind === 'connection_request'));
   } finally { t.close(); }
 });
+
+test('email digests: only after 15 minutes unread, grouped, once, as the settings say; welcome on sign-up', async () => {
+  const welcomes = [];
+  const t = await startApp({ sendWelcome: email => welcomes.push(email) });
+  const { sendNotificationDigests } = await import('../src/email-digest.js');
+  const sent = [];
+  const send = mail => { sent.push(mail); };
+  const later = min => Date.now() + min * 60_000;
+  try {
+    const a = await t.approved('dig-a@example.com', { first_name: 'Anna' });
+    const b = await t.approved('dig-b@example.com', { first_name: 'Bruno' });
+    const c = await t.approved('dig-c@example.com', { first_name: 'Carla' });
+    assert.deepEqual(welcomes, ['dig-a@example.com', 'dig-b@example.com', 'dig-c@example.com']);
+    await t.login('dig-a@example.com');
+    assert.equal(welcomes.length, 3, 'only once, when the account is created');
+
+    // A request: nothing before 15 minutes, then one email, then never again
+    await a.post('/api/connections', { to: b.id, note: 'Ciao Bruno!' });
+    await sendNotificationDigests(t.app.db, { send, at: later(10) });
+    assert.equal(sent.length, 0);
+    await sendNotificationDigests(t.app.db, { send, at: later(16) });
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].to, 'dig-b@example.com');
+    assert.match(sent[0].subject, /Anna .* vuole entrare in contatto con te/);
+    assert.match(sent[0].html, /Ciao Bruno!/);
+    await sendNotificationDigests(t.app.db, { send, at: later(40) });
+    assert.equal(sent.length, 1, 'emailed once');
+
+    // Messages from two people: one email for both; a chat read in the app is left out
+    await t.connect(c, b);
+    const req = (await b.get('/api/connections?tab=received')).body.items[0];
+    await b.post(`/api/connections/${req.connection_id}/accept`);
+    await a.post(`/api/threads/${b.id}`, { body: 'Primo' });
+    await a.post(`/api/threads/${b.id}`, { body: 'Secondo' });
+    await c.post(`/api/threads/${b.id}`, { body: 'Ciao da Carla' });
+    sent.length = 0;
+    await sendNotificationDigests(t.app.db, { send, at: later(16) });
+    assert.equal(sent.length, 1);
+    assert.match(sent[0].subject, /3 nuovi messaggi da 2 persone/);
+    assert.match(sent[0].html, /Secondo/);
+
+    await a.post(`/api/threads/${b.id}`, { body: 'Terzo' });
+    await b.get(`/api/threads/${a.id}`); // read in the app
+    sent.length = 0;
+    await sendNotificationDigests(t.app.db, { send, at: later(32) });
+    assert.equal(sent.length, 0);
+
+    // Message emails switched off in Impostazioni → Notifiche
+    assert.equal((await b.patch('/api/me/notifications', { notify_messages_email: false })).status, 200);
+    await c.post(`/api/threads/${b.id}`, { body: 'Ci sei?' });
+    await sendNotificationDigests(t.app.db, { send, at: later(48) });
+    assert.equal(sent.length, 0);
+  } finally { t.close(); }
+});
+
+test('emails are branded and escape what members write', async () => {
+  const { digestEmail, loginCodeEmail, welcomeEmail } = await import('../src/mail.js');
+  const otp = loginCodeEmail('123456');
+  assert.match(otp.html, /Rientro<span[^>]*>\.<\/span>/);
+  assert.match(otp.html, /123456/);
+  assert.match(welcomeEmail({ launched: false }).subject, /apriamo il 1° gennaio 2027/);
+  assert.match(welcomeEmail({ launched: true }).html, /Scopri chi torna/);
+  const d = digestEmail({ requests: [{ name: '<b>X</b>', note: '<script>' }], messages: [] });
+  assert.ok(!d.html.includes('<script>') && d.html.includes('&lt;script&gt;'));
+});

@@ -123,7 +123,7 @@ const COMMUNICATION_PREFS = ['marketing_email'];
 // Only email notifications are a choice: in the app they always arrive (the old notify_*_app
 // columns are no longer read or written)
 const NOTIFY_FIELDS = ['notify_requests_email', 'notify_messages_email', 'notify_status_email'];
-const NOTIFY_DEFAULTS = { notify_requests_email: 1, notify_messages_email: 0, notify_status_email: 1 };
+const NOTIFY_DEFAULTS = { notify_requests_email: 1, notify_messages_email: 1, notify_status_email: 1 };
 
 export function getCommunicationPreferences(db, userId) {
   const row = db.prepare('SELECT * FROM communication_preferences WHERE user_id = ?').get(userId);

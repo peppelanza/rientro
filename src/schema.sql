@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS communication_preferences (
   marketing_email        INTEGER NOT NULL DEFAULT 0 CHECK (marketing_email IN (0, 1)),
   notify_requests_email  INTEGER NOT NULL DEFAULT 1,
   notify_requests_app    INTEGER NOT NULL DEFAULT 1,
-  notify_messages_email  INTEGER NOT NULL DEFAULT 0,
+  notify_messages_email  INTEGER NOT NULL DEFAULT 1,
   notify_messages_app    INTEGER NOT NULL DEFAULT 1,
   notify_status_email    INTEGER NOT NULL DEFAULT 1,
   notify_status_app      INTEGER NOT NULL DEFAULT 1,
@@ -252,7 +252,8 @@ CREATE TABLE IF NOT EXISTS notifications (
   actor_id    TEXT REFERENCES users(id) ON DELETE CASCADE,
   data        TEXT NOT NULL DEFAULT '{}',
   created_at  TEXT NOT NULL,
-  read_at     TEXT
+  read_at     TEXT,
+  emailed_at  TEXT   -- when it went out in an email digest (email-digest.js), or was settled without one
 );
 CREATE INDEX IF NOT EXISTS notifications_user ON notifications(user_id, id);
 
