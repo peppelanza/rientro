@@ -20,6 +20,7 @@ def('App Nav', String.raw`
 <sc-if value="{{ pendingNote }}"><a href="/onboarding" class="r-hide-sm" style="height:42px;padding:0 16px;border-radius:999px;background:#FFF3D6;color:#8A5A00;display:flex;align-items:center;gap:8px;text-decoration:none"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>{{ pendingNote }}</a></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ showSearch }}"><form role="search" onSubmit="{{ search }}" class="r-hide-sm" style="width:280px;height:44px;border-radius:999px;background:#F1EFF8;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;box-sizing:border-box;font-size:13px;font-weight:400;color:#8C84AE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input name="q" value="{{ q }}" aria-label="Cerca" placeholder="Cerca persone, città, settori" class="bare-input" style="font-size:13px"><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;padding:3px 7px;border-radius:999px;background:#FFFFFF">⌘K</span></form></sc-if>
+<sc-if value="{{ bell }}"><a href="/notifiche" aria-label="{{ bell.aria }}" aria-current="{{ bell.current }}" class="nav-bell" style="width:44px;height:44px;margin-left:8px;border-radius:50%;background:{{ bell.bg }};color:{{ bell.fg }};display:flex;align-items:center;justify-content:center;position:relative;flex:none;text-decoration:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><sc-if value="{{ bell.count }}"><span style="position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#FFFFFF;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #FFFFFF">{{ bell.count }}</span></sc-if></a></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
 </div>
 <sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
@@ -40,7 +41,7 @@ def('App Nav', String.raw`
     const open = approved && (me.launched || u.role === 'admin');
     const items = open ? [
       ['scopri', 'Scopri chi torna', '/scopri', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
-      ['messaggi', 'Messaggi', '/messaggi', c.unread_messages], ['notifiche', 'Notifiche', '/notifiche', c.notifications],
+      ['messaggi', 'Messaggi', '/messaggi', c.unread_messages],
     ].map(([k, label, href, n]) => ({ label, href, count: n, hasCount: !!n, current: k === a ? 'page' : false, bg: k === a ? '#1A1726' : 'transparent', fg: k === a ? '#FFFFFF' : '#6B6680' })) : [];
     const pendingNote = u.status === 'onboarding' ? 'Completa il profilo' : null;
     const menu = [
@@ -50,6 +51,12 @@ def('App Nav', String.raw`
     ];
     return {
       items, pendingNote, menu, menuOpen: this.state.menuOpen, home: open ? '/scopri' : '/',
+      // Notifications as a bell next to the profile picture (like Facebook), with the unread count
+      bell: open ? {
+        count: c.notifications ? (c.notifications > 9 ? '9+' : String(c.notifications)) : '',
+        aria: c.notifications ? `Notifiche, ${c.notifications} da leggere` : 'Notifiche',
+        current: a === 'notifiche' ? 'page' : false, bg: a === 'notifiche' ? '#1A1726' : 'transparent', fg: a === 'notifiche' ? '#FFFFFF' : '#1A1726',
+      } : null,
       showSearch: approved && me.launched, q: this.props.q ?? '',
       photo: p.photo_url, noPhoto: !p.photo_url, initials: `${(p.first_name || u.email || '?')[0]}${(p.last_name || '')[0] || ''}`.toUpperCase(),
       toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen }),
@@ -64,7 +71,7 @@ def('App Nav', String.raw`
 
 def('App TabBar', String.raw`
 <nav class="r-show-sm tabbar" aria-label="Navigazione" style="position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 var(--gutter) 14px;box-sizing:border-box;font-family:'Geist',sans-serif">
-<div style="border-radius:999px;background:rgba(255,255,255,.82);border:1px solid #FFFFFF;box-shadow:0 10px 30px rgba(80,60,160,.14);padding:6px;display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px)">
+<div style="border-radius:999px;background:rgba(255,255,255,.82);border:1px solid #FFFFFF;box-shadow:0 10px 30px rgba(80,60,160,.14);padding:6px;display:grid;grid-template-columns:repeat(4,1fr);backdrop-filter:blur(12px)">
 <sc-for list="{{ items }}" as="it">
 <a href="{{ it.href }}" aria-current="{{ it.current }}" style="min-height:52px;border-radius:999px;background:{{ it.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;text-decoration:none">
 <div style="width:18px;height:18px;border:1.8px solid {{ it.fg }};border-radius:{{ it.radius }};box-sizing:border-box;background:{{ it.fill }}"></div>
@@ -76,7 +83,7 @@ def('App TabBar', String.raw`
   renderVals() {
     const a = this.props.active ?? 'scopri';
     const c = this.props.me?.counts || {};
-    const items = [['scopri', 'Scopri', '/scopri', '50%', 0], ['connessioni', 'Connessioni', '/connessioni', '6px', c.received], ['messaggi', 'Messaggi', '/messaggi', '6px 6px 6px 2px', c.unread_messages], ['notifiche', 'Notifiche', '/notifiche', '50% 50% 4px 4px', c.notifications], ['profilo', 'Profilo', '/impostazioni', '50%', 0]]
+    const items = [['scopri', 'Scopri', '/scopri', '50%', 0], ['connessioni', 'Connessioni', '/connessioni', '6px', c.received], ['messaggi', 'Messaggi', '/messaggi', '6px 6px 6px 2px', c.unread_messages], ['profilo', 'Profilo', '/impostazioni', '50%', 0]]
       .map(([k, label, href, radius, n]) => ({
         label, href, radius, dot: !!n && k !== a, current: k === a ? 'page' : false,
         bg: k === a ? '#EFEBFF' : 'transparent', fg: k === a ? '#3E2BA8' : '#6B6680', fill: k === a ? '#6C4DF5' : 'transparent', fw: k === a ? 600 : 500,

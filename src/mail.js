@@ -5,6 +5,8 @@ import { HttpError } from './validate.js';
 export const canSendEmail = () => !!config.brevoApiKey;
 
 export async function sendEmail({ to, subject, text, html }) {
+  // Test people (demo.js) have addresses that can't receive mail: never send to them
+  if (to.toLowerCase().endsWith('@prova.rientro.invalid')) return;
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'api-key': config.brevoApiKey, 'content-type': 'application/json', accept: 'application/json' },

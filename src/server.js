@@ -6,6 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as admin from './admin.js';
 import * as moderation from './moderation.js';
+import * as demo from './demo.js';
 import { checkEmailDomain } from './email-check.js';
 import { turnstileEnabled, verifyTurnstile } from './turnstile.js';
 import { beaconTag, traffic } from './web-analytics.js';
@@ -487,6 +488,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     res.end(buf);
   }, { ...adm, raw: true });
   route('POST', '/api/admin/blocked/:id', async ({ user, params, req }) => moderation.resolveBlocked(db, user, params.id, (await readJson(req)).action), adm);
+  route('GET', '/api/admin/demo', () => ({ total: demo.demoCount(db) }), adm);
+  route('POST', '/api/admin/demo', ({ user }) => demo.createDemoPeople(db, user), adm);
+  route('DELETE', '/api/admin/demo', ({ user }) => demo.removeDemoPeople(db, user), adm);
   route('GET', '/api/admin/photo-checks', ({ user }) => admin.photoChecks(db, user), adm);
   route('POST', '/api/admin/photo-checks/:id/ok', ({ user, params }) => admin.photoCheckOk(db, user, params.id), adm);
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
