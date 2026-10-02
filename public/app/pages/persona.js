@@ -1,5 +1,5 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, getMe, go, INTENT_BADGE, timeAgo, toast } from '../lib.js';
+import { api, getMe, go, INTENT_BADGE, orList, timeAgo, toast } from '../lib.js';
 import { block, connect, report } from '../social.js';
 import { Page } from './_base.js';
 
@@ -53,7 +53,7 @@ export default class extends Page {
       ['X', L.x_handle && `${L.x_handle} ↗`, handleUrl('https://x.com/', L.x_handle)], ['Calendario', L.calendar_url && 'Prenota una call ↗', L.calendar_url],
     ].filter(([, v]) => v).map(([k, v, href], i) => ({ k, v, href, bt: i ? '1px solid #ECE8F7' : 'none' })) : [];
     const seeksMe = p.viewer_background && p.seeking.backgrounds.includes(p.viewer_background);
-    const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.desired_comuni.join(', ') };
+    const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: orList(p.desired_comuni, 3) };
     return {
       loading: false, notFound: false, ready: true, me: s.me, ...from(), name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),

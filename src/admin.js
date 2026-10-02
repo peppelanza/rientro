@@ -1,7 +1,7 @@
 // Internal moderation and analytics (design 44–50). Every read or write of a user's personal
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
-import { AGE_BANDS, SOURCES, START, TIME, label } from './catalog.js';
+import { AGE_BANDS, label, orList, SOURCES, START, TIME } from './catalog.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
 import { effectiveProfile, rawProfile } from './profiles.js';
@@ -104,7 +104,7 @@ export function listUsers(db, admin, query) {
     total: rows.length, page, pages: Math.max(1, Math.ceil(rows.length / perPage)),
     users: slice.map(u => ({
       id: u.id, name: name(u) || '—', email: u.email, photo_url: u.photo_file_id ? `/api/files/${u.photo_file_id}` : null,
-      from: u.lives_in_city || '—', to: u.desired_comuni.slice(0, 2).join(', ') || (u.desired_unknown ? 'Non lo sa' : '—'),
+      from: u.lives_in_city || '—', to: orList(u.desired_comuni, 3) || (u.desired_unknown ? 'Non lo sa' : '—'),
       intent: INTENT[u.primary_intent] ?? '—',
       status: u.status, status_label: STATUS_LABEL[u.status], joined: u.created_at,
     })),

@@ -1,4 +1,4 @@
-import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
+import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, label, orList, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
@@ -290,7 +290,7 @@ export function complement(viewerP, p) {
   return null;
 }
 
-const places = p => (p.desired_comuni.length ? p.desired_comuni.join(', ') : p.desired_unknown ? 'Non lo sa ancora' : '—');
+const places = p => (p.desired_comuni.length ? orList(p.desired_comuni) : p.desired_unknown ? 'Non lo sa ancora' : '—');
 
 function visibleTarget(db, viewer, targetId) {
   const u = db.prepare('SELECT id, status FROM users WHERE id = ?').get(targetId);
@@ -347,7 +347,7 @@ export function card(db, viewer, p, viewerP) {
     age: label(AGE_BANDS, p.age_band) ?? '',
     role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
     from: p.lives_in_city ?? '',
-    to: p.desired_comuni.slice(0, 2).join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : ''),
+    to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
     intent: p.primary_intent,
     idea_title: p.idea_title,

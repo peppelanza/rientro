@@ -70,7 +70,7 @@ export default class extends Page {
       q: s.q, searchProps: { onInput: v => this.searchTyped(v), onEnter: v => this.load2({ q: v.trim(), page: 1 }) },
       page: d.page, pages: d.pages, total: d.total, perPage: d.per_page, pagerProps: { onPage: n => this.load2({ page: n }, { scroll: true }) },
       noneLabel: none,
-      conns: (s.tab === 'connessioni' ? items : []).map(c => ({ name: c.name, role: [c.role.split(' · ')[0], c.from && c.to ? `${c.from} → ${c.to.split(',')[0]}` : c.from].filter(Boolean).join(' · '), since: fmtShort(c.since).toUpperCase(), photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, msg: () => go(`/messaggi/${c.id}`) })),
+      conns: (s.tab === 'connessioni' ? items : []).map(c => ({ name: c.name, role: [c.role.split(' · ')[0], c.from && c.to ? `${c.from} → ${c.to}` : c.from].filter(Boolean).join(' · '), since: fmtShort(c.since).toUpperCase(), photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, msg: () => go(`/messaggi/${c.id}`) })),
       noConns: s.tab === 'connessioni' && !items.length, noConnsLabel: none || 'Nessuna connessione accettata per ora.',
       // As the old request page (design 04 · 31a): who, their note, answer here; the card opens the profile
       received: (s.tab === 'ricevute' ? items : []).map(c => ({

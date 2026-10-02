@@ -1,6 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, fmtMonth, getCatalog, getMe, go, qs, toast, upload } from '../lib.js';
+import { api, fmtMonth, getCatalog, getMe, go, orList, qs, toast, upload } from '../lib.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { canTakePhoto, takePhoto } from '../camera.js';
@@ -217,7 +217,7 @@ export default class extends Page {
       startOpts: opts(cat.start), startWhen: p.start_when, startProps: { onSelect: v => this.set({ start_when: v || null }) },
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
-      pvPlaces: [p.lives_in_city, p.desired_comuni.join(', ')].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: p.desired_comuni.join(', '), hasTo: p.desired_comuni.length > 0,
+      pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0,
       previewHref: status === 'approved' ? `/persone/${me.user.id}?anteprima=1` : '/onboarding?passo=anteprima',
     };
   }

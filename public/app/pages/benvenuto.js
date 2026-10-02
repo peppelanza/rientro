@@ -1,6 +1,6 @@
 // Before launch: where a member lands once their profile is online. A big "your profile is ready"
 // box with the launch date, and a small preview of their profile that opens the editor (/profilo).
-import { api, getMe, go, INTENT_BADGE } from '../lib.js';
+import { api, getMe, go, INTENT_BADGE, orList } from '../lib.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Il tuo profilo è pronto';
@@ -23,7 +23,7 @@ export default class extends Page {
     if (!s.me) return { loading: true, me: {} };
     const p = s.me.profile || {};
     const [badgeLabel, badgeKind] = INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea;
-    const places = p.desired_unknown ? 'Non lo so ancora' : (p.desired_comuni || []).slice(0, 2).join(', ');
+    const places = p.desired_unknown ? 'Non lo so ancora' : orList(p.desired_comuni || [], 3);
     return {
       loading: false, me: s.me,
       text: `Ti invieremo una mail il giorno del lancio di Rientro, ${s.date ? `il ${s.date}` : 'appena apriamo'}.`,

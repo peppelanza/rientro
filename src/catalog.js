@@ -64,3 +64,10 @@ export const catalog = {
 };
 
 export const label = (pairs, value) => pairs.find(p => p[0] === value)?.[1] ?? null;
+
+// "Napoli", "Napoli o Torino", "Napoli, Torino o Palermo"; past max: "…, Palermo o altre 2 città"
+export function orList(items, max = Infinity) {
+  const list = items.filter(Boolean);
+  if (list.length > max) return `${list.slice(0, max).join(', ')} o altre ${list.length - max} città`;
+  return list.length > 1 ? `${list.slice(0, -1).join(', ')} o ${list.at(-1)}` : (list[0] ?? '');
+}
