@@ -37,9 +37,13 @@ export default class extends Page {
     this.onScroll = () => requestAnimationFrame(shrinkPhoto);
     addEventListener('scroll', this.onScroll, { passive: true });
     addEventListener('resize', this.onScroll);
+    // The "···" menu closes on a click elsewhere
+    this.closeMenu = e => { if (this.state.menuOpen && !e.target.closest('.persona-more')) this.setState({ menuOpen: false }); };
+    addEventListener('click', this.closeMenu);
   }
 
   componentWillUnmount() {
+    removeEventListener('click', this.closeMenu);
     removeEventListener('scroll', this.onScroll);
     removeEventListener('resize', this.onScroll);
   }
@@ -109,8 +113,9 @@ export default class extends Page {
       }),
       decline: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/decline`); toast('Richiesta rifiutata.'); await this.refresh(); }),
       chat: () => go(`/messaggi/${p.id}`),
-      doReport: async () => { if (s.self) return; const r = await report(person); if (r?.blocked) go('/scopri'); },
-      doBlock: async () => { if (s.self) return; if (await block(person)) go('/scopri'); },
+      menuOpen: !!s.menuOpen, toggleMenu: () => { if (!s.self) this.setState({ menuOpen: !s.menuOpen }); },
+      doReport: async () => { if (s.self) return; this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/scopri'); },
+      doBlock: async () => { if (s.self) return; this.setState({ menuOpen: false }); if (await block(person)) go('/scopri'); },
       // sections
       bio: p.bio, video: p.video_url, videoLocked: p.video_locked,
       idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',
