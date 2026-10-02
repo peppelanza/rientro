@@ -469,6 +469,6 @@ body { padding-top: var(--lb, 0px); }
 /* Profile (pages/persona): photo and connection box stay in view while the right column scrolls */
 @media (min-width: 721px) {
   .persona-aside { position: sticky; top: calc(var(--lb, 0px) + 20px); align-self: start; }
-  /* Once the column is stuck, the photo gets shorter as you scroll, 4:5 → 1:1, cropped (persona.js) */
-  .persona-photo > .sc-host > div { aspect-ratio: var(--pr, 4 / 5) !important; }
 }
+/* The photo gets shorter as you scroll, 4:5 → 1:1, cropped at the centre (persona.js) */
+.persona-photo > .sc-host > div { aspect-ratio: var(--pr, 4 / 5) !important; }

@@ -15,15 +15,16 @@ const from = () => {
     : { section: 'scopri', backHref: '/scopri', backLabel: 'Scopri chi torna' };
 };
 
-// Desktop: once the left column sticks, scrolling on turns the 4:5 photo into a square, cropped
-// (object-fit: cover), one pixel of height per pixel scrolled; scrolling back brings it back.
+// Scrolling turns the 4:5 photo into a square, cropped at the centre (object-fit: cover), one pixel
+// of height per pixel scrolled; scrolling back brings it back. On a computer it starts once the left
+// column sticks; on a phone (one column, nothing sticks) right from the top.
 function shrinkPhoto() {
   const aside = document.querySelector('.persona-aside');
   const wrap = aside?.querySelector('.persona-photo');
   if (!wrap) return;
-  if (innerWidth <= 720) { wrap.style.removeProperty('--pr'); return; }
   const grid = aside.parentElement;
-  const stuckAt = grid.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(grid).paddingTop) - (parseFloat(getComputedStyle(aside).top) || 0);
+  const stuckAt = innerWidth <= 720 ? 0
+    : grid.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(grid).paddingTop) - (parseFloat(getComputedStyle(aside).top) || 0);
   const w = wrap.offsetWidth;
   const range = w * 5 / 4 - w;
   const t = Math.min(1, Math.max(0, (scrollY - stuckAt) / range));
