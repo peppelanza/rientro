@@ -24,23 +24,18 @@
 </sc-for>
 </div></sc-if>
 
-<sc-if value="{{ isRec }}"><div style="max-width:860px;background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:8px 24px 20px;box-sizing:border-box;display:flex;flex-direction:column">
-<sc-if value="{{ noReceived }}"><span style="font-size:14px;color:#6B6680;padding:14px 0">{{ noReceivedLabel }}</span></sc-if>
-<sc-for list="{{ received }}" as="r"><div class="r-wrap" style="display:flex;gap:16px;align-items:flex-start;padding:18px 0;border-bottom:1px solid #ECE8F7">
-<a href="{{ r.href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" size="64" src="{{ r.photo }}" initials="{{ r.ini }}"></dc-import></a>
-<div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:220px">
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="{{ r.href }}" style="font-size:16px;font-weight:600;color:#1A1726;text-decoration:none">{{ r.n }}</a><sc-if value="{{ r.age }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ r.age }}</span></sc-if><dc-import name="UI Badge" kind="{{ r.badgeKind }}" label="{{ r.badgeLabel }}"></dc-import></div>
-<sc-if value="{{ r.role }}"><span style="font-size:14px;color:#4A4560">{{ r.role }}</span></sc-if>
-<sc-if value="{{ r.route }}"><span style="font-size:13px;color:#6B6680">{{ r.from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ r.to }}</b></span></sc-if>
-<sc-if value="{{ r.idea }}"><span style="font-size:13px;color:#1A1726"><span style="color:#8C84AE">Idea:</span> {{ r.idea }}</span></sc-if>
-<div style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:#6B6680"><sc-if value="{{ r.seeks }}"><span><span style="color:#8C84AE">Cerca</span> {{ r.seeks }}</span></sc-if><sc-if value="{{ r.tags }}"><span><span style="color:#8C84AE">Interessi</span> {{ r.tags }}</span></sc-if><sc-if value="{{ r.time }}"><span><span style="color:#8C84AE">Tempo</span> {{ r.time }}</span></sc-if></div>
-<sc-if value="{{ r.comp }}"><span style="align-self:flex-start;font-size:12px;color:#3E2BA8;background:#EFEBFF;border-radius:999px;padding:4px 10px">● {{ r.comp }}</span></sc-if>
-<sc-if value="{{ r.note }}"><div style="margin-top:4px;border-radius:16px;background:#F6F4FC;padding:10px 14px;font-size:14px;line-height:1.5;color:#1A1726;white-space:pre-line">“{{ r.note }}”</div></sc-if>
-<span style="font-size:12px;color:#8C84AE">Richiesta ricevuta {{ r.when }}</span>
+<sc-if value="{{ isRec }}"><div style="display:flex;flex-direction:column;gap:16px;max-width:1040px">
+<sc-if value="{{ noReceived }}"><span style="font-size:15px;color:#6B6680">{{ noReceivedLabel }}</span></sc-if>
+<sc-for list="{{ received }}" as="r"><section class="r-grid-1" aria-label="{{ r.aria }}" style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px;align-items:center;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:28px var(--card-pad);box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+<dc-import name="UI Eyebrow" text="{{ r.eyebrow }}" tone="accent"></dc-import>
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(24px,3vw,34px);line-height:1.1;font-weight:600;letter-spacing:-.05em">{{ r.heading }}</h2>
+<sc-if value="{{ r.note }}"><dc-import name="UI Bubble" from="note" wide="{{ true }}" text="{{ r.note }}"></dc-import></sc-if>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><dc-import name="UI Button" label="Accetta" variant="accent" size="lg" on-click="{{ r.accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="glass" size="lg" on-click="{{ r.decline }}"></dc-import></div>
+<span style="font-size:13px;color:#8C84AE">Se rifiuti, {{ r.first }} non riceve alcuna notifica.</span>
 </div>
-<div style="display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:130px"><dc-import name="UI Button" label="Accetta" variant="accent" size="sm" on-click="{{ r.accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="ghost" size="sm" on-click="{{ r.decline }}"></dc-import><a href="{{ r.href }}" style="font-size:12px;color:#6B6680;text-align:center">Vedi profilo</a></div>
-</div></sc-for>
-<span style="font-size:12px;color:#8C84AE;padding-top:14px">Se rifiuti, non riceve alcuna notifica.</span>
+<dc-import name="App Person Card" person="{{ r.person }}" ratio="4/3" da="ricevute" noactions="{{ true }}"></dc-import>
+</section></sc-for>
 </div></sc-if>
 
 <sc-if value="{{ isSent }}"><div style="max-width:720px;background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:8px 24px 20px;box-sizing:border-box;display:flex;flex-direction:column">

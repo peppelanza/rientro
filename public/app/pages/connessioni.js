@@ -1,5 +1,5 @@
 // Connections (design 04 · 32a connessioni, 32b inviate, 33a stato vuoto).
-import { api, debounce, fmtShort, getMe, go, INTENT_BADGE, qs, timeAgo, toast } from '../lib.js';
+import { api, debounce, fmtShort, getMe, go, qs, timeAgo, toast } from '../lib.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Connessioni';
@@ -72,16 +72,13 @@ export default class extends Page {
       noneLabel: none,
       conns: (s.tab === 'connessioni' ? items : []).map(c => ({ name: c.name, role: [c.role.split(' · ')[0], c.from && c.to ? `${c.from} → ${c.to.split(',')[0]}` : c.from].filter(Boolean).join(' · '), since: fmtShort(c.since).toUpperCase(), photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, msg: () => go(`/messaggi/${c.id}`) })),
       noConns: s.tab === 'connessioni' && !items.length, noConnsLabel: none || 'Nessuna connessione accettata per ora.',
-      // Enough about the person to decide here; the name and photo open the full profile
-      received: (s.tab === 'ricevute' ? items : []).map(c => {
-        const [badgeLabel, badgeKind] = INTENT_BADGE[c.intent] ?? INTENT_BADGE.seeking_idea;
-        return {
-          n: c.name, age: c.age, role: c.role, from: c.from, to: c.to, route: !!(c.from && c.to), idea: c.idea_title || '',
-          seeks: c.seeks, tags: c.tags, time: c.time, comp: c.comp, badgeLabel, badgeKind,
-          note: c.note, when: timeAgo(c.created_at), photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`,
-          accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
-        };
-      }),
+      // As the old request page (design 04 · 31a): who, their note, answer here; the card opens the profile
+      received: (s.tab === 'ricevute' ? items : []).map(c => ({
+        aria: `Richiesta di ${c.name}`, eyebrow: `Nuova richiesta · ${timeAgo(c.created_at)}`,
+        heading: `${c.first_name} vuole entrare in contatto con te.`, first: c.first_name,
+        note: c.note ? `“${c.note}”` : '', person: c,
+        accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
+      })),
       noReceived: s.tab === 'ricevute' && !items.length, noReceivedLabel: none || 'Nessuna richiesta in attesa.',
       sent: (s.tab === 'inviate' ? items : []).map(c => ({ n: c.name, d: `Inviata ${timeAgo(c.created_at)}`, photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, withdraw: () => this.respond(c, 'withdraw') })),
       noSent: s.tab === 'inviate' && !items.length, noSentLabel: none || 'Nessuna richiesta inviata in attesa.',

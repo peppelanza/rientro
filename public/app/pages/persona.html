@@ -6,13 +6,21 @@
 <div class="r-page">
 <sc-if value="{{ notSelf }}"><div style="padding:28px var(--gutter) 0;font-size:14px"><a href="{{ backHref }}" style="color:#6B6680;text-decoration:none">← {{ backLabel }}</a></div></sc-if>
 <sc-if value="{{ self }}"><div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedono gli altri membri.</span><div style="flex:1"></div><a href="/profilo" style="color:#C9C0F0">Torna all’editor</a></div></sc-if>
+<sc-if value="{{ isReceived }}"><section aria-label="Richiesta di connessione" class="r-stack" style="margin:18px var(--gutter) 0;border-radius:32px;background:linear-gradient(135deg,#6C4DF5,#3E2BA8);color:#FFFFFF;padding:22px 22px 22px 28px;display:flex;align-items:center;gap:24px;box-shadow:0 18px 44px rgba(62,43,168,.25)">
+<div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0">
+<dc-import name="UI Eyebrow" text="{{ requestEyebrow }}" tone="light"></dc-import>
+<span style="font-family:'Unbounded',sans-serif;font-size:clamp(19px,2.4vw,26px);font-weight:600;letter-spacing:-.04em;line-height:1.15">{{ first }} vuole entrare in contatto con te.</span>
+<sc-if value="{{ requestNote }}"><span style="font-size:15px;line-height:1.5;color:rgba(255,255,255,.88);white-space:pre-line">“{{ requestNote }}”</span></sc-if>
+<span style="font-size:12px;color:rgba(255,255,255,.7)">Se rifiuti, {{ first }} non riceve alcuna notifica.</span>
+</div>
+<div style="display:flex;gap:8px;flex:none;flex-wrap:wrap"><dc-import name="UI Button" label="Accetta" variant="light" size="lg" on-click="{{ accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="onDark" size="lg" on-click="{{ decline }}"></dc-import></div>
+</section></sc-if>
 <div class="r-grid-1" style="padding:24px var(--gutter) 0;display:grid;grid-template-columns:360px minmax(0,1fr);gap:48px">
 <div style="display:flex;flex-direction:column;gap:12px">
 <dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ name }}"></dc-import>
 <div style="height:4px"></div>
 <sc-if value="{{ isNone }}"><sc-if value="{{ notSelf }}"><dc-import name="UI Button" label="Invia richiesta di connessione" variant="accent" size="lg" full="{{ true }}" on-click="{{ connect }}"></dc-import></sc-if></sc-if>
 <sc-if value="{{ isSent }}"><dc-import name="UI Button" label="Richiesta inviata · in attesa" variant="secondary" size="lg" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import><dc-import name="UI Button" label="Annulla richiesta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ withdraw }}"></dc-import></sc-if>
-<sc-if value="{{ isReceived }}"><dc-import name="UI Button" label="Accetta la richiesta" variant="accent" size="lg" full="{{ true }}" on-click="{{ accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ decline }}"></dc-import></sc-if>
 <sc-if value="{{ isConnected }}"><div style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
 <dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import>
 <dc-import name="UI Button" label="Apri chat" full="{{ true }}" on-click="{{ chat }}"></dc-import>
@@ -38,7 +46,6 @@
 <sc-if value="{{ hasViewerBg }}"><div style="padding:18px 20px;border-radius:22px;background:{{ bgBoxBg }};display:flex;flex-direction:column;gap:6px"><dc-import name="UI Eyebrow" text="Il tuo background" tone="{{ bgTone }}"></dc-import><span style="font-size:16px;font-weight:500;color:{{ bgBoxFg }}">{{ viewerBg }}</span></div></sc-if>
 </div>
 <sc-if value="{{ complement }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:18px;background:#EFEBFF;color:#3E2BA8;font-size:14px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:7px;flex:none"></span>{{ complement }}</div></sc-if>
-<sc-if value="{{ isReceived }}"><sc-if value="{{ requestNote }}"><div style="border-radius:22px;background:#FFFFFF;padding:16px 18px;font-size:15px;line-height:1.55"><dc-import name="UI Eyebrow" text="La sua nota per te" tone="accent"></dc-import><div style="margin-top:8px">“{{ requestNote }}”</div></div></sc-if></sc-if>
 <div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:8px var(--card-pad)">
 <sc-if value="{{ bio }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0"><dc-import name="UI Eyebrow" text="Su di me"></dc-import><p style="margin:0;font-size:19px;line-height:1.55;text-wrap:pretty;white-space:pre-line">{{ bio }}</p></section></sc-if>
 <sc-if value="{{ video }}"><section class="r-grid-1" style="display:grid;grid-template-columns:200px 1fr;gap:32px;padding:28px 0;border-top:1px solid #ECE8F7"><dc-import name="UI Eyebrow" text="Video"></dc-import><div style="max-width:560px"><dc-import name="App Photo" ratio="16/9" dark="{{ true }}" video="{{ video }}" alt="Video di presentazione"></dc-import></div></section></sc-if>

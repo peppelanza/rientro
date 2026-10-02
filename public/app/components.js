@@ -862,10 +862,10 @@ def('App Person Card', String.raw`
 <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<sc-if value="{{ showActions }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
 <dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
-</div>
+</div></sc-if>
 </div></article>`, class extends DCLogic {
   renderVals() {
     const p = this.props.person || {};
@@ -874,11 +874,12 @@ def('App Person Card', String.raw`
     const action = {
       none: { l: 'Connettiti', v: 'primary', fn: () => this.props.onConnect?.(p), off: false },
       pending_sent: { l: 'In attesa', v: 'secondary', fn: null, off: true },
-      pending_received: { l: 'Rispondi', v: 'accent', fn: go(`/connessioni/${p.connection?.id}`), off: false },
+      pending_received: { l: 'Rispondi', v: 'accent', fn: go(`/persone/${p.id}`), off: false },
       connected: { l: 'Messaggio', v: 'primary', fn: go(`/messaggi/${p.id}`), off: false },
     }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
     return {
-      p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}`,
+      // da: where the profile's back link goes (persona.js); noactions: just the card, no buttons
+      p, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}${this.props.da ? `?da=${this.props.da}` : ''}`, showActions: !b(this.props.noactions),
       badge: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[0], badgeKind: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[1],
       hasComp: !!p.comp, action,
       secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',

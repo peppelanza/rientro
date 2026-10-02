@@ -275,7 +275,7 @@ export function connectionState(db, viewerId, targetId) {
   const c = connectionBetween(db, viewerId, targetId);
   if (!c) return { status: 'none' };
   if (c.status === 'accepted') return { status: 'connected', id: c.id, since: c.responded_at };
-  return { status: c.requester_id === viewerId ? 'pending_sent' : 'pending_received', id: c.id, note: c.requester_id === viewerId ? null : c.note };
+  return { status: c.requester_id === viewerId ? 'pending_sent' : 'pending_received', id: c.id, note: c.requester_id === viewerId ? null : c.note, created_at: c.created_at };
 }
 
 // "Cerca Prodotto, il tuo background" (design Person Card / 29a)

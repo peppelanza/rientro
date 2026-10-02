@@ -1,5 +1,5 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, getMe, go, INTENT_BADGE, toast } from '../lib.js';
+import { api, getMe, go, INTENT_BADGE, timeAgo, toast } from '../lib.js';
 import { block, connect, report } from '../social.js';
 import { Page } from './_base.js';
 
@@ -66,7 +66,7 @@ export default class extends Page {
       facts, unlocked, hasUnlocked: unlocked.length > 0,
       // actions
       isNone: c === 'none', isSent: c === 'pending_sent', isReceived: c === 'pending_received', isConnected: connected,
-      requestNote: p.connection.note,
+      requestNote: p.connection.note, requestEyebrow: `Richiesta di connessione${p.connection.created_at ? ` · ${timeAgo(p.connection.created_at)}` : ''}`,
       connect: async () => { if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),
       // A request is answered right here (declining is silent for the other person)
