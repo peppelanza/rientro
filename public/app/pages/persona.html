@@ -17,7 +17,7 @@
 </section></sc-if>
 <div class="r-grid-1" style="padding:24px var(--gutter) 0;display:grid;grid-template-columns:360px minmax(0,1fr);gap:48px">
 <div class="persona-aside" style="display:flex;flex-direction:column;gap:12px">
-<dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ name }}"></dc-import>
+<div class="persona-photo"><dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ name }}"></dc-import></div>
 <div style="height:4px"></div>
 <sc-if value="{{ isNone }}"><sc-if value="{{ notSelf }}"><dc-import name="UI Button" label="Invia richiesta di connessione" variant="accent" size="lg" full="{{ true }}" on-click="{{ connect }}"></dc-import></sc-if></sc-if>
 <sc-if value="{{ isSent }}"><dc-import name="UI Button" label="Richiesta inviata · in attesa" variant="secondary" size="lg" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import><dc-import name="UI Button" label="Annulla richiesta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ withdraw }}"></dc-import></sc-if>
