@@ -8,11 +8,13 @@ export const title = 'Contenuti bloccati · Admin';
 const pct = v => `${Math.round((v || 0) * 100)}%`;
 
 export default class extends AdminPage {
-  async loadAdmin() { this.state.rows = await api('GET', '/api/admin/blocked'); }
+  listPath = '/api/admin/blocked';
+  async loadAdmin() { await this.fetchList(); this.state.rows = this.state.list.items; }
 
   async resolve(r, action) {
     await api('POST', `/api/admin/blocked/${r.id}`, { action });
-    this.state.rows = await api('GET', '/api/admin/blocked');
+    await this.fetchList();
+    this.state.rows = this.state.list.items;
     this.counts = await api('GET', '/api/admin/sidebar');
     toast(action === 'restore' ? 'Account riattivato, con la foto come foto profilo. Gli abbiamo scritto via email.' : 'Sospensione confermata.');
     this.__rerender();
@@ -22,7 +24,8 @@ export default class extends AdminPage {
     const s = this.state;
     if (!s.rows) return { loading: true, side: this.side('bloccati') };
     return {
-      loading: false, side: this.side('bloccati'), empty: !s.rows.length,
+      loading: false, side: this.side('bloccati'), empty: !s.rows.length, ...this.listVals(),
+      emptyText: s.q ? `Nessun risultato per “${s.q}”.` : 'Nessun contenuto bloccato.',
       rows: s.rows.map(r => ({
         ...r, name: r.name || '—', when: `${fmtDate(r.created_at)} ${fmtTime(r.created_at)}`, href: `/admin/utenti/${r.user_id}`,
         score: `Esplicito ${pct((r.scores.Porn || 0) + (r.scores.Hentai || 0))} · Sexy ${pct(r.scores.Sexy)} · Neutro ${pct(r.scores.Neutral)}`,

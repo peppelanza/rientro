@@ -1,0 +1,24 @@
+<!-- Pre-launch home for members whose profile is online. Built with the design 05/03 card patterns. -->
+<div style="min-height:100vh;background:#E9E6F5">
+<dc-import name="App Nav" active="none" me="{{ me }}"></dc-import>
+<sc-if value="{{ name }}">
+<main style="padding:28px var(--gutter) 56px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;max-width:1120px;margin:0 auto">
+<section class="welcome-hero">
+<span aria-hidden="true" class="welcome-emoji">🎉</span>
+<h1 class="welcome-title">Il tuo profilo è pronto!</h1>
+<p class="welcome-text">{{ text }}</p>
+</section>
+<section class="r-wrap" style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:18px 18px 18px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+<dc-import name="App Photo" size="72" src="{{ photo }}" initials="{{ ini }}" alt="{{ name }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px">
+<div><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></div>
+<span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em;line-height:1.15">{{ name }}</span>
+<sc-if value="{{ role }}"><span style="font-size:14px;color:#4A4560">{{ role }}</span></sc-if>
+<sc-if value="{{ hasRoute }}"><span style="font-size:14px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ to }}</b></span></sc-if>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Button" label="Come ti vedono gli altri" variant="light" on-click="{{ preview }}"></dc-import><dc-import name="UI Button" label="Apri profilo" variant="accent" on-click="{{ open }}"></dc-import></div>
+</section>
+</main>
+</sc-if>
+<dc-import name="App TabBar" active="profilo" me="{{ me }}"></dc-import>
+</div>

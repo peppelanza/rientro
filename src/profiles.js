@@ -1,5 +1,6 @@
 import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS, label } from './catalog.js';
 import { newId, now, tx } from './db.js';
+import { paginate } from './paging.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
 // A: has an idea, B: looking for one with others, C: networking only (no idea step)
@@ -386,8 +387,12 @@ export function parseDiscoverQuery(q) {
     time: ['full_time', 'part_time'].includes(q.get('time')) ? q.get('time') : '',
     age: arr('age').filter(x => values(AGE_BANDS).includes(x)),
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
+    // "Più affini" (default) or "Più recenti", over all the results, then 24 per page
+    sort: q.get('sort') === 'recent' ? 'recent' : 'match',
+    page: Math.max(1, Math.floor(Number(q.get('page')) || 1)),
   };
 }
+const DISCOVER_PER_PAGE = 24;
 
 export function discover(db, viewer, filters) {
   const rows = db.prepare(
@@ -400,12 +405,15 @@ export function discover(db, viewer, filters) {
     return p;
   });
   const passes = (p, except) => Object.entries(FACETS).every(([k, fn]) => k === except || fn(p, filters[k], filters, db));
-  const results = rows.filter(p => passes(p));
-  const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
   const viewerP = rawProfile(db, viewer.id);
+  let results = rows.filter(p => passes(p));
+  // Complementary profiles first; the newest first within each group (sort is stable)
+  if (filters.sort === 'match') results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
+  const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
+  const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE }, p => card(db, viewer, p, viewerP));
   return {
-    total: results.length,
-    people: results.slice(0, 60).map(p => card(db, viewer, p, viewerP)),
+    total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
+    people: pg.items,
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
       backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),

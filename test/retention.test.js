@@ -27,9 +27,9 @@ test('deleting the account hides it at once and signs it out; data is kept for 3
   // For everyone else it is as if it were gone
   assert.equal((await b.get(`/api/profiles/${a.id}`)).status, 404);
   const conns = (await b.get('/api/connections')).body;
-  assert.equal(conns.connected.length, 0);
+  assert.equal(conns.counts.connected, 0);
   assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'Ci sei?' })).status, 403);
-  assert.equal((await b.get('/api/threads')).body.length, 0);
+  assert.equal((await b.get('/api/threads')).body.total, 0);
   assert.ok(!JSON.stringify((await b.get('/api/profiles')).body).includes(a.id), 'not in discover');
   // Day 29: still there
   runRetention(db, { at: new Date(Date.now() + 29 * DAY) });
@@ -45,7 +45,7 @@ test('signing in within 30 days restores everything as it was', async () => {
   const again = await t.login('ripensa@x.it');
   assert.equal(requestedAt(a.id), null);
   assert.equal((await b.get(`/api/profiles/${a.id}`)).status, 200, 'visible again');
-  assert.equal((await b.get('/api/connections')).body.connected.length, 1, 'connection back');
+  assert.equal((await b.get('/api/connections')).body.counts.connected, 1, 'connection back');
   assert.equal((await again.get('/api/me')).status, 200);
   runRetention(db, { at: new Date(Date.now() + 60 * DAY) });
   assert.ok(exists(a.id), 'not erased later: the request was cancelled');

@@ -245,7 +245,7 @@ function streamFile(req, res, f) {
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
-  /^\/notifiche$/, /^\/profilo$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
+  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, pub);
 
   // ---- me
-  const me = (user, cookies) => ({
+  const me = (user, cookies, imp = !!auth.impersonatorOf(db, cookies[SESSION_COOKIE])) => ({
     user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at },
     legal: auth.legalStatus(db, user.id),
     profile: profiles.effectiveProfile(db, user.id),
@@ -375,9 +375,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     communication: prefs.getCommunicationPreferences(db, user.id),
     job_seeking_notice: { text: JOB_SEEKING_NOTICE_TEXT, version: LEGAL_VERSIONS.job_seeking_notice },
     counts: social.badgeCounts(db, user),
-    launched: isLaunched(),
+    // An admin in "Accedi come" sees the member's whole site, even before launch
+    launched: isLaunched() || imp,
     ...(user.role === 'admin' ? { admin_url: adminUrl(), site_url: `${config.baseUrl}/` } : {}),
-    impersonated: !!auth.impersonatorOf(db, cookies[SESSION_COOKIE]),
+    impersonated: imp,
   });
   route('GET', '/api/me', ({ user, cookies }) => me(user, cookies));
   // Public pages ask who's signed in without triggering a 401.
@@ -455,7 +456,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('PATCH', '/api/me/notifications', async ({ user, req }) => prefs.updateNotificationSettings(db, user.id, await readJson(req)));
   route('GET', '/api/me/preference-history', ({ user }) => prefs.preferenceHistory(db, user.id));
   route('GET', '/api/me/sessions', ({ user, cookies }) => auth.listSessions(db, user.id, cookies[SESSION_COOKIE]));
-  route('GET', '/api/me/blocks', ({ user }) => social.listBlocked(db, user));
+  route('GET', '/api/me/blocks', ({ user, url }) => social.listBlocked(db, user, url.searchParams));
   route('GET', '/api/me/export', ({ user, res }) => {
     send(res, 200, exportData(db, user), { 'Content-Disposition': 'attachment; filename="rientro-i-miei-dati.json"' });
   }, { raw: true, allowSuspended: true });
@@ -481,7 +482,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   });
   route('GET', '/api/comuni/counts', () => profiles.comuneCounts(db));
 
-  route('GET', '/api/connections', ({ user }) => social.listConnections(db, user));
+  route('GET', '/api/connections', ({ user, url }) => social.listConnections(db, user, url.searchParams));
   route('POST', '/api/connections', async ({ user, req }) => social.requestConnection(db, user, await readJson(req)));
   route('GET', '/api/connections/:id', ({ user, params }) => social.getRequest(db, user, params.id));
   route('POST', '/api/connections/:id/:action', ({ user, params }) => {
@@ -489,12 +490,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return social.respondConnection(db, user, params.id, params.action);
   });
 
-  route('GET', '/api/threads', ({ user }) => social.listThreads(db, user));
-  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, Number(url.searchParams.get('after')) || 0));
+  route('GET', '/api/threads', ({ user, url }) => social.listThreads(db, user, url.searchParams));
+  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0 }));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
 
-  // The bell dropdown asks for the latest 5 (?limit=5), the page for up to 50
-  route('GET', '/api/notifications', ({ user, url }) => social.listNotifications(db, user, Math.min(50, Math.max(1, Number(url.searchParams.get('limit')) || 50))));
+  route('GET', '/api/notifications', ({ user, url }) => social.listNotifications(db, user, url.searchParams));
   route('POST', '/api/notifications/read', ({ user }) => { social.markNotificationsRead(db, user); return { ok: true }; });
 
   route('POST', '/api/blocks/:id', ({ user, params }) => { social.block(db, user, params.id); return { ok: true }; });
@@ -530,7 +530,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { ...adm, raw: true });
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
-  route('GET', '/api/admin/blocked', ({ user }) => moderation.listBlocked(db, user), adm);
+  route('GET', '/api/admin/blocked', ({ user, url }) => moderation.listBlocked(db, user, url.searchParams), adm);
   route('GET', '/api/admin/blocked/:id/image', ({ user, params, res }) => {
     const { mime, buf } = moderation.blockedImage(db, user, params.id);
     res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-store', 'Content-Length': buf.length });
@@ -540,7 +540,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/admin/demo', () => ({ total: demo.demoCount(db) }), adm);
   route('POST', '/api/admin/demo', ({ user }) => demo.createDemoPeople(db, user), adm);
   route('DELETE', '/api/admin/demo', ({ user }) => demo.removeDemoPeople(db, user), adm);
-  route('GET', '/api/admin/photo-checks', ({ user }) => admin.photoChecks(db, user), adm);
+  route('GET', '/api/admin/photo-checks', ({ user, url }) => admin.photoChecks(db, user, url.searchParams), adm);
   route('POST', '/api/admin/photo-checks/:id/ok', ({ user, params }) => admin.photoCheckOk(db, user, params.id), adm);
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
@@ -553,7 +553,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     res.end(out.csv);
   }, { ...adm, raw: true });
   route('GET', '/api/admin/exports/recent', () => admin.recentExports(db), adm);
-  route('GET', '/api/admin/audit', ({ user }) => admin.auditLog(db, user), adm);
+  route('GET', '/api/admin/audit', ({ user, url }) => admin.auditLog(db, user, url.searchParams), adm);
   route('GET', '/api/admin/processing', () => admin.processingRegister(db), adm);
 
   async function handle(req, res) {

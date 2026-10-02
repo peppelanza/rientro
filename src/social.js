@@ -3,11 +3,12 @@ import { newId, now, tx } from './db.js';
 import { getCommunicationPreferences } from './preferences.js';
 import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
+import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, bool, oneOf, only, text } from './validate.js';
 
 // Discovery and connecting open on launch day (design 01 pre-lancio); admins can preview them before.
 export function requireLaunched(user) {
-  if (!isLaunched() && user.role !== 'admin') {
+  if (!isLaunched() && user.role !== 'admin' && !user.impersonated_by) {
     throw new HttpError(403, 'not_launched', 'Scoprire persone e connettersi sarà possibile dal 1° gennaio 2027.');
   }
 }
@@ -42,14 +43,21 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
   // TODO: email channel (notify_*_email) once a transactional email provider is configured.
 }
 
-export function listNotifications(db, user, limit = 50) {
-  return db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT ?').all(user.id, limit).map(n => {
+// Newest first, 20 per page (the bell asks for ?per_page=5)
+export function listNotifications(db, user, query = new URLSearchParams()) {
+  const perPage = Math.min(50, Math.max(1, Math.floor(Number(query.get('per_page')) || 20)));
+  const total = db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ?').get(user.id).n;
+  const pages = Math.max(1, Math.ceil(total / perPage));
+  const page = Math.min(pages, Math.max(1, Math.floor(Number(query.get('page')) || 1)));
+  const items = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?').all(user.id, perPage, (page - 1) * perPage).map(n => {
     const actor = n.actor_id ? rawProfile(db, n.actor_id) : null;
     return {
       id: n.id, kind: n.kind, created_at: n.created_at, read: !!n.read_at, data: JSON.parse(n.data),
       actor: actor && { id: n.actor_id, name: nameOf(db, n.actor_id), first_name: actor.first_name, photo_url: actor.photo_file_id ? `/api/files/${actor.photo_file_id}` : null },
     };
   });
+  const unread = db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n;
+  return { items, total, page, pages, per_page: perPage, unread };
 }
 
 export function markNotificationsRead(db, user) {
@@ -104,7 +112,7 @@ export function respondConnection(db, viewer, id, action) {
   return { status: 'none' };
 }
 
-export function listConnections(db, viewer) {
+function allConnections(db, viewer) {
   const viewerP = rawProfile(db, viewer.id);
   const toCard = (otherId, extra) => {
     const p = rawProfile(db, otherId);
@@ -117,6 +125,19 @@ export function listConnections(db, viewer) {
     connected: rows.filter(c => c.status === 'accepted').map(c => toCard(c.requester_id === viewer.id ? c.addressee_id : c.requester_id, { connection_id: c.id, since: c.responded_at })),
     received: rows.filter(c => c.status === 'pending' && c.addressee_id === viewer.id).map(c => toCard(c.requester_id, { connection_id: c.id, note: c.note, created_at: c.created_at })),
     sent: rows.filter(c => c.status === 'pending' && c.requester_id === viewer.id).map(c => toCard(c.addressee_id, { connection_id: c.id, created_at: c.created_at })),
+  };
+}
+
+// One tab at a time (?tab=connected|received|sent), searchable (?q= name, role, cities), 20 per page;
+// the counts of all three tabs and the first received requests (banner) come along
+export function listConnections(db, viewer, query = new URLSearchParams()) {
+  const all = allConnections(db, viewer);
+  const tab = ['received', 'sent'].includes(query.get('tab')) ? query.get('tab') : 'connected';
+  const pp = pageParams(query, 20);
+  const rows = all[tab].filter(c => matches(pp.q, c.name, c.role, c.from, c.to));
+  return {
+    tab, counts: { connected: all.connected.length, received: all.received.length, sent: all.sent.length },
+    received_preview: all.received.slice(0, 2), ...paginate(rows, pp),
   };
 }
 
@@ -134,9 +155,11 @@ function requireConnected(db, a, b) {
   return c;
 }
 
-export function listThreads(db, viewer) {
-  const { connected } = listConnections(db, viewer);
-  return connected.map(c => {
+// Conversations, latest first; searchable by name (?q=), 30 per page
+export function listThreads(db, viewer, query = new URLSearchParams()) {
+  const { connected } = allConnections(db, viewer);
+  const pp = pageParams(query, 30);
+  const threads = connected.filter(c => matches(pp.q, c.name)).map(c => {
     const last = db.prepare(
       'SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY id DESC LIMIT 1',
     ).get(viewer.id, c.id, c.id, viewer.id);
@@ -147,17 +170,25 @@ export function listThreads(db, viewer) {
       time: last?.created_at ?? c.since, unread: unread > 0,
     };
   }).sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+  return paginate(threads, pp);
 }
 
-export function getThread(db, viewer, otherId, afterId = 0) {
+// Opening a chat: the latest 50 messages, and older ones 50 at a time (?before=<id>);
+// polling for new ones: everything after the last one shown (?after=<id>)
+const THREAD_PAGE = 50;
+export function getThread(db, viewer, otherId, { after = 0, before = 0 } = {}) {
   const c = requireConnected(db, viewer.id, otherId);
   db.prepare('UPDATE messages SET read_at = ? WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').run(now(), otherId, viewer.id);
   db.prepare("UPDATE notifications SET read_at = ? WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").run(now(), viewer.id, otherId);
-  const messages = db.prepare(
-    `SELECT id, sender_id, body, created_at, read_at FROM messages
-     WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)) AND id > ? ORDER BY id LIMIT 500`,
-  ).all(viewer.id, otherId, otherId, viewer.id, afterId).map(m => ({ ...m, mine: m.sender_id === viewer.id }));
-  return { connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages };
+  const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
+  const args = [viewer.id, otherId, otherId, viewer.id];
+  const rows = after
+    ? db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} AND id > ? ORDER BY id LIMIT 500`).all(...args, after)
+    : db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} ${before ? 'AND id < ?' : ''} ORDER BY id DESC LIMIT ?`)
+      .all(...args, ...(before ? [before] : []), THREAD_PAGE).reverse();
+  const messages = rows.map(m => ({ ...m, mine: m.sender_id === viewer.id }));
+  const hasOlder = !after && rows.length > 0 && !!db.prepare(`SELECT 1 FROM messages WHERE ${pair} AND id < ? LIMIT 1`).get(...args, rows[0].id);
+  return { connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder };
 }
 
 export function sendMessage(db, viewer, otherId, body) {
@@ -188,9 +219,13 @@ export function unblock(db, viewer, targetId) {
   db.prepare('DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?').run(viewer.id, targetId);
 }
 
-export function listBlocked(db, viewer) {
-  return db.prepare('SELECT blocked_id, created_at FROM blocks WHERE blocker_id = ? ORDER BY created_at DESC').all(viewer.id)
-    .map(b => ({ id: b.blocked_id, name: nameOf(db, b.blocked_id) || 'Utente', since: b.created_at }));
+// Searchable by name (?q=), 20 per page
+export function listBlocked(db, viewer, query = new URLSearchParams()) {
+  const pp = pageParams(query, 20);
+  const rows = db.prepare('SELECT blocked_id, created_at FROM blocks WHERE blocker_id = ? ORDER BY created_at DESC').all(viewer.id)
+    .map(b => ({ id: b.blocked_id, name: nameOf(db, b.blocked_id) || 'Utente', since: b.created_at }))
+    .filter(b => matches(pp.q, b.name));
+  return paginate(rows, pp);
 }
 
 export function report(db, viewer, body) {

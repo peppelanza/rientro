@@ -27,7 +27,7 @@ export default class extends Page {
     const s = this.state;
     if (!s.me) return { loading: true, me: {}, menu: settingsMenu };
     const { cat, me } = s;
-    const n = s.blocks.length;
+    const n = s.blocks.total;
     return {
       loading: false, me, menu: settingsMenu, cat,
       publicFields: ['Nome e foto', "Fascia d'età", 'Luoghi', 'Percorso', 'Formazione', 'Idea', 'Video', 'Interessi', 'LinkedIn', 'Sito', 'Cosa ti manca'],

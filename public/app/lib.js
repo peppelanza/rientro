@@ -183,3 +183,9 @@ export function showFlash() {
   if (c) { m = decodeURIComponent(c[1]); document.cookie = 'rientro_flash=; Path=/; Max-Age=0'; }
   if (m) toast(m, { ms: 7000 });
 }
+
+// Search boxes: run once the member stops typing for a moment
+export function debounce(fn, ms = 300) {
+  let t;
+  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}

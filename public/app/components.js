@@ -65,8 +65,9 @@ def('App Nav', String.raw`
     const c = this.props.me?.counts || {};
     this.setState({ bellOpen: true, menuOpen: false, bellItems: null, bellUnread: c.notifications || 0 });
     try {
-      const items = await api('GET', '/api/notifications?limit=5');
-      this.setState({ bellItems: items });
+      const r = await api('GET', '/api/notifications?per_page=5');
+      const items = r.items;
+      this.setState({ bellItems: items, bellUnread: r.unread });
       if (items.some(n => !n.read)) {
         await api('POST', '/api/notifications/read');
         c.notifications = 0;
@@ -95,7 +96,7 @@ def('App Nav', String.raw`
       ...(me.admin_url ? [{ l: 'Admin', href: me.admin_url, fg: '#6C4DF5' }] : []),
     ];
     return {
-      items, pendingNote, menu, menuOpen: this.state.menuOpen, home: open ? '/scopri' : '/',
+      items, pendingNote, menu, menuOpen: this.state.menuOpen, home: open ? '/scopri' : approved ? '/benvenuto' : '/',
       // Notifications as a bell next to the profile picture (like Facebook), with the unread count
       bell: open ? {
         count: c.notifications ? (c.notifications > 9 ? '9+' : String(c.notifications)) : '',
@@ -300,6 +301,35 @@ def('App Field', String.raw`
       },
       keydown: e => { if (e.key === 'Enter' && p.onEnter) { e.preventDefault(); p.onEnter(e.target.value); } },
       blur: e => p.onBlur?.(e.target.value),
+    };
+  }
+});
+
+// App Pager — "1–24 di 87" and the page numbers (first, last, current ±1), for every paged list.
+// Attributes: page, pages, total, perpage, noun ("persone"); dc-props: { onPage(n) }. Hidden on a single page.
+
+def('App Pager', String.raw`
+<sc-if value="{{ show }}"><nav aria-label="Pagine" class="r-wrap" style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;font-family:'Geist',sans-serif;font-size:13px;color:#1A1726">
+<span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;letter-spacing:.02em">{{ range }}</span>
+<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+<button type="button" onClick="{{ prev }}" disabled="{{ noPrev }}" aria-label="Pagina precedente" class="pager-btn">←</button>
+<sc-for list="{{ items }}" as="p"><sc-if value="{{ p.cur }}"><span aria-current="page" class="pager-btn pager-cur">{{ p.l }}</span></sc-if><sc-if value="{{ p.link }}"><button type="button" onClick="{{ p.go }}" aria-label="{{ p.aria }}" class="pager-btn">{{ p.l }}</button></sc-if><sc-if value="{{ p.gap }}"><span class="pager-gap">…</span></sc-if></sc-for>
+<button type="button" onClick="{{ next }}" disabled="{{ noNext }}" aria-label="Pagina successiva" class="pager-btn">→</button>
+</div></nav></sc-if>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const page = Number(p.page) || 1;
+    const pages = Number(p.pages) || 1;
+    const total = Number(p.total) || 0;
+    const per = Number(p.perpage) || 20;
+    const nums = [];
+    for (let i = 1; i <= pages; i++) if (i === 1 || i === pages || Math.abs(i - page) <= 1) nums.push(i); else if (nums.at(-1) !== '…') nums.push('…');
+    const go = n => () => { p.onPage?.(n); };
+    return {
+      show: pages > 1,
+      range: `${(page - 1) * per + 1}–${Math.min(page * per, total)} di ${total}${p.noun ? ` ${p.noun}` : ''}`,
+      items: nums.map(n => ({ l: String(n), gap: n === '…', cur: n === page, link: n !== '…' && n !== page, aria: `Pagina ${n}`, go: go(n) })),
+      prev: go(page - 1), next: go(page + 1), noPrev: page <= 1, noNext: page >= pages,
     };
   }
 });

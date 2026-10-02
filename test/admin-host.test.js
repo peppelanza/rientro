@@ -79,7 +79,7 @@ test('photos that fail the browser check never block: they wait in "Foto da cont
     const a = await t.asAdmin();
     const m = await t.login('senzavolto@x.it');
     assert.equal((await m.raw('POST', '/api/me/photo', PNG, { 'x-photo-check': 'no_face' })).status, 200);
-    const list = (await a.get('/api/admin/photo-checks')).body;
+    const list = (await a.get('/api/admin/photo-checks')).body.items;
     const row = list.find(r => r.id === m.id);
     assert.equal(row.reason, 'Nessun volto riconosciuto');
     assert.ok(row.photo_url);
@@ -87,10 +87,10 @@ test('photos that fail the browser check never block: they wait in "Foto da cont
     // Members can't see or clear the list
     assert.equal((await m.get('/api/admin/photo-checks')).status, 403);
     assert.equal((await a.post(`/api/admin/photo-checks/${m.id}/ok`)).status, 200);
-    assert.ok(!(await a.get('/api/admin/photo-checks')).body.some(r => r.id === m.id));
+    assert.ok(!(await a.get('/api/admin/photo-checks')).body.items.some(r => r.id === m.id));
     // A new photo that passes clears any flag; unknown values are ignored
     await m.raw('POST', '/api/me/photo', PNG, { 'x-photo-check': 'boh' });
-    assert.ok(!(await a.get('/api/admin/photo-checks')).body.some(r => r.id === m.id));
+    assert.ok(!(await a.get('/api/admin/photo-checks')).body.items.some(r => r.id === m.id));
   } finally { config.adminHost = 'admin.rientro.test'; }
 });
 
@@ -110,7 +110,7 @@ test('an explicit image suspends the account at once; the admin can undo it', as
     const again = await fetch(`${t.base}/api/auth/verify-code`, { method: 'POST', headers: h, body: JSON.stringify({ email: 'esplicito@x.it', code: t.codes.get('esplicito@x.it') }) });
     assert.equal(again.status, 403);
     // Admin: listed with the image, never public
-    const row = (await a.get('/api/admin/blocked')).body.find(x => x.user_id === m.id);
+    const row = (await a.get('/api/admin/blocked')).body.items.find(x => x.user_id === m.id);
     assert.equal(row.scores.Porn, 0.93);
     assert.equal(row.scores.Evil, undefined);
     assert.equal((await a.get(row.image_url)).status, 200);

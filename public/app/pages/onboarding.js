@@ -49,7 +49,7 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 export default class extends Page {
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
-    if (me.user.status !== 'onboarding') return go('/profilo');
+    if (me.user.status !== 'onboarding') return go(homeFor(me));
     const p = structuredClone(me.profile);
     const want = new URLSearchParams(location.search).get('passo');
     const known = [...STEPS.map(s => s[0]), 'anteprima'];

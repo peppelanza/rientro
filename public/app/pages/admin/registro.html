@@ -4,11 +4,15 @@
 <main class="admin-main">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Registro</h1><sc-if value="{{ tLog }}"><div role="tablist" style="display:flex;gap:6px;flex-wrap:wrap"><dc-import name="UI Chip" label="{{ tLog.l }}" tone="{{ tLog.tone }}" size="sm" on-click="{{ tLog.fn }}" host-role="tab" host-aria-selected="{{ tLog.on }}"></dc-import><dc-import name="UI Chip" label="{{ tReg.l }}" tone="{{ tReg.tone }}" size="sm" on-click="{{ tReg.fn }}" host-role="tab" host-aria-selected="{{ tReg.on }}"></dc-import></div></sc-if></div>
 <sc-if value="{{ isLog }}">
-<span style="font-size:14px;color:#6B6680;line-height:1.5">Ogni accesso dell'amministrazione a dati personali viene registrato qui. Ultimi 300 eventi.</span>
+<span style="font-size:14px;color:#6B6680;line-height:1.5">Ogni accesso dell'amministrazione a dati personali viene registrato qui.</span>
+<div style="max-width:420px"><dc-import name="App Field" search="{{ true }}" field="audit-q" value="{{ q }}" placeholder="Cerca per amministratore, azione o persona" dc-props="{{ searchProps }}"></dc-import></div>
 <div class="admin-table" style="background:#FFFFFF;border-radius:24px">
 <div class="admin-row" style="display:grid;grid-template-columns:150px 120px 1.4fr 140px 1.6fr;gap:14px;padding:12px 18px;border-bottom:1px solid #ECE8F7;background:#F6F4FC;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.05em;color:#6B6680;border-radius:24px 24px 0 0"><span>QUANDO</span><span>CHI</span><span>AZIONE</span><span>UTENTE</span><span>DETTAGLI</span></div>
 <sc-for list="{{ log }}" as="r"><div class="admin-row" style="display:grid;grid-template-columns:150px 120px 1.4fr 140px 1.6fr;gap:14px;padding:10px 18px;border-bottom:1px solid #ECE8F7;font-size:13px;align-items:center"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#6B6680">{{ r.when }}</span><span>{{ r.who }}</span><span>{{ r.what }}</span><sc-if value="{{ r.target }}"><a href="{{ r.target }}" style="font-family:'Geist Mono',monospace;font-size:12px;color:#3E2BA8">{{ r.ref }}</a></sc-if><sc-if value="{{ !r.target }}"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ r.ref }}</span></sc-if><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;overflow-wrap:anywhere">{{ r.details }}</span></div></sc-for>
-</div></sc-if>
+<sc-if value="{{ noLog }}"><div style="padding:24px 18px;font-size:14px;color:#8C84AE">{{ noLogText }}</div></sc-if>
+</div>
+<dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import>
+</sc-if>
 <sc-if value="{{ isReg }}">
 <div style="display:flex;gap:10px;align-items:flex-start;padding:14px 18px;border-radius:20px;background:#FFF4DC;font-size:13px;line-height:1.5;color:#7A4E00"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A;margin-top:6px;flex:none"></span>Basi giuridiche e tempi di conservazione sono proposte tecniche, non consulenza legale. Ogni voce resta da rivedere con un professionista privacy UE/Italia prima del lancio.</div>
 <div style="display:flex;flex-direction:column;gap:12px"><sc-for list="{{ register }}" as="r"><section style="background:#FFFFFF;border-radius:24px;padding:18px 20px;display:flex;flex-direction:column;gap:10px">

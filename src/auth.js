@@ -101,7 +101,8 @@ export function userForSession(db, rawToken) {
   db.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').run(ts, hash);
   // An admin signed in as this person isn't the person being active
   if (!impersonator) db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(ts, user.id);
-  return user;
+  // "Accedi come": the admin's id rides along, so the admin sees the whole site even before launch
+  return impersonator ? { ...user, impersonated_by: impersonator } : user;
 }
 
 // Admin "Accedi come": a short session of its own for the target, marked with the admin's id

@@ -82,11 +82,11 @@ test('connection request with note → accept → chat; decline is silent', asyn
   const req = await b.post('/api/connections', { to: a.id, note: 'Ciao Giulia!' });
   assert.equal((await b.post('/api/connections', { to: a.id })).status, 409);
   assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'hi' })).status, 403);
-  const inbox = (await a.get('/api/connections')).body;
-  assert.equal(inbox.received[0].note, 'Ciao Giulia!');
-  assert.ok((await a.get('/api/notifications')).body.some(n => n.kind === 'connection_request'));
+  const inbox = (await a.get('/api/connections?tab=received')).body;
+  assert.equal(inbox.items[0].note, 'Ciao Giulia!');
+  assert.ok((await a.get('/api/notifications')).body.items.some(n => n.kind === 'connection_request'));
   await a.post(`/api/connections/${req.body.id}/accept`);
-  assert.ok((await b.get('/api/notifications')).body.some(n => n.kind === 'connection_accepted'));
+  assert.ok((await b.get('/api/notifications')).body.items.some(n => n.kind === 'connection_accepted'));
   await b.post(`/api/threads/${a.id}`, { body: 'Ti va una call giovedì?' });
   assert.equal((await a.get('/api/me')).body.counts.unread_messages, 1);
   const thread = (await a.get(`/api/threads/${b.id}`)).body;
@@ -96,7 +96,7 @@ test('connection request with note → accept → chat; decline is silent', asyn
   const c = await t.approved('carla@x.it');
   const r2 = await c.post('/api/connections', { to: a.id });
   await a.post(`/api/connections/${r2.body.id}/decline`);
-  assert.ok(!(await c.get('/api/notifications')).body.some(n => n.kind !== 'profile_approved'));
+  assert.ok(!(await c.get('/api/notifications')).body.items.some(n => n.kind !== 'profile_approved'));
 });
 
 test('blocking hides both ways and closes the connection', async () => {
@@ -108,7 +108,7 @@ test('blocking hides both ways and closes the connection', async () => {
   assert.equal((await a.get(`/api/profiles/${b.id}`)).status, 404);
   assert.ok(!(await b.get('/api/profiles')).body.people.some(p => p.id === a.id));
   assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'hey' })).status, 403);
-  assert.equal((await a.get('/api/me/blocks')).body[0].id, b.id);
+  assert.equal((await a.get('/api/me/blocks')).body.items[0].id, b.id);
 });
 
 test('reports reach moderation; resolving can suspend; suspended users are locked out', async () => {
@@ -200,7 +200,37 @@ test('admin "Accedi come": acts as the member, banner flag, exit gives the admin
     const back = makeClient(t.base, stop.headers.getSetCookie().map(c => c.split(';')[0]).filter(c => !c.endsWith('=')).join('; '));
     assert.equal((await back.get('/api/me')).body.user.id, admin.id);
     assert.equal((await as.get('/api/me')).status, 401);
-    const log = (await admin.get('/api/admin/audit')).body.map(l => l.action);
+    const log = (await admin.get('/api/admin/audit')).body.items.map(l => l.action);
     assert.ok(log.includes('user.impersonate') && log.includes('user.impersonate_end'));
+  } finally { t.close(); }
+});
+
+test('paging and search: discover sorts all results before paging, connections and blocks are searchable', async () => {
+  const t = await startApp();
+  try {
+    const me = await t.approved('lettore@example.com', { background_area: 'Prodotto' });
+    const others = [];
+    for (let i = 0; i < 26; i++) others.push(await t.approved(`p${i}@example.com`, { first_name: `Persona${i}`, background_area: 'Design', sectors: ['Turismo'], seeking_backgrounds: i === 0 ? ['Prodotto'] : ['Marketing / Growth'] }));
+    // Page 1 of "Più affini": the only complementary profile (the oldest one) comes first
+    const p1 = (await me.get('/api/profiles?sort=match')).body;
+    assert.equal(p1.total, 26);
+    assert.equal(p1.pages, 2);
+    assert.equal(p1.people.length, 24);
+    assert.equal(p1.people[0].id, others[0].id);
+    const r1 = (await me.get('/api/profiles?sort=recent')).body;
+    const r2 = (await me.get('/api/profiles?sort=recent&page=2')).body;
+    assert.equal(r2.people.length, 2);
+    assert.equal(new Set([...r1.people, ...r2.people].map(p => p.id)).size, 26, 'every person once across the pages');
+
+    for (const o of others.slice(0, 3)) await t.connect(me, o);
+    const all = (await me.get('/api/connections')).body;
+    assert.deepEqual([all.counts.connected, all.total, all.tab], [3, 3, 'connected']);
+    const found = (await me.get('/api/connections?q=persona1')).body;
+    assert.deepEqual(found.items.map(c => c.id), [others[1].id]);
+    assert.equal((await me.get('/api/threads?q=persona2')).body.items[0].id, others[2].id);
+
+    await me.post(`/api/blocks/${others[5].id}`);
+    assert.equal((await me.get('/api/me/blocks?q=persona5')).body.total, 1);
+    assert.equal((await me.get('/api/me/blocks?q=nessuno')).body.total, 0);
   } finally { t.close(); }
 });

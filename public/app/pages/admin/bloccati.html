@@ -4,7 +4,8 @@
 <main class="admin-main">
 <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Contenuti bloccati</h1>
 <span style="font-size:14px;color:#6B6680;line-height:1.5;max-width:760px">Immagini riconosciute come esplicite al caricamento. L'immagine non è mai stata pubblicata e l'account è stato sospeso subito: con quella email non si può più accedere. Se era un errore, riattivalo: l'immagine diventa la sua foto profilo e riceverà un'email. Se confermi il blocco l'immagine si cancella, e comunque dopo 30 giorni.</span></div>
-<sc-if value="{{ empty }}"><div style="background:#FFFFFF;border-radius:24px;padding:28px;font-size:14px;color:#6B6680">Nessun contenuto bloccato.</div></sc-if>
+<div style="max-width:420px"><dc-import name="App Field" search="{{ true }}" field="blocked-q" value="{{ q }}" placeholder="Cerca per nome o email" dc-props="{{ searchProps }}"></dc-import></div>
+<sc-if value="{{ empty }}"><div style="background:#FFFFFF;border-radius:24px;padding:28px;font-size:14px;color:#6B6680">{{ emptyText }}</div></sc-if>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
 <sc-for list="{{ rows }}" as="r"><section style="background:#FFFFFF;border-radius:24px;padding:12px;display:flex;flex-direction:column;gap:10px">
 <sc-if value="{{ r.hasImage }}"><details style="border-radius:16px;overflow:hidden;background:#1A1726"><summary style="list-style:none;cursor:pointer;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#C9C0F0;font-size:13px">Mostra immagine</summary><img src="{{ r.image_url }}" alt="Immagine bloccata" style="display:block;width:100%;height:auto"></details></sc-if>
@@ -14,4 +15,5 @@
 <sc-if value="{{ r.outcome }}"><div style="padding:0 4px 4px"><dc-import name="UI Badge" kind="neutral" label="{{ r.outcome }}"></dc-import></div></sc-if>
 </section></sc-for>
 </div>
+<dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import>
 </main></div>

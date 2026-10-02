@@ -14,9 +14,17 @@ const ACTION = {
 
 export default class extends AdminPage {
   async loadAdmin() {
-    const [log, register] = await Promise.all([api('GET', '/api/admin/audit'), api('GET', '/api/admin/processing')]);
-    Object.assign(this.state, { log, register, tab: 'log' });
+    const [, register] = await Promise.all([this.fetchList(), api('GET', '/api/admin/processing')]);
+    Object.assign(this.state, { log: this.state.list.items, register, tab: 'log' });
   }
+
+  // 50 per page; the search also matches the Italian descriptions of the actions
+  listPath = '/api/admin/audit';
+  listExtra() {
+    const q = (this.state.q || '').toLowerCase();
+    return q ? { actions: Object.entries(ACTION).filter(([, l]) => l.toLowerCase().includes(q)).map(([k]) => k).join(',') } : {};
+  }
+  async fetchList() { await super.fetchList(); this.state.log = this.state.list.items; }
 
   renderVals() {
     const s = this.state;
@@ -24,7 +32,8 @@ export default class extends AdminPage {
     const tab = (k, l) => ({ l, tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.setState({ tab: k }) });
     return {
       loading: false, side: this.side('registro'), tLog: tab('log', 'Accessi ai dati'), tReg: tab('reg', 'Registro dei trattamenti'),
-      isLog: s.tab === 'log', isReg: s.tab === 'reg',
+      isLog: s.tab === 'log', isReg: s.tab === 'reg', ...this.listVals(), noLog: !s.log.length,
+      noLogText: s.q ? `Nessun risultato per “${s.q}”.` : 'Nessun evento.',
       log: s.log.map(r => ({
         when: `${fmtDate(r.created_at)} ${fmtTime(r.created_at)}`, who: (r.admin_email || '—').split('@')[0], what: ACTION[r.action] ?? r.action,
         target: r.target_user_id ? `/admin/utenti/${r.target_user_id}` : null, ref: r.target_ref ? `#${r.target_ref}` : (r.target_user_id ? '' : '—'),

@@ -10,6 +10,7 @@ import { config } from './config.js';
 import { newId, now, tx } from './db.js';
 import { attachUpload } from './files.js';
 import { sendAccountRestoredEmail } from './mail.js';
+import { matches, pageParams, paginate } from './paging.js';
 import { HttpError } from './validate.js';
 
 const dir = () => path.join(config.uploadDir, 'quarantine');
@@ -43,12 +44,14 @@ export function blockUpload(db, user, buf, scoresHeader) {
   });
 }
 
-export function listBlocked(db, admin) {
+// Open ones first, then newest; searchable (?q= name, email), 20 per page
+export function listBlocked(db, admin, query = new URLSearchParams()) {
+  const pp = pageParams(query, 20);
   const rows = db.prepare(`SELECT b.*, u.email, p.first_name, p.last_name FROM blocked_uploads b
     JOIN users u ON u.id = b.user_id LEFT JOIN profiles p ON p.user_id = b.user_id
-    ORDER BY b.resolved_at IS NOT NULL, b.created_at DESC LIMIT 200`).all();
+    ORDER BY b.resolved_at IS NOT NULL, b.created_at DESC`).all().filter(r => matches(pp.q, r.first_name, r.last_name, r.email));
   audit(db, admin.id, 'blocked.list', null, { count: rows.length });
-  return rows.map(r => ({
+  return paginate(rows, pp, r => ({
     id: r.id, user_id: r.user_id, email: r.email, name: [r.first_name, r.last_name].filter(Boolean).join(' '),
     scores: JSON.parse(r.scores), created_at: r.created_at, resolved_at: r.resolved_at, resolution: r.resolution,
     image_url: r.storage_key ? `/api/admin/blocked/${r.id}/image` : null,

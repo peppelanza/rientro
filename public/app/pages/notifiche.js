@@ -10,8 +10,15 @@ export const tabbar = true;
 export default class extends Page {
   async load() {
     this.state.me = await getMe();
-    this.state.items = await api('GET', '/api/notifications');
-    if (this.state.items.some(n => !n.read)) {
+    this.state.page = Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1);
+    await this.fetch();
+  }
+
+  // 20 per page, newest first; opening a page marks everything read
+  async fetch() {
+    const r = await api('GET', `/api/notifications?page=${this.state.page}`);
+    Object.assign(this.state, { list: r, items: r.items, page: r.page });
+    if (r.unread) {
       await api('POST', '/api/notifications/read');
       this.state.me.counts.notifications = 0;
     }
@@ -42,7 +49,14 @@ export default class extends Page {
     const fresh = s.items.filter(n => !n.read).map(map);
     const old = s.items.filter(n => n.read).map(map);
     return {
-      loading: false, me: s.me, empty: !s.items.length, fresh, old, hasFresh: fresh.length > 0, hasOld: old.length > 0,
+      loading: false, me: s.me, empty: !s.list.total, fresh, old, hasFresh: fresh.length > 0, hasOld: old.length > 0,
+      page: s.list.page, pages: s.list.pages, total: s.list.total, perPage: s.list.per_page,
+      pagerProps: { onPage: n => this.act(async () => {
+        s.page = n;
+        history.replaceState(null, '', n > 1 ? `/notifiche?page=${n}` : '/notifiche');
+        await this.fetch();
+        scrollTo({ top: 0, behavior: 'smooth' });
+      })() },
     };
   }
 }

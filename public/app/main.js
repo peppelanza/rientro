@@ -22,6 +22,7 @@ const ROUTES = [
   [/^\/messaggi(\/(?<id>[^/]+))?$/, 'messaggi'],
   [/^\/notifiche$/, 'notifiche'],
   [/^\/profilo$/, 'profilo'],
+  [/^\/benvenuto$/, 'benvenuto'],
   [/^\/impostazioni$/, 'impostazioni'],
   [/^\/impostazioni\/privacy$/, 'privacy'],
   [/^\/impostazioni\/dati$/, 'dati'],

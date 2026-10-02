@@ -5,6 +5,7 @@ import { AGE_BANDS, SOURCES, START, TIME, label } from './catalog.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
 import { effectiveProfile, rawProfile } from './profiles.js';
+import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
 export function audit(db, adminId, action, targetUserId = null, details = {}) {
@@ -197,15 +198,20 @@ export function listReports(db, admin, query) {
   const rows = db.prepare(
     `SELECT r.*, pr.first_name AS rf, pr.last_name AS rl, pd.first_name AS df, pd.last_name AS dl
      FROM reports r LEFT JOIN profiles pr ON pr.user_id = r.reporter_id LEFT JOIN profiles pd ON pd.user_id = r.reported_id
-     WHERE ${status === 'open' ? "r.status = 'open'" : "r.status != 'open'"} ORDER BY r.created_at ${status === 'open' ? 'ASC' : 'DESC'} LIMIT 200`,
+     WHERE ${status === 'open' ? "r.status = 'open'" : "r.status != 'open'"} ORDER BY r.created_at ${status === 'open' ? 'ASC' : 'DESC'}`,
   ).all();
+  // Search (?q=) on who was reported, who reported and the details; 20 per page
+  const pp = pageParams(query, 20);
   const counts = db.prepare("SELECT SUM(status = 'open') AS open, SUM(status != 'open') AS closed FROM reports").get();
   // How many distinct people reported the same account (design: "3 utenti")
   const reporters = id => db.prepare("SELECT COUNT(DISTINCT reporter_id) AS n FROM reports WHERE reported_id = ? AND status = 'open'").get(id).n;
-  audit(db, admin.id, 'reports.list', null, { status, count: rows.length });
+  const found = rows.filter(r => matches(pp.q, r.rf, r.rl, r.df, r.dl, r.details, REASON[r.reason]));
+  const pg = paginate(found, pp);
+  audit(db, admin.id, 'reports.list', null, { status, page: pg.page, count: pg.items.length });
   return {
     counts: { open: counts.open ?? 0, closed: counts.closed ?? 0 },
-    reports: rows.map(r => {
+    total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
+    reports: pg.items.map(r => {
       const n = reporters(r.reported_id);
       return {
         id: r.id, reported_id: r.reported_id, reporter_id: r.reporter_id,
@@ -340,13 +346,28 @@ export function sidebarCounts(db) {
   };
 }
 
-export function auditLog(db, admin) {
+// Newest first, 50 per page; ?q= searches the admin's email, the action and the person's reference
+// or id, and ?actions= (comma-separated) limits it to those actions (the page's own search on the labels)
+export function auditLog(db, admin, query = new URLSearchParams()) {
+  const pp = pageParams(query, 50);
+  const actions = (query.get('actions') || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 100);
+  const where = [];
+  const args = [];
+  if (pp.q) {
+    where.push(`(lower(a.email) LIKE ? OR lower(l.action) LIKE ? OR l.target_ref LIKE ? OR l.target_user_id LIKE ?${actions.length ? ` OR l.action IN (${actions.map(() => '?').join(',')})` : ''})`);
+    const like = `%${pp.q.replace(/[%_]/g, '')}%`;
+    args.push(like, like, like, like, ...actions);
+  }
+  const sqlWhere = where.length ? `WHERE ${where.join(' AND ')}` : '';
+  const total = db.prepare(`SELECT COUNT(*) AS n FROM admin_audit_log l LEFT JOIN users a ON a.id = l.admin_id ${sqlWhere}`).get(...args).n;
+  const pages = Math.max(1, Math.ceil(total / pp.perPage));
+  const page = Math.min(pp.page, pages);
   const rows = db.prepare(
     `SELECT l.id, l.action, l.target_user_id, substr(l.target_ref, 1, 12) AS target_ref, l.details, l.created_at, a.email AS admin_email
-     FROM admin_audit_log l LEFT JOIN users a ON a.id = l.admin_id ORDER BY l.id DESC LIMIT 300`,
-  ).all();
+     FROM admin_audit_log l LEFT JOIN users a ON a.id = l.admin_id ${sqlWhere} ORDER BY l.id DESC LIMIT ? OFFSET ?`,
+  ).all(...args, pp.perPage, (page - 1) * pp.perPage);
   audit(db, admin.id, 'audit.view');
-  return rows.map(r => ({ ...r, details: JSON.parse(r.details) }));
+  return { items: rows.map(r => ({ ...r, details: JSON.parse(r.details) })), total, page, pages, per_page: pp.perPage };
 }
 
 export function processingRegister(db) {
@@ -358,10 +379,14 @@ export const PHOTO_CHECKS = {
   no_face: 'Nessun volto riconosciuto', small_face: 'Volto troppo piccolo', multiple_faces: 'Più persone',
   low_res: 'Risoluzione bassa', unchecked: 'Controllo non eseguito',
 };
-export function photoChecks(db, admin) {
-  const rows = allProfiles(db, 'p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL');
+// Searchable (?q= name, email), 20 per page
+export function photoChecks(db, admin, query = new URLSearchParams()) {
+  const pp = pageParams(query, 20);
+  const rows = allProfiles(db, 'p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL')
+    .filter(u => matches(pp.q, u.first_name, u.last_name, u.email))
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   audit(db, admin.id, 'photos.list', null, { count: rows.length });
-  return rows.sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(u => {
+  return paginate(rows, pp, u => {
     const file = u.photo_file_id;
     return {
       id: u.id, name: name(u) || '—', email: u.email, status: u.status, check: u.photo_check, reason: PHOTO_CHECKS[u.photo_check] ?? u.photo_check,

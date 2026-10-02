@@ -33,4 +33,4 @@ export async function peekMe() {
 }
 
 export const homeFor = me => (!me ? '/accedi'
-  : me.user.status === 'onboarding' ? '/onboarding' : me.launched ? '/scopri' : '/profilo');
+  : me.user.status === 'onboarding' ? '/onboarding' : me.launched ? '/scopri' : '/benvenuto');

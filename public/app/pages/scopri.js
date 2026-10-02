@@ -1,6 +1,6 @@
 // Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
-import { api, getCatalog, getMe, go } from '../lib.js';
+import { api, debounce, getCatalog, getMe, go } from '../lib.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
 
@@ -56,9 +56,9 @@ export default class extends Page {
   async load() {
     const [me, cat] = await Promise.all([getMe(), getCatalog()]);
     if (me.user.status !== 'approved') return go('/onboarding');
-    if (!me.launched && me.user.role !== 'admin') return go('/profilo');
-    Object.assign(this.state, { me, cat, f: readFilters(), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
-    const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${apiQuery(this.state.f)}`), api('GET', '/api/comuni/counts')]);
+    if (!me.launched && me.user.role !== 'admin') return go('/benvenuto');
+    Object.assign(this.state, { me, cat, f: readFilters(), page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
+    const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${this.listQuery()}`), api('GET', '/api/comuni/counts')]);
     this.state.res = res;
     this.state.comuneCounts = comuneCounts;
     await this.suggestRelax();
@@ -89,14 +89,27 @@ export default class extends Page {
     if (r?.total) this.state.relax = { label: last.label, total: r.total, f: last.without(this.state.f) };
   }
 
-  apply(f) {
+  // Filters, order and page for the API; the page is in the address too (?page=)
+  listQuery(f = this.state.f) {
+    return `${apiQuery(f)}&sort=${this.state.sort}&page=${this.state.page}`;
+  }
+
+  // New filters or a new order start again from page 1
+  apply(f, { page = 1, scroll = false } = {}) {
     return this.act(async () => {
       this.state.f = f;
-      history.replaceState(null, '', `/scopri${toQuery(f).toString() ? `?${toQuery(f)}` : ''}`);
-      this.state.res = await api('GET', `/api/profiles?${apiQuery(f)}`);
+      this.state.page = page;
+      const q = toQuery(f);
+      if (page > 1) q.set('page', String(page));
+      history.replaceState(null, '', `/scopri${q.toString() ? `?${q}` : ''}`);
+      this.state.res = await api('GET', `/api/profiles?${this.listQuery(f)}`);
+      this.state.page = this.state.res.page;
       await this.suggestRelax();
+      if (scroll) scrollTo({ top: 0, behavior: 'smooth' });
     })();
   }
+
+  searchTyped = debounce(v => { if (v.trim() !== this.state.f.q) this.set({ q: v.trim() }); });
 
   set(patch) { this.apply({ ...this.state.f, ...patch }); }
   toggle(key, v) { const l = this.state.f[key]; this.set({ [key]: l.includes(v) ? l.filter(x => x !== v) : [...l, v] }); }
@@ -112,7 +125,7 @@ export default class extends Page {
     const { f, cat, res } = s;
     const counts = res.counts;
     const act = this.active();
-    const people = s.sort === 'match' ? [...res.people].sort((a, b) => !!b.comp - !!a.comp) : res.people;
+    const people = res.people;
     const bgList = cat.areas.map(a => ({ l: a, count: counts.backgrounds[a] ?? 0, on: f.backgrounds.includes(a), fn: () => this.toggle('backgrounds', a) }));
     const secList = cat.sectors.map(l => ({ l, tone: f.sectors.includes(l) ? 'tint' : 'default', aria: f.sectors.includes(l) ? 'true' : 'false', fn: () => this.toggle('sectors', l) }));
     const shownSectors = s.moreSectors ? secList : secList.filter((x, i) => i < 4 || f.sectors.includes(x.l));
@@ -141,7 +154,11 @@ export default class extends Page {
       ageOpts: AGES.map(([v, l]) => ({ v, l })), age: f.age, ageProps: { onSelect: v => this.set({ age: v }) },
       // results
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
-      toggleSort: () => { const sort = s.sort === 'match' ? 'recent' : 'match'; saveSort(sort); this.setState({ sort }); },
+      toggleSort: () => { const sort = s.sort === 'match' ? 'recent' : 'match'; saveSort(sort); s.sort = sort; this.apply(f); },
+      // pages and search
+      page: res.page, pages: res.pages, perPage: res.per_page, total2: res.total,
+      pagerProps: { onPage: n => this.apply(f, { page: n, scroll: true }) },
+      searchProps: { onInput: v => this.searchTyped(v), onEnter: v => this.set({ q: v.trim() }) },
       isSearch: !!qn && res.total > 0, isGrid: !qn && res.total > 0, isEmpty: res.total === 0,
       heading: qn ? `Risultati per “${qn}”` : 'Scopri chi torna',
       people, cardProps: { onConnect: p => this.connectTo(p) },

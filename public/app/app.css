@@ -452,3 +452,16 @@ body { padding-top: var(--lb, 0px); }
 
 /* Bell dropdown (App Nav) */
 .bell-panel { width: 380px; max-width: calc(100vw - 2 * var(--gutter)); max-height: calc(100vh - 110px); overflow-y: auto; z-index: 25; }
+
+/* App Pager (components.js) */
+.pager-btn { min-width: 34px; height: 34px; padding: 0 6px; box-sizing: border-box; border: none; border-radius: 999px; background: transparent; color: #1A1726; font: 13px 'Geist', sans-serif; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.pager-btn:hover:not(:disabled):not(.pager-cur) { background: rgba(108, 77, 245, .1); }
+.pager-btn:disabled { color: #C9C4DC; cursor: default; }
+.pager-cur { background: #1A1726; color: #FFFFFF; cursor: default; }
+.pager-gap { min-width: 24px; text-align: center; color: #8C84AE; }
+
+/* Pre-launch welcome (pages/benvenuto) */
+.welcome-hero { position: relative; overflow: hidden; border-radius: 36px; padding: clamp(36px, 6vw, 72px) var(--card-pad); background: radial-gradient(circle at 85% 20%, rgba(255, 255, 255, .22), transparent 45%), linear-gradient(135deg, #6C4DF5, #3E2BA8); color: #FFFFFF; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 60px rgba(62, 43, 168, .28); }
+.welcome-emoji { font-size: clamp(44px, 6vw, 64px); line-height: 1; }
+.welcome-title { margin: 0; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(32px, 5.5vw, 60px); line-height: 1.05; letter-spacing: -.05em; }
+.welcome-text { margin: 0; max-width: 620px; font-size: clamp(17px, 2vw, 21px); line-height: 1.5; color: rgba(255, 255, 255, .88); }

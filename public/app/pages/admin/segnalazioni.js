@@ -22,7 +22,9 @@ export default class extends AdminPage {
     await this.fetch();
   }
 
-  async fetch() { this.state.d = await api('GET', `/api/admin/reports?status=${this.state.tab}`); }
+  listPath = '/api/admin/reports';
+  listExtra() { return { status: this.state.tab }; }
+  async fetch() { await this.fetchList(); this.state.d = this.state.list; }
 
   resolve(r, action) {
     return this.act(async () => {
@@ -52,11 +54,11 @@ export default class extends AdminPage {
     const s = this.state;
     if (!s.d) return { loading: true, side: this.side('segnalazioni') };
     const { d } = s;
-    const tab = (k, l) => ({ l, tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.act(async () => { s.tab = k; await this.fetch(); })() });
+    const tab = (k, l) => ({ l, tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.act(async () => { Object.assign(s, { tab: k, page: 1 }); await this.fetch(); })() });
     return {
-      loading: false, side: this.side('segnalazioni'),
+      loading: false, side: this.side('segnalazioni'), ...this.listVals(),
       tOpen: tab('open', `Aperte · ${d.counts.open}`), tClosed: tab('closed', `Risolte · ${d.counts.closed}`), isOpen: s.tab === 'open',
-      empty: !d.reports.length, emptyText: s.tab === 'open' ? 'Nessuna segnalazione aperta.' : 'Nessuna segnalazione risolta.',
+      empty: !d.reports.length, emptyText: s.q ? `Nessun risultato per “${s.q}”.` : s.tab === 'open' ? 'Nessuna segnalazione aperta.' : 'Nessuna segnalazione risolta.',
       reports: d.reports.map(r => {
         const [rbg, rfg] = REASON_COLORS[r.reason] ?? REASON_COLORS.other;
         return {

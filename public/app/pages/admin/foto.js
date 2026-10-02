@@ -7,11 +7,13 @@ export const title = 'Foto da controllare · Admin';
 const STATUS = { onboarding: 'In compilazione', approved: 'Online', suspended: 'Sospeso' };
 
 export default class extends AdminPage {
-  async loadAdmin() { this.state.rows = await api('GET', '/api/admin/photo-checks'); }
+  listPath = '/api/admin/photo-checks';
+  async loadAdmin() { await this.fetchList(); this.state.rows = this.state.list.items; }
 
   async ok(r) {
     await api('POST', `/api/admin/photo-checks/${r.id}/ok`);
-    this.state.rows = this.state.rows.filter(x => x.id !== r.id);
+    await this.fetchList();
+    this.state.rows = this.state.list.items;
     this.counts.photos = Math.max(0, (this.counts.photos || 1) - 1);
     toast('Foto confermata.');
     this.__rerender();
@@ -21,7 +23,8 @@ export default class extends AdminPage {
     const s = this.state;
     if (!s.rows) return { loading: true, side: this.side('foto') };
     return {
-      loading: false, side: this.side('foto'), empty: !s.rows.length, count: s.rows.length,
+      loading: false, side: this.side('foto'), empty: !s.rows.length, count: s.list.total, ...this.listVals(),
+      emptyText: s.q ? `Nessun risultato per “${s.q}”.` : 'Nessuna foto da controllare.',
       rows: s.rows.map(r => ({
         ...r, status: STATUS[r.status] ?? r.status, when: fmtDate(r.updated_at), href: `/admin/utenti/${r.id}`,
         hasPhoto: !!r.photo_url, ok: () => this.ok(r),

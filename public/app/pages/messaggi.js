@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, fmtDate, fmtTime, getMe, go, threadTime } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, threadTime } from '../lib.js';
 import { block, report } from '../social.js';
 import { homeFor, Page } from './_base.js';
 
@@ -22,8 +22,10 @@ export default class extends Page {
   async load() {
     const me = await getMe();
     if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
-    Object.assign(this.state, { me, query: '', draft: '', menuOpen: false });
-    this.state.threads = await api('GET', '/api/threads');
+    Object.assign(this.state, { me, query: '', page: 1, draft: '', menuOpen: false });
+    await this.fetchList();
+    // Whether there's any conversation at all (the search can empty the list)
+    this.state.anyThreads = this.state.list.total > 0;
     const id = this.props.params.id;
     if (id) await this.openThread(id);
     this.timer = setInterval(() => this.poll(), 5000);
@@ -38,6 +40,7 @@ export default class extends Page {
       Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', menuOpen: false, closed: false });
       const t = s.threads.find(x => x.id === id);
       if (t) t.unread = false;
+      s.hasOlder = thread.has_older;
     } catch (err) {
       Object.assign(s, { active: id, closed: true, thread: null, person: null, messages: [] });
     }
@@ -56,11 +59,40 @@ export default class extends Page {
     }
   }
 
+  // Conversations: searchable on the server (?q=), 30 per page
+  async fetchList() {
+    const s = this.state;
+    const q = new URLSearchParams({ page: String(s.page) });
+    if (s.query.trim()) q.set('q', s.query.trim());
+    s.list = await api('GET', `/api/threads?${q}`);
+    s.threads = s.list.items;
+    s.page = s.list.page;
+  }
+
   async refreshList() {
     if (document.hidden) return;
-    const threads = await api('GET', '/api/threads').catch(() => null);
-    if (threads) { this.state.threads = threads; this.__rerender(); }
+    try { await this.fetchList(); this.__rerender(); } catch {}
   }
+
+  listChange(patch) {
+    Object.assign(this.state, patch);
+    this.fetchList().then(() => this.__rerender()).catch(() => {});
+  }
+
+  searchTyped = debounce(v => this.listChange({ query: v, page: 1 }));
+
+  // Older messages, 50 at a time, kept in place on screen
+  loadOlder = this.act(async () => {
+    const s = this.state;
+    const first = s.messages[0]?.id;
+    if (!first) return;
+    const r = await api('GET', `/api/threads/${s.active}?before=${first}`);
+    const box = document.getElementById('chat-scroll');
+    const fromBottom = box ? box.scrollHeight - box.scrollTop : 0;
+    s.messages = [...r.messages, ...s.messages];
+    s.hasOlder = r.has_older;
+    this.keepScroll = fromBottom;
+  });
 
   send = this.act(async () => {
     const s = this.state;
@@ -81,6 +113,11 @@ export default class extends Page {
   }
 
   didRender(el) {
+    if (this.keepScroll) {
+      const box = el.querySelector('#chat-scroll');
+      if (box) box.scrollTop = box.scrollHeight - this.keepScroll;
+      this.keepScroll = 0;
+    }
     if (!this.scrollDown) return;
     this.scrollDown = false;
     const box = el.querySelector('#chat-scroll');
@@ -92,8 +129,8 @@ export default class extends Page {
   renderVals() {
     const s = this.state;
     if (!s.threads) return { loading: true, me: s.me || {} };
-    const q = s.query.trim().toLowerCase();
-    const threads = s.threads.filter(t => !q || t.name.toLowerCase().includes(q)).map(t => ({
+    const q = s.query.trim();
+    const threads = s.threads.map(t => ({
       ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), role: t.role.split(' · ')[0],
       bg: t.id === s.active ? '#FFFFFF' : 'transparent', sh: t.id === s.active ? '0 8px 24px rgba(80,60,160,.10)' : 'none',
       w: t.unread ? 600 : 500, c: t.unread ? '#1A1726' : '#8C84AE', active: t.id === s.active ? 'page' : false,
@@ -121,9 +158,12 @@ export default class extends Page {
     const person = p && { id: p.id, name, first_name: p.first_name };
     return {
       loading: false, me: s.me,
-      noThreads: !s.threads.length, hasThreads: s.threads.length > 0,
+      noThreads: !s.anyThreads, hasThreads: !!s.anyThreads,
       threads, noMatch: !!q && !threads.length, query: s.query,
-      searchProps: { onInput: v => { s.query = v; this.__rerender(); } },
+      searchProps: { onInput: v => this.searchTyped(v) },
+      page: s.list.page, pages: s.list.pages, total: s.list.total, perPage: s.list.per_page,
+      pagerProps: { onPage: n => this.listChange({ page: n }) },
+      hasOlder: !!s.hasOlder && !!s.messages?.length, loadOlder: this.loadOlder,
       hasActive: !!s.active && !!p, noActive: !s.active, closed: !!s.closed,
       listClass: s.active ? 'r-hide-sm' : '', chatClass: s.active ? '' : 'r-hide-sm',
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),

@@ -3,6 +3,7 @@
 <dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Segnalazioni</h1><sc-if value="{{ tOpen }}"><div role="tablist" style="display:flex;gap:6px"><dc-import name="UI Chip" label="{{ tOpen.l }}" tone="{{ tOpen.tone }}" size="sm" on-click="{{ tOpen.fn }}" host-role="tab" host-aria-selected="{{ tOpen.on }}"></dc-import><dc-import name="UI Chip" label="{{ tClosed.l }}" tone="{{ tClosed.tone }}" size="sm" on-click="{{ tClosed.fn }}" host-role="tab" host-aria-selected="{{ tClosed.on }}"></dc-import></div></sc-if></div>
+<div style="max-width:420px"><dc-import name="App Field" search="{{ true }}" field="reports-q" value="{{ q }}" placeholder="Cerca per persona, motivo o dettagli" dc-props="{{ searchProps }}"></dc-import></div>
 <sc-if value="{{ reports }}"><div class="admin-table" style="background:#FFFFFF;border-radius:24px">
 <div class="admin-row" style="display:grid;grid-template-columns:1.2fr 1.2fr 1.4fr 2fr 90px 280px;gap:14px;padding:12px 18px;border-bottom:1px solid #ECE8F7;background:#F6F4FC;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.05em;color:#6B6680;border-radius:24px 24px 0 0"><span>SEGNALATO</span><span>DA</span><span>MOTIVO</span><span>DETTAGLI</span><span>APERTA</span><span></span></div>
 <sc-if value="{{ empty }}"><div style="padding:24px 18px;font-size:14px;color:#8C84AE">{{ emptyText }}</div></sc-if>
@@ -11,4 +12,5 @@
 <sc-if value="{{ !isOpen }}"><span style="font-size:12px;color:#6B6680;text-align:right">{{ r.resolution }}</span></sc-if>
 </div></sc-for>
 </div></sc-if>
+<dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import>
 </main></div>
