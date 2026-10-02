@@ -37,6 +37,15 @@ function apiQuery(f) {
 }
 
 // Splits text around the first case-insensitive match (28a highlights).
+// "Più affini" by default; once the member picks an order it stays (this browser only)
+const SORT_KEY = 'rientro.scopri.sort';
+function readSort() {
+  try { return localStorage.getItem(SORT_KEY) === 'recent' ? 'recent' : 'match'; } catch { return 'match'; }
+}
+function saveSort(sort) {
+  try { localStorage.setItem(SORT_KEY, sort); } catch {}
+}
+
 function mark(text, needle) {
   const t = text || '';
   const i = needle ? t.toLowerCase().indexOf(needle.toLowerCase()) : -1;
@@ -48,7 +57,7 @@ export default class extends Page {
     const [me, cat] = await Promise.all([getMe(), getCatalog()]);
     if (me.user.status !== 'approved') return go('/onboarding');
     if (!me.launched && me.user.role !== 'admin') return go('/profilo');
-    Object.assign(this.state, { me, cat, f: readFilters(), sort: 'recent', showFilters: false, moreBg: false, moreSectors: false, counts: {} });
+    Object.assign(this.state, { me, cat, f: readFilters(), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
     const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${apiQuery(this.state.f)}`), api('GET', '/api/comuni/counts')]);
     this.state.res = res;
     this.state.comuneCounts = comuneCounts;
@@ -132,7 +141,7 @@ export default class extends Page {
       ageOpts: AGES.map(([v, l]) => ({ v, l })), age: f.age, ageProps: { onSelect: v => this.set({ age: v }) },
       // results
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
-      toggleSort: () => this.setState({ sort: s.sort === 'match' ? 'recent' : 'match' }),
+      toggleSort: () => { const sort = s.sort === 'match' ? 'recent' : 'match'; saveSort(sort); this.setState({ sort }); },
       isSearch: !!qn && res.total > 0, isGrid: !qn && res.total > 0, isEmpty: res.total === 0,
       heading: qn ? `Risultati per “${qn}”` : 'Scopri chi torna',
       people, cardProps: { onConnect: p => this.connectTo(p) },

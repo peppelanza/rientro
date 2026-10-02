@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at    TEXT NOT NULL,
   last_used_at  TEXT NOT NULL,
   expires_at    TEXT NOT NULL,
-  user_agent    TEXT
+  user_agent    TEXT,
+  impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE  -- admin "accedi come"
 );
 
 -- ---------------------------------------------------------------------------
@@ -226,7 +227,7 @@ CREATE TABLE IF NOT EXISTS connections (
   id            TEXT PRIMARY KEY,
   requester_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   addressee_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  status        TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'declined', 'withdrawn', 'expired')),
+  status        TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'declined', 'withdrawn')),
   note          TEXT,
   created_at    TEXT NOT NULL,
   responded_at  TEXT

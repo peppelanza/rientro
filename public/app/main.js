@@ -3,6 +3,7 @@
 import '../dc/gen/components.js';
 import './components.js';
 import { DCLogic, mountPage } from '../dc/runtime.js';
+import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
@@ -59,7 +60,7 @@ async function boot() {
 const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding']);
 async function askLegalUpdate() {
   const me = await getMe().catch(() => null);
-  if (!me?.legal?.needs?.length || me.user.status === 'onboarding') return;
+  if (!me?.legal?.needs?.length || me.user.status === 'onboarding' || me.impersonated) return;
   const tpl = `<div class="legal-update"><h2>Abbiamo aggiornato i nostri documenti</h2>
 <p>Dal 30 settembre 2026 sono in vigore i nuovi <a href="/legal/termini" target="_blank">Termini</a> e la nuova <a href="/legal/privacy" target="_blank">Privacy Policy</a>: tra le novità, 30 giorni per ripensarci quando cancelli l’account. Per continuare a usare Rientro, confermali.</p>
 <sc-if value="{{ error }}"><p role="alert" class="legal-update-err">{{ error }}</p></sc-if>
@@ -75,6 +76,7 @@ async function askLegalUpdate() {
 }
 
 launchBar();
+impersonationFrame();
 boot().catch(err => {
   console.error(err);
   document.getElementById('app').textContent = 'Non siamo riusciti a caricare la pagina. Ricarica per riprovare.';

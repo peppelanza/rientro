@@ -41,7 +41,6 @@ export const config = {
   forceLaunched: process.env.LAUNCHED === '1',
   // Territory pages hide any count below this, so small groups can't be singled out.
   publicStatsMinCount: 5,
-  connectionRequestTtlDays: 30,
   moderationSlaHours: 24,
   // How long preference/consent proof is kept after account deletion (privacy policy §9).
   ledgerRetentionMonthsAfterDeletion: 36,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
-import { startApp } from './helpers.js';
+import { makeClient, startApp } from './helpers.js';
 import { addProfileColumns } from '../src/db.js';
 import { arrivedWhen } from '../src/profiles.js';
 
@@ -169,4 +169,38 @@ test('dashboard and analytics compute without errors', async () => {
   const a = await admin.get('/api/admin/analytics?period=90');
   assert.equal(a.status, 200);
   assert.equal(a.body.weeks.length, 13);
+});
+
+test('admin "Accedi come": acts as the member, banner flag, exit gives the admin session back, audited', async () => {
+  const t = await startApp();
+  try {
+    const admin = await t.asAdmin();
+    const marco = await t.approved('marco@example.com');
+    const giulia = await t.approved('giulia@example.com');
+    const req = await marco.post('/api/connections', { to: giulia.id });
+
+    assert.equal((await marco.post(`/api/admin/users/${giulia.id}/impersonate`)).status, 403);
+    const start = await admin.post(`/api/admin/users/${giulia.id}/impersonate`);
+    assert.equal(start.status, 200);
+    const cookies = start.headers.getSetCookie().map(c => c.split(';')[0]);
+    const as = makeClient(t.base, cookies.join('; '));
+    const me = await as.get('/api/me');
+    assert.equal(me.body.user.id, giulia.id);
+    assert.equal(me.body.impersonated, true);
+    assert.equal((await giulia.get('/api/me')).body.impersonated, false);
+    assert.equal((await as.post(`/api/connections/${req.body.id}/accept`)).status, 200);
+    assert.equal((await as.get('/api/admin/users')).status, 403);
+    assert.equal((await as.post('/api/me/legal', { accept: true })).status, 403);
+    // Not among Giulia's own devices, and not her activity
+    assert.ok((await giulia.get('/api/me/sessions')).body.every(s => s.current));
+
+    const stop = await as.post('/api/auth/impersonation/stop');
+    assert.equal(stop.status, 200);
+    assert.match(stop.body.go, new RegExp(`/admin/utenti/${giulia.id}$`));
+    const back = makeClient(t.base, stop.headers.getSetCookie().map(c => c.split(';')[0]).filter(c => !c.endsWith('=')).join('; '));
+    assert.equal((await back.get('/api/me')).body.user.id, admin.id);
+    assert.equal((await as.get('/api/me')).status, 401);
+    const log = (await admin.get('/api/admin/audit')).body.map(l => l.action);
+    assert.ok(log.includes('user.impersonate') && log.includes('user.impersonate_end'));
+  } finally { t.close(); }
 });

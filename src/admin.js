@@ -250,7 +250,7 @@ export function analytics(db, admin, query) {
   const approved = users.filter(u => u.status === 'approved');
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
   const requests = count('SELECT COUNT(*) AS n FROM connections WHERE created_at >= ?', from);
-  const decided = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status IN ('accepted', 'declined', 'expired')", from);
+  const decided = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status IN ('accepted', 'declined')", from);
   const accepted = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status = 'accepted'", from);
   const active = count('SELECT COUNT(*) AS n FROM users WHERE last_seen_at >= ?', from) || 1;
   const abroad = pct(users.filter(u => u.lives_in === 'abroad').length, users.filter(u => u.lives_in).length);

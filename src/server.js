@@ -29,6 +29,8 @@ import { HttpError } from './validate.js';
 // still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
 const SESSION_COOKIE = config.production ? '__Secure-rientro_session' : 'rientro_session';
 const LEGACY_SESSION_COOKIE = '__Host-rientro_session';
+// While an admin is signed in as another member, their own session waits here to be given back
+const ADMIN_RETURN_COOKIE = config.production ? '__Secure-rientro_admin_return' : 'rientro_admin_return';
 const JSON_LIMIT = 64 * 1024;
 
 const SECURITY_HEADERS = {
@@ -105,6 +107,12 @@ function sessionCookie(value, maxAgeSeconds) {
   const domain = cookieDomain();
   const main = [`${SESSION_COOKIE}=${value}`, 'Path=/', ...(domain ? [`Domain=${domain}`] : []), 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
   return config.production ? [main, `${LEGACY_SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`] : [main];
+}
+
+// The admin's own session, kept aside during "Accedi come" (same Domain as the session cookie)
+function adminReturnCookie(value, maxAgeSeconds) {
+  const domain = cookieDomain();
+  return [`${ADMIN_RETURN_COOKIE}=${value}`, 'Path=/', ...(domain ? [`Domain=${domain}`] : []), 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
 }
 
 function readBody(req, limit) {
@@ -313,7 +321,28 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     res.end();
   }, { ...pub, raw: true });
 
+  // Leaving "Accedi come": the test person's session goes and the admin gets their own one back
+  // (only if it's still valid and belongs to the admin who started it), on the user's admin page
+  const stopImpersonation = (res, cookies, impersonatorId) => {
+    const target = auth.userForSession(db, cookies[SESSION_COOKIE]);
+    auth.logout(db, cookies[SESSION_COOKIE]);
+    const back = cookies[ADMIN_RETURN_COOKIE];
+    const adminUser = auth.userForSession(db, back);
+    const ok = adminUser && adminUser.id === impersonatorId && adminUser.role === 'admin';
+    if (ok) admin.audit(db, adminUser.id, 'user.impersonate_end', target?.id ?? null);
+    send(res, 200, { ok: true, go: ok ? `${adminUrl()}/utenti/${target?.id ?? ''}`.replace(/\/$/, '') : '/accedi' }, {
+      'Set-Cookie': [...sessionCookie(ok ? back : '', ok ? config.sessionTtlDays * 86400 : 0), adminReturnCookie('', 0)],
+    });
+  };
+  route('POST', '/api/auth/impersonation/stop', ({ res, cookies }) => {
+    const impersonatorId = auth.impersonatorOf(db, cookies[SESSION_COOKIE]);
+    if (!impersonatorId) throw new HttpError(400, 'not_impersonating', 'Non stai usando “Accedi come”.');
+    stopImpersonation(res, cookies, impersonatorId);
+  }, { raw: true, allowSuspended: true });
+
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
+    const impersonatorId = auth.impersonatorOf(db, cookies[SESSION_COOKIE]);
+    if (impersonatorId) return stopImpersonation(res, cookies, impersonatorId);
     auth.logout(db, cookies[SESSION_COOKIE]);
     send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true, allowSuspended: true });
@@ -337,7 +366,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, pub);
 
   // ---- me
-  const me = user => ({
+  const me = (user, cookies) => ({
     user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at },
     legal: auth.legalStatus(db, user.id),
     profile: profiles.effectiveProfile(db, user.id),
@@ -348,14 +377,19 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     counts: social.badgeCounts(db, user),
     launched: isLaunched(),
     ...(user.role === 'admin' ? { admin_url: adminUrl(), site_url: `${config.baseUrl}/` } : {}),
+    impersonated: !!auth.impersonatorOf(db, cookies[SESSION_COOKIE]),
   });
-  route('GET', '/api/me', ({ user }) => me(user));
+  route('GET', '/api/me', ({ user, cookies }) => me(user, cookies));
   // Public pages ask who's signed in without triggering a 401.
   route('GET', '/api/session', ({ cookies }) => {
     const user = auth.userForSession(db, cookies[SESSION_COOKIE]);
-    return user && user.status !== 'suspended' ? me(user) : null;
+    return user && user.status !== 'suspended' ? me(user, cookies) : null;
   }, pub);
-  route('POST', '/api/me/legal', async ({ user, req }) => auth.acknowledgeLegal(db, user.id, await readJson(req)));
+  route('POST', '/api/me/legal', async ({ user, req, cookies }) => {
+    // Accepting Terms/Privacy is the member's own act, never an admin's in "Accedi come"
+    if (auth.impersonatorOf(db, cookies[SESSION_COOKIE])) throw new HttpError(403, 'impersonating', 'Solo l’utente può accettare Termini e Privacy.');
+    return auth.acknowledgeLegal(db, user.id, await readJson(req));
+  });
 
   // Updated Terms/Privacy must be acknowledged before changing the profile, except during onboarding:
   // updated documents are asked for once the profile has been sent (the prompt on the member pages).
@@ -406,7 +440,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user }) => { legal(user); profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id)); });
+  route('POST', '/api/me/submit', ({ user, cookies }) => { legal(user); profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id), cookies); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
     legal(user);
@@ -459,7 +493,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, Number(url.searchParams.get('after')) || 0));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
 
-  route('GET', '/api/notifications', ({ user }) => social.listNotifications(db, user));
+  // The bell dropdown asks for the latest 5 (?limit=5), the page for up to 50
+  route('GET', '/api/notifications', ({ user, url }) => social.listNotifications(db, user, Math.min(50, Math.max(1, Number(url.searchParams.get('limit')) || 50))));
   route('POST', '/api/notifications/read', ({ user }) => { social.markNotificationsRead(db, user); return { ok: true }; });
 
   route('POST', '/api/blocks/:id', ({ user, params }) => { social.block(db, user, params.id); return { ok: true }; });
@@ -479,6 +514,20 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     const d = admin.getUser(db, user, params.id);
     return { ...d, checks: admin.reviewChecks(d.profile) };
   }, adm);
+  // "Accedi come": the admin uses the site as this member (a short session of its own, audited)
+  route('POST', '/api/admin/users/:id/impersonate', ({ user, params, req, res, cookies }) => {
+    const target = db.prepare('SELECT id, status FROM users WHERE id = ?').get(params.id);
+    if (!target) throw new HttpError(404, 'not_found');
+    if (target.id === user.id) throw new HttpError(409, 'self', 'Sei già tu.');
+    if (target.status === 'suspended') throw new HttpError(409, 'suspended', 'Questo account è sospeso.');
+    if (auth.impersonatorOf(db, cookies[SESSION_COOKIE])) throw new HttpError(409, 'already', 'Esci prima dall’altro account.');
+    const sessionToken = auth.startImpersonation(db, user.id, target.id, req.headers['user-agent']);
+    admin.audit(db, user.id, 'user.impersonate', target.id);
+    const ttl = auth.IMPERSONATION_MINUTES * 60;
+    send(res, 200, { go: `${config.baseUrl}/scopri` }, {
+      'Set-Cookie': [...sessionCookie(sessionToken, ttl), adminReturnCookie(cookies[SESSION_COOKIE], ttl)],
+    });
+  }, { ...adm, raw: true });
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/blocked', ({ user }) => moderation.listBlocked(db, user), adm);

@@ -64,12 +64,8 @@ export default class extends Page {
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),
       respond: () => go(`/connessioni/${p.connection.id}`),
       chat: () => go(`/messaggi/${p.id}`),
-      share: async () => {
-        try { await navigator.clipboard.writeText(location.href); toast('Link copiato. Lo vedranno solo i membri di Rientro.'); } catch { toast(location.href); }
-      },
-      menuOpen: !!s.menuOpen, toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
-      doReport: async () => { this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/scopri'); },
-      doBlock: async () => { this.setState({ menuOpen: false }); if (await block(person)) go('/scopri'); },
+      doReport: async () => { const r = await report(person); if (r?.blocked) go('/scopri'); },
+      doBlock: async () => { if (await block(person)) go('/scopri'); },
       // sections
       bio: p.bio, video: p.video_url, videoLocked: p.video_locked,
       idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',

@@ -92,20 +92,36 @@ export function startSession(db, email, { userAgent = '', marketing = false } = 
 export function userForSession(db, rawToken) {
   if (!rawToken) return null;
   const hash = sha256(rawToken);
-  const user = db.prepare(
-    `SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`,
+  const row = db.prepare(
+    `SELECT u.*, s.impersonator_id AS session_impersonator FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?`,
   ).get(hash, now());
-  if (user) {
-    const ts = now();
-    db.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').run(ts, hash);
-    db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(ts, user.id);
-  }
-  return user ?? null;
+  if (!row) return null;
+  const { session_impersonator: impersonator, ...user } = row;
+  const ts = now();
+  db.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').run(ts, hash);
+  // An admin signed in as this person isn't the person being active
+  if (!impersonator) db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').run(ts, user.id);
+  return user;
+}
+
+// Admin "Accedi come": a short session of its own for the target, marked with the admin's id
+export const IMPERSONATION_MINUTES = 120;
+export function startImpersonation(db, adminId, targetId, userAgent) {
+  const sessionToken = token();
+  db.prepare(
+    'INSERT INTO sessions (token_hash, user_id, created_at, last_used_at, expires_at, user_agent, impersonator_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  ).run(sha256(sessionToken), targetId, now(), now(), inMinutes(IMPERSONATION_MINUTES), (userAgent || '').slice(0, 200), adminId);
+  return sessionToken;
+}
+
+export function impersonatorOf(db, rawToken) {
+  if (!rawToken) return null;
+  return db.prepare('SELECT impersonator_id FROM sessions WHERE token_hash = ? AND expires_at > ?').get(sha256(rawToken), now())?.impersonator_id ?? null;
 }
 
 export function listSessions(db, userId, rawToken) {
   const current = rawToken ? sha256(rawToken) : null;
-  return db.prepare('SELECT token_hash, created_at, last_used_at, user_agent FROM sessions WHERE user_id = ? AND expires_at > ? ORDER BY last_used_at DESC')
+  return db.prepare('SELECT token_hash, created_at, last_used_at, user_agent FROM sessions WHERE user_id = ? AND expires_at > ? AND impersonator_id IS NULL ORDER BY last_used_at DESC')
     .all(userId, now())
     .map(s => ({ device: describeAgent(s.user_agent), last_used_at: s.last_used_at, created_at: s.created_at, current: s.token_hash === current }));
 }

@@ -69,6 +69,8 @@ export default class extends AdminPage {
       notes: d.notes.map(n => ({ b: n.body, m: `${(n.admin_email || 'admin').split('@')[0].toUpperCase()} · ${fmtShort(n.created_at).toUpperCase()}` })),
       note: s.note, noteProps: { onInput: v => { s.note = v; }, onEnter: () => this.addNote() }, addNote: this.addNote,
       canSuspend: st !== 'suspended', canUnsuspend: st === 'suspended', canView: st === 'approved',
+      canImpersonate: st !== 'suspended' && u.id !== this.me?.user.id, impersonateLabel: `Accedi come ${p.first_name || name}`,
+      impersonate: this.act(async () => { const r = await api('POST', `/api/admin/users/${u.id}/impersonate`); go(r.go); }),
       suspend: () => this.review('suspend'), unsuspend: () => this.review('unsuspend'), viewAsMember: () => go(`/persone/${u.id}`),
     };
   }

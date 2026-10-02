@@ -36,6 +36,7 @@ export function openDb(file = config.dbPath) {
   migrateIdeaStages(db);
   migrateChecks(db);
   migrateNoReview(db);
+  migrateNoRequestExpiry(db);
   // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
   db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
   seed(db);
@@ -49,6 +50,8 @@ function migrateUserColumns(db) {
   if (!have.has('deletion_requested_at')) db.exec('ALTER TABLE users ADD COLUMN deletion_requested_at TEXT');
   if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
   if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
+  const sessionCols = new Set(db.prepare('PRAGMA table_info(sessions)').all().map(c => c.name));
+  if (!sessionCols.has('impersonator_id')) db.exec('ALTER TABLE sessions ADD COLUMN impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE');
 }
 
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
@@ -123,6 +126,27 @@ function migrateNoReview(db) {
     // A replaced photo is no longer used: its file record goes
     if (pending.photo_file_id && old && old !== pending.photo_file_id) db.prepare('DELETE FROM files WHERE id = ?').run(old);
   }
+}
+
+// Connection requests used to expire after 30 days. They no longer do: an expired request is pending
+// again, unless the two people have a newer request (then it goes). Afterwards the status is dropped
+// from the CHECK list, edited in place as in migrateChecks (no row uses it any more).
+function migrateNoRequestExpiry(db) {
+  db.exec(`DELETE FROM connections WHERE status = 'expired' AND EXISTS (SELECT 1 FROM connections n
+    WHERE n.id != connections.id AND n.status IN ('pending', 'accepted') AND n.created_at > connections.created_at
+      AND ((n.requester_id = connections.requester_id AND n.addressee_id = connections.addressee_id)
+        OR (n.requester_id = connections.addressee_id AND n.addressee_id = connections.requester_id)))`);
+  db.exec("UPDATE connections SET status = 'pending', responded_at = NULL WHERE status = 'expired'");
+  const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'connections'").get();
+  const next = sql.replace("'withdrawn', 'expired')", "'withdrawn')");
+  if (next === sql) return;
+  const v = db.prepare('PRAGMA schema_version').get().schema_version;
+  db.exec('PRAGMA writable_schema = ON');
+  try {
+    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'connections'").run(next);
+    db.exec(`PRAGMA schema_version = ${v + 1}`);
+  } finally { db.exec('PRAGMA writable_schema = OFF'); }
+  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('connections: CHECK migration failed');
 }
 
 function seed(db) {

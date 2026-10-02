@@ -42,8 +42,8 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
   // TODO: email channel (notify_*_email) once a transactional email provider is configured.
 }
 
-export function listNotifications(db, user) {
-  return db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 50').all(user.id).map(n => {
+export function listNotifications(db, user, limit = 50) {
+  return db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT ?').all(user.id, limit).map(n => {
     const actor = n.actor_id ? rawProfile(db, n.actor_id) : null;
     return {
       id: n.id, kind: n.kind, created_at: n.created_at, read: !!n.read_at, data: JSON.parse(n.data),
@@ -66,11 +66,6 @@ export function badgeCounts(db, user) {
 
 // --- Connections (30a, 31a–33a) -----------------------------------------------------------
 
-function expireOld(db) {
-  const cutoff = new Date(Date.now() - config.connectionRequestTtlDays * 86400_000).toISOString();
-  db.prepare("UPDATE connections SET status = 'expired', responded_at = ? WHERE status = 'pending' AND created_at < ?").run(now(), cutoff);
-}
-
 export function requestConnection(db, viewer, body) {
   only(body, ['to', 'note']);
   requireLaunched(viewer);
@@ -80,7 +75,6 @@ export function requestConnection(db, viewer, body) {
   if (to === viewer.id) throw bad('self');
   const target = db.prepare("SELECT id FROM users WHERE id = ? AND status = 'approved' AND deletion_requested_at IS NULL").get(to);
   if (!target || isBlocked(db, viewer.id, to)) throw new HttpError(404, 'not_found', 'Profilo non disponibile.');
-  expireOld(db);
   const existing = connectionBetween(db, viewer.id, to);
   if (existing) throw new HttpError(409, 'already', existing.status === 'accepted' ? 'Siete già connessi.' : 'C’è già una richiesta in sospeso.');
   const id = newId();
@@ -111,7 +105,6 @@ export function respondConnection(db, viewer, id, action) {
 }
 
 export function listConnections(db, viewer) {
-  expireOld(db);
   const viewerP = rawProfile(db, viewer.id);
   const toCard = (otherId, extra) => {
     const p = rawProfile(db, otherId);
