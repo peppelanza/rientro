@@ -465,3 +465,8 @@ body { padding-top: var(--lb, 0px); }
 .welcome-emoji { font-size: clamp(44px, 6vw, 64px); line-height: 1; }
 .welcome-title { margin: 0; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(32px, 5.5vw, 60px); line-height: 1.05; letter-spacing: -.05em; }
 .welcome-text { margin: 0; max-width: 620px; font-size: clamp(17px, 2vw, 21px); line-height: 1.5; color: rgba(255, 255, 255, .88); }
+
+/* Profile (pages/persona): photo and connection box stay in view while the right column scrolls */
+@media (min-width: 721px) {
+  .persona-aside { position: sticky; top: calc(var(--lb, 0px) + 20px); align-self: start; }
+}
