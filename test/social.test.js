@@ -234,3 +234,22 @@ test('paging and search: discover sorts all results before paging, connections a
     assert.equal((await me.get('/api/me/blocks?q=nessuno')).body.total, 0);
   } finally { t.close(); }
 });
+
+test('profile visibility: only an admin hides and shows a profile; in-app notifications always arrive', async () => {
+  const t = await startApp();
+  try {
+    const admin = await t.asAdmin();
+    const a = await t.approved('vis-a@example.com');
+    const b = await t.approved('vis-b@example.com');
+    assert.equal((await a.patch('/api/me/profile', { visible: false })).status, 400);
+    assert.equal((await admin.post(`/api/admin/users/${a.id}/review`, { action: 'hide' })).status, 200);
+    assert.equal((await b.get(`/api/profiles/${a.id}`)).status, 404);
+    assert.ok(!(await b.get('/api/profiles')).body.people.some(p => p.id === a.id));
+    assert.equal((await admin.post(`/api/admin/users/${a.id}/review`, { action: 'show' })).status, 200);
+    assert.equal((await b.get(`/api/profiles/${a.id}`)).status, 200);
+    // The app channel is no longer a setting
+    assert.equal((await b.patch('/api/me/notifications', { notify_requests_app: false })).status, 400);
+    await a.post('/api/connections', { to: b.id });
+    assert.ok((await b.get('/api/notifications')).body.items.some(n => n.kind === 'connection_request'));
+  } finally { t.close(); }
+});

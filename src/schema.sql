@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS review_events (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   admin_id    TEXT NOT NULL,
-  action      TEXT NOT NULL CHECK (action IN ('approve', 'request_changes', 'reject', 'suspend', 'unsuspend')),
+  action      TEXT NOT NULL CHECK (action IN ('approve', 'request_changes', 'reject', 'suspend', 'unsuspend', 'hide', 'show')),
   note        TEXT,
   created_at  TEXT NOT NULL
 );

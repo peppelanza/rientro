@@ -86,7 +86,6 @@ const EDITABLE = {
   x_handle: v => handle(v, 'X'),
   calendar_url: v => httpsUrl(v, 'Link calendario'),
   source: v => oneOf(v, SOURCES, 'Come hai conosciuto Rientro'),
-  visible: v => bool(v, 'Visibilità'),
   onboarding_step: v => text(v, 'step', { max: 20 }),
 };
 

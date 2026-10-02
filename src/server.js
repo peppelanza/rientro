@@ -245,7 +245,7 @@ function streamFile(req, res, f) {
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
-  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(privacy|dati|bloccati))?$/];
+  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
@@ -617,6 +617,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         }
         // The old "profilo in revisione" page (links in past notifications and emails)
         if (p === '/stato') { res.writeHead(302, { Location: '/profilo' }); res.end(); return; }
+        // Blocked people are listed in Privacy now
+        if (p === '/impostazioni/bloccati') { res.writeHead(302, { Location: '/impostazioni/privacy#bloccati' }); res.end(); return; }
         if (PUBLIC_PAGES.some(re => re.test(p))) return shell();
         const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
         if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {

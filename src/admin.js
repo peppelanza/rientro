@@ -154,7 +154,8 @@ export function addNote(db, admin, userId, body) {
 // There is no review before a profile goes online.
 export function review(db, admin, userId, body) {
   only(body, ['action', 'note']);
-  const action = oneOf(body.action, ['suspend', 'unsuspend'], 'action', { nullable: false });
+  // hide / show: the profile stays out of Discover and profile pages for a while, the account works
+  const action = oneOf(body.action, ['suspend', 'unsuspend', 'hide', 'show'], 'action', { nullable: false });
   const note = text(body.note, 'Nota', { max: 1000 }) ?? null;
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   if (!user) throw new HttpError(404, 'not_found');
@@ -163,7 +164,9 @@ export function review(db, admin, userId, body) {
   const live = rawProfile(db, userId);
   tx(db, () => {
     const setStatus = s => db.prepare('UPDATE users SET status = ?, updated_at = ? WHERE id = ?').run(s, now(), userId);
-    if (action === 'suspend') {
+    if (action === 'hide' || action === 'show') {
+      db.prepare('UPDATE profiles SET visible = ?, updated_at = ? WHERE user_id = ?').run(action === 'show' ? 1 : 0, now(), userId);
+    } else if (action === 'suspend') {
       setStatus('suspended');
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
     } else {

@@ -94,17 +94,23 @@ const WIDENED_CHECKS = [
   ["primary_intent IN ('has_idea', 'seeking_idea')", "primary_intent IN ('has_idea', 'seeking_idea', 'networking')"],
   ["age_band IN ('25-29',", "age_band IN ('18-24', '25-29',"],
 ];
+// review_events: the admin can also hide and show a profile
+const WIDENED_REVIEW_CHECKS = [["'suspend', 'unsuspend')", "'suspend', 'unsuspend', 'hide', 'show')"]];
 function migrateChecks(db) {
-  const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'profiles'").get();
-  const next = WIDENED_CHECKS.reduce((acc, [from, to]) => acc.replace(from, to), sql);
+  widenChecks(db, 'profiles', WIDENED_CHECKS);
+  widenChecks(db, 'review_events', WIDENED_REVIEW_CHECKS);
+}
+function widenChecks(db, table, pairs) {
+  const { sql } = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
+  const next = pairs.reduce((acc, [from, to]) => (acc.includes(to) ? acc : acc.replace(from, to)), sql);
   if (next === sql) return;
   const v = db.prepare('PRAGMA schema_version').get().schema_version;
   db.exec('PRAGMA writable_schema = ON');
   try {
-    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = 'profiles'").run(next);
+    db.prepare("UPDATE sqlite_master SET sql = ? WHERE type = 'table' AND name = ?").run(next, table);
     db.exec(`PRAGMA schema_version = ${v + 1}`);
   } finally { db.exec('PRAGMA writable_schema = OFF'); }
-  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('profiles: CHECK migration failed');
+  if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error(`${table}: CHECK migration failed`);
 }
 
 // Profiles used to wait for a review before going online. Without it: whoever had sent theirs is

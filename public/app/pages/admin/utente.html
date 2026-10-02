@@ -22,6 +22,8 @@
 <div style="background:#FFFFFF;border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:8px">
 <sc-if value="{{ canImpersonate }}"><dc-import name="UI Button" label="{{ impersonateLabel }}" variant="accent" full="{{ true }}" on-click="{{ impersonate }}"></dc-import></sc-if>
 <sc-if value="{{ canView }}"><dc-import name="UI Button" label="Vedi come lo vedono i membri" variant="light" full="{{ true }}" on-click="{{ viewAsMember }}"></dc-import></sc-if>
+<sc-if value="{{ canHide }}"><dc-import name="UI Button" label="Nascondi profilo" variant="light" full="{{ true }}" on-click="{{ hide }}"></dc-import></sc-if>
+<sc-if value="{{ canShow }}"><span style="font-size:13px;color:#7A4E00;background:#FFF4DC;border-radius:14px;padding:8px 12px">Profilo nascosto: non compare in Scopri né nella sua pagina.</span><dc-import name="UI Button" label="Mostra di nuovo il profilo" variant="secondary" full="{{ true }}" on-click="{{ show }}"></dc-import></sc-if>
 <sc-if value="{{ canSuspend }}"><dc-import name="UI Button" label="Sospendi account" variant="danger" full="{{ true }}" on-click="{{ suspend }}"></dc-import></sc-if>
 <sc-if value="{{ canUnsuspend }}"><dc-import name="UI Button" label="Riattiva account" variant="secondary" full="{{ true }}" on-click="{{ unsuspend }}"></dc-import></sc-if>
 </div>

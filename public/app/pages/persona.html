@@ -12,7 +12,7 @@
 <div style="height:4px"></div>
 <sc-if value="{{ isNone }}"><sc-if value="{{ notSelf }}"><dc-import name="UI Button" label="Invia richiesta di connessione" variant="accent" size="lg" full="{{ true }}" on-click="{{ connect }}"></dc-import></sc-if></sc-if>
 <sc-if value="{{ isSent }}"><dc-import name="UI Button" label="Richiesta inviata · in attesa" variant="secondary" size="lg" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import><dc-import name="UI Button" label="Annulla richiesta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ withdraw }}"></dc-import></sc-if>
-<sc-if value="{{ isReceived }}"><dc-import name="UI Button" label="Rispondi alla richiesta" variant="accent" size="lg" full="{{ true }}" on-click="{{ respond }}"></dc-import></sc-if>
+<sc-if value="{{ isReceived }}"><dc-import name="UI Button" label="Accetta la richiesta" variant="accent" size="lg" full="{{ true }}" on-click="{{ accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ decline }}"></dc-import></sc-if>
 <sc-if value="{{ isConnected }}"><div style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
 <dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import>
 <dc-import name="UI Button" label="Apri chat" full="{{ true }}" on-click="{{ chat }}"></dc-import>

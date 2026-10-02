@@ -1,27 +1,2 @@
-<!-- From design/Rientro 04 Connessioni e Chat v2 · artboards 31a (richiesta in arrivo), 31b (dopo l'accettazione). -->
-<div style="min-height:100vh;background:#E9E6F5">
-<dc-import name="App Nav" active="connessioni" me="{{ me }}"></dc-import>
-<sc-if value="{{ gone }}"><main style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:96px 20px;text-align:center"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.03em">Richiesta non più disponibile.</h1><a href="/connessioni" style="font-size:14px">← Connessioni</a></main></sc-if>
-
-<sc-if value="{{ pending }}"><main class="r-grid-1" style="padding:48px var(--gutter) 56px;display:grid;grid-template-columns:1fr 360px;gap:48px;box-sizing:border-box">
-<div style="display:flex;flex-direction:column;gap:22px">
-<dc-import name="UI Eyebrow" text="{{ eyebrow }}" tone="accent"></dc-import>
-<h1 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:42px;line-height:1.08;font-weight:600;letter-spacing:-.055em">{{ heading }}</h1>
-<sc-if value="{{ note }}"><dc-import name="UI Bubble" from="note" wide="{{ true }}" text="{{ note }}"></dc-import></sc-if>
-<div style="display:flex;gap:10px"><dc-import name="UI Button" label="Accetta" variant="accent" size="lg" on-click="{{ accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="glass" size="lg" on-click="{{ decline }}"></dc-import></div>
-<span style="font-size:13px;color:#8C84AE">Se rifiuti, {{ first }} non riceve alcuna notifica.</span>
-</div>
-<dc-import name="App Person Card" person="{{ person }}"></dc-import>
-</main></sc-if>
-
-<sc-if value="{{ accepted }}"><main style="display:flex;justify-content:center;padding:64px var(--gutter)">
-<div role="status" style="width:520px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:36px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;align-items:flex-start">
-<div style="display:flex"><div style="border:3px solid #FFFFFF;border-radius:50%"><dc-import name="App Photo" size="56" src="{{ photo }}"></dc-import></div><div style="border:3px solid #FFFFFF;border-radius:50%;margin-left:-16px"><dc-import name="App Photo" size="56" src="{{ myPhoto }}" initials="{{ myIni }}"></dc-import></div></div>
-<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:600;letter-spacing:-.05em;line-height:1.1">Connessione creata</h1>
-<span style="font-size:16px;color:#4A4560">{{ unlockText }}</span>
-<div style="display:flex;gap:8px"><dc-import name="UI Button" label="Apri chat" variant="accent" on-click="{{ chat }}"></dc-import><dc-import name="UI Button" label="Più tardi" variant="secondary" on-click="{{ later }}"></dc-import></div>
-</div></main></sc-if>
-
-<sc-if value="{{ closed }}"><main style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:96px 20px;text-align:center"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.03em">Hai già risposto a questa richiesta.</h1><dc-import name="UI Button" label="Vedi il profilo" variant="secondary" on-click="{{ profile }}"></dc-import></main></sc-if>
-<dc-import name="App TabBar" active="connessioni" me="{{ me }}"></dc-import>
-</div>
+<!-- Forwards old request links to the profile (pages/richiesta.js). -->
+<div style="min-height:100vh;background:#E9E6F5"></div>

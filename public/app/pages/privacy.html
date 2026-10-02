@@ -12,7 +12,12 @@
 </div>
 <div style="background:#FFFFFF;border-radius:28px;padding:4px 24px">
 <sc-if value="{{ hasVideo }}"><div style="display:flex;gap:20px;padding:18px 0;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:4px;flex:1"><span id="video-label" style="font-size:15px;font-weight:600">Mostra il video solo alle connessioni</span><span style="font-size:13px;color:#6B6680">Di default è visibile a tutti i membri.</span></div><dc-import name="UI Toggle" label="" on="{{ videoOnly }}" on-click="{{ toggleVideo }}" host-role="switch" host-aria-checked="{{ videoOnly }}" host-aria-labelledby="video-label"></dc-import></div></sc-if>
-<div style="display:flex;gap:20px;padding:18px 0;border-top:{{ blockedBorder }};align-items:center"><div style="display:flex;flex-direction:column;gap:4px;flex:1"><span style="font-size:15px;font-weight:600">Persone bloccate</span><span style="font-size:13px;color:#6B6680">{{ blockedLabel }}</span></div><a href="/impostazioni/bloccati" style="text-decoration:none"><dc-import name="UI Button" label="Gestisci" variant="secondary" size="sm"></dc-import></a></div>
+<div id="bloccati" style="display:flex;flex-direction:column;gap:12px;padding:18px 0;border-top:{{ blockedBorder }}"><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:15px;font-weight:600">Persone bloccate · {{ blockedLabel }}</span><span style="font-size:13px;color:#6B6680">Non vedono il tuo profilo e tu non vedi il loro. Non sanno di essere state bloccate.</span></div>
+<sc-if value="{{ showBlockSearch }}"><dc-import name="App Field" search="{{ true }}" field="blocks-q" value="{{ bq }}" placeholder="Cerca per nome" dc-props="{{ blockSearchProps }}"></dc-import></sc-if>
+<sc-if value="{{ noBlocks }}"><span style="font-size:13px;color:#8C84AE">{{ noBlocksLabel }}</span></sc-if>
+<sc-for list="{{ blocked }}" as="b"><div style="display:flex;gap:16px;align-items:center;padding:10px 0;border-top:{{ b.bt }}"><div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14px;font-weight:600">{{ b.n }}</span><span style="font-size:12px;color:#8C84AE">{{ b.d }}</span></div><dc-import name="UI Button" label="Sblocca" variant="light" size="sm" on-click="{{ b.unblock }}"></dc-import></div></sc-for>
+<dc-import name="App Pager" page="{{ bpage }}" pages="{{ bpages }}" total="{{ btotal }}" perpage="{{ bper }}" dc-props="{{ blockPagerProps }}"></dc-import>
+</div>
 </div>
 <sc-if value="{{ hasHistory }}"><section aria-label="Storico delle tue scelte" style="background:#FFFFFF;border-radius:28px;padding:18px 24px;display:flex;flex-direction:column;gap:4px">
 <dc-import name="UI Eyebrow" text="Storico delle tue scelte"></dc-import>

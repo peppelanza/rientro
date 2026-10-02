@@ -1,18 +1,16 @@
-// Settings · your data (design 05 · 40a export, 41a/41b delete account in two steps).
-import { DCLogic } from '../../dc/runtime.js';
-import { api, download, flash, getMe, go, openModal, template, toast } from '../lib.js';
+// Settings · your data (design 05 · 40a export). Deleting the account is in Impostazioni → Account.
+import { api, download, getMe, go, toast } from '../lib.js';
 import { Page } from './_base.js';
 import { settingsMenu } from './_settings.js';
 
 export const title = 'I tuoi dati';
 export const tabbar = true;
 
-const REASONS = ['Ho trovato un co-founder', 'Ho trovato lavoro', 'Non ho trovato persone adatte', 'Non voglio più tornare in Italia', 'Preoccupazioni sulla privacy', 'Altro'];
-
 export default class extends Page {
   async load() {
     this.state.me = await getMe(true);
-    if (location.hash === '#elimina') requestAnimationFrame(() => this.startDelete());
+    // Deleting the account moved to Impostazioni → Account (old links: /impostazioni/dati#elimina)
+    if (location.hash === '#elimina') return go('/impostazioni#elimina');
   }
 
   exportData = this.act(async () => {
@@ -22,41 +20,7 @@ export default class extends Page {
     toast('Archivio scaricato.');
   });
 
-  pause = this.act(async () => {
-    await api('PATCH', '/api/me/profile', { visible: false });
-    this.state.me.profile.visible = false;
-    toast('Profilo in pausa: nessuno lo vede finché non lo riattivi da Impostazioni → Account.');
-  });
 
-  async startDelete() {
-    const tpl = await template('/app/pages/dati-elimina.html');
-    const page = this;
-    const result = await openModal({
-      template: tpl,
-      Logic: class extends DCLogic {
-        state = { step: 1, reason: '', confirm: '', busy: false, error: null };
-        renderVals() {
-          const s = this.state;
-          return {
-            step1: s.step === 1, step2: s.step === 2,
-            delEffects: ['Il profilo sparisce subito da Rientro e vieni disconnesso.', 'Hai 30 giorni per ripensarci: se accedi di nuovo ritrovi tutto com’era.', 'Dopo 30 giorni cancelliamo definitivamente profilo, foto, video, connessioni e messaggi, anche per gli altri.'],
-            canPause: page.state.me.profile.visible && page.state.me.user.status === 'approved',
-            pause: () => { this.close(); page.pause(); },
-            exportFirst: () => { this.close(); page.exportData(); },
-            cancel: () => this.close(), next: () => this.setState({ step: 2 }),
-            reasons: REASONS.map(r => ({ v: r, l: r })), reason: s.reason, reasonProps: { onChange: v => { s.reason = v; } },
-            confirm: s.confirm, confirmProps: { onInput: v => { const was = s.confirm === 'ELIMINA'; s.confirm = v; if (was !== (v === 'ELIMINA')) this.__rerender(); } },
-            cantDelete: s.confirm !== 'ELIMINA' || s.busy, error: s.error,
-            doDelete: async () => {
-              this.setState({ busy: true, error: null });
-              try { this.close(await api('DELETE', '/api/me', { confirm: s.confirm, reason: s.reason || null })); } catch (err) { this.setState({ busy: false, error: err.message }); }
-            },
-          };
-        }
-      },
-    });
-    if (result?.deleted) { flash('Account in eliminazione. Hai 30 giorni per ripensarci: ti basta accedere di nuovo.'); go('/'); }
-  }
 
   renderVals() {
     const s = this.state;

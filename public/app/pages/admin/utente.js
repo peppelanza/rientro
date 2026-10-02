@@ -4,7 +4,7 @@ import { AdminPage, STATUS_KIND, initials } from './_admin.js';
 
 export const title = 'Utente · Admin';
 // Past entries can still be approve / request_changes / reject, from before profiles went online without review
-const ACTION_LABEL = { approve: 'Approvato', request_changes: 'Modifiche richieste', reject: 'Rifiutato', suspend: 'Sospeso', unsuspend: 'Riattivato' };
+const ACTION_LABEL = { approve: 'Approvato', request_changes: 'Modifiche richieste', reject: 'Rifiutato', suspend: 'Sospeso', unsuspend: 'Riattivato', hide: 'Profilo nascosto', show: 'Profilo di nuovo visibile' };
 const REASON = { fake_profile: 'Profilo falso', harassment: 'Messaggi molesti', spam: 'Spam', other: 'Altro' };
 // job_seeking only appears in the history of choices made before the option was removed
 const PREF = { job_seeking: 'Cerca lavoro in Italia', marketing_email: 'Email marketing' };
@@ -71,6 +71,9 @@ export default class extends AdminPage {
       canSuspend: st !== 'suspended', canUnsuspend: st === 'suspended', canView: st === 'approved',
       canImpersonate: st !== 'suspended' && u.id !== this.me?.user.id, impersonateLabel: `Accedi come ${p.first_name || name}`,
       impersonate: this.act(async () => { const r = await api('POST', `/api/admin/users/${u.id}/impersonate`); go(r.go); }),
+      // Hiding takes the profile out of Discover and profile pages; the account keeps working
+      canHide: p.visible !== false && st === 'approved', canShow: p.visible === false, hidden: p.visible === false,
+      hide: () => this.review('hide'), show: () => this.review('show'),
       suspend: () => this.review('suspend'), unsuspend: () => this.review('unsuspend'), viewAsMember: () => go(`/persone/${u.id}`),
     };
   }

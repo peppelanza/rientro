@@ -62,7 +62,13 @@ export default class extends Page {
       requestNote: p.connection.note,
       connect: async () => { if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),
-      respond: () => go(`/connessioni/${p.connection.id}`),
+      // A request is answered right here (declining is silent for the other person)
+      accept: this.act(async () => {
+        await api('POST', `/api/connections/${p.connection.id}/accept`);
+        toast(`Ora sei connesso con ${p.first_name}.`, { action: 'Apri chat', onAction: () => go(`/messaggi/${p.id}`) });
+        await this.refresh();
+      }),
+      decline: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/decline`); toast('Richiesta rifiutata.'); await this.refresh(); }),
       chat: () => go(`/messaggi/${p.id}`),
       doReport: async () => { const r = await report(person); if (r?.blocked) go('/scopri'); },
       doBlock: async () => { if (await block(person)) go('/scopri'); },

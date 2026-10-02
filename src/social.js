@@ -1,6 +1,5 @@
 import { config, isLaunched } from './config.js';
 import { newId, now, tx } from './db.js';
-import { getCommunicationPreferences } from './preferences.js';
 import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { matches, pageParams, paginate } from './paging.js';
@@ -27,9 +26,6 @@ const nameOf = (db, id) => {
 // --- Notifications ------------------------------------------------------------------------
 
 export function notify(db, userId, kind, actorId = null, data = {}) {
-  const prefs = getCommunicationPreferences(db, userId);
-  const channel = { connection_request: 'notify_requests_app', connection_accepted: 'notify_requests_app', message: 'notify_messages_app' }[kind] ?? 'notify_status_app';
-  if (!prefs[channel]) return;
   // Collapse bursts of messages from the same person into one unread notification.
   if (kind === 'message') {
     const existing = db.prepare("SELECT id FROM notifications WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").get(userId, actorId);
@@ -129,7 +125,7 @@ function allConnections(db, viewer) {
 }
 
 // One tab at a time (?tab=connected|received|sent), searchable (?q= name, role, cities), 20 per page;
-// the counts of all three tabs and the first received requests (banner) come along
+// the counts of all three tabs come along
 export function listConnections(db, viewer, query = new URLSearchParams()) {
   const all = allConnections(db, viewer);
   const tab = ['received', 'sent'].includes(query.get('tab')) ? query.get('tab') : 'connected';
@@ -137,7 +133,7 @@ export function listConnections(db, viewer, query = new URLSearchParams()) {
   const rows = all[tab].filter(c => matches(pp.q, c.name, c.role, c.from, c.to));
   return {
     tab, counts: { connected: all.connected.length, received: all.received.length, sent: all.sent.length },
-    received_preview: all.received.slice(0, 2), ...paginate(rows, pp),
+    ...paginate(rows, pp),
   };
 }
 
