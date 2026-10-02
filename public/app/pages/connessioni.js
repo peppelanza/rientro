@@ -80,7 +80,12 @@ export default class extends Page {
         accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
       })),
       noReceived: s.tab === 'ricevute' && !items.length, noReceivedLabel: none || 'Nessuna richiesta in attesa.',
-      sent: (s.tab === 'inviate' ? items : []).map(c => ({ n: c.name, d: `Inviata ${timeAgo(c.created_at)}`, photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, withdraw: () => this.respond(c, 'withdraw') })),
+      // Same block as Ricevute, from the other side: your note, waiting, withdraw
+      sent: (s.tab === 'inviate' ? items : []).map(c => ({
+        aria: `Richiesta a ${c.name}`, eyebrow: `Richiesta inviata · ${timeAgo(c.created_at)}`,
+        heading: `Aspetti la risposta di ${c.first_name}.`, first: c.first_name,
+        note: c.note ? `“${c.note}”` : '', person: c, withdraw: () => this.respond(c, 'withdraw'),
+      })),
       noSent: s.tab === 'inviate' && !items.length, noSentLabel: none || 'Nessuna richiesta inviata in attesa.',
       discover: () => go('/scopri'),
     };
