@@ -7,6 +7,13 @@ export const title = 'Profilo';
 export const tabbar = true;
 
 const handleUrl = (base, h) => (h ? `${base}${h.replace(/^@/, '')}` : null);
+// Opened from Connessioni (?da=<tab>): the way back goes there, to the same tab
+const from = () => {
+  const da = new URLSearchParams(location.search).get('da');
+  return ['connessioni', 'ricevute', 'inviate'].includes(da)
+    ? { section: 'connessioni', backHref: `/connessioni?tab=${da}`, backLabel: 'Connessioni' }
+    : { section: 'scopri', backHref: '/scopri', backLabel: 'Scopri chi torna' };
+};
 
 export default class extends Page {
   async load() {
@@ -25,7 +32,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.p) return { loading: !s.ready, me: s.me || {}, notFound: s.ready };
+    if (!s.p) return { loading: !s.ready, me: s.me || {}, notFound: s.ready, ...from() };
     const p = s.p;
     const c = p.connection.status;
     const name = `${p.first_name} ${p.last_name}`;
@@ -48,7 +55,7 @@ export default class extends Page {
     const seeksMe = p.viewer_background && p.seeking.backgrounds.includes(p.viewer_background);
     const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.desired_comuni.join(', ') };
     return {
-      loading: false, notFound: false, ready: true, me: s.me, name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
+      loading: false, notFound: false, ready: true, me: s.me, ...from(), name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city, places: p.places, hasPlaces: !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: p.desired_unknown,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],

@@ -2,11 +2,11 @@
 <div style="height:100vh;background:#E9E6F5;display:flex;flex-direction:column" class="chat-page">
 <dc-import name="App Nav" active="messaggi" me="{{ me }}"></dc-import>
 
-<sc-if value="{{ noThreads }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px;box-sizing:border-box">
+<sc-if value="{{ noThreads }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:60px var(--gutter);box-sizing:border-box">
 <div aria-hidden="true" style="display:flex;gap:6px;flex-direction:column;width:150px"><div style="height:22px;width:100px;border-radius:12px 12px 12px 4px;background:#FFFFFF"></div><div style="height:22px;width:76px;border-radius:12px 12px 4px 12px;background:#6C4DF5;align-self:flex-end"></div></div>
-<h1 style="margin:8px 0 0;font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.04em">Nessun messaggio</h1>
-<span style="font-size:15px;color:#4A4560;max-width:400px;line-height:1.5">Quando una connessione accetta la tua richiesta, potrete iniziare a parlare.</span>
-<div style="margin-top:6px"><dc-import name="UI Button" label="Vedi richieste inviate" variant="light" on-click="{{ sentRequests }}"></dc-import></div>
+<h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Non hai ancora messaggi.</h1>
+<span style="font-size:16px;color:#4A4560;max-width:420px;line-height:1.5">Quando una connessione accetta la tua richiesta, potrete iniziare a parlare.</span>
+<div style="margin-top:6px"><dc-import name="UI Button" label="Vedi richieste inviate" variant="accent" size="lg" on-click="{{ sentRequests }}"></dc-import></div>
 </main></sc-if>
 
 <sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px var(--gutter) 24px;min-height:0">
