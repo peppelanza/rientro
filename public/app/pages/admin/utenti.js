@@ -1,5 +1,5 @@
 // Admin · users table (design 06 · 45a). Filters live in the URL.
-import { api, getCatalog, go } from '../../lib.js';
+import { api, getCatalog, go, toast } from '../../lib.js';
 import { AdminPage, STATUS_KIND, initials } from './_admin.js';
 
 export const title = 'Utenti · Admin';
@@ -12,6 +12,7 @@ export default class extends AdminPage {
     const q = new URLSearchParams(location.search);
     this.state.f = Object.fromEntries(KEYS.map(k => [k, q.get(k) || '']));
     this.state.cat = await getCatalog();
+    this.state.demo = (await api('GET', '/api/admin/demo')).total;
     await this.fetch();
   }
 
@@ -20,6 +21,21 @@ export default class extends AdminPage {
     history.replaceState(null, '', `/admin/utenti${q.toString() ? `?${q}` : ''}`);
     this.state.d = await api('GET', `/api/admin/users?${q}`);
   }
+
+  // Test people (src/demo.js): 10 complete fake profiles to try the site, removed with one click
+  demoToggle = this.act(async () => {
+    if (this.state.demo) {
+      if (!confirm(`Eliminare le ${this.state.demo} persone di prova, con le loro connessioni e i messaggi?`)) return;
+      const r = await api('DELETE', '/api/admin/demo');
+      toast(`Eliminate ${r.removed} persone di prova.`);
+    } else {
+      const r = await api('POST', '/api/admin/demo');
+      toast(`Create ${r.created} persone di prova.`);
+    }
+    this.state.demo = (await api('GET', '/api/admin/demo')).total;
+    this.counts = await api('GET', '/api/admin/sidebar');
+    await this.fetch();
+  });
 
   set(patch) { return this.act(async () => { Object.assign(this.state.f, { page: '' }, patch); await this.fetch(); })(); }
 
@@ -30,7 +46,9 @@ export default class extends AdminPage {
     const sel = (label, key, options) => ({ label, value: f[key], options, props: { onChange: v => this.set({ [key]: v }) } });
     const pages = [];
     for (let i = 1; i <= d.pages; i++) if (i === 1 || i === d.pages || Math.abs(i - d.page) <= 1) pages.push(i); else if (pages.at(-1) !== '…') pages.push('…');
+    const demoLabel = s.demo ? `Elimina persone di prova (${s.demo})` : 'Crea 10 persone di prova';
     return {
+      demoLabel, demoToggle: this.demoToggle,
       loading: false, side: this.side('utenti'), total: d.total.toLocaleString('it-IT'),
       q: f.q, qProps: { onEnter: v => this.set({ q: v.trim() }), onBlur: v => v.trim() !== f.q && this.set({ q: v.trim() }) },
       filters: [

@@ -140,3 +140,27 @@ test('in production any other subdomain gets the same 404 page as the admin host
     assert.equal((await get('/', { host: main })).status, 200);
   } finally { config.production = was; }
 });
+
+test('test people: created and removed by the admin, online, never emailed, not in public numbers', async () => {
+  config.adminHost = '';
+  try {
+    const a = await t.asAdmin();
+    const m = await t.member('normale@x.it');
+    assert.equal((await m.post('/api/admin/demo')).status, 403);
+    const r = await a.post('/api/admin/demo');
+    assert.equal(r.body.created, 10);
+    assert.equal((await a.post('/api/admin/demo')).body.created, 0); // once only
+    const viewer = await t.approved('curioso@x.it');
+    const people = (await viewer.get('/api/profiles')).body.people;
+    assert.ok(people.filter(p => ['Giulia', 'Marco', 'Sara'].includes(p.first_name)).length === 3);
+    const giulia = people.find(p => p.first_name === 'Giulia');
+    assert.equal((await viewer.get(giulia.photo_url)).status, 200);
+    // Palermo: 2 test people want it, but public counts ignore them
+    const terr = (await (await fetch(`${t.base}/api/public/territory/Palermo`)).json());
+    assert.equal(terr.count, null);
+    const { sendEmail } = await import('../src/mail.js');
+    await sendEmail({ to: 'giulia.ferrara@prova.rientro.invalid', subject: 'x', text: 'x', html: 'x' }); // no network, no error
+    assert.equal((await a.del('/api/admin/demo')).body.removed, 10);
+    assert.equal((await a.get('/api/admin/demo')).body.total, 0);
+  } finally { config.adminHost = 'admin.rientro.test'; }
+});
