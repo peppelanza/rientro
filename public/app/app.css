@@ -475,3 +475,7 @@ body { padding-top: var(--lb, 0px); }
 
 /* Profile preview (pages/persona, ?anteprima): what others can click is shown, but inactive */
 .preview-off { opacity: .55; pointer-events: none; cursor: default; }
+
+/* Lists whose items each draw a divider above: none above the first one, whichever items are shown */
+.no-first-divider > :first-child { border-top: none !important; }
+.no-first-divider-row > :nth-child(-n+2) { border-top: none !important; }
