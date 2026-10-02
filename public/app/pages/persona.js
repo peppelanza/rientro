@@ -51,12 +51,12 @@ export default class extends Page {
     this.state.me = me;
     this.state.self = me.user.id === this.props.params.id;
     if (this.state.self && !new URLSearchParams(location.search).has('anteprima')) return go('/profilo');
-    this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}`);
+    this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
     document.title = `${this.state.p.first_name} ${this.state.p.last_name} · Rientro`;
   }
 
   async refresh() {
-    this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}`);
+    this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
     this.__rerender();
   }
 
@@ -97,7 +97,9 @@ export default class extends Page {
       // actions
       isNone: c === 'none', isSent: c === 'pending_sent', isReceived: c === 'pending_received', isConnected: connected,
       requestNote: p.connection.note, requestEyebrow: `Richiesta di connessione${p.connection.created_at ? ` · ${timeAgo(p.connection.created_at)}` : ''}`,
-      connect: async () => { if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
+      // In the preview the buttons are there, as others see them, but do nothing
+      preview: !!s.self, previewClass: s.self ? 'preview-off' : '',
+      connect: async () => { if (s.self) return; if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),
       // A request is answered right here (declining is silent for the other person)
       accept: this.act(async () => {
@@ -107,8 +109,8 @@ export default class extends Page {
       }),
       decline: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/decline`); toast('Richiesta rifiutata.'); await this.refresh(); }),
       chat: () => go(`/messaggi/${p.id}`),
-      doReport: async () => { const r = await report(person); if (r?.blocked) go('/scopri'); },
-      doBlock: async () => { if (await block(person)) go('/scopri'); },
+      doReport: async () => { if (s.self) return; const r = await report(person); if (r?.blocked) go('/scopri'); },
+      doBlock: async () => { if (s.self) return; if (await block(person)) go('/scopri'); },
       // sections
       bio: p.bio, video: p.video_url, videoLocked: p.video_locked,
       idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',

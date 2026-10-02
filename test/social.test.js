@@ -318,3 +318,20 @@ test('emails are branded and escape what members write', async () => {
   const d = digestEmail({ requests: [{ name: '<b>X</b>', note: '<script>' }], messages: [] });
   assert.ok(!d.html.includes('<script>') && d.html.includes('&lt;script&gt;'));
 });
+
+test('profile preview (?anteprima) is exactly what a member who is not connected sees', async () => {
+  const t = await startApp();
+  try {
+    const me = await t.approved('prev-me@example.com', { instagram_handle: 'mia.ig', calendar_url: 'https://cal.com/me' });
+    const other = await t.approved('prev-other@example.com');
+    const preview = (await me.get(`/api/profiles/${me.id}?anteprima=1`)).body;
+    const seen = (await other.get(`/api/profiles/${me.id}`)).body;
+    // Only what depends on who is looking may differ
+    for (const k of ['complement', 'viewer_background']) { delete preview[k]; delete seen[k]; }
+    assert.deepEqual(preview, seen);
+    assert.equal(preview.links.instagram_handle, undefined);
+    assert.equal(preview.connection.status, 'none');
+    // Without ?anteprima the owner still gets everything (the editor uses it)
+    assert.equal((await me.get(`/api/profiles/${me.id}`)).body.links.instagram_handle, 'mia.ig');
+  } finally { t.close(); }
+});

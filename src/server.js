@@ -476,12 +476,12 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     if (user.status !== 'approved') throw new HttpError(403, 'not_approved', 'Completa il profilo per scoprire le altre persone.');
     return profiles.discover(db, user, profiles.parseDiscoverQuery(url.searchParams));
   });
-  route('GET', '/api/profiles/:id', ({ user, params }) => {
+  route('GET', '/api/profiles/:id', ({ user, params, url }) => {
     if (user.id !== params.id) {
       social.requireLaunched(user);
       if (user.status !== 'approved') throw new HttpError(403, 'not_approved');
     }
-    return profiles.publicProfile(db, user, params.id);
+    return profiles.publicProfile(db, user, params.id, { asMember: url.searchParams.has('anteprima') });
   });
   route('GET', '/api/comuni/counts', () => profiles.comuneCounts(db));
 

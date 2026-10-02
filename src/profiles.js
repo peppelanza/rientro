@@ -303,10 +303,13 @@ function visibleTarget(db, viewer, targetId) {
 
 // Allowlisted member-facing profile. Never includes email, account status, job-seeking
 // details, consent timestamps, or connections-only links for non-connections.
-export function publicProfile(db, viewer, targetId) {
+// asMember: your own profile exactly as another member (not connected with you) sees it, for the
+// "Anteprima" (connections-only links and video stay locked, no connection, no match hint)
+export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
   const { p, self } = visibleTarget(db, viewer, targetId);
-  const conn = self ? { status: 'self' } : connectionState(db, viewer.id, targetId);
-  const connected = self || conn.status === 'connected';
+  const preview = self && asMember;
+  const conn = preview ? { status: 'none' } : self ? { status: 'self' } : connectionState(db, viewer.id, targetId);
+  const connected = !preview && (self || conn.status === 'connected');
   const viewerP = self ? null : rawProfile(db, viewer.id);
   return {
     id: targetId,

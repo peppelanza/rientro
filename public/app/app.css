@@ -472,3 +472,6 @@ body { padding-top: var(--lb, 0px); }
 }
 /* The photo gets shorter as you scroll, 4:5 → 1:1, cropped at the centre (persona.js) */
 .persona-photo > .sc-host > div { aspect-ratio: var(--pr, 4 / 5) !important; }
+
+/* Profile preview (pages/persona, ?anteprima): what others can click is shown, but inactive */
+.preview-off { opacity: .55; pointer-events: none; cursor: default; }
