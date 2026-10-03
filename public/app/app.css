@@ -511,8 +511,8 @@ body { padding-top: var(--lb, 0px); }
 .msg-big { display: flex; flex-direction: column; align-items: flex-start; }
 .msg-row[data-from="me"] .msg-big { align-items: flex-end; }
 /* Emoji-only messages: the time in a small bubble of the message's colour under the emoji */
-.msg-big .msg-time { float: none; margin: 4px 0 0; padding: 5px 10px; border-radius: 999px; background: #FFFFFF; color: #8C84AE; box-shadow: 0 4px 14px rgba(80, 60, 160, .06); }
-.msg-row[data-from="me"] .msg-big .msg-time { background: #6C4DF5; color: rgba(255, 255, 255, .8); box-shadow: none; }
+.msg-big .msg-time { float: none; align-self: flex-end; margin: 4px 0 0; padding: 6px 12px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 4px 14px rgba(80, 60, 160, .06); }
+.msg-row[data-from="me"] .msg-big .msg-time { background: #6C4DF5; box-shadow: none; }
 
 /* A message that just arrived or was sent slides in from below (pages/messaggi) */
 .msg-row[data-new="1"] { animation: msg-in .32s cubic-bezier(.2, .8, .2, 1); }
