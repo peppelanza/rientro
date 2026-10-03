@@ -19,7 +19,7 @@
 <div style="background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border-radius:24px;padding:14px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(80,60,160,.08)">
 <a href="{{ c.href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" size="56" src="{{ c.photo }}" initials="{{ c.ini }}"></dc-import></a>
 <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><a href="{{ c.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ c.name }}</a><span style="font-size:13px;color:#6B6680">{{ c.role }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">CONNESSI DAL {{ c.since }}</span></div>
-<dc-import name="UI Button" label="Messaggio" variant="secondary" size="sm" on-click="{{ c.msg }}"></dc-import>
+<dc-import name="UI Button" label="Messaggi" variant="secondary" size="sm" on-click="{{ c.msg }}"></dc-import>
 </div>
 </sc-for>
 </div></sc-if>

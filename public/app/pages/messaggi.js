@@ -30,22 +30,39 @@ function fitCompose(ta) {
 // Phone, full-screen chat: follow the part of the screen that is actually visible. When the keyboard
 // opens iOS shrinks the visual viewport and slides the page up; the chat sits exactly in what's left.
 // The messages keep their place counted from the bottom, so the last ones stay in sight.
+let glidingUntil = 0;
 function fitViewport() {
   const vv = window.visualViewport;
   const root = document.documentElement.style;
   const open = !!vv && document.body.classList.contains('chat-open');
   const box = document.getElementById('chat-scroll');
-  const fromBottom = box ? box.scrollHeight - box.scrollTop - box.clientHeight : 0;
+  const height = box?.clientHeight;
+  const fromBottom = box ? box.scrollHeight - box.scrollTop - height : 0;
   root.setProperty('--vv-h', open ? `${vv.height}px` : '');
   root.setProperty('--vv-top', open ? `${vv.offsetTop}px` : '');
   document.body.classList.toggle('keyboard-open', open && innerHeight - vv.height > 120);
-  if (box) box.scrollTop = box.scrollHeight - box.clientHeight - fromBottom;
+  // Only when the chat actually changed height (keyboard): otherwise leave the scroll alone. While
+  // it's gliding to a new message, it keeps gliding to the end.
+  if (!box || box.clientHeight === height) return;
+  if (performance.now() < glidingUntil) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+  else box.scrollTop = box.scrollHeight - box.clientHeight - fromBottom;
 }
 visualViewport?.addEventListener('resize', fitViewport);
 visualViewport?.addEventListener('scroll', fitViewport);
 // iOS reports the keyboard slide only at the end: follow it frame by frame for its duration
 let followUntil = 0;
 const follow = () => { fitViewport(); if (performance.now() < followUntil) requestAnimationFrame(follow); };
+// The chat's scrollbar shows only while you scroll it yourself, never when it moves by itself
+// (a message sent or received, older ones loaded, the keyboard): app.css
+let userScrollTimer;
+for (const type of ['wheel', 'touchmove']) {
+  addEventListener(type, e => {
+    if (!e.target.closest?.('#chat-scroll')) return;
+    document.body.classList.add('chat-user-scroll');
+    clearTimeout(userScrollTimer);
+    userScrollTimer = setTimeout(() => document.body.classList.remove('chat-user-scroll'), 1200);
+  }, { passive: true, capture: true });
+}
 for (const type of ['focusin', 'focusout']) {
   addEventListener(type, () => {
     if (!document.body.classList.contains('chat-open')) return;
@@ -66,6 +83,8 @@ export default class extends Page {
     // Whether there's any conversation at all (the search can empty the list)
     this.state.anyThreads = this.state.list.total > 0;
     const id = this.props.params.id;
+    // Opened from Connessioni (?da=connessioni): the back arrow goes back there, not to the list
+    this.from = new URLSearchParams(location.search).get('da');
     if (id) await this.openThread(id);
     this.timer = setInterval(() => this.poll(), 5000);
     // Reaction bar, emoji pickers and the "···" menu close on a click elsewhere or Escape
@@ -275,6 +294,7 @@ export default class extends Page {
   });
 
   select(id) {
+    this.from = null;
     history.pushState(null, '', `/messaggi/${id}`);
     this.openThread(id).then(() => this.__rerender());
   }
@@ -296,7 +316,7 @@ export default class extends Page {
     const box = el.querySelector('#chat-scroll');
     if (!box) return;
     // A new message: the chat glides up to make room (like WhatsApp); opening a chat: straight to the end
-    if (this.smooth) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+    if (this.smooth) { glidingUntil = performance.now() + 700; box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); }
     else box.scrollTop = box.scrollHeight;
     this.smooth = false;
   }
@@ -385,7 +405,10 @@ export default class extends Page {
       // under the name: where they live → where they want to go (no job title), as in the list
       sub: p ? [p.lives_in_city, orList(p.desired_comuni, 3)].filter(Boolean).join(' → ') : '',
       profileHref: p ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => go(`/persone/${p.id}?da=messaggi`),
-      back: () => { history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender(); },
+      back: () => {
+        if (this.from === 'connessioni') return go('/connessioni');
+        history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender();
+      },
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',

@@ -546,9 +546,10 @@ body { padding-top: var(--lb, 0px); }
 @keyframes msg-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .msg-row[data-new="1"] { animation: none; } }
 
-/* The chat scrolls by itself when messages come and go: no scrollbar flashing (still scrollable) */
-#chat-scroll { scrollbar-width: none; }
-#chat-scroll::-webkit-scrollbar { display: none; }
+/* The chat scrolls by itself when messages come and go: the scrollbar shows only while you scroll
+   it yourself (body.chat-user-scroll, messaggi.js) */
+body:not(.chat-user-scroll) #chat-scroll { scrollbar-width: none; }
+body:not(.chat-user-scroll) #chat-scroll::-webkit-scrollbar { display: none; }
 
 /* Phone: an open chat is full screen, like a messaging app; the ← in its header goes back to the list */
 @media (max-width: 720px) {
