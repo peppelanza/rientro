@@ -120,7 +120,9 @@ export default class extends Page {
       doBlock: async () => { if (s.self) return; this.setState({ menuOpen: false }); if (await block(person)) go('/scopri'); },
       // sections
       bio: p.bio, video: p.video_url, videoLocked: p.video_locked,
-      idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',
+      // the badge ("Ha già un'idea"…) jumps to the idea below
+      noIdea: !p.idea, toIdea: e => { e.preventDefault(); document.getElementById('idea')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
+      idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',
       ideaBadges: [p.idea?.stage && `Fase: ${p.idea.stage.toLowerCase()}`].filter(Boolean).map(l => ({ l })),
       seekDesc: p.seeking.description, seekLoc: p.seeking.location && p.seeking.location !== 'Indifferente' ? `Dove: ${p.seeking.location.toLowerCase()}` : '',
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),

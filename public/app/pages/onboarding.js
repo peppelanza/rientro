@@ -473,7 +473,7 @@ export default class extends Page {
       // 23a
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Il tuo nome', pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       pvFacts, pvBio: p.bio, pvIdeaTitle: p.idea_title, pvIdeaDesc: p.idea_description,
-      pvIdeaEyebrow: p.primary_intent === 'has_idea' ? 'Quello che sto costruendo' : 'Cosa mi piacerebbe costruire',
+      pvIdeaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',
       pvStage: p.idea_stage ? `Fase: ${cat.ideaStages.find(x => x[0] === p.idea_stage)[1].toLowerCase()}` : '',
       pvSeeks: p.seeking_backgrounds.join(', ') || '—', pvTime: timeLabel || '—',
       pvNoVideo: !p.video_url,
