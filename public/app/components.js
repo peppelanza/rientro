@@ -11,18 +11,24 @@ const b = v => v === true || v === 'true';
 // ---------------------------------------------------------------------------------------------
 // App Nav — from UI Nav (+ links, live counts, search, avatar menu)
 
-// Phone: the page dims behind the open bell dropdown, fading in and out (app.css). The dimmer lives
-// outside the nav, which is redrawn (and rebuilt) on every change, so the fade isn't cut short;
-// tapping it closes the dropdown. Returns whether the dropdown is open.
-let navForDimmer = null;
+// Components are rebuilt on every redraw and get no mount/unmount calls, so what lives outside the
+// nav talks to the one drawn last
+let currentNav = null;
 const BELL_OUT_MS = 120; // app.css .bell-out
+
+// A click outside or Escape closes the bell dropdown and the account menu
+for (const type of ['click', 'keydown']) document.addEventListener(type, e => currentNav?.closeOnOutside(e));
+
+// Phone: the page dims behind the open bell dropdown, fading in and out (app.css). The dimmer lives
+// outside the nav, so redrawing the nav doesn't cut the fade short; tapping it closes the dropdown.
+// Returns whether the dropdown is open.
 function dimBehindBell(nav) {
-  navForDimmer = nav;
+  currentNav = nav;
   let dim = document.querySelector('.bell-backdrop');
   if (!dim) {
     dim = Object.assign(document.createElement('div'), { className: 'bell-backdrop' });
     dim.setAttribute('aria-hidden', 'true');
-    dim.addEventListener('click', () => navForDimmer?.closeBell());
+    dim.addEventListener('click', () => currentNav?.closeBell());
     document.body.append(dim);
   }
   // It starts below the top bar: iPhone Safari tints the status bar (clock, signal) with whatever
@@ -64,20 +70,11 @@ def('App Nav', String.raw`
 </div>`, class extends DCLogic {
   state = { menuOpen: false, bellOpen: false, bellItems: null, bellUnread: 0 };
 
-  componentDidMount() {
-    // Click outside or Escape closes the bell dropdown and the account menu
-    this.closeAll = e => {
-      if (!this.state.bellOpen && !this.state.menuOpen) return;
-      if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.bell-panel, .nav-bell, [role=menu], [aria-label="Il tuo account"]')) return;
-      this.closeBell();
-      this.setState({ menuOpen: false });
-    };
-    document.addEventListener('click', this.closeAll);
-    document.addEventListener('keydown', this.closeAll);
-  }
-  componentWillUnmount() {
-    document.removeEventListener('click', this.closeAll);
-    document.removeEventListener('keydown', this.closeAll);
+  closeOnOutside(e) {
+    if (!this.state.bellOpen && !this.state.menuOpen) return;
+    if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.bell-panel, .nav-bell, .bell-backdrop, [role=menu], [aria-label="Il tuo account"]')) return;
+    this.closeBell();
+    if (this.state.menuOpen) this.setState({ menuOpen: false });
   }
 
   // Like Facebook: the latest 5, read or not; opening it clears the badge, the unread ones keep
@@ -894,14 +891,14 @@ def('App Person Card', String.raw`
 <a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
 <div style="display:flex;flex-direction:column;gap:4px;padding:0 10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;white-space:nowrap;flex:none">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
 </div>
-<div class="pc-mid" style="padding:0 10px;display:flex;flex-direction:column;gap:12px;flex:1">
+<div style="padding:0 10px;display:flex;flex-direction:column;gap:12px;flex:1">
 <div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">Vive a {{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="vuole trasferirsi a">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div>
 <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>
 </div>
 </div>
-<sc-if value="{{ showActions }}"><div style="padding:12px 10px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<sc-if value="{{ showActions }}"><div style="padding:8px 10px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
 <dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
 </div></sc-if>

@@ -1,8 +1,8 @@
 // Scopri: while you scroll, the top of each person card (photo, name, job) stays pinned and the
 // details (from "Vive a" to the hint) slide up underneath it until the buttons meet it; then the
 // whole card scrolls off. All by position: sticky (app.css), so the browser moves everything in
-// the same frame, without shaking. This only marks the pinned tops (.pc-stuck), which then paint a
-// solid background and cover the gap above them, so the sliding details never show through.
+// the same frame, without shaking. This only marks the pinned tops (.pc-stuck) and their cards,
+// which then paint the card's top over a cover (app.css), so the sliding details never show.
 let heads = [];
 
 export function collapseCards(root) {
@@ -16,7 +16,9 @@ function update() {
     if (r.bottom < 0 || r.top > innerHeight) continue;
     // Out of its own place (it naturally sits 10px above .pc-top, over the card's padding): the
     // details are underneath it, from the moment it pins until the card has scrolled away
-    head.classList.toggle('pc-stuck', r.top - head.parentElement.getBoundingClientRect().top > -9);
+    const stuck = r.top - head.parentElement.getBoundingClientRect().top > -9;
+    head.classList.toggle('pc-stuck', stuck);
+    head.closest('article').classList.toggle('pc-card-stuck', stuck);
   }
 }
 

@@ -597,17 +597,18 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
   .filters-more.opening { animation: filters-open .2s ease-out; }
   .filters-more-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -6px 0; padding: 4px 0; border: none; background: none; font: 500 14px 'Geist', sans-serif; color: #1A1726; cursor: pointer; }
   .filters-more-toggle:hover { color: #6C4DF5; }
-  .filters-more-toggle svg { color: currentColor; }
   .filters-more-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
 }
 @keyframes filters-open { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .filters-more.opening { animation: none; } }
 
-/* Scopri: person cards fold while scrolling (card-collapse.js) */
+/* Scopri: person cards fold while scrolling (card-collapse.js). The pinned top draws the card's
+   rounded top itself (::after) over a page-coloured cover reaching up off screen (::before), so the
+   details sliding underneath and the rest of the card above never show; the card drops its shadow
+   meanwhile (it would show beside the cover). Flat white cards, so the pinned top has no seam. */
+[data-collapse-cards] article { background: #FFFFFF !important; transition: box-shadow .2s ease; }
+[data-collapse-cards] article.pc-card-stuck { box-shadow: none !important; }
 [data-collapse-cards] .pc-head { position: sticky; top: 16px; z-index: 1; }
-[data-collapse-cards] .pc-head.pc-stuck { background: #FFFFFF; }
-[data-collapse-cards] .pc-head.pc-stuck::before { content: ''; position: absolute; left: -1px; right: -1px; bottom: 100%; height: 16px; background: #E9E6F5; }
-@media (max-width: 720px) {
-  [data-collapse-cards] .pc-head { top: 12px; }
-  [data-collapse-cards] .pc-head.pc-stuck::before { height: 12px; }
-}
+[data-collapse-cards] .pc-head.pc-stuck::before { content: ''; position: absolute; z-index: -1; left: -1px; right: -1px; bottom: calc(100% - 28px); height: 100vh; background: #E9E6F5; }
+[data-collapse-cards] .pc-head.pc-stuck::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: 28px 28px 0 0; background: #FFFFFF; }
+@media (max-width: 720px) { [data-collapse-cards] .pc-head { top: 12px; } }
