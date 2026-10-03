@@ -241,7 +241,8 @@ CREATE TABLE IF NOT EXISTS messages (
   recipient_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   body          TEXT NOT NULL,
   created_at    TEXT NOT NULL,
-  read_at       TEXT
+  read_at       TEXT,
+  reply_to_id   INTEGER REFERENCES messages(id) ON DELETE SET NULL -- a reply quotes this message (like WhatsApp)
 );
 CREATE INDEX IF NOT EXISTS messages_pair ON messages(sender_id, recipient_id, id);
 

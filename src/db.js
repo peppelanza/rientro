@@ -56,6 +56,8 @@ function migrateUserColumns(db) {
   if (!notifCols.has('emailed_at')) db.exec("ALTER TABLE notifications ADD COLUMN emailed_at TEXT; UPDATE notifications SET emailed_at = created_at;");
   const sessionCols = new Set(db.prepare('PRAGMA table_info(sessions)').all().map(c => c.name));
   if (!sessionCols.has('impersonator_id')) db.exec('ALTER TABLE sessions ADD COLUMN impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE');
+  const messageCols = new Set(db.prepare('PRAGMA table_info(messages)').all().map(c => c.name));
+  if (!messageCols.has('reply_to_id')) db.exec('ALTER TABLE messages ADD COLUMN reply_to_id INTEGER REFERENCES messages(id) ON DELETE SET NULL');
 }
 
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database

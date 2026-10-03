@@ -46,18 +46,20 @@
 <sc-if value="{{ empty }}"><span style="align-self:center;font-size:13px;color:#8C84AE;padding:10px 0">Scrivi il primo messaggio.</span></sc-if>
 <sc-for list="{{ items }}" as="m">
 <sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
-<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" data-tail="{{ m.tail }}" data-new="{{ m.isNew }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
+<sc-if value="{{ m.msg }}"><div class="msg-row" data-id="{{ m.id }}" data-from="{{ m.from }}" data-tail="{{ m.tail }}" data-new="{{ m.isNew }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
 <div class="msg-wrap" style="margin-bottom:{{ m.pb }}" onPointerDown="{{ m.down }}" onPointerUp="{{ m.up }}" onPointerLeave="{{ m.cancel }}" onPointerCancel="{{ m.cancel }}" onContextMenu="{{ m.ctx }}">
-<sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}<span class="msg-time">{{ m.at }}</span></span></sc-if>
-<sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}<span class="msg-time">{{ m.at }}</span></div></sc-if>
+<sc-if value="{{ m.big }}"><span class="msg-big"><button type="button" class="msg-more" aria-label="Altre azioni sul messaggio" aria-expanded="{{ m.actionsOpen }}" onClick="{{ m.openMenu }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><sc-if value="{{ m.hasQuote }}"><button type="button" class="msg-quote" onClick="{{ m.jump }}"><b>{{ m.quoteName }}</b>{{ m.quoteText }}</button></sc-if>{{ m.text }}<span class="msg-time">{{ m.at }}</span></span></sc-if>
+<sc-if value="{{ m.normal }}"><div class="msg-bubble"><button type="button" class="msg-more" aria-label="Altre azioni sul messaggio" aria-expanded="{{ m.actionsOpen }}" onClick="{{ m.openMenu }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><sc-if value="{{ m.hasQuote }}"><button type="button" class="msg-quote" onClick="{{ m.jump }}"><b>{{ m.quoteName }}</b>{{ m.quoteText }}</button></sc-if>{{ m.text }}<span class="msg-time">{{ m.at }}</span></div></sc-if>
 <sc-if value="{{ m.canReact }}"><button type="button" class="react-btn" aria-label="Reagisci" onClick="{{ m.openBar }}">☺</button></sc-if>
 <sc-if value="{{ m.hasReaction }}"><button type="button" class="react-chip" aria-label="{{ m.chipAria }}" onClick="{{ m.chip }}">{{ m.reaction }}</button></sc-if>
 <sc-if value="{{ m.barOpen }}"><div class="react-bar" role="menu" aria-label="Reazioni" style="{{ m.barPos }}"><sc-for list="{{ m.quick }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}" style="background:{{ q.on }}">{{ q.e }}</button></sc-for><button type="button" role="menuitem" class="react-more" aria-label="Altre emoji" onClick="{{ m.more }}">＋</button></div></sc-if>
+<sc-if value="{{ m.actionsOpen }}"><div class="msg-actions" role="menu" aria-label="Azioni sul messaggio" style="{{ m.actionsPos }}"><button type="button" role="menuitem" onClick="{{ m.doReply }}">Rispondi<span aria-hidden="true">↩</span></button><button type="button" role="menuitem" onClick="{{ m.doCopy }}">Copia<span aria-hidden="true">⧉</span></button></div></sc-if>
 <sc-if value="{{ m.pickerOpen }}"><div class="emoji-picker" role="menu" aria-label="Scegli una reazione" style="{{ m.barPos }}"><sc-for list="{{ m.all }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
 </div>
 <sc-if value="{{ m.time }}"><span style="font-size:11px;color:#8C84AE;padding:0 4px">{{ m.time }}</span></sc-if></div></sc-if>
 </sc-for>
 </div>
+<sc-if value="{{ replying }}"><div class="reply-bar"><div class="reply-bar-text"><b>{{ replyName }}</b><span>{{ replyText }}</span></div><button type="button" aria-label="Annulla la risposta" onClick="{{ cancelReply }}">✕</button></div></sc-if>
 <form class="compose-bar" onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center;position:relative">
 <sc-if value="{{ composePicker }}"><div class="emoji-picker emoji-picker-compose" role="menu" aria-label="Emoji"><sc-for list="{{ composeEmoji }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
 <button type="button" class="emoji-toggle" aria-label="Emoji" aria-expanded="{{ composePicker }}" onClick="{{ toggleComposePicker }}">😊</button>

@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, orList, threadTime, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, orList, threadTime, toast, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -71,11 +71,11 @@ export default class extends Page {
     // Reaction bar, emoji pickers and the "···" menu close on a click elsewhere or Escape
     this.closePopups = e => {
       const s = this.state;
-      if (!s.barFor && !s.pickerFor && !s.composePicker && !s.menuOpen) return;
+      if (!s.barFor && !s.menuFor && !s.pickerFor && !s.composePicker && !s.menuOpen) return;
       // the click that opened it re-rendered its own button: that's not a click outside
       if (e.type === 'click' && !e.target.isConnected) return;
-      if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.react-bar, .emoji-picker, .react-btn, .emoji-toggle, [role=menu], [aria-label="Altre azioni"]')) return;
-      this.setState({ barFor: null, pickerFor: null, composePicker: false, menuOpen: false });
+      if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.react-bar, .emoji-picker, .react-btn, .msg-more, .emoji-toggle, [role=menu], [aria-label="Altre azioni"]')) return;
+      this.setState({ barFor: null, menuFor: null, pickerFor: null, composePicker: false, menuOpen: false });
     };
     document.addEventListener('click', this.closePopups);
     document.addEventListener('keydown', this.closePopups);
@@ -89,7 +89,7 @@ export default class extends Page {
     const s = this.state;
     try {
       const [thread, person] = await Promise.all([api('GET', `/api/threads/${id}`), api('GET', `/api/profiles/${id}`)]);
-      Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', menuOpen: false, closed: false, reactAt: thread.at, barFor: null, pickerFor: null, composePicker: false });
+      Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', replyTo: null, menuOpen: false, closed: false, reactAt: thread.at, barFor: null, menuFor: null, pickerFor: null, composePicker: false });
       this.known = new Set(thread.messages.map(m => m.id));
       const t = s.threads.find(x => x.id === id);
       if (t) t.unread = false;
@@ -133,7 +133,7 @@ export default class extends Page {
     const next = mine?.emoji === emoji ? null : emoji;
     const others = (m.reactions || []).filter(r => !r.mine);
     m.reactions = next ? [...others, { emoji: next, mine: true }] : others;
-    Object.assign(s, { barFor: null, pickerFor: null });
+    Object.assign(s, { barFor: null, menuFor: null, pickerFor: null });
     this.__rerender();
     try {
       const res = await api('PUT', `/api/threads/${s.active}/messages/${m.id}/reaction`, { emoji: next });
@@ -145,23 +145,45 @@ export default class extends Page {
     this.__rerender();
   }
 
-  // Taps on someone else's message: double tap = ❤️, long press = reactions bar
+  // Long press on a message: reactions bar (theirs) and the Rispondi / Copia menu; double tap on
+  // theirs = ❤️
   tapDown(e, m) {
-    if (m.mine || e.target.closest('button')) return;
+    if (e.target.closest('button')) return;
     clearTimeout(this.pressTimer);
     this.pressed = false;
-    this.pressTimer = setTimeout(() => { this.pressed = true; this.setState({ barFor: m.id, pickerFor: null }); }, 450);
+    this.pressTimer = setTimeout(() => { this.pressed = true; this.setState({ barFor: m.mine ? null : m.id, menuFor: m.id, pickerFor: null }); }, 450);
   }
   tapUp(e, m) {
     clearTimeout(this.pressTimer);
-    if (m.mine || e.target.closest('button')) return;
+    if (e.target.closest('button')) return;
     if (this.pressed) { this.pressed = false; return; }
+    if (m.mine) return;
     const t = Date.now();
     if (this.lastTap?.id === m.id && t - this.lastTap.t < 320) {
       this.lastTap = null;
       getSelection()?.removeAllRanges();
       this.react(m, '❤️');
     } else this.lastTap = { id: m.id, t };
+  }
+
+  reply(m) {
+    this.setState({ replyTo: { id: m.id, mine: m.mine, body: m.body }, barFor: null, menuFor: null, pickerFor: null });
+    requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
+  }
+
+  async copy(m) {
+    this.setState({ barFor: null, menuFor: null, pickerFor: null });
+    try { await navigator.clipboard.writeText(m.body); toast('Messaggio copiato'); } catch { toast('Non siamo riusciti a copiare il messaggio.', { tone: 'err' }); }
+  }
+
+  // Tapping the quote in a reply shows the original message, if it's loaded
+  jumpTo(id) {
+    const el = document.querySelector(`#chat-scroll [data-id="${id}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('msg-flash');
+    void el.offsetWidth;
+    el.classList.add('msg-flash');
   }
 
   // Composer: the emoji goes where the cursor is; the picker stays open for more
@@ -241,9 +263,10 @@ export default class extends Page {
     const s = this.state;
     const body = s.draft.trim();
     if (!body) return;
-    const m = await api('POST', `/api/threads/${s.active}`, { body });
+    const m = await api('POST', `/api/threads/${s.active}`, { body, ...(s.replyTo ? { reply_to: s.replyTo.id } : {}) });
     s.messages.push(m);
     s.draft = '';
+    s.replyTo = null;
     this.smooth = true;
     const t = s.threads.find(x => x.id === s.active);
     if (t) { t.last = `Tu: ${body}`; t.time = m.created_at; }
@@ -304,6 +327,7 @@ export default class extends Page {
     // Bubbles with day separators and a read receipt under my last message (35c)
     const items = [];
     let prevDay = null;
+    const n = s.messages?.length || 0;
     s.messages?.forEach((m, i) => {
       const k = dayKey(m.created_at);
       if (k !== prevDay) { items.push({ sep: true, label: dayLabel(m.created_at) }); prevDay = k; }
@@ -317,16 +341,24 @@ export default class extends Page {
         // the time sits inside the bubble; under my last message, once read, "Letto · hh:mm"
         at: fmtTime(m.created_at), time: m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : '', align: m.mine ? 'flex-end' : 'flex-start',
         // reactions: only on the other person's messages (mine on theirs, theirs on mine)
-        canReact: !m.mine, hasReaction: !!reaction, reaction: reaction?.emoji ?? '',
+        id: m.id, canReact: !m.mine, hasReaction: !!reaction, reaction: reaction?.emoji ?? '',
+        // a reply shows the message it answers on top (tap: go to it)
+        hasQuote: !!m.reply, quoteName: m.reply ? (m.reply.mine ? 'Tu' : p?.first_name || '') : '', quoteText: m.reply?.body ?? '',
+        jump: e => { e.stopPropagation(); if (m.reply) this.jumpTo(m.reply.id); },
         chipAria: reaction ? (reaction.mine ? `La tua reazione ${reaction.emoji}: tocca per toglierla` : `Reazione ${reaction.emoji}`) : '',
         chip: () => { if (reaction?.mine) this.react(m, reaction.emoji); },
         pb: reaction ? '14px' : '0',
         down: e => this.tapDown(e, m), up: e => this.tapUp(e, m), cancel: () => clearTimeout(this.pressTimer),
-        ctx: e => { if (!m.mine && matchMedia('(hover: none)').matches) e.preventDefault(); },
-        openBar: () => this.setState({ barFor: s.barFor === m.id ? null : m.id, pickerFor: null }),
-        barOpen: s.barFor === m.id, pickerOpen: s.pickerFor === m.id,
-        // near the top of the chat the bar opens below the message, so it isn't cut off
-        barPos: i < 2 ? 'top:calc(100% + 6px)' : 'bottom:calc(100% + 6px)',
+        ctx: e => { if (matchMedia('(hover: none)').matches) e.preventDefault(); },
+        openBar: () => this.setState({ barFor: s.barFor === m.id ? null : m.id, menuFor: null, pickerFor: null }),
+        // computer: the ⌄ in the corner of the bubble on hover opens the menu, like WhatsApp Desktop
+        openMenu: e => { e.stopPropagation(); this.setState({ menuFor: s.menuFor === m.id ? null : m.id, barFor: null, pickerFor: null }); },
+        barOpen: s.barFor === m.id, actionsOpen: s.menuFor === m.id, pickerOpen: s.pickerFor === m.id,
+        // Reactions above the message, menu below; near the top of the chat both below, near the end
+        // both above, so nothing is cut off
+        barPos: i < 2 ? 'top:calc(100% + 6px)' : i >= n - 2 && s.menuFor === m.id ? 'bottom:calc(100% + 112px)' : 'bottom:calc(100% + 6px)',
+        actionsPos: i < 2 ? `top:calc(100% + ${s.barFor === m.id ? 58 : 6}px)` : i >= n - 2 ? 'bottom:calc(100% + 6px)' : 'top:calc(100% + 6px)',
+        doReply: () => this.reply(m), doCopy: () => this.copy(m),
         quick: QUICK_REACTIONS.map(q => ({ e: q, on: reaction?.mine && reaction.emoji === q ? '#EFEBFF' : 'transparent', pick: () => this.react(m, q) })),
         more: () => this.setState({ pickerFor: m.id, barFor: null }),
         all: EMOJI.map(q => ({ e: q, pick: () => this.react(m, q) })),
@@ -357,6 +389,8 @@ export default class extends Page {
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
+      replying: !!s.replyTo, replyName: s.replyTo ? (s.replyTo.mine ? 'Tu' : p?.first_name || '') : '', replyText: s.replyTo?.body ?? '',
+      cancelReply: () => this.setState({ replyTo: null }),
       composeInput: e => { s.draft = e.target.value; fitCompose(e.target); },
       composePicker: !!s.composePicker, toggleComposePicker: () => this.setState({ composePicker: !s.composePicker, barFor: null, pickerFor: null }),
       composeEmoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),

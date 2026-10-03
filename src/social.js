@@ -200,13 +200,14 @@ export function getThread(db, viewer, otherId, { after = 0, before = 0, since = 
   db.prepare("UPDATE notifications SET read_at = ? WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").run(now(), viewer.id, otherId);
   const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
   const args = [viewer.id, otherId, otherId, viewer.id];
+  const cols = 'id, sender_id, body, created_at, read_at, reply_to_id';
   const rows = after
-    ? db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} AND id > ? ORDER BY id LIMIT 500`).all(...args, after)
-    : db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} ${before ? 'AND id < ?' : ''} ORDER BY id DESC LIMIT ?`)
+    ? db.prepare(`SELECT ${cols} FROM messages WHERE ${pair} AND id > ? ORDER BY id LIMIT 500`).all(...args, after)
+    : db.prepare(`SELECT ${cols} FROM messages WHERE ${pair} ${before ? 'AND id < ?' : ''} ORDER BY id DESC LIMIT ?`)
       .all(...args, ...(before ? [before] : []), THREAD_PAGE).reverse();
   const at = now();
   const reactions = reactionsFor(db, viewer, rows.map(m => m.id));
-  const messages = rows.map(m => ({ ...m, mine: m.sender_id === viewer.id, reactions: reactions.get(m.id) }));
+  const messages = rows.map(({ reply_to_id, ...m }) => ({ ...m, mine: m.sender_id === viewer.id, reactions: reactions.get(m.id), reply: quoteOf(db, viewer, reply_to_id) }));
   const hasOlder = !after && rows.length > 0 && !!db.prepare(`SELECT 1 FROM messages WHERE ${pair} AND id < ? LIMIT 1`).get(...args, rows[0].id);
   let changed;
   if (since) {
@@ -235,13 +236,27 @@ export function setReaction(db, viewer, otherId, messageId, body) {
   return { id: m.id, reactions: reactionsFor(db, viewer, [m.id]).get(m.id) };
 }
 
+// The message a reply points to, as shown above the reply: who wrote it and the start of the text
+function quoteOf(db, viewer, id) {
+  if (!id) return null;
+  const q = db.prepare('SELECT id, sender_id, body FROM messages WHERE id = ?').get(id);
+  return q ? { id: q.id, mine: q.sender_id === viewer.id, body: q.body.length > 200 ? `${q.body.slice(0, 199)}…` : q.body } : null;
+}
+
 export function sendMessage(db, viewer, otherId, body) {
-  only(body, ['body']);
+  only(body, ['body', 'reply_to']);
   const msg = text(body.body, 'Messaggio', { max: 4000, nullable: false });
   requireConnected(db, viewer.id, otherId);
-  const r = db.prepare('INSERT INTO messages (sender_id, recipient_id, body, created_at) VALUES (?, ?, ?, ?)').run(viewer.id, otherId, msg, now());
+  // A reply can only quote a message of this same conversation
+  let replyTo = null;
+  if (body.reply_to != null) {
+    replyTo = db.prepare('SELECT id FROM messages WHERE id = ? AND ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))')
+      .get(Number(body.reply_to), viewer.id, otherId, otherId, viewer.id)?.id;
+    if (!replyTo) throw new HttpError(404, 'not_found', 'Il messaggio a cui rispondi non c’è più.');
+  }
+  const r = db.prepare('INSERT INTO messages (sender_id, recipient_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?)').run(viewer.id, otherId, msg, now(), replyTo);
   notify(db, otherId, 'message', viewer.id, { preview: msg.slice(0, 80) });
-  return { id: Number(r.lastInsertRowid), sender_id: viewer.id, body: msg, created_at: now(), mine: true, reactions: [] };
+  return { id: Number(r.lastInsertRowid), sender_id: viewer.id, body: msg, created_at: now(), mine: true, reactions: [], reply: quoteOf(db, viewer, replyTo) };
 }
 
 // --- Blocks & reports (42a, 43a) ----------------------------------------------------------

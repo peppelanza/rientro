@@ -399,3 +399,25 @@ test('reactions: one emoji per person on the other person\'s messages, removable
     assert.deepEqual(poll2.reactions_changed, [{ id: m1.id, reactions: [] }], 'removal reaches the open chat too');
   } finally { t.close(); }
 });
+
+test('replies quote a message of the same chat, like WhatsApp', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('rp-a@example.com');
+    const b = await t.approved('rp-b@example.com');
+    const c = await t.approved('rp-c@example.com');
+    await t.connect(a, b);
+    await t.connect(a, c);
+    const m1 = (await a.post(`/api/threads/${b.id}`, { body: 'Ci vediamo a Palermo?' })).body;
+    const other = (await a.post(`/api/threads/${c.id}`, { body: 'Altra chat' })).body;
+
+    const r = await b.post(`/api/threads/${a.id}`, { body: 'Sì, a maggio', reply_to: m1.id });
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.body.reply, { id: m1.id, mine: false, body: 'Ci vediamo a Palermo?' });
+    assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'x', reply_to: other.id })).status, 404, 'not a message of another chat');
+
+    const seen = (await a.get(`/api/threads/${b.id}`)).body.messages;
+    assert.equal(seen[0].reply, null);
+    assert.deepEqual(seen[1].reply, { id: m1.id, mine: true, body: 'Ci vediamo a Palermo?' }, 'the quote says who wrote it, for each side');
+  } finally { t.close(); }
+});
