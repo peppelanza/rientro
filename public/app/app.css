@@ -531,7 +531,7 @@ body { padding-top: var(--lb, 0px); }
   /* Sized to the visible part of the screen (--vv-top/--vv-h, messaggi.js): with the keyboard open the
      header stays on top and the message box sits right above the keyboard; white all around */
   body.chat-open section[aria-label="Chat"] { position: fixed; left: 0; right: 0; top: var(--vv-top, 0px); z-index: 45; height: var(--vv-h, 100dvh); border-radius: 0 !important; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-  html:has(body.chat-open), body.chat-open { background: #FFFFFF !important; }
+  html:has(body.chat-open), body.chat-open, body.chat-open .chat-page { background: #FFFFFF !important; }
   body.chat-open.keyboard-open section[aria-label="Chat"] { padding-bottom: 0; }
   /* Slimmer message box, like iMessage/WhatsApp */
   .compose-bar { padding: 8px 10px !important; }

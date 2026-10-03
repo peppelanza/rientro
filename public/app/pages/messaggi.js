@@ -29,16 +29,31 @@ function fitCompose(ta) {
 
 // Phone, full-screen chat: follow the part of the screen that is actually visible. When the keyboard
 // opens iOS shrinks the visual viewport and slides the page up; the chat sits exactly in what's left.
+// The messages keep their place counted from the bottom, so the last ones stay in sight.
 function fitViewport() {
   const vv = window.visualViewport;
   const root = document.documentElement.style;
   const open = !!vv && document.body.classList.contains('chat-open');
+  const box = document.getElementById('chat-scroll');
+  const fromBottom = box ? box.scrollHeight - box.scrollTop - box.clientHeight : 0;
   root.setProperty('--vv-h', open ? `${vv.height}px` : '');
   root.setProperty('--vv-top', open ? `${vv.offsetTop}px` : '');
   document.body.classList.toggle('keyboard-open', open && innerHeight - vv.height > 120);
+  if (box) box.scrollTop = box.scrollHeight - box.clientHeight - fromBottom;
 }
 visualViewport?.addEventListener('resize', fitViewport);
 visualViewport?.addEventListener('scroll', fitViewport);
+// iOS reports the keyboard slide only at the end: follow it frame by frame for its duration
+let followUntil = 0;
+const follow = () => { fitViewport(); if (performance.now() < followUntil) requestAnimationFrame(follow); };
+for (const type of ['focusin', 'focusout']) {
+  addEventListener(type, () => {
+    if (!document.body.classList.contains('chat-open')) return;
+    const running = performance.now() < followUntil;
+    followUntil = performance.now() + 800;
+    if (!running) requestAnimationFrame(follow);
+  });
+}
 
 const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
