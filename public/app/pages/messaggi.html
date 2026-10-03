@@ -39,7 +39,7 @@
 </div></sc-if>
 </div>
 <div id="chat-scroll" data-keep-scroll="chat" role="log" aria-live="polite" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:#F6F4FC">
-<sc-if value="{{ hasOlder }}"><div style="display:flex;justify-content:center"><dc-import name="UI Button" label="Carica messaggi precedenti" variant="light" size="sm" on-click="{{ loadOlder }}"></dc-import></div></sc-if>
+<sc-if value="{{ hasOlder }}"><div aria-live="polite" style="display:flex;justify-content:center;padding:6px 0;min-height:22px;font-size:12px;color:#8C84AE"><sc-if value="{{ loadingOlder }}">Carico i messaggi precedenti…</sc-if></div></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ noteHeader }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:6px 0;text-align:center">{{ noteHeader }}</span></sc-if>
 <sc-if value="{{ note }}"><dc-import name="UI Bubble" from="note" text="{{ note }}"></dc-import></sc-if>

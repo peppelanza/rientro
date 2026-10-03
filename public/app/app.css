@@ -518,3 +518,7 @@ body { padding-top: var(--lb, 0px); }
 .msg-row[data-new="1"] { animation: msg-in .32s cubic-bezier(.2, .8, .2, 1); }
 @keyframes msg-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .msg-row[data-new="1"] { animation: none; } }
+
+/* The chat scrolls by itself when messages come and go: no scrollbar flashing (still scrollable) */
+#chat-scroll { scrollbar-width: none; }
+#chat-scroll::-webkit-scrollbar { display: none; }

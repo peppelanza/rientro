@@ -41,6 +41,8 @@ export default class extends Page {
     };
     document.addEventListener('click', this.closePopups);
     document.addEventListener('keydown', this.closePopups);
+    // the chat box is redrawn often: listen at the document (scroll events don't bubble, so capture)
+    document.addEventListener('scroll', this.onChatScroll, true);
     this.listTimer = setInterval(() => this.refreshList(), 20000);
     window.addEventListener('popstate', () => location.reload());
   }
@@ -168,19 +170,33 @@ export default class extends Page {
 
   searchTyped = debounce(v => this.listChange({ query: v, page: 1 }));
 
-  // Older messages, 50 at a time, kept in place on screen
-  loadOlder = this.act(async () => {
+  // Older messages, 50 at a time, loaded by themselves as you scroll near the top (onChatScroll);
+  // what you were reading stays in place on screen
+  async loadOlder() {
     const s = this.state;
-    const first = s.messages[0]?.id;
-    if (!first) return;
-    const r = await api('GET', `/api/threads/${s.active}?before=${first}`);
-    const box = document.getElementById('chat-scroll');
-    const fromBottom = box ? box.scrollHeight - box.scrollTop : 0;
-    s.messages = [...r.messages, ...s.messages];
-    for (const o of r.messages) this.known?.add(o.id);
-    s.hasOlder = r.has_older;
-    this.keepScroll = fromBottom;
-  });
+    const first = s.messages?.[0]?.id;
+    if (!first || !s.hasOlder || s.loadingOlder) return;
+    const active = s.active;
+    this.setState({ loadingOlder: true });
+    try {
+      const r = await api('GET', `/api/threads/${active}?before=${first}`);
+      if (s.active !== active) return; // another chat was opened meanwhile
+      const box = document.getElementById('chat-scroll');
+      this.keepScroll = box ? box.scrollHeight - box.scrollTop : 0;
+      s.messages = [...r.messages, ...s.messages];
+      for (const o of r.messages) this.known?.add(o.id);
+      s.hasOlder = r.has_older;
+    } catch (err) {
+      toastError(err);
+    } finally {
+      s.loadingOlder = false;
+      this.__rerender();
+    }
+  }
+
+  onChatScroll = e => {
+    if (e.target.id === 'chat-scroll' && e.target.scrollTop < 300) this.loadOlder();
+  };
 
   send = this.act(async () => {
     const s = this.state;
@@ -223,6 +239,7 @@ export default class extends Page {
     clearInterval(this.timer); clearInterval(this.listTimer);
     document.removeEventListener('click', this.closePopups);
     document.removeEventListener('keydown', this.closePopups);
+    document.removeEventListener('scroll', this.onChatScroll, true);
   }
 
   renderVals() {
@@ -284,7 +301,7 @@ export default class extends Page {
       searchProps: { onInput: v => this.searchTyped(v) },
       page: s.list.page, pages: s.list.pages, total: s.list.total, perPage: s.list.per_page,
       pagerProps: { onPage: n => this.listChange({ page: n }) },
-      hasOlder: !!s.hasOlder && !!s.messages?.length, loadOlder: this.loadOlder,
+      hasOlder: !!s.hasOlder && !!s.messages?.length, loadingOlder: !!s.loadingOlder,
       hasActive: !!s.active && !!p, noActive: !s.active, closed: !!s.closed,
       listClass: s.active ? 'r-hide-sm' : '', chatClass: s.active ? '' : 'r-hide-sm',
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
