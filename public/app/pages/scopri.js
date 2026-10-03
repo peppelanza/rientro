@@ -18,8 +18,8 @@ function readFilters() {
   return f;
 }
 
-// The filters behind "Tutti i filtri" (computer): everything but where they want to live
-const hiddenFilters = f => (f.lives ? 1 : 0) + f.intent.length + f.backgrounds.length + f.sectors.length + (f.time ? 1 : 0) + (f.age ? 1 : 0);
+// The filters behind "Tutti i filtri" (computer): everything but where they live and want to live
+const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length + (f.time ? 1 : 0) + (f.age ? 1 : 0);
 
 function toQuery(f) {
   const q = new URLSearchParams();
@@ -137,9 +137,9 @@ export default class extends Page {
     const qn = f.q.trim();
     return {
       loading: false, me: s.me, f, showFilters: s.showFilters,
-      // computer: only "Dove vuole vivere" shows; the others open below it (on a phone the whole
+      // computer: only "Dove vuole vivere" and "Dove vive" show; the others open below them (on a phone the whole
       // panel is behind "Filtri" already, all of it)
-      moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters,
+      moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters ? 'true' : 'false',
       moreLabel: s.moreFilters ? 'Meno filtri' : hiddenFilters(f) ? `Tutti i filtri · ${hiddenFilters(f)}` : 'Tutti i filtri',
       toggleMore: () => { this.animateMore = !s.moreFilters; this.setState({ moreFilters: !s.moreFilters }); this.animateMore = false; },
       total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
