@@ -7,7 +7,7 @@
 <sc-if value="{{ !loading }}"><div class="{{ layoutCls }}">
 <sc-if value="{{ member }}"><div class="{{ asideCls }}"><dc-import name="App Side Menu" eyebrow="Gruppi" items="{{ menu }}" active="{{ activeLabel }}"></dc-import></div></sc-if>
 <main class="{{ mainCls }}">
-<sc-if value="{{ choosing }}"><section style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:10px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.045em">Scegli un gruppo</h1><span style="font-size:15px;color:#4A4560;line-height:1.5">A sinistra trovi il gruppo Generale e quelli delle regioni: scrivi, fai domande, conosci chi torna dove torni tu. Quello che scrivi si legge anche fuori da Rientro, con il tuo nome e la tua foto.</span></section></sc-if>
+<sc-if value="{{ choosing }}"><section style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:10px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.045em">Scegli un gruppo</h1><span style="font-size:15px;color:#4A4560;line-height:1.5">A sinistra trovi il gruppo Generale e quelli delle regioni: scrivi, fai domande, conosci chi torna dove torni tu.</span></section></sc-if>
 <sc-if value="{{ opening }}"><div style="height:40vh"></div></sc-if>
 <sc-if value="{{ hasGroup }}">
 <!-- Once the header and the post box have scrolled away: a bar like the menu, stuck to the top of this
@@ -28,7 +28,7 @@
 <sc-if value="{{ visitor }}"><section class="group-join group-compose" aria-label="Iscriviti"><span>Per scrivere nel gruppo e conoscere chi torna, iscriviti a Rientro: è gratuito.</span><dc-import name="UI Button" label="Iscriviti" variant="accent" size="sm" on-click="{{ signUp }}"></dc-import></section></sc-if>
 <sc-if value="{{ member }}"><section class="group-compose" aria-label="Scrivi al gruppo" style="background:#FFFFFF;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px">
 <dc-import name="App Field" rows="3" grow="10" field="group-post" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Scrivi qualcosa al gruppo…" dc-props="{{ draftProps }}"></dc-import>
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="flex:1 1 220px;font-size:12px;color:#8C84AE;line-height:1.4">Quello che scrivi nei gruppi si legge anche fuori da Rientro, con il tuo nome e la tua foto.</span><div style="flex:none;margin-left:auto"><dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ publish }}"></dc-import></div></div>
+<div style="display:flex;justify-content:flex-end"><dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ publish }}"></dc-import></div>
 </section></sc-if>
 <sc-if value="{{ empty }}"><div style="text-align:center;padding:32px 0;color:#8C84AE;font-size:14px">Ancora nessun post. Rompi il ghiaccio!</div></sc-if>
 <sc-for list="{{ posts }}" as="p"><article class="group-post" id="{{ p.anchor }}">
