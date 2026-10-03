@@ -129,7 +129,11 @@ export default class extends Page {
     return {
       loading: false, me: s.me || {}, g, member: s.member, visitor: !s.member,
       // the menu (members); on phones either the menu or the open group
-      menu: (s.groups || []).map(x => ({ l: x.name, href: `/gruppi/${x.id}`, click: e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); this.select(x.id); } })),
+      // Generale, then the regions under their own title
+      menu: (s.groups || []).flatMap((x, i, all) => [
+        ...(x.kind === 'region' && all[i - 1]?.kind !== 'region' ? [{ heading: 'Regioni' }] : []),
+        { l: x.name, href: `/gruppi/${x.id}`, click: e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); this.select(x.id); } },
+      ]),
       activeLabel: s.groups?.find(x => x.id === s.id)?.name ?? '',
       layoutCls: s.member ? 'groups-layout' : 'groups-layout solo', asideCls: s.id ? 'groups-aside r-hide-sm' : 'groups-aside',
       mainCls: s.id ? 'groups-main' : 'groups-main r-hide-sm',
