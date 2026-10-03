@@ -1,7 +1,10 @@
 // Groups, a bit like Facebook groups: Generale and one per region. Anyone with a profile reads, posts
 // and comments, no joining; people who blocked each other don't see each other's posts. Same launch
 // rules as discovery.
+import fs from 'node:fs';
+import path from 'node:path';
 import { REGIONS } from './catalog.js';
+import { config } from './config.js';
 import { now } from './db.js';
 import { fileUrl, isBlocked, rawProfile } from './profiles.js';
 import { pageParams, paginate } from './paging.js';
@@ -43,8 +46,14 @@ function author(db, id) {
   return { id, name: nameOf(db, id) || 'Membro', photo_url: fileUrl(p?.photo_file_id), role: [p?.current_role, p?.current_company].filter(Boolean).join(' · ') };
 }
 
+// The cover over the group: a region's is its Territori picture; Generale's its own (when it's there)
+function cover(g) {
+  const file = g.kind === 'region' ? `img/territori/${g.id.replace(/^regione-/, '')}.webp` : `img/gruppi/${g.id}.webp`;
+  return fs.existsSync(path.join(config.publicDir, file)) ? `/${file}` : null;
+}
+
 const summary = (db, g) => ({
-  id: g.id, name: g.name, kind: g.kind, description: g.description,
+  id: g.id, name: g.name, kind: g.kind, description: g.description, cover: cover(g),
   posts: db.prepare('SELECT COUNT(*) AS n FROM group_posts WHERE group_id = ?').get(g.id).n,
   last_post_at: db.prepare('SELECT MAX(created_at) AS at FROM group_posts WHERE group_id = ?').get(g.id).at,
 });
