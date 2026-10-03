@@ -24,7 +24,7 @@ const ROUTES = [
   [/^\/notifiche$/, 'notifiche'],
   [/^\/profilo$/, 'profilo'],
   [/^\/benvenuto$/, 'benvenuto'],
-  [/^\/impostazioni$/, 'impostazioni'],
+  [/^\/impostazioni(\/account)?$/, 'impostazioni'],
   [/^\/impostazioni\/notifiche$/, 'impostazioni-notifiche'],
   [/^\/impostazioni\/sicurezza$/, 'impostazioni-sicurezza'],
   [/^\/impostazioni\/privacy$/, 'privacy'],

@@ -246,7 +246,7 @@ function streamFile(req, res, f) {
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
-  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(privacy|dati|notifiche|sicurezza))?$/];
+  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
