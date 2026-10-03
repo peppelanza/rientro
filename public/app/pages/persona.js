@@ -1,5 +1,5 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, getMe, go, INTENT_BADGE, orList, timeAgo, toast } from '../lib.js';
+import { api, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, timeAgo, toast } from '../lib.js';
 import { block, connect, report } from '../social.js';
 import { Page } from './_base.js';
 
@@ -14,7 +14,11 @@ const from = () => {
   if (da === 'messaggi') return { section: 'messaggi', backHref: `/messaggi/${location.pathname.split('/').pop()}`, backLabel: 'Messaggi' };
   return ['connessioni', 'ricevute', 'inviate'].includes(da)
     ? { section: 'connessioni', backHref: `/connessioni?tab=${da}`, backLabel: 'Connessioni' }
-    : { section: 'scopri', backHref: '/scopri', backLabel: 'Scopri chi torna' };
+    : { section: 'scopri', backHref: `/scopri${lastScopriSearch()}`, backLabel: 'Scopri chi torna' };
+};
+// Back to Scopri with the filters, search and page you left it with (scopri.js remembers them)
+const lastScopriSearch = () => {
+  try { return sessionStorage.getItem(SCOPRI_BACK_KEY) || ''; } catch { return ''; }
 };
 
 // Scrolling turns the 4:5 photo into a square, cropped at the centre (object-fit: cover), one pixel

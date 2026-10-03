@@ -57,6 +57,9 @@ export async function getCatalog() {
 
 export const qs = () => new URLSearchParams(location.search);
 export const go = href => { location.href = href; };
+// Scopri remembers the view you're on (filters, search, page: all in its address) for the way back
+// from a profile (persona.js)
+export const SCOPRI_BACK_KEY = 'rientro.scopri.back';
 
 // --- Formatting (Italian) --------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 // Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
-import { api, debounce, getCatalog, getMe, go } from '../lib.js';
+import { api, debounce, getCatalog, getMe, go, SCOPRI_BACK_KEY } from '../lib.js';
 import { collapseCards } from '../card-collapse.js';
 import { stickFilters } from '../sticky-filters.js';
 import { connect } from '../social.js';
@@ -50,6 +50,14 @@ function readSort() {
 function saveSort(sort) {
   try { localStorage.setItem(SORT_KEY, sort); } catch {}
 }
+// "Tutti i filtri" open or closed, for this visit
+const MORE_KEY = 'rientro.scopri.more';
+function readMore() {
+  try { return sessionStorage.getItem(MORE_KEY) === '1'; } catch { return false; }
+}
+function saveMore(open) {
+  try { sessionStorage.setItem(MORE_KEY, open ? '1' : ''); } catch {}
+}
 
 function mark(text, needle) {
   const t = text || '';
@@ -64,8 +72,9 @@ export default class extends Page {
     if (me.user.status !== 'approved') return go('/onboarding');
     if (!me.launched && me.user.role !== 'admin') return go('/benvenuto');
     const f = readFilters();
-    // "Tutti i filtri" starts open when one of them is in use (e.g. a bookmarked search)
-    Object.assign(this.state, { me, cat, f, moreFilters: hiddenFilters(f) > 0, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
+    // "Tutti i filtri" starts open when one of them is in use (e.g. a bookmarked search) or when you
+    // left it open (coming back from a profile)
+    Object.assign(this.state, { me, cat, f, moreFilters: hiddenFilters(f) > 0 || readMore(), page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
     const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${this.listQuery()}`), api('GET', '/api/comuni/counts')]);
     this.state.res = res;
     this.state.comuneCounts = comuneCounts;
@@ -139,6 +148,7 @@ export default class extends Page {
   }
 
   didRender(el) {
+    try { sessionStorage.setItem(SCOPRI_BACK_KEY, location.search); } catch {}
     collapseCards(el);
     stickFilters(el.querySelector('aside[aria-label="Filtri"]'));
   }
@@ -160,7 +170,7 @@ export default class extends Page {
       // panel is behind "Filtri" already, all of it)
       moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters ? 'true' : 'false', moreClosed: !s.moreFilters, moreOpenFlag: s.moreFilters, // closed: under "Dove vive"; open: at the bottom
       moreLabel: s.moreFilters ? 'Meno filtri' : hiddenFilters(f) ? `Tutti i filtri · ${hiddenFilters(f)}` : 'Tutti i filtri',
-      toggleMore: () => { this.animateMore = !s.moreFilters; this.setState({ moreFilters: !s.moreFilters }); this.animateMore = false; },
+      toggleMore: () => { this.animateMore = !s.moreFilters; saveMore(!s.moreFilters); this.setState({ moreFilters: !s.moreFilters }); this.animateMore = false; },
       total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
       hasActive: act.length > 0, activeLabel: `${act.length} ${act.length === 1 ? 'filtro attivo' : 'filtri attivi'}`,
       activeChips: act.map(a => ({ l: a.label, aria: `Rimuovi ${a.label}`, remove: () => this.apply(a.without(f)) })),
