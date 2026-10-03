@@ -25,6 +25,9 @@ function dimBehindBell(nav) {
     dim.addEventListener('click', () => navForDimmer?.closeBell());
     document.body.append(dim);
   }
+  // It starts below the top bar: iPhone Safari tints the status bar (clock, signal) with whatever
+  // covers the top of the page, and that must stay as it is
+  if (nav.state.bellOpen) dim.style.top = `${Math.max(0, document.querySelector('.nav-root')?.getBoundingClientRect().bottom ?? 0)}px`;
   document.body.classList.toggle('bell-open', nav.state.bellOpen);
   return nav.state.bellOpen;
 }
