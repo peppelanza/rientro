@@ -144,7 +144,7 @@ export default class extends Page {
       hasGroup: !!s.group, choosing: !s.id, opening: !!s.id && !s.group,
       backToList: e => { e.preventDefault(); this.select(null); },
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
-      stats: g.posts ? `${g.posts} post` : 'Nessun post ancora',
+      stats: g.posts ? `${g.posts} post` : '', // nothing when there are none yet
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,
       posts, empty: !!s.feed && !posts.length,
       page: s.feed?.page ?? 1, pages: s.feed?.pages ?? 1, total: s.feed?.total ?? 0, perPage: s.feed?.per_page ?? 20,
