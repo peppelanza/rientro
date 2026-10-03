@@ -24,7 +24,9 @@
   --article-gap: clamp(72px, 7vw, 104px);
 }
 
-html { scroll-behavior: smooth; }
+/* The page colour all the way down (the pages draw it on their own box): what iPhone Safari shows
+   around its bars whenever the page doesn't cover them, e.g. while pulling to refresh */
+html { scroll-behavior: smooth; background: #E9E6F5; }
 body { min-height: 100vh; }
 #app { min-height: 100vh; }
 .sc-host { min-width: 0; }
