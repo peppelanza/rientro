@@ -4,9 +4,11 @@
 <dc-import name="App Nav" active="none" me="{{ me }}"></dc-import>
 <sc-if value="{{ cat }}">
 <div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:28px;padding:28px var(--gutter) 40px;box-sizing:border-box">
-<div><dc-import name="App Side Menu" eyebrow="Il tuo profilo" items="{{ menu }}" active="{{ activeLabel }}"></dc-import></div>
+<div class="r-hide-sm"><dc-import name="App Side Menu" eyebrow="Il tuo profilo" items="{{ menu }}" active="{{ activeLabel }}"></dc-import></div>
+<sc-if value="{{ isIndex }}"><div class="r-show-sm"><dc-import name="App Side Menu" eyebrow="Il tuo profilo" items="{{ menu }}"></dc-import></div></sc-if>
 
-<main style="background:#FFFFFF;border-radius:28px;padding:28px var(--card-pad);display:flex;flex-direction:column;gap:22px;min-width:0;align-self:start" >
+<main class="{{ mainCls }}" style="background:#FFFFFF;border-radius:28px;padding:28px var(--card-pad);display:flex;flex-direction:column;gap:22px;min-width:0;align-self:start" >
+<a href="/profilo" class="r-show-sm" style="font-size:14px;color:#6B6680;text-decoration:none;margin-bottom:-10px">← Il tuo profilo</a>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:28px;font-weight:600;letter-spacing:-.05em">{{ heading }}</h1><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></div>
 
 <sc-if value="{{ isIntestazione }}">

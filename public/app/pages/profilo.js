@@ -40,6 +40,8 @@ export default class extends Page {
     if (me.user.status === 'onboarding') return go('/onboarding');
     const want = qs().get('sezione') || location.hash.slice(1);
     Object.assign(this.state, {
+      // No section in the address: on phones the page is just the menu (on a computer, the first section)
+      index: !want,
       me, cat, p: structuredClone(me.profile), section: SECTIONS.some(s => s[0] === want) ? want : want === 'video' ? 'su-di-me' : 'intestazione',
       dirty: false, edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
@@ -66,7 +68,7 @@ export default class extends Page {
     const s = this.state;
     if (s.dirty && !confirm('Hai modifiche non salvate in questa sezione. Uscire senza salvare?')) return;
     s.p = structuredClone(s.me.profile);
-    Object.assign(s, { section: key, dirty: false, edu: null, exp: null });
+    Object.assign(s, { section: key, index: false, dirty: false, edu: null, exp: null });
     history.replaceState(null, '', `/profilo?sezione=${key}`);
     this.__rerender();
     window.scrollTo(0, 0);
@@ -148,7 +150,8 @@ export default class extends Page {
     for (const k of ['first_name', 'last_name', 'current_role', 'current_company', 'lives_in_country', 'lives_in_city', 'bio', 'achievement', 'idea_title', 'idea_description', 'seeking_description', 'misses_italy', 'linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']) t[k] = text(k);
     return {
       loading: false, me, cat, t,
-      menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { e.preventDefault(); this.goSection(k); } })),
+      menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 720px)').matches) return; e.preventDefault(); this.goSection(k); } })),
+      isIndex: s.index, mainCls: s.index ? 'r-hide-sm' : '',
       activeLabel: this.sec[1], heading: this.sec[1],
       badgeKind: status === 'approved' ? 'success' : 'neutral',
       badgeLabel: status === 'approved' ? 'Online' : 'Non pubblicato',
