@@ -1,5 +1,5 @@
 import { DCLogic } from '../../dc/runtime.js';
-import { toastError } from '../lib.js';
+import { getMe, toastError } from '../lib.js';
 
 // Base for pages: runs async load() after the first render, then re-renders.
 export class Page extends DCLogic {
@@ -15,6 +15,14 @@ export class Page extends DCLogic {
     this.__rerender();
     // Links like /#domande: the section only exists once the page has rendered its content
     if (location.hash.length > 1) setTimeout(() => document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView());
+  }
+  // Pull to refresh (pull-refresh.js): fresh data, drawn over what's there. Pages whose load() does
+  // more than fetching override it.
+  async refresh() {
+    try {
+      await getMe(true); // fresh counts for the menus (load() reads the cached copy)
+      await this.load?.();
+    } catch (err) { toastError(err); }
   }
   // Wraps an async action: disables re-entry, shows errors as toasts, re-renders at the end.
   act(fn) {

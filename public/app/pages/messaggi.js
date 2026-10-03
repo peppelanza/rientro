@@ -230,6 +230,9 @@ export default class extends Page {
     s.page = s.list.page;
   }
 
+  // Pull to refresh: the conversations and the open chat (load() also starts timers and listeners)
+  async refresh() { await Promise.all([this.refreshList(), this.poll()]); }
+
   async refreshList() {
     if (document.hidden) return;
     try { await Promise.all([this.fetchList(), this.syncCounts({ render: false })]); this.__rerender(); } catch {}

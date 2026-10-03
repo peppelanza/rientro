@@ -659,3 +659,9 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
 }
 }
 @media (prefers-reduced-motion: reduce) { .home-bar, .site-enter, .site-jump { transition: none !important; } }
+
+/* Pull to refresh on phones (pull-refresh.js) */
+.pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + 8px); z-index: 60; width: 40px; height: 40px; margin-top: -48px; border-radius: 50%; background: #FFFFFF; color: #6C4DF5; box-shadow: 0 6px 20px rgba(80,60,160,.18); display: flex; align-items: center; justify-content: center; opacity: 0; transform: translate(-50%, 0); transition: transform .2s ease, opacity .2s ease; pointer-events: none; }
+.pull-spinner.pulling { transition: none; }
+.pull-spinner.spinning svg { animation: pull-spin .8s linear infinite; }
+@keyframes pull-spin { to { transform: rotate(360deg); } }

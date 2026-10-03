@@ -5,6 +5,7 @@ import './components.js';
 import { DCLogic, mountPage } from '../dc/runtime.js';
 import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
+import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
@@ -53,7 +54,8 @@ async function boot() {
   const tpl = await template(`/app/pages/${page}.html`);
   if (mod.title) document.title = `${mod.title} · Rientro`;
   if (mod.tabbar) document.body.classList.add('has-tabbar');
-  mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
+  const logic = mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
+  if (mod.tabbar) pullToRefresh(logic);
   showFlash();
   if (!NO_LEGAL_PROMPT.has(page)) askLegalUpdate();
 }

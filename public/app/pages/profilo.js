@@ -59,6 +59,9 @@ export default class extends Page {
     this.__rerender();
   }
 
+  // Pull to refresh: not over unsaved changes in the open section
+  async refresh() { if (!this.state.dirty) await super.refresh(); }
+
   get sec() { return SECTIONS.find(s => s[0] === this.state.section); }
 
   set(patch) { Object.assign(this.state.p, patch); this.state.dirty = true; this.__rerender(); }
