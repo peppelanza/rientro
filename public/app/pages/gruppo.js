@@ -38,8 +38,16 @@ export default class extends Page {
     this.__rerender();
   }
 
-  // The menu stays in view while scrolling, as Scopri's filters do
-  didRender(el) { stickSide(el.querySelector('.groups-aside')); }
+  didRender(el) {
+    // The menu stays in view while scrolling, as Scopri's filters do
+    stickSide(el.querySelector('.groups-aside'));
+    // The bar at the top shows once the post box (or the sign-up box) has scrolled away above
+    this.barWatch?.disconnect();
+    const box = el.querySelector('.group-compose');
+    if (!box) return document.body.classList.remove('group-bar-on'); // (otherwise the observer says, without a flicker on redraws)
+    this.barWatch = new IntersectionObserver(([e]) => document.body.classList.toggle('group-bar-on', !e.isIntersecting && e.boundingClientRect.top < 0));
+    this.barWatch.observe(box);
+  }
 
   componentDidMount() {
     super.componentDidMount();
@@ -47,7 +55,11 @@ export default class extends Page {
     this.closeMenu = e => { if (this.state.menuFor && !e.target.closest('.group-more, .group-menu')) this.setState({ menuFor: null }); };
     addEventListener('click', this.closeMenu);
   }
-  componentWillUnmount() { removeEventListener('click', this.closeMenu); }
+  componentWillUnmount() {
+    removeEventListener('click', this.closeMenu);
+    this.barWatch?.disconnect();
+    document.body.classList.remove('group-bar-on');
+  }
 
   async fetchAll() {
     const s = this.state;
@@ -143,6 +155,12 @@ export default class extends Page {
       mainCls: s.id ? 'groups-main' : 'groups-main r-hide-sm',
       hasGroup: !!s.group, choosing: !s.id, opening: !!s.id && !s.group,
       backToList: e => { e.preventDefault(); this.select(null); },
+      // "Pubblica" in the top bar: back to the post box, ready to type
+      toComposer: () => {
+        const box = document.querySelector('[data-key="group-post"]');
+        box?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        box?.focus({ preventScroll: true });
+      },
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
       stats: g.posts ? `${g.posts} post` : '', // nothing when there are none yet
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,
