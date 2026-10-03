@@ -462,11 +462,11 @@ body { padding-top: var(--lb, 0px); }
 @media (prefers-reduced-motion: reduce) { .bell-in, .bell-out { animation: none; } }
 .bell-backdrop { display: none; }
 @media (max-width: 720px) {
-  .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(26, 23, 38, .45); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 48px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   body.bell-open .bell-backdrop { opacity: 1; pointer-events: auto; }
   /* the top bar with the dropdown, and the bottom menu, stay above it */
   body.bell-open .nav-root { z-index: 40 !important; }
-  body.bell-open .tabbar { z-index: 40 !important; }
+  body.bell-open .tabbar { z-index: 40 !important; opacity: 1; transform: none; pointer-events: auto; background: rgba(26, 23, 38, .45); }
 }
 @media (prefers-reduced-motion: reduce) { .bell-backdrop { transition: none; } }
 
@@ -593,7 +593,7 @@ body:not(.chat-user-scroll) #chat-scroll::-webkit-scrollbar { display: none; }
 }
 
 /* Bottom menu on phones: fades out scrolling down, back scrolling up (tabbar-scroll.js) */
-.tabbar { transition: opacity .25s ease, transform .25s ease; }
+.tabbar { transition: opacity .25s ease, transform .25s ease, background-color .2s ease; }
 body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .tabbar { transition: none; } }
 
