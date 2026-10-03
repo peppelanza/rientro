@@ -706,7 +706,9 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }
 .group-comment { display: flex; gap: 10px; align-items: flex-start; }
 .group-bubble { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 16px; background: #F6F4FC; font-size: 14px; line-height: 1.45; color: #1A1726; min-width: 0; }
-.group-reply { display: flex; gap: 8px; align-items: center; }
+.group-reply { display: flex; gap: 8px; align-items: flex-end; }
+.group-reply > .sc-host:first-child { flex: 1; min-width: 0; } /* the comment box takes the width */
+.group-reply > .sc-host:last-child { padding-bottom: 4px; }
 .group-join { background: #1A1726; color: #FFFFFF; border-radius: 24px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; font: 15px/1.45 'Geist', sans-serif; }
 .group-link { border: none; background: none; padding: 0; font: inherit; font-size: 13px; color: #6B6680; cursor: pointer; text-align: left; }
 .group-link:hover { color: #6C4DF5; }

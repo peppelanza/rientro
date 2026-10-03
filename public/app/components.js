@@ -329,14 +329,16 @@ def('App Step Footer', String.raw`
 // ---------------------------------------------------------------------------------------------
 // App Field — a real <input>/<textarea> with UI Input's exact styling.
 // Props: label, value, placeholder, type, size (md|lg), rows, maxlength, search, hint,
-// field (data-key for focus restore), onInput(value), onEnter(), onBlur(), autocomplete, inputmode, error
+// field (data-key for focus restore), onInput(value), onEnter(), onBlur(), autocomplete, inputmode, error,
+// grow (with rows: the text box grows with the text up to this many lines, then scrolls; Enter calls
+// onEnter when given, Shift+Enter is a new line)
 
 def('App Field', String.raw`
 <label style="display:flex;flex-direction:column;gap:6px;width:100%;font-family:'Geist',sans-serif">
 <sc-if value="{{ hasLabel }}"><span style="font-size:13px;font-weight:500;color:#1A1726">{{ label }}<sc-if value="{{ optional }}"> <span style="color:#8C84AE;font-weight:400">Facoltativo</span></sc-if></span></sc-if>
 <div class="dc-field" style="width:100%;min-height:{{ h }};border-radius:{{ radius }};background:#FFFFFF;border:{{ bd }};box-sizing:border-box;padding:{{ pad }};display:flex;align-items:{{ align }};gap:10px;font-size:{{ fs }}px;line-height:1.5;color:#1A1726">
 <sc-if value="{{ search }}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></sc-if>
-<sc-if value="{{ multi }}"><textarea class="bare-input" data-key="{{ field }}" rows="{{ rows }}" maxlength="{{ maxlength }}" placeholder="{{ placeholder }}" value="{{ value }}" onInput="{{ input }}" onBlur="{{ blur }}" aria-invalid="{{ invalid }}" style="resize:vertical;min-height:{{ taH }}"></textarea></sc-if>
+<sc-if value="{{ multi }}"><textarea class="bare-input" data-key="{{ field }}" rows="{{ rows }}" maxlength="{{ maxlength }}" placeholder="{{ placeholder }}" value="{{ value }}" onInput="{{ input }}" onKeyDown="{{ taKeydown }}" onBlur="{{ blur }}" aria-invalid="{{ invalid }}" style="resize:{{ resize }};min-height:{{ taH }};max-height:{{ taMax }};overflow-y:auto"></textarea></sc-if>
 <sc-if value="{{ single }}"><input class="bare-input" data-key="{{ field }}" type="{{ type }}" maxlength="{{ maxlength }}" placeholder="{{ placeholder }}" value="{{ value }}" autocomplete="{{ autocomplete }}" inputmode="{{ inputmode }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onBlur="{{ blur }}" aria-invalid="{{ invalid }}"></sc-if>
 <sc-if value="{{ hasHint }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:2px 6px;border-radius:6px;background:#F1EFF8;white-space:nowrap">{{ hint }}</span></sc-if>
 </div>
@@ -349,19 +351,25 @@ def('App Field', String.raw`
     const value = this.state.v ?? p.value ?? '';
     const lg = p.size === 'lg';
     const counter = p.maxlength && p.counter !== false && multi ? `${String(value).length} / ${p.maxlength}` : '';
+    const grow = multi && Number(p.grow) > 0 ? Number(p.grow) : 0;
+    const line = lg ? 25.5 : 21; // the text's line height (1.5)
+    const compact = grow && Number(p.rows) === 1; // a one-line box that grows (comments)
     return {
       label: p.label, hasLabel: !!p.label, optional: b(p.optional), multi, single: !multi, rows: p.rows,
       value, placeholder: p.placeholder ?? '', type: p.type ?? 'text', maxlength: p.maxlength, field: p.field,
       autocomplete: p.autocomplete ?? 'off', inputmode: p.inputmode, search: b(p.search), hint: p.hint, hasHint: !!p.hint,
-      h: multi ? 'auto' : lg ? '52px' : '44px', taH: `${Number(p.rows || 2) * 24}px`,
-      radius: multi ? '20px' : '999px', pad: multi ? '14px 18px' : '0 18px', align: multi ? 'flex-start' : 'center', fs: lg ? 17 : 14,
+      h: multi ? 'auto' : lg ? '52px' : '44px', taH: grow ? `${Number(p.rows) * line}px` : `${Number(p.rows || 2) * 24}px`,
+      taMax: grow ? `${grow * line}px` : 'none', resize: grow ? 'none' : 'vertical',
+      radius: compact ? '22px' : multi ? '20px' : '999px', pad: compact ? '10px 18px' : multi ? '14px 18px' : '0 18px', align: multi ? 'flex-start' : 'center', fs: lg ? 17 : 14,
       bd: p.error ? '1.5px solid #D92D20' : '1px solid #E4E0F2', invalid: p.error ? 'true' : false,
       foot: p.error || p.foot || '', hasFoot: !!(p.error || p.foot || counter), counter, footColor: p.error ? '#B42318' : '#8C84AE',
       input: e => {
+        if (grow) { e.target.style.height = 'auto'; e.target.style.height = `${e.target.scrollHeight}px`; }
         p.onInput?.(e.target.value);
         if (counter) { this.state.v = e.target.value; this.__rerender(); }
       },
       keydown: e => { if (e.key === 'Enter' && p.onEnter) { e.preventDefault(); p.onEnter(e.target.value); } },
+      taKeydown: e => { if (grow && e.key === 'Enter' && !e.shiftKey && p.onEnter) { e.preventDefault(); p.onEnter(e.target.value); } },
       blur: e => p.onBlur?.(e.target.value),
     };
   }
