@@ -27,6 +27,19 @@ function fitCompose(ta) {
   ta.style.overflowY = ta.scrollHeight > max ? 'auto' : 'hidden';
 }
 
+// Phone, full-screen chat: follow the part of the screen that is actually visible. When the keyboard
+// opens iOS shrinks the visual viewport and slides the page up; the chat sits exactly in what's left.
+function fitViewport() {
+  const vv = window.visualViewport;
+  const root = document.documentElement.style;
+  const open = !!vv && document.body.classList.contains('chat-open');
+  root.setProperty('--vv-h', open ? `${vv.height}px` : '');
+  root.setProperty('--vv-top', open ? `${vv.offsetTop}px` : '');
+  document.body.classList.toggle('keyboard-open', open && innerHeight - vv.height > 120);
+}
+visualViewport?.addEventListener('resize', fitViewport);
+visualViewport?.addEventListener('scroll', fitViewport);
+
 const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
 export default class extends Page {
@@ -231,6 +244,7 @@ export default class extends Page {
   didRender(el) {
     // Phone: an open chat takes the whole screen (no top bar, no bottom menu); app.css
     document.body.classList.toggle('chat-open', !!this.state.active && !this.state.closed);
+    fitViewport();
     fitCompose(el.querySelector('[data-key="compose"]'));
     if (this.keepScroll) {
       const box = el.querySelector('#chat-scroll');
@@ -251,6 +265,7 @@ export default class extends Page {
 
   componentWillUnmount() {
     document.body.classList.remove('chat-open');
+    fitViewport();
     clearInterval(this.timer); clearInterval(this.listTimer);
     document.removeEventListener('click', this.closePopups);
     document.removeEventListener('keydown', this.closePopups);

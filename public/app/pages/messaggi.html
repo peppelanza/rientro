@@ -58,10 +58,10 @@
 <sc-if value="{{ m.time }}"><span style="font-size:11px;color:#8C84AE;padding:0 4px">{{ m.time }}</span></sc-if></div></sc-if>
 </sc-for>
 </div>
-<form onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center;position:relative">
+<form class="compose-bar" onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center;position:relative">
 <sc-if value="{{ composePicker }}"><div class="emoji-picker emoji-picker-compose" role="menu" aria-label="Emoji"><sc-for list="{{ composeEmoji }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
 <button type="button" class="emoji-toggle" aria-label="Emoji" aria-expanded="{{ composePicker }}" onClick="{{ toggleComposePicker }}">😊</button>
-<div class="dc-field" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:14px 18px;display:flex;align-items:center;font-size:16px"><textarea data-key="compose" rows="1" maxlength="4000" aria-label="{{ placeholder }}" placeholder="{{ placeholder }}" value="{{ draft }}" onInput="{{ composeInput }}" onKeyDown="{{ composeKey }}" class="bare-input compose-input" style="resize:none;line-height:1.4"></textarea></div>
+<div class="dc-field compose-field" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:14px 18px;display:flex;align-items:center;font-size:16px"><textarea data-key="compose" rows="1" maxlength="4000" aria-label="{{ placeholder }}" placeholder="{{ placeholder }}" value="{{ draft }}" onInput="{{ composeInput }}" onKeyDown="{{ composeKey }}" class="bare-input compose-input" style="resize:none;line-height:1.4"></textarea></div>
 <dc-import name="UI Button" label="Invia" variant="accent" size="lg" on-click="{{ send }}"></dc-import>
 </form>
 </sc-if>
