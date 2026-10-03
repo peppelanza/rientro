@@ -38,6 +38,7 @@ export function openDb(file = config.dbPath) {
   migrateNoReview(db);
   migrateNoRequestExpiry(db);
   settleDuplicateConnections(db);
+  collapseMessageNotifications(db);
   // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
   db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
   seed(db);
@@ -58,6 +59,17 @@ function migrateUserColumns(db) {
   if (!sessionCols.has('impersonator_id')) db.exec('ALTER TABLE sessions ADD COLUMN impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE');
   const messageCols = new Set(db.prepare('PRAGMA table_info(messages)').all().map(c => c.name));
   if (!messageCols.has('reply_to_id')) db.exec('ALTER TABLE messages ADD COLUMN reply_to_id INTEGER REFERENCES messages(id) ON DELETE SET NULL');
+}
+
+// Consecutive message notifications from the same person become one, the most recent (see notify)
+function collapseMessageNotifications(db) {
+  const rows = db.prepare('SELECT id, user_id, kind, actor_id FROM notifications ORDER BY user_id, id DESC').all();
+  const drop = db.prepare('DELETE FROM notifications WHERE id = ?');
+  let prev = null;
+  for (const n of rows) {
+    if (prev && n.user_id === prev.user_id && n.kind === 'message' && prev.kind === 'message' && n.actor_id === prev.actor_id) drop.run(n.id);
+    else prev = n;
+  }
 }
 
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database

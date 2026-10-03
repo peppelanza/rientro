@@ -421,3 +421,28 @@ test('replies quote a message of the same chat, like WhatsApp', async () => {
     assert.deepEqual(seen[1].reply, { id: m1.id, mine: true, body: 'Ci vediamo a Palermo?' }, 'the quote says who wrote it, for each side');
   } finally { t.close(); }
 });
+
+test('message notifications: one per person in a row, latest time, no preview of the text', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('nm-a@example.com');
+    const b = await t.approved('nm-b@example.com');
+    const c = await t.approved('nm-c@example.com');
+    await t.connect(a, b);
+    await t.connect(c, b);
+    const list = async () => (await b.get('/api/notifications')).body.items.filter(n => n.kind === 'message');
+    await a.post(`/api/threads/${b.id}`, { body: 'uno' });
+    await a.post(`/api/threads/${b.id}`, { body: 'due' });
+    assert.equal((await list()).length, 1);
+    await b.post('/api/notifications/read', {});
+    await a.post(`/api/threads/${b.id}`, { body: 'tre' });
+    let items = await list();
+    assert.equal(items.length, 1, 'still one when the previous was already read');
+    assert.equal(items[0].read, false);
+    assert.equal(items[0].data.preview, undefined);
+    await c.post(`/api/threads/${b.id}`, { body: 'altro' });
+    await a.post(`/api/threads/${b.id}`, { body: 'quattro' });
+    items = await list();
+    assert.deepEqual(items.map(n => n.actor.id), [a.id, c.id], 'newest on top, one each');
+  } finally { t.close(); }
+});

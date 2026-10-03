@@ -29,7 +29,7 @@ def('App Nav', String.raw`
 <sc-if value="{{ bellLoading }}"><span style="padding:14px 12px;color:#8C84AE">Caricamento…</span></sc-if>
 <sc-if value="{{ bellEmpty }}"><span style="padding:14px 12px;color:#6B6680">Nessuna notifica, per ora.</span></sc-if>
 <sc-for list="{{ bellItems }}" as="n"><a href="{{ n.href }}" style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:18px;background:{{ n.bg }};margin-top:2px;color:{{ n.fg }};text-decoration:none">
-<sc-if value="{{ n.isPerson }}"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></sc-if>
+<sc-if value="{{ n.isPerson }}"><div style="flex:none"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></div></sc-if>
 <sc-if value="{{ n.isIcon }}"><div aria-hidden="true" style="width:40px;height:40px;border-radius:50%;flex:none;background:{{ n.ibg }};color:{{ n.ifg }};font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.icon }}</div></sc-if>
 <div style="display:flex;flex-direction:column;gap:4px;line-height:1.4;flex:1;min-width:0"><span><sc-if value="{{ n.hasWho }}"><b style="font-weight:600">{{ n.who }}</b>{{ n.rest }}</sc-if><sc-if value="{{ n.hasText }}">{{ n.text }}</sc-if></span><span style="font-size:12px;color:{{ n.whenFg }};font-weight:{{ n.whenFw }}">{{ n.when }}</span></div>
 <sc-if value="{{ n.unread }}"><span aria-label="Da leggere" style="width:10px;height:10px;border-radius:50%;background:#6C4DF5;margin-top:15px;flex:none"></span></sc-if>

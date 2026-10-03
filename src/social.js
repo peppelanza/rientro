@@ -26,14 +26,13 @@ export const nameOf = (db, id) => {
 // --- Notifications ------------------------------------------------------------------------
 
 export function notify(db, userId, kind, actorId = null, data = {}) {
-  // Collapse bursts of messages from the same person into one unread notification.
+  // Messages from the same person make one notification, with the latest time, on top: it replaces
+  // their unread one, and the latest notification if it's theirs too (read or not). The new row
+  // waits its 15 minutes for the email again (email-digest.js).
   if (kind === 'message') {
-    const existing = db.prepare("SELECT id FROM notifications WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").get(userId, actorId);
-    if (existing) {
-      // A new burst after an email: the 15-minute wait for the next one starts again (email-digest.js)
-      db.prepare('UPDATE notifications SET data = ?, created_at = ?, emailed_at = NULL WHERE id = ?').run(JSON.stringify(data), now(), existing.id);
-      return;
-    }
+    db.prepare("DELETE FROM notifications WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").run(userId, actorId);
+    const last = db.prepare('SELECT id, kind, actor_id FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(userId);
+    if (last?.kind === 'message' && last.actor_id === actorId) db.prepare('DELETE FROM notifications WHERE id = ?').run(last.id);
   }
   db.prepare('INSERT INTO notifications (user_id, kind, actor_id, data, created_at) VALUES (?, ?, ?, ?, ?)')
     .run(userId, kind, actorId, JSON.stringify(data), now());
@@ -255,7 +254,7 @@ export function sendMessage(db, viewer, otherId, body) {
     if (!replyTo) throw new HttpError(404, 'not_found', 'Il messaggio a cui rispondi non c’è più.');
   }
   const r = db.prepare('INSERT INTO messages (sender_id, recipient_id, body, created_at, reply_to_id) VALUES (?, ?, ?, ?, ?)').run(viewer.id, otherId, msg, now(), replyTo);
-  notify(db, otherId, 'message', viewer.id, { preview: msg.slice(0, 80) });
+  notify(db, otherId, 'message', viewer.id);
   return { id: Number(r.lastInsertRowid), sender_id: viewer.id, body: msg, created_at: now(), mine: true, reactions: [], reply: quoteOf(db, viewer, replyTo) };
 }
 
