@@ -29,12 +29,7 @@ function dimBehindBell(nav) {
     dim = Object.assign(document.createElement('div'), { className: 'bell-backdrop' });
     dim.setAttribute('aria-hidden', 'true');
     dim.addEventListener('click', () => currentNav?.closeBell());
-    // iPhone Safari colours the area around its address bar from what's at the very bottom of the
-    // page, read the moment it changes: this 1px line there switches at once (no fade), so Safari
-    // starts its own change together with the dimmer's fade instead of reading where it started
-    const tint = Object.assign(document.createElement('div'), { className: 'bell-tint' });
-    tint.setAttribute('aria-hidden', 'true');
-    document.body.append(dim, tint);
+    document.body.append(dim);
   }
   // It starts below the top bar: iPhone Safari tints the status bar (clock, signal) with whatever
   // covers the top of the page, and that must stay as it is. A soft edge rather than a hard line

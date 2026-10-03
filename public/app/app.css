@@ -460,12 +460,11 @@ body { padding-top: var(--lb, 0px); }
 @keyframes bell-in { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
 @keyframes bell-out { to { opacity: 0; transform: translateY(-6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) { .bell-in, .bell-out { animation: none; } }
-.bell-backdrop, .bell-tint { display: none; }
+.bell-backdrop { display: none; }
 @media (max-width: 720px) {
-  .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  /* reaches well below the screen: iPhone Safari shows what's under its bottom bar through it */
+  .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   body.bell-open .bell-backdrop { opacity: 1; pointer-events: auto; }
-  .bell-tint { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 1px; z-index: 41; pointer-events: none; }
-  body.bell-open .bell-tint { background: rgba(26, 23, 38, .45); }
   /* the top bar with the dropdown, and the bottom menu, stay above it */
   body.bell-open .nav-root { z-index: 40 !important; }
   body.bell-open .tabbar { z-index: 40 !important; opacity: 1; transform: none; pointer-events: auto; }
