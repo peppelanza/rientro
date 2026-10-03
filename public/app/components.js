@@ -19,24 +19,32 @@ const BELL_OUT_MS = 120; // app.css .bell-out
 // A click outside or Escape closes the bell dropdown and the account menu
 for (const type of ['click', 'keydown']) document.addEventListener(type, e => currentNav?.closeOnOutside(e));
 
-// Phone: the page dims behind the open bell dropdown, fading in and out (app.css). The dimmer lives
-// outside the nav, so redrawing the nav doesn't cut the fade short; tapping it closes the dropdown.
-// Returns whether the dropdown is open.
+// Phone: the page dims behind the open bell dropdown, fading in and out (app.css); tapping it closes
+// the dropdown. The dimmer exists only while it shows: iPhone Safari tints its bottom bar from it even
+// when it's transparent or hidden. It lives outside the nav, so redrawing the nav doesn't cut the fade
+// short. Returns whether the dropdown is open.
+const DIM_FADE_MS = 200; // app.css .bell-backdrop
 function dimBehindBell(nav) {
   currentNav = nav;
+  const open = nav.state.bellOpen;
   let dim = document.querySelector('.bell-backdrop');
-  if (!dim) {
+  if (open && !dim) {
     dim = Object.assign(document.createElement('div'), { className: 'bell-backdrop' });
     dim.setAttribute('aria-hidden', 'true');
     dim.addEventListener('click', () => currentNav?.closeBell());
+    // It starts below the top bar: Safari tints the status bar (clock, signal) from what covers the
+    // top of the page, and that must stay as it is. Its first 200px fade in (app.css).
+    dim.style.top = `${Math.max(0, document.querySelector('.nav-root')?.getBoundingClientRect().bottom ?? 0)}px`;
     document.body.append(dim);
+    void dim.offsetWidth; // drawn transparent first, so it fades in
   }
-  // It starts below the top bar: iPhone Safari tints the status bar (clock, signal) with whatever
-  // covers the top of the page, and that must stay as it is. A soft edge rather than a hard line
-  // Its first 200px fade in (app.css)
-  if (nav.state.bellOpen) dim.style.top = `${Math.max(0, document.querySelector('.nav-root')?.getBoundingClientRect().bottom ?? 0)}px`;
-  document.body.classList.toggle('bell-open', nav.state.bellOpen);
-  return nav.state.bellOpen;
+  if (dim) {
+    clearTimeout(dim.removal);
+    dim.classList.toggle('on', open);
+    if (!open) dim.removal = setTimeout(() => dim.remove(), DIM_FADE_MS);
+  }
+  document.body.classList.toggle('bell-open', open);
+  return open;
 }
 
 def('App Nav', String.raw`

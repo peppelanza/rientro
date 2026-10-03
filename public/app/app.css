@@ -465,9 +465,8 @@ body { padding-top: var(--lb, 0px); }
 .bell-backdrop { display: none; }
 @media (max-width: 720px) {
   /* reaches well below the screen: iPhone Safari shows what's under its bottom bar through it */
-  .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility 0s .2s; }
-  /* fully hidden when closed (after the fade): Safari tints its bottom bar from it even when transparent */
-  body.bell-open .bell-backdrop { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .2s ease; }
+  .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .bell-backdrop.on { opacity: 1; pointer-events: auto; } /* only in the page while it shows (components.js) */
   /* the top bar with the dropdown, and the bottom menu, stay above it */
   body.bell-open .nav-root { z-index: 40 !important; }
   body.bell-open .tabbar { z-index: 40 !important; opacity: 1; transform: none; pointer-events: auto; }
