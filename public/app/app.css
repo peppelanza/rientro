@@ -688,7 +688,7 @@ body.pull-dragging .pull-spinner { transition: none; }
 .group-card:hover { box-shadow: 0 14px 34px rgba(80,60,160,.14); transform: translateY(-1px); }
 .group-name { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -.03em; }
 .group-stats { font-size: 13px; color: #8C84AE; }
-.group-post { background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
+.group-post { scroll-margin-top: 16px; background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
 .group-body { margin: 0; font-size: 15px; line-height: 1.55; color: #1A1726; white-space: pre-wrap; overflow-wrap: anywhere; }
 .group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }
 .group-comment { display: flex; gap: 10px; align-items: flex-start; }

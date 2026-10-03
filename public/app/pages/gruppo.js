@@ -96,7 +96,7 @@ export default class extends Page {
     const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role || '', href: s.member ? `/persone/${a.id}` : '/accedi' });
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
     const posts = s.feed.items.map(p => ({
-      ...p, who: person(p.author), when: timeAgo(p.created_at),
+      ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
       comments: p.comments.map(c => comment(p, c)),
       more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),

@@ -24,6 +24,19 @@ test('groups: Generale and the regions, anyone posts and comments, blocks hide, 
     const c = (await b.post(`/api/groups/generale/posts/${post.id}/comments`, { body: 'Benvenuto' })).body;
     feed = (await a.get('/api/groups/generale/posts')).body;
     assert.equal(feed.items[0].comments_count, 1);
+    // the author hears about it; then b's comments reach a third commenter too, one notification each
+    const notes = async who => (await who.get('/api/notifications')).body.items.filter(n => n.kind === 'group_comment');
+    let na = await notes(a);
+    assert.equal(na.length, 1);
+    assert.deepEqual([na[0].actor.id, na[0].data.post_id, na[0].data.own, na[0].data.group_name], [b.id, post.id, true, 'Generale']);
+    const z = await t.approved('gr-z@example.com');
+    await z.post(`/api/groups/generale/posts/${post.id}/comments`, { body: 'Ciao!' });
+    await b.post(`/api/groups/generale/posts/${post.id}/comments`, { body: 'Ancora io' });
+    na = await notes(a);
+    assert.equal(na.filter(n => n.actor.id === b.id).length, 1, 'b again: one notification, not two');
+    const nz = await notes(z);
+    assert.deepEqual(nz.map(n => [n.actor.id, n.data.own]), [[b.id, false]], 'a post z follows');
+    assert.equal((await notes(b)).filter(n => n.actor.id === b.id).length, 0, 'never about yourself');
     assert.equal(feed.items[0].comments[0].author.id, b.id);
 
     // only your own
@@ -33,7 +46,7 @@ test('groups: Generale and the regions, anyone posts and comments, blocks hide, 
     // blocking hides the other person's posts and comments
     await b.post(`/api/blocks/${a.id}`, {});
     assert.equal((await b.get('/api/groups/generale/posts')).body.items.length, 0);
-    assert.equal((await a.get('/api/groups/generale/posts')).body.items[0].comments_count, 0);
+    assert.equal((await a.get('/api/groups/generale/posts')).body.items[0].comments_count, 1, 'only z\'s comment, not b\'s two');
 
     assert.equal((await a.del(`/api/groups/generale/posts/${post.id}`)).status, 200);
   } finally { t.close(); }

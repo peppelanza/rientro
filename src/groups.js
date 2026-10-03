@@ -3,9 +3,9 @@
 // rules as discovery.
 import { REGIONS } from './catalog.js';
 import { now } from './db.js';
-import { fileUrl, rawProfile } from './profiles.js';
+import { fileUrl, isBlocked, rawProfile } from './profiles.js';
 import { pageParams, paginate } from './paging.js';
-import { requireLaunched, nameOf } from './social.js';
+import { nameOf, notify, requireLaunched } from './social.js';
 import { HttpError, only, text } from './validate.js';
 
 const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -110,7 +110,22 @@ export function createComment(db, viewer, id, postId, body) {
   only(body, ['body']);
   const msg = text(body.body, 'Commento', { max: 2000, nullable: false });
   const r = db.prepare('INSERT INTO group_comments (post_id, author_id, body, created_at) VALUES (?, ?, ?, ?)').run(p.id, viewer.id, msg, now());
+  notifyComment(db, viewer, p);
   return commentView(db, viewer, db.prepare('SELECT * FROM group_comments WHERE id = ?').get(Number(r.lastInsertRowid)));
+}
+
+// A comment tells the post's author and whoever commented on it before (not the commenter, nor people
+// blocked either way). One notification per person, post and commenter: a new comment replaces an
+// unread one, so a burst of comments doesn't flood the bell.
+function notifyComment(db, viewer, p) {
+  const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(p.group_id);
+  const others = db.prepare('SELECT DISTINCT author_id FROM group_comments WHERE post_id = ? AND author_id != ?').all(p.id, p.author_id).map(r => r.author_id);
+  for (const userId of new Set([p.author_id, ...others])) {
+    if (userId === viewer.id || isBlocked(db, userId, viewer.id)) continue;
+    db.prepare(`DELETE FROM notifications WHERE user_id = ? AND kind = 'group_comment' AND actor_id = ? AND read_at IS NULL
+      AND json_extract(data, '$.post_id') = ?`).run(userId, viewer.id, p.id);
+    notify(db, userId, 'group_comment', viewer.id, { group_id: p.group_id, group_name: g?.name, post_id: p.id, own: userId === p.author_id });
+  }
 }
 
 // Your own posts and comments; admins any (moderation)

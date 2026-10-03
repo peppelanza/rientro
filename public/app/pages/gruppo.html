@@ -16,7 +16,7 @@
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="font-size:12px;color:#8C84AE">Quello che scrivi nei gruppi si legge anche fuori da Rientro, con il tuo nome e la tua foto.</span><dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ publish }}"></dc-import></div>
 </section></sc-if>
 <sc-if value="{{ empty }}"><div style="text-align:center;padding:32px 0;color:#8C84AE;font-size:14px">Ancora nessun post. Rompi il ghiaccio!</div></sc-if>
-<sc-for list="{{ posts }}" as="p"><article class="group-post">
+<sc-for list="{{ posts }}" as="p"><article class="group-post" id="{{ p.anchor }}">
 <div style="display:flex;gap:12px;align-items:center">
 <a href="{{ p.who.href }}" style="flex:none;border-radius:50%"><dc-import name="App Photo" size="40" src="{{ p.who.photo }}" initials="{{ p.who.ini }}"></dc-import></a>
 <div style="display:flex;flex-direction:column;min-width:0;flex:1"><a href="{{ p.who.href }}" style="font-weight:600;font-size:15px;color:#1A1726;text-decoration:none">{{ p.who.name }}</a><span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.when }}<sc-if value="{{ p.who.role }}"> · {{ p.who.role }}</sc-if></span></div>
