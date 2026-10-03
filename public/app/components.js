@@ -78,6 +78,9 @@ def('App Nav', String.raw`
   closeOnOutside(e) {
     if (!this.state.bellOpen && !this.state.menuOpen) return;
     if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.bell-panel, .nav-bell, .bell-backdrop, [role=menu], [aria-label="Il tuo account"]')) return;
+    // A link to another page (the bottom menu, the top bar): everything stays as it is until it opens
+    const link = e.type === 'click' && e.target.closest('a[href]');
+    if (link && !link.getAttribute('href').startsWith('#')) return;
     this.closeBell();
     if (this.state.menuOpen) this.setState({ menuOpen: false });
   }
