@@ -457,7 +457,9 @@ body { padding-top: var(--lb, 0px); }
 @media (max-width: 720px) {
   .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(26, 23, 38, .45); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   body.bell-open .bell-backdrop { opacity: 1; pointer-events: auto; }
-  body.bell-open .nav-root { z-index: 40 !important; } /* the bar and the dropdown stay above it */
+  /* the top bar with the dropdown, and the bottom menu, stay above it */
+  body.bell-open .nav-root { z-index: 40 !important; }
+  body.bell-open .tabbar { z-index: 40 !important; }
 }
 @media (prefers-reduced-motion: reduce) { .bell-backdrop { transition: none; } }
 
