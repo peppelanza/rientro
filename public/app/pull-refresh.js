@@ -40,7 +40,8 @@ export function pullToRefresh(page) {
     if (startY === null) return;
     const dy = e.touches[0].clientY - startY;
     if (dy <= 0 || scrollY > 0) { if (pull) { pull = 0; settle(); } return; }
-    pull = Math.min(dy * 0.5, PULL * 1.6);
+    // rubber band, as iOS does: keeps following the finger, ever harder, never stops
+    pull = (dy * 0.55 * innerHeight) / (innerHeight + 0.55 * dy);
     document.body.classList.add('pull-active', 'pull-dragging');
     place(pull);
   }, { passive: true });
