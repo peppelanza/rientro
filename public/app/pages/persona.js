@@ -54,10 +54,9 @@ export default class extends Page {
 
   didRender(el) {
     shrinkPhoto();
-    // Computer: the short name/role/route in the left column shows once the full one is out of view
+    // Computer: the short header in the left column shows once the full one is scrolling away
     this.headWatch?.disconnect();
-    // (the last line of the header: where they live → where they want to go, or else the job)
-    const head = [...el.querySelectorAll('.persona-head-end')].at(-1);
+    const head = el.querySelector('.persona-name'); // as soon as the name has gone
     if (!head) return;
     this.headWatch = new IntersectionObserver(([e]) => document.body.classList.toggle('persona-head-away', !e.isIntersecting && e.boundingClientRect.top < 0));
     this.headWatch.observe(head);

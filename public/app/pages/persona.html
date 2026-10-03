@@ -45,10 +45,10 @@
 <button type="button" role="menuitem" onClick="{{ doReport }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#1A1726;cursor:pointer">Segnala {{ first }}</button>
 <button type="button" role="menuitem" onClick="{{ doBlock }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#B42318;cursor:pointer">Blocca {{ first }}</button>
 </div></sc-if></div></div></div>
-<h1 class="r-hero" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:64px;line-height:1;letter-spacing:-.05em">{{ name }}</h1>
-<span class="persona-head-end" style="font-size:20px;color:#1A1726">{{ role }}</span>
-<sc-if value="{{ hasPlaces }}"><span class="persona-head-end" style="font-size:17px;color:#6B6680">Vive a {{ from }} <span style="color:#6C4DF5">→</span> vuole trasferirsi a <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
-<sc-if value="{{ unknownPlaces }}"><span class="persona-head-end" style="font-size:17px;color:#6B6680">Vive a {{ from }} · non ha ancora scelto dove trasferirsi</span></sc-if>
+<h1 class="r-hero persona-name" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:64px;line-height:1;letter-spacing:-.05em">{{ name }}</h1>
+<span style="font-size:20px;color:#1A1726">{{ role }}</span>
+<sc-if value="{{ hasPlaces }}"><span style="font-size:17px;color:#6B6680">Vive a {{ from }} <span style="color:#6C4DF5">→</span> vuole trasferirsi a <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
+<sc-if value="{{ unknownPlaces }}"><span style="font-size:17px;color:#6B6680">Vive a {{ from }} · non ha ancora scelto dove trasferirsi</span></sc-if>
 <!-- The facts right under where they live and want to go; Segnala / Blocca are behind "···" next to the badge -->
 <div><div style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:22px;padding:4px 18px;display:flex;flex-direction:column;font-size:14px;margin-top:6px">
 <sc-for list="{{ facts }}" as="f"><div style="display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-top:{{ f.bt }};color:{{ f.fg }}"><span style="color:#8C84AE">{{ f.k }}</span><sc-if value="{{ f.isLink }}"><a href="{{ f.href }}" target="_blank" rel="noopener noreferrer" style="text-align:right;color:#1A1726;text-decoration:none">{{ f.v }}</a></sc-if><sc-if value="{{ f.isText }}"><span style="text-align:right">{{ f.v }}</span></sc-if></div></sc-for>
