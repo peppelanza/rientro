@@ -408,6 +408,9 @@ export default class extends Page {
       back: () => {
         if (this.from === 'connessioni') return go('/connessioni');
         history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender();
+        // The keyboard may have left the page scrolled (iOS): the list starts from the top
+        document.activeElement?.blur();
+        window.scrollTo(0, 0);
       },
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
