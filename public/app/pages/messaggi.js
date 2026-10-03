@@ -41,6 +41,8 @@ export default class extends Page {
       const t = s.threads.find(x => x.id === id);
       if (t) t.unread = false;
       s.hasOlder = thread.has_older;
+      // Opening the chat read it: the numbers in the nav go down right away
+      this.syncCounts();
     } catch (err) {
       Object.assign(s, { active: id, closed: true, thread: null, person: null, messages: [] });
     }
@@ -71,7 +73,15 @@ export default class extends Page {
 
   async refreshList() {
     if (document.hidden) return;
-    try { await this.fetchList(); this.__rerender(); } catch {}
+    try { await Promise.all([this.fetchList(), this.syncCounts({ render: false })]); this.__rerender(); } catch {}
+  }
+
+  // Unread counts for the nav and tab bar (messages, requests, notifications), fresh from the server
+  async syncCounts({ render = true } = {}) {
+    const fresh = await getMe(true).catch(() => null);
+    if (!fresh) return;
+    this.state.me = fresh;
+    if (render) this.__rerender();
   }
 
   listChange(patch) {
