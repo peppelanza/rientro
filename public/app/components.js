@@ -15,16 +15,7 @@ const b = v => v === true || v === 'true';
 // outside the nav, which is redrawn (and rebuilt) on every change, so the fade isn't cut short;
 // tapping it closes the dropdown. Returns whether the dropdown is open.
 let navForDimmer = null;
-const GENIE_MS = 420;
-const GENIE_OUT_MS = 280;
-// The animation's origin: the middle of the bell, in the panel's own (untransformed) coordinates
-function genieFrom(panel, bell) {
-  if (!panel || !bell || !panel.offsetParent) return;
-  const b = bell.getBoundingClientRect();
-  const base = panel.offsetParent.getBoundingClientRect();
-  panel.style.setProperty('--gx', `${b.left + b.width / 2 - base.left - panel.offsetLeft}px`);
-  panel.style.setProperty('--gy', `${b.top + b.height / 2 - base.top - panel.offsetTop}px`);
-}
+const BELL_OUT_MS = 120; // app.css .bell-out
 function dimBehindBell(nav) {
   navForDimmer = nav;
   let dim = document.querySelector('.bell-backdrop');
@@ -53,7 +44,6 @@ def('App Nav', String.raw`
 </div>
 <sc-if value="{{ bellOpen }}"><div role="dialog" aria-label="Notifiche" class="bell-panel {{ bellAnim }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:24px;padding:8px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;box-sizing:border-box">
 <div style="padding:10px 12px 6px;font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em;color:#1A1726">Notifiche</div>
-<sc-if value="{{ bellLoading }}"><span style="padding:14px 12px;color:#8C84AE">Caricamento…</span></sc-if>
 <sc-if value="{{ bellEmpty }}"><span style="padding:14px 12px;color:#6B6680">Nessuna notifica, per ora.</span></sc-if>
 <sc-for list="{{ bellItems }}" as="n"><a href="{{ n.href }}" style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:18px;background:{{ n.bg }};margin-top:2px;color:{{ n.fg }};text-decoration:none">
 <sc-if value="{{ n.isPerson }}"><div style="flex:none"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></div></sc-if>
@@ -88,9 +78,8 @@ def('App Nav', String.raw`
   }
 
   // Like Facebook: the latest 5, read or not; opening it clears the badge, the unread ones keep
-  // their colour and dot until next time
-  // It pours out of the bell like a macOS window from the Dock ("genie", app.css), once the
-  // notifications are there, so nothing redraws it mid-animation.
+  // their colour and dot until next time. It opens (a short fade, app.css) once they're loaded,
+  // so nothing redraws it mid-animation.
   async openBell() {
     if (this.opening) return;
     this.opening = true;
@@ -98,26 +87,24 @@ def('App Nav', String.raw`
     let r = null;
     try { r = await api('GET', '/api/notifications?per_page=5'); } catch {}
     this.opening = false;
-    this.genie = true;
+    this.animateBell = true;
     this.setState({ bellOpen: true, menuOpen: false, bellItems: r?.items || [], bellUnread: r?.unread ?? (c.notifications || 0) });
-    genieFrom(document.querySelector('.bell-panel'), document.querySelector('.nav-bell'));
-    this.genie = false; // only this first drawing animates
+    this.animateBell = false; // only this first drawing animates
     if (r?.items.some(n => !n.read)) {
       await api('POST', '/api/notifications/read').catch(() => {});
       c.notifications = 0;
-      setTimeout(() => this.setState({}), GENIE_MS); // the badge goes once the animation is over
+      setTimeout(() => this.setState({}), 200); // the badge goes once the animation is over
     }
   }
 
-  // ...and goes back into it
   closeBell() {
     const panel = document.querySelector('.bell-panel');
     if (!this.state.bellOpen || this.closing) return;
     document.body.classList.remove('bell-open');
     if (!panel || matchMedia('(prefers-reduced-motion: reduce)').matches) return this.setState({ bellOpen: false });
     this.closing = true;
-    panel.classList.add('bell-genie-out');
-    setTimeout(() => { this.closing = false; this.setState({ bellOpen: false }); }, GENIE_OUT_MS);
+    panel.classList.add('bell-out');
+    setTimeout(() => { this.closing = false; this.setState({ bellOpen: false }); }, BELL_OUT_MS);
   }
 
   renderVals() {
@@ -152,8 +139,7 @@ def('App Nav', String.raw`
       toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
       bellOpen: dimBehindBell(this),
       toggleBell: () => (this.state.bellOpen ? this.closeBell() : this.openBell()),
-      bellAnim: this.genie ? 'bell-genie-in' : '',
-      bellLoading: this.state.bellOpen && !this.state.bellItems,
+      bellAnim: this.animateBell ? 'bell-in' : '',
       bellEmpty: !!this.state.bellItems && !this.state.bellItems.length,
       bellReady: !!this.state.bellItems?.length,
       bellItems: (this.state.bellItems || []).map(n => {
