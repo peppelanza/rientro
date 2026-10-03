@@ -522,3 +522,10 @@ body { padding-top: var(--lb, 0px); }
 /* The chat scrolls by itself when messages come and go: no scrollbar flashing (still scrollable) */
 #chat-scroll { scrollbar-width: none; }
 #chat-scroll::-webkit-scrollbar { display: none; }
+
+/* Phone: an open chat is full screen, like a messaging app; the ← in its header goes back to the list */
+@media (max-width: 720px) {
+  body.chat-open { padding-bottom: 0 !important; overflow: hidden; }
+  body.chat-open .chat-page > .sc-host:first-child, body.chat-open .tabbar, body.chat-open .launch-bar { display: none !important; }
+  body.chat-open section[aria-label="Chat"] { position: fixed; inset: 0; z-index: 45; height: 100dvh; border-radius: 0; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+}

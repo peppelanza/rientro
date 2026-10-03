@@ -17,6 +17,16 @@ function dayLabel(iso) {
   if (d.toDateString() === new Date(Date.now() - 86400000).toDateString()) return 'IERI';
   return fmtDate(iso).toUpperCase();
 }
+// The message box grows with the text: up to 5 lines on a computer, 3 on a phone, then it scrolls
+function fitCompose(ta) {
+  if (!ta) return;
+  const line = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+  const max = line * (innerWidth <= 720 ? 3 : 5);
+  ta.style.height = 'auto';
+  ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
+  ta.style.overflowY = ta.scrollHeight > max ? 'auto' : 'hidden';
+}
+
 const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
 export default class extends Page {
@@ -137,6 +147,7 @@ export default class extends Page {
       ta.value = s.draft;
       ta.focus();
       ta.setSelectionRange(at + emoji.length, at + emoji.length);
+      fitCompose(ta);
     }
   }
 
@@ -218,6 +229,9 @@ export default class extends Page {
   }
 
   didRender(el) {
+    // Phone: an open chat takes the whole screen (no top bar, no bottom menu); app.css
+    document.body.classList.toggle('chat-open', !!this.state.active && !this.state.closed);
+    fitCompose(el.querySelector('[data-key="compose"]'));
     if (this.keepScroll) {
       const box = el.querySelector('#chat-scroll');
       if (box) box.scrollTop = box.scrollHeight - this.keepScroll;
@@ -236,6 +250,7 @@ export default class extends Page {
   }
 
   componentWillUnmount() {
+    document.body.classList.remove('chat-open');
     clearInterval(this.timer); clearInterval(this.listTimer);
     document.removeEventListener('click', this.closePopups);
     document.removeEventListener('keydown', this.closePopups);
@@ -311,7 +326,7 @@ export default class extends Page {
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
-      composeInput: e => { s.draft = e.target.value; },
+      composeInput: e => { s.draft = e.target.value; fitCompose(e.target); },
       composePicker: !!s.composePicker, toggleComposePicker: () => this.setState({ composePicker: !s.composePicker, barFor: null, pickerFor: null }),
       composeEmoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),
       composeKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
