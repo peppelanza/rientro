@@ -13,7 +13,8 @@ const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').repla
 export function seedGroups(db) {
   const rows = [
     ['generale', 'Generale', 'general', 'Il gruppo di tutta la community: presentazioni, domande, idee.'],
-    ...REGIONS.map(r => [`regione-${slug(r)}`, r, 'region', `Chi vive in ${r}, ci torna o vorrebbe tornarci.`]),
+    // Generale first, then the regions in alphabetical order
+    ...[...REGIONS].sort((a, b) => a.localeCompare(b, 'it')).map(r => [`regione-${slug(r)}`, r, 'region', `Chi vive in ${r}, ci torna o vorrebbe tornarci.`]),
   ];
   const upsert = db.prepare(`INSERT INTO groups (id, name, kind, description, position) VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind, description = excluded.description, position = excluded.position`);
