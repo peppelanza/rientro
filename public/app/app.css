@@ -674,3 +674,6 @@ body.pull-dragging .pull-spinner { transition: none; }
 /* the turning is on its own element (the centring is on .pull-wheel): iOS doesn't rotate the svg itself */
 .pull-spinner.spinning .pull-wheel i { animation: pull-spin .8s steps(8) infinite; }
 @keyframes pull-spin { to { transform: rotate(360deg); } }
+
+/* Benvenuto on phones: "Apri profilo" on the right */
+@media (max-width: 720px) { .welcome-open { justify-content: flex-end; } }
