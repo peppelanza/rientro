@@ -446,3 +446,19 @@ test('message notifications: one per person in a row, latest time, no preview of
     assert.deepEqual(items.map(n => n.actor.id), [a.id, c.id], 'newest on top, one each');
   } finally { t.close(); }
 });
+
+test('discover: a region in "Dove vuole vivere" finds anyone who chose a comune there', async () => {
+  const t = await startApp();
+  try {
+    const me = await t.approved('rg-me@example.com');
+    const cat = await t.approved('rg-cat@example.com', { desired_comuni: ['Catania'] });
+    const mol = await t.approved('rg-mol@example.com', { desired_comuni: ['Campobasso'] });
+    await t.approved('rg-mi@example.com', { desired_comuni: ['Milano'] });
+    const ids = async q => (await me.get(`/api/profiles?${q}`)).body.people.map(p => p.id).sort();
+    assert.deepEqual(await ids(`desired=${encodeURIComponent('Sicilia (regione)')}`), [cat.id]);
+    assert.deepEqual(await ids(`desired=${encodeURIComponent('Molise (regione)')}`), [mol.id], 'the region, not the comune called Molise');
+    assert.deepEqual(await ids(`desired=${encodeURIComponent('Sicilia (regione),Campobasso')}`), [cat.id, mol.id].sort());
+    const counts = (await me.get('/api/comuni/counts')).body;
+    assert.equal(counts['Sicilia (regione)'], 1);
+  } finally { t.close(); }
+});

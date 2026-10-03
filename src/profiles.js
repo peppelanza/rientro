@@ -1,4 +1,4 @@
-import { AGE_BANDS, AREAS, ageBandFor, IDEA_STAGES, label, orList, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
+import { AGE_BANDS, AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
@@ -365,12 +365,23 @@ export function card(db, viewer, p, viewerP) {
 
 // --- Discover (26a) ----------------------------------------------------------------------
 
+// "Dove vuole vivere" takes comuni and whole regions, written "Sicilia (regione)" (Molise is also a
+// comune): a region matches anyone who chose at least one comune in it
+const REGION_SUFFIX = ' (regione)';
+const regionsOf = new Map();
+for (const [name, , region] of COMUNI) regionsOf.set(name, (regionsOf.get(name) || new Set()).add(region));
+const regionOf = place => (place.endsWith(REGION_SUFFIX) && REGIONS.includes(place.slice(0, -REGION_SUFFIX.length)) ? place.slice(0, -REGION_SUFFIX.length) : null);
+function wantsPlace(p, place) {
+  const region = regionOf(place);
+  return region ? p.desired_comuni.some(c => regionsOf.get(c)?.has(region)) : p.desired_comuni.includes(place);
+}
+
 const FACETS = {
   lives: (p, v) => !v || p.lives_in === v,
   intent: (p, v) => !v.length || v.includes(p.primary_intent),
   backgrounds: (p, v) => !v.length || v.includes(p.background_area),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
-  desired: (p, v, f) => !v.length || v.some(c => p.desired_comuni.includes(c)) || (f.include_unknown && p.desired_unknown === 1),
+  desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   time: (p, v) => !v || p.time_commitment === v,
   age: (p, v) => !v.length || v.includes(p.age_band),
   q: (p, v) => !v || [p.first_name, p.last_name, p.current_role, p.current_company, p.lives_in_city, p.idea_title, ...p.sectors, ...p.desired_comuni]
@@ -419,17 +430,21 @@ export function discover(db, viewer, filters) {
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
       backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),
-      desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => p.desired_comuni.includes(c))])),
+      desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => wantsPlace(p, c))])),
     },
   };
 }
 
-// For the "N persone" hint in the comune picker (27a)
+// For the "N persone" hint in the comune picker (27a): per comune, and per region (each person once)
 export function comuneCounts(db) {
   const counts = {};
   for (const { desired_comuni } of db.prepare(
     `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
-  ).all()) for (const c of JSON.parse(desired_comuni)) counts[c] = (counts[c] || 0) + 1;
+  ).all()) {
+    const comuni = JSON.parse(desired_comuni);
+    for (const c of comuni) counts[c] = (counts[c] || 0) + 1;
+    for (const r of new Set(comuni.flatMap(c => [...(regionsOf.get(c) || [])]))) counts[r + REGION_SUFFIX] = (counts[r + REGION_SUFFIX] || 0) + 1;
+  }
   return counts;
 }
 

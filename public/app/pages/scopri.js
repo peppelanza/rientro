@@ -124,6 +124,17 @@ export default class extends Page {
     if (r) { person.connection = { status: 'pending_sent', id: r.id }; this.__rerender(); }
   }
 
+  // The picker offers the 20 regions too ("Sicilia (regione)": anyone who chose a comune there),
+  // ranked by population like the comuni, so typing "Sic" shows Sicilia first
+  places(cat) {
+    if (!this.placeList) {
+      const pop = {};
+      for (const c of cat.comuni) pop[c[2]] = (pop[c[2]] || 0) + c[3];
+      this.placeList = [...cat.regions.map(r => [`${r} (regione)`, '', 'Regione', pop[r] || 0]), ...cat.comuni];
+    }
+    return this.placeList;
+  }
+
   renderVals() {
     const s = this.state;
     if (!s.res) return { loading: true, me: s.me || {} };
@@ -150,7 +161,7 @@ export default class extends Page {
       // sidebar
       filterClass: s.showFilters ? '' : 'r-hide-sm', toggleFilters: () => this.setState({ showFilters: !s.showFilters }),
       filtersCount: act.length, filtersTone: s.showFilters ? 'selected' : 'default',
-      comuni: cat.comuni, desired: f.desired, comuneCounts: s.comuneCounts,
+      comuni: this.places(cat), desired: f.desired, comuneCounts: s.comuneCounts,
       desiredProps: { onChange: list => this.set({ desired: list }) },
       includeUnknown: f.include_unknown, toggleUnknown: () => this.set({ include_unknown: !f.include_unknown }), hasDesired: f.desired.length > 0,
       livesOpts: [{ v: '', l: 'Ovunque' }, { v: 'italy', l: 'Italia' }, { v: 'abroad', l: 'Estero' }], lives: f.lives,
