@@ -529,3 +529,8 @@ body { padding-top: var(--lb, 0px); }
   body.chat-open .chat-page > .sc-host:first-child, body.chat-open .tabbar, body.chat-open .launch-bar { display: none !important; }
   body.chat-open section[aria-label="Chat"] { position: fixed; inset: 0; z-index: 45; height: 100dvh; border-radius: 0; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* Bottom menu on phones: fades out scrolling down, back scrolling up (tabbar-scroll.js) */
+.tabbar { transition: opacity .25s ease, transform .25s ease; }
+body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .tabbar { transition: none; } }

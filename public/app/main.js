@@ -5,6 +5,7 @@ import './components.js';
 import { DCLogic, mountPage } from '../dc/runtime.js';
 import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
+import { tabbarOnScroll } from './tabbar-scroll.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
 const ROUTES = [
@@ -79,6 +80,7 @@ async function askLegalUpdate() {
 
 launchBar();
 impersonationFrame();
+tabbarOnScroll();
 boot().catch(err => {
   console.error(err);
   document.getElementById('app').textContent = 'Non siamo riusciti a caricare la pagina. Ricarica per riprovare.';
