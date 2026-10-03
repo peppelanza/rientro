@@ -1,7 +1,8 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, threadTime } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, threadTime, toastError } from '../lib.js';
 import { block, report } from '../social.js';
+import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Messaggi';
@@ -29,6 +30,17 @@ export default class extends Page {
     const id = this.props.params.id;
     if (id) await this.openThread(id);
     this.timer = setInterval(() => this.poll(), 5000);
+    // Reaction bar, emoji pickers and the "···" menu close on a click elsewhere or Escape
+    this.closePopups = e => {
+      const s = this.state;
+      if (!s.barFor && !s.pickerFor && !s.composePicker && !s.menuOpen) return;
+      // the click that opened it re-rendered its own button: that's not a click outside
+      if (e.type === 'click' && !e.target.isConnected) return;
+      if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.react-bar, .emoji-picker, .react-btn, .emoji-toggle, [role=menu], [aria-label="Altre azioni"]')) return;
+      this.setState({ barFor: null, pickerFor: null, composePicker: false, menuOpen: false });
+    };
+    document.addEventListener('click', this.closePopups);
+    document.addEventListener('keydown', this.closePopups);
     this.listTimer = setInterval(() => this.refreshList(), 20000);
     window.addEventListener('popstate', () => location.reload());
   }
@@ -37,7 +49,7 @@ export default class extends Page {
     const s = this.state;
     try {
       const [thread, person] = await Promise.all([api('GET', `/api/threads/${id}`), api('GET', `/api/profiles/${id}`)]);
-      Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', menuOpen: false, closed: false });
+      Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', menuOpen: false, closed: false, reactAt: thread.at, barFor: null, pickerFor: null, composePicker: false });
       const t = s.threads.find(x => x.id === id);
       if (t) t.unread = false;
       s.hasOlder = thread.has_older;
@@ -53,11 +65,73 @@ export default class extends Page {
     const s = this.state;
     if (!s.active || s.closed || document.hidden) return;
     const last = s.messages.at(-1)?.id ?? 0;
-    const r = await api('GET', `/api/threads/${s.active}?after=${last}`).catch(() => null);
-    if (r?.messages.length) {
+    const since = s.reactAt ? `&since=${encodeURIComponent(s.reactAt)}` : '';
+    const r = await api('GET', `/api/threads/${s.active}?after=${last}${since}`).catch(() => null);
+    if (!r) return;
+    s.reactAt = r.at;
+    let changed = false;
+    // Reactions added or removed meanwhile (by the other person, or by me in another tab)
+    for (const c of r.reactions_changed || []) {
+      const m = s.messages.find(x => x.id === c.id);
+      if (m && JSON.stringify(m.reactions) !== JSON.stringify(c.reactions)) { m.reactions = c.reactions; changed = true; }
+    }
+    if (r.messages.length) {
       s.messages = [...s.messages, ...r.messages.filter(m => !s.messages.some(x => x.id === m.id))];
       this.scrollDown = true;
-      this.__rerender();
+      changed = true;
+    }
+    if (changed) this.__rerender();
+  }
+
+  // One reaction per message, on the other person's messages: the same emoji again removes it
+  async react(m, emoji) {
+    const s = this.state;
+    const mine = m.reactions?.find(r => r.mine);
+    const next = mine?.emoji === emoji ? null : emoji;
+    const others = (m.reactions || []).filter(r => !r.mine);
+    m.reactions = next ? [...others, { emoji: next, mine: true }] : others;
+    Object.assign(s, { barFor: null, pickerFor: null });
+    this.__rerender();
+    try {
+      const res = await api('PUT', `/api/threads/${s.active}/messages/${m.id}/reaction`, { emoji: next });
+      m.reactions = res.reactions;
+    } catch (err) {
+      m.reactions = [...others, ...(mine ? [mine] : [])];
+      toastError(err);
+    }
+    this.__rerender();
+  }
+
+  // Taps on someone else's message: double tap = ❤️, long press = reactions bar
+  tapDown(e, m) {
+    if (m.mine || e.target.closest('button')) return;
+    clearTimeout(this.pressTimer);
+    this.pressed = false;
+    this.pressTimer = setTimeout(() => { this.pressed = true; this.setState({ barFor: m.id, pickerFor: null }); }, 450);
+  }
+  tapUp(e, m) {
+    clearTimeout(this.pressTimer);
+    if (m.mine || e.target.closest('button')) return;
+    if (this.pressed) { this.pressed = false; return; }
+    const t = Date.now();
+    if (this.lastTap?.id === m.id && t - this.lastTap.t < 320) {
+      this.lastTap = null;
+      getSelection()?.removeAllRanges();
+      this.react(m, '❤️');
+    } else this.lastTap = { id: m.id, t };
+  }
+
+  // Composer: the emoji goes where the cursor is; the picker stays open for more
+  insertEmoji(emoji) {
+    const s = this.state;
+    const ta = document.querySelector('[data-key="compose"]');
+    const at = ta ? ta.selectionStart ?? s.draft.length : s.draft.length;
+    const end = ta ? ta.selectionEnd ?? at : at;
+    s.draft = s.draft.slice(0, at) + emoji + s.draft.slice(end);
+    if (ta) {
+      ta.value = s.draft;
+      ta.focus();
+      ta.setSelectionRange(at + emoji.length, at + emoji.length);
     }
   }
 
@@ -134,7 +208,11 @@ export default class extends Page {
     if (box) box.scrollTop = box.scrollHeight;
   }
 
-  componentWillUnmount() { clearInterval(this.timer); clearInterval(this.listTimer); }
+  componentWillUnmount() {
+    clearInterval(this.timer); clearInterval(this.listTimer);
+    document.removeEventListener('click', this.closePopups);
+    document.removeEventListener('keydown', this.closePopups);
+  }
 
   renderVals() {
     const s = this.state;
@@ -158,7 +236,26 @@ export default class extends Page {
       if (k !== prevDay) { items.push({ sep: true, label: dayLabel(m.created_at) }); prevDay = k; }
       const next = s.messages[i + 1];
       const lastOfRun = !next || next.mine !== m.mine || dayKey(next.created_at) !== k;
-      items.push({ msg: true, from: m.mine ? 'me' : 'them', text: m.body, time: lastOfRun ? (m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : fmtTime(m.created_at)) : '', align: m.mine ? 'flex-end' : 'flex-start' });
+      const reaction = (m.reactions || [])[0];
+      const big = isEmojiOnly(m.body);
+      items.push({
+        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big,
+        time: lastOfRun ? (m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : fmtTime(m.created_at)) : '', align: m.mine ? 'flex-end' : 'flex-start',
+        // reactions: only on the other person's messages (mine on theirs, theirs on mine)
+        canReact: !m.mine, hasReaction: !!reaction, reaction: reaction?.emoji ?? '',
+        chipAria: reaction ? (reaction.mine ? `La tua reazione ${reaction.emoji}: tocca per toglierla` : `Reazione ${reaction.emoji}`) : '',
+        chip: () => { if (reaction?.mine) this.react(m, reaction.emoji); },
+        pb: reaction ? '14px' : '0',
+        down: e => this.tapDown(e, m), up: e => this.tapUp(e, m), cancel: () => clearTimeout(this.pressTimer),
+        ctx: e => { if (!m.mine && matchMedia('(hover: none)').matches) e.preventDefault(); },
+        openBar: () => this.setState({ barFor: s.barFor === m.id ? null : m.id, pickerFor: null }),
+        barOpen: s.barFor === m.id, pickerOpen: s.pickerFor === m.id,
+        // near the top of the chat the bar opens below the message, so it isn't cut off
+        barPos: i < 2 ? 'top:calc(100% + 6px)' : 'bottom:calc(100% + 6px)',
+        quick: QUICK_REACTIONS.map(q => ({ e: q, on: reaction?.mine && reaction.emoji === q ? '#EFEBFF' : 'transparent', pick: () => this.react(m, q) })),
+        more: () => this.setState({ pickerFor: m.id, barFor: null }),
+        all: EMOJI.map(q => ({ e: q, pick: () => this.react(m, q) })),
+      });
     });
     const since = s.thread?.connection.since;
     const L = p?.links || {};
@@ -179,12 +276,14 @@ export default class extends Page {
       listClass: s.active ? 'r-hide-sm' : '', chatClass: s.active ? '' : 'r-hide-sm',
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
       sub: p ? [p.current_role, p.lives_in_city && p.desired_comuni.length ? `${p.lives_in_city} → ${p.desired_comuni[0]}` : p.lives_in_city].filter(Boolean).join(' · ') : '',
-      profileHref: p ? `/persone/${p.id}` : '#', goProfile: () => go(`/persone/${p.id}`),
+      profileHref: p ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => go(`/persone/${p.id}?da=messaggi`),
       back: () => { history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender(); },
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
       composeInput: e => { s.draft = e.target.value; },
+      composePicker: !!s.composePicker, toggleComposePicker: () => this.setState({ composePicker: !s.composePicker, barFor: null, pickerFor: null }),
+      composeEmoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),
       composeKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
       submit: e => { e.preventDefault(); this.send(); },
       send: this.send,

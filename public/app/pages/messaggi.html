@@ -46,10 +46,21 @@
 <sc-if value="{{ empty }}"><span style="align-self:center;font-size:13px;color:#8C84AE;padding:10px 0">Scrivi il primo messaggio.</span></sc-if>
 <sc-for list="{{ items }}" as="m">
 <sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
-<sc-if value="{{ m.msg }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.text }}"></dc-import><sc-if value="{{ m.time }}"><span style="align-self:{{ m.align }};font-size:11px;color:#8C84AE;padding:0 4px">{{ m.time }}</span></sc-if></sc-if>
+<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
+<div class="msg-wrap" style="margin-bottom:{{ m.pb }}" onPointerDown="{{ m.down }}" onPointerUp="{{ m.up }}" onPointerLeave="{{ m.cancel }}" onPointerCancel="{{ m.cancel }}" onContextMenu="{{ m.ctx }}">
+<sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}</span></sc-if>
+<sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}</div></sc-if>
+<sc-if value="{{ m.canReact }}"><button type="button" class="react-btn" aria-label="Reagisci" onClick="{{ m.openBar }}">☺</button></sc-if>
+<sc-if value="{{ m.hasReaction }}"><button type="button" class="react-chip" aria-label="{{ m.chipAria }}" onClick="{{ m.chip }}">{{ m.reaction }}</button></sc-if>
+<sc-if value="{{ m.barOpen }}"><div class="react-bar" role="menu" aria-label="Reazioni" style="{{ m.barPos }}"><sc-for list="{{ m.quick }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}" style="background:{{ q.on }}">{{ q.e }}</button></sc-for><button type="button" role="menuitem" class="react-more" aria-label="Altre emoji" onClick="{{ m.more }}">＋</button></div></sc-if>
+<sc-if value="{{ m.pickerOpen }}"><div class="emoji-picker" role="menu" aria-label="Scegli una reazione" style="{{ m.barPos }}"><sc-for list="{{ m.all }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
+</div>
+<sc-if value="{{ m.time }}"><span style="font-size:11px;color:#8C84AE;padding:0 4px">{{ m.time }}</span></sc-if></div></sc-if>
 </sc-for>
 </div>
-<form onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center">
+<form onSubmit="{{ submit }}" style="padding:12px 14px 14px;flex:none;display:flex;gap:8px;align-items:center;position:relative">
+<sc-if value="{{ composePicker }}"><div class="emoji-picker emoji-picker-compose" role="menu" aria-label="Emoji"><sc-for list="{{ composeEmoji }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
+<button type="button" class="emoji-toggle" aria-label="Emoji" aria-expanded="{{ composePicker }}" onClick="{{ toggleComposePicker }}">😊</button>
 <div class="dc-field" style="flex:1;min-height:52px;border-radius:26px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:14px 18px;display:flex;align-items:center;font-size:16px"><textarea data-key="compose" class="bare-input" rows="1" maxlength="4000" aria-label="{{ placeholder }}" placeholder="{{ placeholder }}" value="{{ draft }}" onInput="{{ composeInput }}" onKeyDown="{{ composeKey }}" style="resize:none;max-height:120px;line-height:1.4"></textarea></div>
 <dc-import name="UI Button" label="Invia" variant="accent" size="lg" on-click="{{ send }}"></dc-import>
 </form>
@@ -58,9 +69,9 @@
 
 <aside class="r-hide-md" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:14px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto">
 <sc-if value="{{ hasActive }}">
-<dc-import name="App Photo" ratio="1/1" src="{{ photo }}" alt="{{ name }}"></dc-import>
+<a href="{{ profileHref }}" aria-label="Apri il profilo di {{ name }}" style="display:block;border-radius:22px"><dc-import name="App Photo" ratio="1/1" src="{{ photo }}" alt="{{ name }}"></dc-import></a>
 <div style="padding:0 6px;display:flex;flex-direction:column;gap:14px">
-<span style="font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em">{{ name }}</span>
+<a href="{{ profileHref }}" style="font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em;color:#1A1726;text-decoration:none">{{ name }} <span style="font-family:'Geist',sans-serif;font-size:13px;font-weight:500;letter-spacing:0;color:#6C4DF5">Profilo →</span></a>
 <div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;justify-content:space-between;gap:8px"><span style="color:#8C84AE">Cerca</span><span style="text-align:right">{{ seeks }}</span></div><div style="display:flex;justify-content:space-between;gap:8px"><span style="color:#8C84AE">Tempo</span><span>{{ time }}</span></div></div>
 <sc-if value="{{ hasLinks }}"><div style="height:1px;background:#DCD7EC"></div>
 <dc-import name="UI Eyebrow" text="Contatti"></dc-import>

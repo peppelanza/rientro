@@ -370,3 +370,32 @@ test('one link per pair: duplicates are settled at start, lists show a person on
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM connections WHERE status = 'pending' AND ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))").get(a.id, c.id, c.id, a.id).n, 0);
   } finally { t.close(); }
 });
+
+test('reactions: one emoji per person on the other person\'s messages, removable, sent to an open chat', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('re-a@example.com');
+    const b = await t.approved('re-b@example.com');
+    await t.connect(a, b);
+    const m1 = (await a.post(`/api/threads/${b.id}`, { body: 'Ciao! 😊' })).body;
+    const open = (await a.get(`/api/threads/${b.id}`)).body;
+    const react = (who, other, id, emoji) => who.raw('PUT', `/api/threads/${other}/messages/${id}/reaction`, Buffer.from(JSON.stringify({ emoji })), { 'content-type': 'application/json' });
+
+    assert.equal((await react(a, b.id, m1.id, '❤️')).status, 404, 'not on your own message');
+    assert.equal((await react(b, a.id, m1.id, 'ciao')).status, 400);
+    assert.equal((await react(b, a.id, m1.id, '❤️❤️')).status, 400, 'one emoji');
+    const r = await react(b, a.id, m1.id, '❤️');
+    assert.equal(r.status, 200);
+    assert.deepEqual(r.body.reactions, [{ emoji: '❤️', mine: true }]);
+    assert.deepEqual((await react(b, a.id, m1.id, '👍🏽')).body.reactions, [{ emoji: '👍🏽', mine: true }], 'replaces');
+
+    // The sender's open chat learns about it by polling
+    const poll = (await a.get(`/api/threads/${b.id}?after=${m1.id}&since=${encodeURIComponent(open.at)}`)).body;
+    assert.deepEqual(poll.reactions_changed, [{ id: m1.id, reactions: [{ emoji: '👍🏽', mine: false }] }]);
+    assert.deepEqual((await a.get(`/api/threads/${b.id}`)).body.messages[0].reactions, [{ emoji: '👍🏽', mine: false }]);
+
+    assert.deepEqual((await react(b, a.id, m1.id, null)).body.reactions, []);
+    const poll2 = (await a.get(`/api/threads/${b.id}?after=${m1.id}&since=${encodeURIComponent(poll.at)}`)).body;
+    assert.deepEqual(poll2.reactions_changed, [{ id: m1.id, reactions: [] }], 'removal reaches the open chat too');
+  } finally { t.close(); }
+});

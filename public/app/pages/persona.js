@@ -10,6 +10,8 @@ const handleUrl = (base, h) => (h ? `${base}${h.replace(/^@/, '')}` : null);
 // Opened from Connessioni (?da=<tab>): the way back goes there, to the same tab
 const from = () => {
   const da = new URLSearchParams(location.search).get('da');
+  // Opened from a chat: back to that chat
+  if (da === 'messaggi') return { section: 'messaggi', backHref: `/messaggi/${location.pathname.split('/').pop()}`, backLabel: 'Messaggi' };
   return ['connessioni', 'ricevute', 'inviate'].includes(da)
     ? { section: 'connessioni', backHref: `/connessioni?tab=${da}`, backLabel: 'Connessioni' }
     : { section: 'scopri', backHref: '/scopri', backLabel: 'Scopri chi torna' };

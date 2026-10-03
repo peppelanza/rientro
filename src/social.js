@@ -184,7 +184,17 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
 // Opening a chat: the latest 50 messages, and older ones 50 at a time (?before=<id>);
 // polling for new ones: everything after the last one shown (?after=<id>)
 const THREAD_PAGE = 50;
-export function getThread(db, viewer, otherId, { after = 0, before = 0 } = {}) {
+// Reactions on these messages: [{ emoji, mine }] per message id
+function reactionsFor(db, viewer, ids) {
+  const out = new Map(ids.map(id => [id, []]));
+  if (!ids.length) return out;
+  const rows = db.prepare(`SELECT message_id, user_id, emoji FROM message_reactions WHERE emoji IS NOT NULL AND message_id IN (${ids.map(() => '?').join(',')}) ORDER BY updated_at`).all(...ids);
+  for (const r of rows) out.get(r.message_id)?.push({ emoji: r.emoji, mine: r.user_id === viewer.id });
+  return out;
+}
+
+// since (ISO time, from the previous answer's `at`): reactions changed meanwhile, for an open chat
+export function getThread(db, viewer, otherId, { after = 0, before = 0, since = '' } = {}) {
   const c = requireConnected(db, viewer.id, otherId);
   db.prepare('UPDATE messages SET read_at = ? WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').run(now(), otherId, viewer.id);
   db.prepare("UPDATE notifications SET read_at = ? WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").run(now(), viewer.id, otherId);
@@ -194,9 +204,35 @@ export function getThread(db, viewer, otherId, { after = 0, before = 0 } = {}) {
     ? db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} AND id > ? ORDER BY id LIMIT 500`).all(...args, after)
     : db.prepare(`SELECT id, sender_id, body, created_at, read_at FROM messages WHERE ${pair} ${before ? 'AND id < ?' : ''} ORDER BY id DESC LIMIT ?`)
       .all(...args, ...(before ? [before] : []), THREAD_PAGE).reverse();
-  const messages = rows.map(m => ({ ...m, mine: m.sender_id === viewer.id }));
+  const at = now();
+  const reactions = reactionsFor(db, viewer, rows.map(m => m.id));
+  const messages = rows.map(m => ({ ...m, mine: m.sender_id === viewer.id, reactions: reactions.get(m.id) }));
   const hasOlder = !after && rows.length > 0 && !!db.prepare(`SELECT 1 FROM messages WHERE ${pair} AND id < ? LIMIT 1`).get(...args, rows[0].id);
-  return { connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder };
+  let changed;
+  if (since) {
+    const ids = db.prepare(`SELECT DISTINCT r.message_id AS id FROM message_reactions r JOIN messages m ON m.id = r.message_id
+      WHERE r.updated_at >= ? AND ((m.sender_id = ? AND m.recipient_id = ?) OR (m.sender_id = ? AND m.recipient_id = ?))`).all(since, ...args).map(r => r.id);
+    const map = reactionsFor(db, viewer, ids);
+    changed = ids.map(id => ({ id, reactions: map.get(id) }));
+  }
+  return { connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder, at, ...(changed ? { reactions_changed: changed } : {}) };
+}
+
+// React to one of the other person's messages: an emoji replaces your previous one, null removes it
+export function setReaction(db, viewer, otherId, messageId, body) {
+  only(body, ['emoji']);
+  requireConnected(db, viewer.id, otherId);
+  const m = db.prepare('SELECT id FROM messages WHERE id = ? AND sender_id = ? AND recipient_id = ?').get(Number(messageId), otherId, viewer.id);
+  if (!m) throw new HttpError(404, 'not_found', 'Messaggio non trovato.');
+  let emoji = null;
+  if (body.emoji !== null && body.emoji !== undefined && body.emoji !== '') {
+    emoji = String(body.emoji);
+    // One emoji (with its variation selectors, skin tones, ZWJ sequences, flags), nothing else
+    if (emoji.length > 16 || !/^(?:\p{Regional_Indicator}{2}|\p{Extended_Pictographic}(?:[\u{FE0F}\u{1F3FB}-\u{1F3FF}\u{20E3}]|\u{200D}\p{Extended_Pictographic})*)$/u.test(emoji)) throw bad('emoji', 'Reazione non valida.');
+  }
+  db.prepare(`INSERT INTO message_reactions (message_id, user_id, emoji, updated_at) VALUES (?, ?, ?, ?)
+    ON CONFLICT(message_id, user_id) DO UPDATE SET emoji = excluded.emoji, updated_at = excluded.updated_at`).run(m.id, viewer.id, emoji, now());
+  return { id: m.id, reactions: reactionsFor(db, viewer, [m.id]).get(m.id) };
 }
 
 export function sendMessage(db, viewer, otherId, body) {
@@ -205,7 +241,7 @@ export function sendMessage(db, viewer, otherId, body) {
   requireConnected(db, viewer.id, otherId);
   const r = db.prepare('INSERT INTO messages (sender_id, recipient_id, body, created_at) VALUES (?, ?, ?, ?)').run(viewer.id, otherId, msg, now());
   notify(db, otherId, 'message', viewer.id, { preview: msg.slice(0, 80) });
-  return { id: Number(r.lastInsertRowid), sender_id: viewer.id, body: msg, created_at: now(), mine: true };
+  return { id: Number(r.lastInsertRowid), sender_id: viewer.id, body: msg, created_at: now(), mine: true, reactions: [] };
 }
 
 // --- Blocks & reports (42a, 43a) ----------------------------------------------------------

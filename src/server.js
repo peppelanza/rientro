@@ -494,7 +494,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   });
 
   route('GET', '/api/threads', ({ user, url }) => social.listThreads(db, user, url.searchParams));
-  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0 }));
+  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' }));
+  route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.setReaction(db, user, params.id, params.msg, await readJson(req)));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
 
   route('GET', '/api/notifications', ({ user, url }) => social.listNotifications(db, user, url.searchParams));

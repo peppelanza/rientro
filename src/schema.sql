@@ -245,6 +245,17 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 CREATE INDEX IF NOT EXISTS messages_pair ON messages(sender_id, recipient_id, id);
 
+-- Reactions to the other person's messages, one per person per message (like WhatsApp). A removed
+-- reaction keeps its row with emoji NULL, so an open chat learns about it by polling (updated_at).
+CREATE TABLE IF NOT EXISTS message_reactions (
+  message_id  INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  emoji       TEXT,
+  updated_at  TEXT NOT NULL,
+  PRIMARY KEY (message_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS message_reactions_updated ON message_reactions(updated_at);
+
 CREATE TABLE IF NOT EXISTS notifications (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

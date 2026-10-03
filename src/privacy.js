@@ -32,6 +32,7 @@ export function exportData(db, user) {
       `SELECT CASE WHEN sender_id = ? THEN 'sent' ELSE 'received' END AS direction,
               CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other_user_id, body, created_at, read_at
        FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id`, user.id, user.id, user.id, user.id),
+    message_reactions: all('SELECT r.emoji, r.updated_at, m.sender_id AS message_from, m.created_at AS message_sent_at FROM message_reactions r JOIN messages m ON m.id = r.message_id WHERE r.user_id = ? AND r.emoji IS NOT NULL', user.id),
     notifications: all('SELECT kind, created_at, read_at FROM notifications WHERE user_id = ? ORDER BY id', user.id),
     blocked: all('SELECT blocked_id, created_at FROM blocks WHERE blocker_id = ?', user.id),
     reports_made: all('SELECT reported_id, reason, details, status, created_at FROM reports WHERE reporter_id = ?', user.id),
