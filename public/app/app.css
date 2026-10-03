@@ -666,9 +666,11 @@ body.pull-active #app > div > :not([data-sc-name="App TabBar"]) { transform: tra
 body.pull-dragging #app > div > :not([data-sc-name="App TabBar"]) { transition: none; }
 .pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; width: 26px; height: 26px; margin-left: -13px; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
 /* the wheel and "Lascia per aggiornare" (once far enough) in the same spot, crossfading */
-.pull-spinner svg, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
-.pull-spinner span, .pull-spinner.ready svg { opacity: 0; }
+.pull-wheel, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
+.pull-spinner span, .pull-spinner.ready .pull-wheel { opacity: 0; }
+.pull-wheel i, .pull-wheel svg { display: block; }
 .pull-spinner.ready span { opacity: 1; }
 body.pull-dragging .pull-spinner { transition: none; }
-.pull-spinner.spinning svg { animation: pull-spin .8s steps(8) infinite; }
-@keyframes pull-spin { from { transform: translate(-50%, -50%) rotate(0); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* the turning is on its own element (the centring is on .pull-wheel): iOS doesn't rotate the svg itself */
+.pull-spinner.spinning .pull-wheel i { animation: pull-spin .8s steps(8) infinite; }
+@keyframes pull-spin { to { transform: rotate(360deg); } }
