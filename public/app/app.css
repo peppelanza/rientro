@@ -503,6 +503,8 @@ body.persona-head-away .persona-mini { grid-template-rows: 1fr; margin-top: 0; o
 /* Lists whose items each draw a divider above: none above the first one, whichever items are shown */
 .no-first-divider > :first-child { border-top: none !important; }
 .no-first-divider-row > :nth-child(-n+2) { border-top: none !important; }
+/* Lists drawn with a line under each row: none under the last one (nothing below it to divide) */
+.no-last-divider > :last-child, .admin-table > :last-child { border-bottom: none !important; }
 
 /* Chat (pages/messaggi): bubbles, emoji-only messages, reactions like WhatsApp */
 .msg-wrap { position: relative; max-width: 78%; display: flex; align-items: center; gap: 6px; -webkit-touch-callout: none; }
