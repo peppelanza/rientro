@@ -364,11 +364,25 @@ function serial(draw) {
   };
 }
 
+// Scrolling boxes marked data-keep-scroll="<name>" keep their position across re-renders (the
+// whole content is replaced, which would otherwise put them back at the top)
+function keepScroll(root) {
+  const saved = [...root.querySelectorAll('[data-keep-scroll]')].map(el => [el.dataset.keepScroll, el.scrollTop]);
+  return () => {
+    for (const [key, top] of saved) {
+      const el = root.querySelector(`[data-keep-scroll="${CSS.escape(key)}"]`);
+      if (el) el.scrollTop = top;
+    }
+  };
+}
+
 function swap(root, nodes) {
   swapping++;
   try {
     const restore = keepFocus(root);
+    const restoreScroll = keepScroll(root);
     root.replaceChildren(...nodes);
+    restoreScroll();
     restore();
   } finally { swapping--; }
 }

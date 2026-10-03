@@ -10,7 +10,7 @@
 </main></sc-if>
 
 <sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px var(--gutter) 24px;min-height:0">
-<nav aria-label="Conversazioni" class="{{ listClass }}" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto">
+<nav aria-label="Conversazioni" data-keep-scroll="threads" class="{{ listClass }}" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto">
 <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">Messaggi</h1><dc-import name="App Field" placeholder="Cerca" search="{{ true }}" field="thread-search" value="{{ query }}" dc-props="{{ searchProps }}"></dc-import></div>
 <sc-for list="{{ threads }}" as="t"><a href="/messaggi/{{ t.id }}" onClick="{{ t.open }}" aria-current="{{ t.active }}" style="text-decoration:none">
 <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:22px;background:{{ t.bg }};box-shadow:{{ t.sh }};font-family:'Geist',sans-serif;color:#1A1726;cursor:pointer">
@@ -38,7 +38,7 @@
 <button type="button" role="menuitem" onClick="{{ doBlock }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#B42318;cursor:pointer">Blocca {{ first }}</button>
 </div></sc-if>
 </div>
-<div id="chat-scroll" role="log" aria-live="polite" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:#F6F4FC">
+<div id="chat-scroll" data-keep-scroll="chat" role="log" aria-live="polite" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;background:#F6F4FC">
 <sc-if value="{{ hasOlder }}"><div style="display:flex;justify-content:center"><dc-import name="UI Button" label="Carica messaggi precedenti" variant="light" size="sm" on-click="{{ loadOlder }}"></dc-import></div></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ noteHeader }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:6px 0;text-align:center">{{ noteHeader }}</span></sc-if>
@@ -46,7 +46,7 @@
 <sc-if value="{{ empty }}"><span style="align-self:center;font-size:13px;color:#8C84AE;padding:10px 0">Scrivi il primo messaggio.</span></sc-if>
 <sc-for list="{{ items }}" as="m">
 <sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
-<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
+<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" data-new="{{ m.isNew }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
 <div class="msg-wrap" style="margin-bottom:{{ m.pb }}" onPointerDown="{{ m.down }}" onPointerUp="{{ m.up }}" onPointerLeave="{{ m.cancel }}" onPointerCancel="{{ m.cancel }}" onContextMenu="{{ m.ctx }}">
 <sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}<span class="msg-time">{{ m.at }}</span></span></sc-if>
 <sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}<span class="msg-time">{{ m.at }}</span></div></sc-if>

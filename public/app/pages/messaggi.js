@@ -50,6 +50,7 @@ export default class extends Page {
     try {
       const [thread, person] = await Promise.all([api('GET', `/api/threads/${id}`), api('GET', `/api/profiles/${id}`)]);
       Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', menuOpen: false, closed: false, reactAt: thread.at, barFor: null, pickerFor: null, composePicker: false });
+      this.known = new Set(thread.messages.map(m => m.id));
       const t = s.threads.find(x => x.id === id);
       if (t) t.unread = false;
       s.hasOlder = thread.has_older;
@@ -77,7 +78,9 @@ export default class extends Page {
     }
     if (r.messages.length) {
       s.messages = [...s.messages, ...r.messages.filter(m => !s.messages.some(x => x.id === m.id))];
-      this.scrollDown = true;
+      // Follow the conversation only if you were at the bottom; reading older messages isn't interrupted
+      const box = document.getElementById('chat-scroll');
+      if (!box || box.scrollHeight - box.scrollTop - box.clientHeight < 120) { this.scrollDown = true; this.smooth = true; }
       changed = true;
     }
     if (changed) this.__rerender();
@@ -174,6 +177,7 @@ export default class extends Page {
     const box = document.getElementById('chat-scroll');
     const fromBottom = box ? box.scrollHeight - box.scrollTop : 0;
     s.messages = [...r.messages, ...s.messages];
+    for (const o of r.messages) this.known?.add(o.id);
     s.hasOlder = r.has_older;
     this.keepScroll = fromBottom;
   });
@@ -185,6 +189,7 @@ export default class extends Page {
     const m = await api('POST', `/api/threads/${s.active}`, { body });
     s.messages.push(m);
     s.draft = '';
+    this.smooth = true;
     const t = s.threads.find(x => x.id === s.active);
     if (t) { t.last = `Tu: ${body}`; t.time = m.created_at; }
     this.scrollDown = true;
@@ -202,10 +207,16 @@ export default class extends Page {
       if (box) box.scrollTop = box.scrollHeight - this.keepScroll;
       this.keepScroll = 0;
     }
+    // Messages drawn once are no longer new (the entrance animation plays once)
+    for (const m of this.state.messages || []) this.known?.add(m.id);
     if (!this.scrollDown) return;
     this.scrollDown = false;
     const box = el.querySelector('#chat-scroll');
-    if (box) box.scrollTop = box.scrollHeight;
+    if (!box) return;
+    // A new message: the chat glides up to make room (like WhatsApp); opening a chat: straight to the end
+    if (this.smooth) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+    else box.scrollTop = box.scrollHeight;
+    this.smooth = false;
   }
 
   componentWillUnmount() {
@@ -238,7 +249,7 @@ export default class extends Page {
       const reaction = (m.reactions || [])[0];
       const big = isEmojiOnly(m.body);
       items.push({
-        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big,
+        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big, isNew: this.known && !this.known.has(m.id) ? '1' : '',
         // the time sits inside the bubble; under my last message, once read, "Letto · hh:mm"
         at: fmtTime(m.created_at), time: m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : '', align: m.mine ? 'flex-end' : 'flex-start',
         // reactions: only on the other person's messages (mine on theirs, theirs on mine)
