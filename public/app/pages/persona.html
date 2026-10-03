@@ -19,8 +19,8 @@
 <div class="persona-aside" style="display:flex;flex-direction:column;gap:12px">
 <div class="persona-photo"><dc-import name="App Photo" ratio="4/5" radius="28px" label="FOTO PROFILO" src="{{ photo }}" alt="{{ name }}"></dc-import></div>
 <!-- Computer: once the name on the right has scrolled away, a short version slides open here (persona.js) -->
-<div class="persona-mini" aria-hidden="true"><div><div class="persona-mini-in">
-<dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import>
+<div class="persona-mini"><div><div class="persona-mini-in">
+<sc-if value="{{ idea }}"><a href="#idea" onClick="{{ toIdea }}" aria-label="{{ badgeLabel }}: vai all’idea" style="text-decoration:none;cursor:pointer"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></a></sc-if><sc-if value="{{ noIdea }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></sc-if>
 <span class="persona-mini-name">{{ name }}</span>
 <span style="font-size:14px;color:#1A1726">{{ role }}</span>
 <sc-if value="{{ hasPlaces }}"><span style="font-size:13px;color:#6B6680">Vive a {{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
