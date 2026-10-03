@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, threadTime, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, orList, threadTime, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -320,7 +320,8 @@ export default class extends Page {
       hasActive: !!s.active && !!p, noActive: !s.active, closed: !!s.closed,
       listClass: s.active ? 'r-hide-sm' : '', chatClass: s.active ? '' : 'r-hide-sm',
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
-      sub: p ? [p.current_role, p.lives_in_city && p.desired_comuni.length ? `${p.lives_in_city} → ${p.desired_comuni[0]}` : p.lives_in_city].filter(Boolean).join(' · ') : '',
+      // under the name: where they live → where they want to go (no job title), as in the list
+      sub: p ? [p.lives_in_city, orList(p.desired_comuni, 3)].filter(Boolean).join(' → ') : '',
       profileHref: p ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => go(`/persone/${p.id}?da=messaggi`),
       back: () => { history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender(); },
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
