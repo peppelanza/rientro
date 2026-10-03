@@ -681,3 +681,22 @@ body.pull-dragging .pull-spinner { transition: none; }
 
 /* Benvenuto on phones: "Apri profilo" on the right */
 @media (max-width: 720px) { .welcome-open { justify-content: flex-end; } }
+
+/* Gruppi (pages/gruppi, gruppo) */
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.group-card { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border-radius: 22px; background: #FFFFFF; border: 1px solid #FFFFFF; box-shadow: 0 8px 24px rgba(80,60,160,.08); text-decoration: none; color: #1A1726; transition: box-shadow .15s ease, transform .15s ease; }
+.group-card:hover { box-shadow: 0 14px 34px rgba(80,60,160,.14); transform: translateY(-1px); }
+.group-name { font-family: 'Unbounded', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -.03em; }
+.group-stats { font-size: 13px; color: #8C84AE; }
+.group-post { background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
+.group-body { margin: 0; font-size: 15px; line-height: 1.55; color: #1A1726; white-space: pre-wrap; overflow-wrap: anywhere; }
+.group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }
+.group-comment { display: flex; gap: 10px; align-items: flex-start; }
+.group-bubble { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 16px; background: #F6F4FC; font-size: 14px; line-height: 1.45; color: #1A1726; min-width: 0; }
+.group-reply { display: flex; gap: 8px; align-items: center; }
+.group-link { border: none; background: none; padding: 0; font: inherit; font-size: 13px; color: #6B6680; cursor: pointer; text-align: left; }
+.group-link:hover { color: #6C4DF5; }
+.group-more { width: 36px; height: 36px; border: none; border-radius: 50%; background: #F1EFF8; color: #6B6680; font-size: 16px; cursor: pointer; }
+.group-menu { position: absolute; right: 0; top: 42px; z-index: 10; min-width: 160px; padding: 6px; border-radius: 18px; background: #FFFFFF; box-shadow: 0 16px 36px rgba(40,30,90,.16); display: flex; flex-direction: column; }
+.group-menu button { height: 40px; padding: 0 12px; border: none; border-radius: 12px; background: none; font: 14px 'Geist', sans-serif; color: #1A1726; text-align: left; cursor: pointer; }
+.group-menu button:hover { background: #F1EFF8; }

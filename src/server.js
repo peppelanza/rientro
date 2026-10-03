@@ -24,6 +24,7 @@ import { checkLinkedinState, linkedinEnabled, linkedinProfile, startLinkedin, ST
 import * as profiles from './profiles.js';
 import { territory } from './public.js';
 import * as social from './social.js';
+import * as groups from './groups.js';
 import { HttpError } from './validate.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
@@ -246,12 +247,13 @@ function streamFile(req, res, f) {
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
-  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
+  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi(\/[^/]+)?$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
 export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, sendWelcome = defaultSendWelcome, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
+  groups.seedGroups(db);
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);
@@ -497,6 +499,15 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' }));
   route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.setReaction(db, user, params.id, params.msg, await readJson(req)));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
+
+  route('GET', '/api/groups', ({ user }) => groups.listGroups(db, user));
+  route('GET', '/api/groups/:id', ({ user, params }) => groups.getGroup(db, user, params.id));
+  route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));
+  route('POST', '/api/groups/:id/posts', async ({ user, params, req }) => groups.createPost(db, user, params.id, await readJson(req)));
+  route('DELETE', '/api/groups/:id/posts/:post', ({ user, params }) => groups.deletePost(db, user, params.id, params.post));
+  route('GET', '/api/groups/:id/posts/:post/comments', ({ user, params }) => groups.listComments(db, user, params.id, params.post));
+  route('POST', '/api/groups/:id/posts/:post/comments', async ({ user, params, req }) => groups.createComment(db, user, params.id, params.post, await readJson(req)));
+  route('DELETE', '/api/groups/:id/posts/:post/comments/:comment', ({ user, params }) => groups.deleteComment(db, user, params.id, params.post, params.comment));
 
   route('GET', '/api/notifications', ({ user, url }) => social.listNotifications(db, user, url.searchParams));
   route('POST', '/api/notifications/read', ({ user }) => { social.markNotificationsRead(db, user); return { ok: true }; });

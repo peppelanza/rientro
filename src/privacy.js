@@ -34,6 +34,8 @@ export function exportData(db, user) {
        FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id`, user.id, user.id, user.id, user.id),
     message_reactions: all('SELECT r.emoji, r.updated_at, m.sender_id AS message_from, m.created_at AS message_sent_at FROM message_reactions r JOIN messages m ON m.id = r.message_id WHERE r.user_id = ? AND r.emoji IS NOT NULL', user.id),
     notifications: all('SELECT kind, created_at, read_at FROM notifications WHERE user_id = ? ORDER BY id', user.id),
+    group_posts: all('SELECT group_id, body, created_at FROM group_posts WHERE author_id = ? ORDER BY id', user.id),
+    group_comments: all('SELECT p.group_id, c.body, c.created_at FROM group_comments c JOIN group_posts p ON p.id = c.post_id WHERE c.author_id = ? ORDER BY c.id', user.id),
     blocked: all('SELECT blocked_id, created_at FROM blocks WHERE blocker_id = ?', user.id),
     reports_made: all('SELECT reported_id, reason, details, status, created_at FROM reports WHERE reporter_id = ?', user.id),
     files: all('SELECT id, kind, mime_type, size_bytes, created_at FROM files WHERE owner_id = ?', user.id)

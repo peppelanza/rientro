@@ -394,3 +394,29 @@ CREATE TABLE IF NOT EXISTS blocked_uploads (
   resolved_by   TEXT
 );
 CREATE INDEX IF NOT EXISTS blocked_uploads_open ON blocked_uploads (resolved_at, created_at);
+
+-- Groups (like Facebook groups): Generale and one per region. Seeded by groups.js; anyone with a
+-- profile posts and comments, no joining.
+CREATE TABLE IF NOT EXISTS groups (
+  id          TEXT PRIMARY KEY,               -- slug, used in the address: generale, regione-sicilia
+  name        TEXT NOT NULL,
+  kind        TEXT NOT NULL CHECK (kind IN ('general', 'region')),
+  description TEXT NOT NULL,
+  position    INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS group_posts (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  author_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body        TEXT NOT NULL,
+  created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS group_posts_group ON group_posts(group_id, id);
+CREATE TABLE IF NOT EXISTS group_comments (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id     INTEGER NOT NULL REFERENCES group_posts(id) ON DELETE CASCADE,
+  author_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body        TEXT NOT NULL,
+  created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS group_comments_post ON group_comments(post_id, id);

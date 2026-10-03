@@ -19,6 +19,8 @@ const ROUTES = [
   [/^\/onboarding$/, 'onboarding'],
   [/^\/scopri$/, 'scopri'],
   [/^\/persone\/(?<id>[^/]+)$/, 'persona'],
+  [/^\/gruppi$/, 'gruppi'],
+  [/^\/gruppi\/(?<id>[^/]+)$/, 'gruppo'],
   [/^\/connessioni$/, 'connessioni'],
   [/^\/connessioni\/(?<id>[^/]+)$/, 'richiesta'],
   [/^\/messaggi(\/(?<id>[^/]+))?$/, 'messaggi'],

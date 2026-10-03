@@ -1,0 +1,34 @@
+<!-- One group (gruppo.js): header, what you write, the posts with their comments -->
+<div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
+<dc-import name="App Nav" active="gruppi" me="{{ me }}"></dc-import>
+<sc-if value="{{ loading }}"><div style="height:60vh"></div></sc-if>
+<sc-if value="{{ !loading }}"><main style="max-width:720px;margin:0 auto;padding:24px var(--gutter) 0;display:flex;flex-direction:column;gap:18px;box-sizing:border-box">
+<a href="/gruppi" style="font-size:14px;color:#6B6680;text-decoration:none">← Gruppi</a>
+<section style="background:#FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(80,60,160,.10)">
+<h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:36px;letter-spacing:-.045em;line-height:1.05">{{ g.name }}</h1>
+<span style="font-size:15px;color:#4A4560;line-height:1.5">{{ g.description }}</span>
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ stats }}</span>
+</section>
+<section aria-label="Scrivi al gruppo" style="background:#FFFFFF;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<dc-import name="App Field" rows="3" field="group-post" maxlength="4000" value="{{ draft }}" placeholder="Scrivi qualcosa al gruppo…" dc-props="{{ draftProps }}"></dc-import>
+<div style="display:flex;justify-content:flex-end"><dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ publish }}"></dc-import></div>
+</section>
+<sc-if value="{{ empty }}"><div style="text-align:center;padding:32px 0;color:#8C84AE;font-size:14px">Ancora nessun post. Rompi il ghiaccio!</div></sc-if>
+<sc-for list="{{ posts }}" as="p"><article class="group-post">
+<div style="display:flex;gap:12px;align-items:center">
+<a href="{{ p.who.href }}" style="flex:none;border-radius:50%"><dc-import name="App Photo" size="40" src="{{ p.who.photo }}" initials="{{ p.who.ini }}"></dc-import></a>
+<div style="display:flex;flex-direction:column;min-width:0;flex:1"><a href="{{ p.who.href }}" style="font-weight:600;font-size:15px;color:#1A1726;text-decoration:none">{{ p.who.name }}</a><span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.when }}<sc-if value="{{ p.who.role }}"> · {{ p.who.role }}</sc-if></span></div>
+<div style="position:relative;flex:none"><button type="button" class="group-more" aria-label="Altre azioni" aria-expanded="{{ p.menuOpen }}" onClick="{{ p.toggleMenu }}">···</button>
+<sc-if value="{{ p.menuOpen }}"><div role="menu" class="group-menu"><sc-if value="{{ p.canReport }}"><button type="button" role="menuitem" onClick="{{ p.doReport }}">Segnala</button></sc-if><sc-if value="{{ p.canDelete }}"><button type="button" role="menuitem" onClick="{{ p.del }}" style="color:#B42318">Elimina post</button></sc-if></div></sc-if></div>
+</div>
+<p class="group-body">{{ p.body }}</p>
+<div class="group-comments">
+<sc-if value="{{ p.more }}"><button type="button" class="group-link" onClick="{{ p.showMore }}">{{ p.moreLabel }}</button></sc-if>
+<sc-for list="{{ p.comments }}" as="c"><div class="group-comment"><a href="{{ c.who.href }}" style="flex:none;border-radius:50%"><dc-import name="App Photo" size="30" src="{{ c.who.photo }}" initials="{{ c.who.ini }}"></dc-import></a><div class="group-bubble"><a href="{{ c.who.href }}" style="font-weight:600;font-size:13px;color:#1A1726;text-decoration:none">{{ c.who.name }}</a><span style="white-space:pre-wrap;overflow-wrap:anywhere">{{ c.body }}</span><span style="font-size:11px;color:#8C84AE">{{ c.when }}<sc-if value="{{ c.canDelete }}"> · <button type="button" class="group-link" onClick="{{ c.del }}">Elimina</button></sc-if></span></div></div></sc-for>
+<div class="group-reply"><dc-import name="App Field" field="{{ p.replyField }}" value="{{ p.draft }}" placeholder="Scrivi un commento…" maxlength="2000" dc-props="{{ p.draftProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="secondary" size="sm" on-click="{{ p.send }}"></dc-import></div>
+</div>
+</article></sc-for>
+<dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" noun="post" dc-props="{{ pagerProps }}"></dc-import>
+</main></sc-if>
+<dc-import name="App TabBar" active="gruppi" me="{{ me }}"></dc-import>
+</div>
