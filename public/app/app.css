@@ -616,19 +616,7 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
    meanwhile (it would show beside the cover). Flat white cards, so the pinned top has no seam. */
 [data-collapse-cards] article { background: #FFFFFF !important; transition: box-shadow .2s ease; }
 [data-collapse-cards] article.pc-card-stuck { box-shadow: none !important; }
-[data-collapse-cards] .pc-head { position: sticky; top: var(--cards-top, 16px); z-index: 1; }
+[data-collapse-cards] .pc-head { position: sticky; top: 16px; z-index: 1; }
 [data-collapse-cards] .pc-head.pc-stuck::before { content: ''; position: absolute; z-index: -1; left: -1px; right: -1px; bottom: calc(100% - 28px); height: 100vh; background: #E9E6F5; }
 [data-collapse-cards] .pc-head.pc-stuck::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: 28px 28px 0 0; background: #FFFFFF; }
 @media (max-width: 720px) { [data-collapse-cards] .pc-head { top: 12px; } }
-
-/* Scopri: search and order in one bar; on a computer it sticks to the top (the cards then pin just
-   below it, --cards-top from scopri.js). Its padding sits in the gaps around it, so the page's
-   spacing doesn't change, and its page-coloured background hides the cards scrolling under it. */
-.scopri-bar { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
-@media (min-width: 721px) {
-  .scopri-bar { position: sticky; top: 0; z-index: 5; margin: -16px 0 -12px; padding: 16px 0 12px; background: #E9E6F5; }
-}
-@media (max-width: 720px) {
-  .scopri-bar { flex-direction: column; align-items: stretch; }
-  .scopri-sort { order: -1; display: flex; }
-}
