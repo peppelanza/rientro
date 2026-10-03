@@ -11,7 +11,6 @@
 <section class="r-wrap" style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:18px 18px 18px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
 <dc-import name="App Photo" size="72" src="{{ photo }}" initials="{{ ini }}" alt="{{ name }}"></dc-import>
 <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px">
-<div><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></div>
 <span style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em;line-height:1.15">{{ name }}</span>
 <sc-if value="{{ role }}"><span style="font-size:14px;color:#4A4560">{{ role }}</span></sc-if>
 <sc-if value="{{ hasRoute }}"><span style="font-size:14px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ to }}</b></span></sc-if>
