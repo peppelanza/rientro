@@ -453,6 +453,17 @@ body { padding-top: var(--lb, 0px); }
 
 /* Bell dropdown (App Nav) */
 .bell-panel { width: 380px; max-width: calc(100vw - 2 * var(--gutter)); max-height: calc(100vh - 110px); overflow-y: auto; z-index: 25; }
+/* Opening and closing like a macOS window to and from the Dock ("genie"): it pours out of the bell
+   (--gx/--gy, components.js), narrow near it and widening into the box */
+.bell-genie-in { transform-origin: var(--gx, 90%) var(--gy, 0); animation: bell-genie .42s cubic-bezier(.2, .8, .2, 1) backwards; }
+.bell-genie-out { transform-origin: var(--gx, 90%) var(--gy, 0); animation: bell-genie .28s cubic-bezier(.5, 0, .9, .5) reverse both; pointer-events: none; }
+@keyframes bell-genie {
+  0% { opacity: 0; transform: scale(.06, .03); clip-path: polygon(calc(var(--gx, 90%) - 6px) 0, calc(var(--gx, 90%) + 6px) 0, calc(var(--gx, 90%) + 30px) 100%, calc(var(--gx, 90%) - 30px) 100%); }
+  35% { opacity: 1; transform: scale(.45, .55); clip-path: polygon(calc(var(--gx, 90%) - 14px) 0, calc(var(--gx, 90%) + 14px) 0, 100% 100%, 0 100%); }
+  70% { transform: scale(.95, 1.02); clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%); }
+  100% { opacity: 1; transform: none; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+@media (prefers-reduced-motion: reduce) { .bell-genie-in, .bell-genie-out { animation: none; } }
 .bell-backdrop { display: none; }
 @media (max-width: 720px) {
   .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(26, 23, 38, .45); opacity: 0; pointer-events: none; transition: opacity .2s ease; }

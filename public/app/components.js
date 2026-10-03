@@ -15,13 +15,23 @@ const b = v => v === true || v === 'true';
 // outside the nav, which is redrawn (and rebuilt) on every change, so the fade isn't cut short;
 // tapping it closes the dropdown. Returns whether the dropdown is open.
 let navForDimmer = null;
+const GENIE_MS = 420;
+const GENIE_OUT_MS = 280;
+// The animation's origin: the middle of the bell, in the panel's own (untransformed) coordinates
+function genieFrom(panel, bell) {
+  if (!panel || !bell || !panel.offsetParent) return;
+  const b = bell.getBoundingClientRect();
+  const base = panel.offsetParent.getBoundingClientRect();
+  panel.style.setProperty('--gx', `${b.left + b.width / 2 - base.left - panel.offsetLeft}px`);
+  panel.style.setProperty('--gy', `${b.top + b.height / 2 - base.top - panel.offsetTop}px`);
+}
 function dimBehindBell(nav) {
   navForDimmer = nav;
   let dim = document.querySelector('.bell-backdrop');
   if (!dim) {
     dim = Object.assign(document.createElement('div'), { className: 'bell-backdrop' });
     dim.setAttribute('aria-hidden', 'true');
-    dim.addEventListener('click', () => navForDimmer?.setState({ bellOpen: false }));
+    dim.addEventListener('click', () => navForDimmer?.closeBell());
     document.body.append(dim);
   }
   document.body.classList.toggle('bell-open', nav.state.bellOpen);
@@ -41,7 +51,7 @@ def('App Nav', String.raw`
 <sc-if value="{{ bell }}"><button type="button" onClick="{{ toggleBell }}" aria-label="{{ bell.aria }}" aria-haspopup="dialog" aria-expanded="{{ bellOpen }}" class="nav-bell" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:{{ bell.bg }};color:{{ bell.fg }};display:flex;align-items:center;justify-content:center;position:relative;flex:none;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><sc-if value="{{ bell.count }}"><span style="position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#FFFFFF;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #FFFFFF">{{ bell.count }}</span></sc-if></button></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
 </div>
-<sc-if value="{{ bellOpen }}"><div role="dialog" aria-label="Notifiche" class="bell-panel" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:24px;padding:8px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;box-sizing:border-box">
+<sc-if value="{{ bellOpen }}"><div role="dialog" aria-label="Notifiche" class="bell-panel {{ bellAnim }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:24px;padding:8px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;box-sizing:border-box">
 <div style="padding:10px 12px 6px;font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em;color:#1A1726">Notifiche</div>
 <sc-if value="{{ bellLoading }}"><span style="padding:14px 12px;color:#8C84AE">Caricamento…</span></sc-if>
 <sc-if value="{{ bellEmpty }}"><span style="padding:14px 12px;color:#6B6680">Nessuna notifica, per ora.</span></sc-if>
@@ -66,7 +76,8 @@ def('App Nav', String.raw`
     this.closeAll = e => {
       if (!this.state.bellOpen && !this.state.menuOpen) return;
       if (e.type === 'keydown' ? e.key !== 'Escape' : e.target.closest('.bell-panel, .nav-bell, [role=menu], [aria-label="Il tuo account"]')) return;
-      this.setState({ bellOpen: false, menuOpen: false });
+      this.closeBell();
+      this.setState({ menuOpen: false });
     };
     document.addEventListener('click', this.closeAll);
     document.addEventListener('keydown', this.closeAll);
@@ -78,19 +89,35 @@ def('App Nav', String.raw`
 
   // Like Facebook: the latest 5, read or not; opening it clears the badge, the unread ones keep
   // their colour and dot until next time
+  // It pours out of the bell like a macOS window from the Dock ("genie", app.css), once the
+  // notifications are there, so nothing redraws it mid-animation.
   async openBell() {
+    if (this.opening) return;
+    this.opening = true;
     const c = this.props.me?.counts || {};
-    this.setState({ bellOpen: true, menuOpen: false, bellItems: null, bellUnread: c.notifications || 0 });
-    try {
-      const r = await api('GET', '/api/notifications?per_page=5');
-      const items = r.items;
-      this.setState({ bellItems: items, bellUnread: r.unread });
-      if (items.some(n => !n.read)) {
-        await api('POST', '/api/notifications/read');
-        c.notifications = 0;
-        this.setState({});
-      }
-    } catch { this.setState({ bellItems: [] }); }
+    let r = null;
+    try { r = await api('GET', '/api/notifications?per_page=5'); } catch {}
+    this.opening = false;
+    this.genie = true;
+    this.setState({ bellOpen: true, menuOpen: false, bellItems: r?.items || [], bellUnread: r?.unread ?? (c.notifications || 0) });
+    genieFrom(document.querySelector('.bell-panel'), document.querySelector('.nav-bell'));
+    this.genie = false; // only this first drawing animates
+    if (r?.items.some(n => !n.read)) {
+      await api('POST', '/api/notifications/read').catch(() => {});
+      c.notifications = 0;
+      setTimeout(() => this.setState({}), GENIE_MS); // the badge goes once the animation is over
+    }
+  }
+
+  // ...and goes back into it
+  closeBell() {
+    const panel = document.querySelector('.bell-panel');
+    if (!this.state.bellOpen || this.closing) return;
+    document.body.classList.remove('bell-open');
+    if (!panel || matchMedia('(prefers-reduced-motion: reduce)').matches) return this.setState({ bellOpen: false });
+    this.closing = true;
+    panel.classList.add('bell-genie-out');
+    setTimeout(() => { this.closing = false; this.setState({ bellOpen: false }); }, GENIE_OUT_MS);
   }
 
   renderVals() {
@@ -124,7 +151,8 @@ def('App Nav', String.raw`
       photo: p.photo_url, noPhoto: !p.photo_url, initials: `${(p.first_name || u.email || '?')[0]}${(p.last_name || '')[0] || ''}`.toUpperCase(),
       toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
       bellOpen: dimBehindBell(this),
-      toggleBell: () => (this.state.bellOpen ? this.setState({ bellOpen: false }) : this.openBell()),
+      toggleBell: () => (this.state.bellOpen ? this.closeBell() : this.openBell()),
+      bellAnim: this.genie ? 'bell-genie-in' : '',
       bellLoading: this.state.bellOpen && !this.state.bellItems,
       bellEmpty: !!this.state.bellItems && !this.state.bellItems.length,
       bellReady: !!this.state.bellItems?.length,
