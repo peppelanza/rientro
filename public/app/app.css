@@ -501,3 +501,8 @@ body { padding-top: var(--lb, 0px); }
 .emoji-picker button:hover { background: #F1EFF8; }
 .emoji-picker-compose { bottom: calc(100% - 4px); left: 14px; }
 .emoji-toggle { flex: none; width: 44px; height: 44px; border: none; border-radius: 50%; background: #FFFFFF; font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(80, 60, 160, .1); }
+
+/* The time inside the bubble, bottom right (it floats after the last line, like WhatsApp) */
+.msg-time { float: right; margin: 8px -4px -5px 12px; font: 11px/1 'Geist', sans-serif; color: #8C84AE; white-space: nowrap; }
+.msg-row[data-from="me"] .msg-time { color: rgba(255, 255, 255, .72); }
+.msg-big .msg-time { float: none; display: block; margin: 2px 0 0; text-align: right; }

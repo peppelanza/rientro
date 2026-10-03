@@ -48,8 +48,8 @@
 <sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
 <sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
 <div class="msg-wrap" style="margin-bottom:{{ m.pb }}" onPointerDown="{{ m.down }}" onPointerUp="{{ m.up }}" onPointerLeave="{{ m.cancel }}" onPointerCancel="{{ m.cancel }}" onContextMenu="{{ m.ctx }}">
-<sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}</span></sc-if>
-<sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}</div></sc-if>
+<sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}<span class="msg-time">{{ m.at }}</span></span></sc-if>
+<sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}<span class="msg-time">{{ m.at }}</span></div></sc-if>
 <sc-if value="{{ m.canReact }}"><button type="button" class="react-btn" aria-label="Reagisci" onClick="{{ m.openBar }}">☺</button></sc-if>
 <sc-if value="{{ m.hasReaction }}"><button type="button" class="react-chip" aria-label="{{ m.chipAria }}" onClick="{{ m.chip }}">{{ m.reaction }}</button></sc-if>
 <sc-if value="{{ m.barOpen }}"><div class="react-bar" role="menu" aria-label="Reazioni" style="{{ m.barPos }}"><sc-for list="{{ m.quick }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}" style="background:{{ q.on }}">{{ q.e }}</button></sc-for><button type="button" role="menuitem" class="react-more" aria-label="Altre emoji" onClick="{{ m.more }}">＋</button></div></sc-if>

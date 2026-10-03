@@ -235,12 +235,12 @@ export default class extends Page {
       const k = dayKey(m.created_at);
       if (k !== prevDay) { items.push({ sep: true, label: dayLabel(m.created_at) }); prevDay = k; }
       const next = s.messages[i + 1];
-      const lastOfRun = !next || next.mine !== m.mine || dayKey(next.created_at) !== k;
       const reaction = (m.reactions || [])[0];
       const big = isEmojiOnly(m.body);
       items.push({
         msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big,
-        time: lastOfRun ? (m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : fmtTime(m.created_at)) : '', align: m.mine ? 'flex-end' : 'flex-start',
+        // the time sits inside the bubble; under my last message, once read, "Letto · hh:mm"
+        at: fmtTime(m.created_at), time: m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : '', align: m.mine ? 'flex-end' : 'flex-start',
         // reactions: only on the other person's messages (mine on theirs, theirs on mine)
         canReact: !m.mine, hasReaction: !!reaction, reaction: reaction?.emoji ?? '',
         chipAria: reaction ? (reaction.mine ? `La tua reazione ${reaction.emoji}: tocca per toglierla` : `Reazione ${reaction.emoji}`) : '',
