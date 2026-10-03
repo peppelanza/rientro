@@ -139,6 +139,9 @@ export default class extends Page {
   }
 
   didRender(el) {
+    // the cards pin just below the stuck search bar (computer)
+    const bar = el.querySelector('.scopri-bar');
+    if (bar) el.querySelector('[data-collapse-cards]')?.style.setProperty('--cards-top', `${bar.offsetHeight + 12}px`);
     collapseCards(el);
     stickFilters(el.querySelector('aside[aria-label="Filtri"]'));
   }

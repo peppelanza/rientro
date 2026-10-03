@@ -27,10 +27,12 @@
 </aside>
 
 <main style="display:flex;flex-direction:column;gap:22px;padding-right:8px;min-width:0">
-<div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div></div>
 <sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
 
-<div style="max-width:520px"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, ruolo, città, idea, settore" dc-props="{{ searchProps }}"></dc-import></div>
+<!-- Search and order: one bar, stuck to the top on a computer like the filters (app.css) -->
+<div class="scopri-bar"><div style="flex:1;max-width:520px;min-width:0"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, ruolo, città, idea, settore" dc-props="{{ searchProps }}"></dc-import></div>
+<sc-if value="{{ isGrid }}"><div class="scopri-sort"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></div></sc-if></div>
 
 <sc-if value="{{ isGrid }}"><div data-collapse-cards class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
 <sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>
