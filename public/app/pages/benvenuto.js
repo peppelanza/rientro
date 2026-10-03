@@ -30,7 +30,6 @@ export default class extends Page {
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city || p.lives_in_country || '', to: places, hasRoute: !!((p.lives_in_city || p.lives_in_country) && places),
       open: () => go('/profilo'),
-      preview: () => go(`/persone/${s.me.user.id}?anteprima`),
     };
   }
 }
