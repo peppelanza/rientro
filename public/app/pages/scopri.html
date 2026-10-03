@@ -31,7 +31,7 @@
 
 <div style="max-width:520px"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, ruolo, città, idea, settore" dc-props="{{ searchProps }}"></dc-import></div>
 
-<sc-if value="{{ isGrid }}"><div class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+<sc-if value="{{ isGrid }}"><div data-collapse-cards class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
 <sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>
 </div></sc-if>
 

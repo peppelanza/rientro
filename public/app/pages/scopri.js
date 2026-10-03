@@ -1,6 +1,7 @@
 // Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
 import { api, debounce, getCatalog, getMe, go } from '../lib.js';
+import { collapseCards } from '../card-collapse.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
 
@@ -134,6 +135,8 @@ export default class extends Page {
     }
     return this.placeList;
   }
+
+  didRender(el) { collapseCards(el); }
 
   renderVals() {
     const s = this.state;
