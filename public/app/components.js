@@ -888,21 +888,24 @@ def('App Photo', String.raw`
 // Props: person (profiles.card shape), compact, ratio, onConnect(person)
 
 def('App Person Card', String.raw`
-<article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
+<article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px 10px 20px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;font-family:'Geist',sans-serif;color:#1A1726">
+<div class="pc-top" style="flex:1;display:flex;flex-direction:column">
+<div class="pc-head" style="display:flex;flex-direction:column;gap:14px;margin:-10px -10px 0;padding:10px 10px 12px;border-radius:28px 28px 0 0">
 <a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
-<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">
-<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;white-space:nowrap;flex:none">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
-<div class="pc-mid" style="display:flex;flex-direction:column;gap:12px;flex:1 1 auto;min-height:0;overflow:hidden">
+<div style="display:flex;flex-direction:column;gap:4px;padding:0 10px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;white-space:nowrap;flex:none">{{ p.age }}</span></div><span style="font-size:13px;color:#6B6680">{{ p.role }}</span></div>
+</div>
+<div class="pc-mid" style="padding:0 10px;display:flex;flex-direction:column;gap:12px;flex:1">
 <div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">Vive a {{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="vuole trasferirsi a">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div>
 <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><span style="color:#8C84AE">Cerca</span><span>{{ p.seeks }}</span><span style="color:#8C84AE">Interessi</span><span>{{ p.tags }}</span><span style="color:#8C84AE">Tempo</span><span>{{ p.time }}</span></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>
 </div>
-<sc-if value="{{ showActions }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+</div>
+<sc-if value="{{ showActions }}"><div style="padding:12px 10px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
 <dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
 </div></sc-if>
-</div></article>`, class extends DCLogic {
+</article>`, class extends DCLogic {
   renderVals() {
     const p = this.props.person || {};
     const c = p.connection?.status ?? 'none';

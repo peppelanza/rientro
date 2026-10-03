@@ -1,43 +1,23 @@
-// Scopri: while you scroll, each person card sticks to the top and its details (from "Vive a" to
-// the hint, .pc-mid in App Person Card) fold away; what's left (photo, name, buttons) then scrolls
-// off with the page. Each card sits in its grid cell (fixed to the card's full height), sticks to
-// the cell's top edge and shrinks by as much as the cell has gone past it, so the card's bottom
-// always meets the cell's bottom: no gaps, nothing overlapping.
-const TOP = { phone: 12, computer: 16 }; // px from the top of the screen while stuck
-
-let cells = [];
+// Scopri: while you scroll, the top of each person card (photo, name, job) stays pinned and the
+// details (from "Vive a" to the hint) slide up underneath it until the buttons meet it; then the
+// whole card scrolls off. All by position: sticky (app.css), so the browser moves everything in
+// the same frame, without shaking. This only marks the pinned tops (.pc-stuck), which then paint a
+// solid background and cover the gap above them, so the sliding details never show through.
+let heads = [];
 
 export function collapseCards(root) {
-  cells = [...root.querySelectorAll('[data-collapse-cards] > .sc-host')];
-  for (const cell of cells) {
-    cell.style.height = '';
-    const card = cell.querySelector('article');
-    if (card) Object.assign(card.style, { height: '100%', position: 'sticky' });
-  }
-  // Measure everything first (one layout), then fix each cell to its full height and remember how
-  // short its card gets once the details are gone
-  const sizes = cells.map(c => [c.offsetHeight, c.querySelector('article')?.offsetHeight - (c.querySelector('.pc-mid')?.offsetHeight ?? 0)]);
-  cells.forEach((c, i) => { c.style.height = `${sizes[i][0]}px`; c.dataset.folded = sizes[i][1]; });
+  heads = [...root.querySelectorAll('[data-collapse-cards] .pc-head')];
   update();
 }
 
 function update() {
-  const top = innerWidth <= 720 ? TOP.phone : TOP.computer;
-  for (const cell of cells) {
-    const card = cell.querySelector('article');
-    if (!card?.querySelector('.pc-mid')) continue;
-    const r = cell.getBoundingClientRect();
-    if (r.bottom < 0 || r.top > innerHeight) continue; // off screen: leave it
-    const past = Math.min(Math.max(top - r.top, 0), r.height - Number(cell.dataset.folded));
-    card.style.top = `${top}px`;
-    card.style.height = past > 0 ? `${r.height - past}px` : '100%';
+  for (const head of heads) {
+    const r = head.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) continue;
+    // Out of its own place (it naturally sits 10px above .pc-top, over the card's padding): the
+    // details are underneath it, from the moment it pins until the card has scrolled away
+    head.classList.toggle('pc-stuck', r.top - head.parentElement.getBoundingClientRect().top > -9);
   }
 }
 
-let ticking = false;
-addEventListener('scroll', () => {
-  if (ticking || !cells.length) return;
-  ticking = true;
-  requestAnimationFrame(() => { ticking = false; update(); });
-}, { passive: true });
-addEventListener('resize', () => { if (cells[0]?.isConnected) collapseCards(document); });
+addEventListener('scroll', () => { if (heads.length) update(); }, { passive: true });

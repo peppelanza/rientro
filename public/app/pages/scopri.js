@@ -175,7 +175,7 @@ export default class extends Page {
       loading: false, me: s.me, f, showFilters: s.showFilters,
       // computer: only "Dove vuole vivere" and "Dove vive" show; the others open below them (on a phone the whole
       // panel is behind "Filtri" already, all of it)
-      moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters ? 'true' : 'false',
+      moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters ? 'true' : 'false', moreClosed: !s.moreFilters, moreOpenFlag: s.moreFilters, // closed: under "Dove vive"; open: at the bottom
       moreLabel: s.moreFilters ? 'Meno filtri' : hiddenFilters(f) ? `Tutti i filtri · ${hiddenFilters(f)}` : 'Tutti i filtri',
       toggleMore: () => { this.animateMore = !s.moreFilters; this.setState({ moreFilters: !s.moreFilters }); this.animateMore = false; },
       total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
