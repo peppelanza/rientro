@@ -463,8 +463,9 @@ body { padding-top: var(--lb, 0px); }
 .bell-backdrop { display: none; }
 @media (max-width: 720px) {
   /* reaches well below the screen: iPhone Safari shows what's under its bottom bar through it */
-  .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
-  body.bell-open .bell-backdrop { opacity: 1; pointer-events: auto; }
+  .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility 0s .2s; }
+  /* fully hidden when closed (after the fade): Safari tints its bottom bar from it even when transparent */
+  body.bell-open .bell-backdrop { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .2s ease; }
   /* the top bar with the dropdown, and the bottom menu, stay above it */
   body.bell-open .nav-root { z-index: 40 !important; }
   body.bell-open .tabbar { z-index: 40 !important; opacity: 1; transform: none; pointer-events: auto; }
@@ -663,7 +664,9 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
    stays), an iOS-style spinner in the gap above */
 body.pull-active #app > div > :not([data-sc-name="App TabBar"]) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
 body.pull-dragging #app > div > :not([data-sc-name="App TabBar"]) { transition: none; }
-.pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; width: 26px; height: 26px; margin-left: -13px; color: #6B6680; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
+.pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; height: 26px; transform: translateX(-50%); display: flex; align-items: center; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
+.pull-spinner span, .pull-spinner.ready svg { display: none; }
+.pull-spinner.ready span { display: inline; } /* far enough: "Lascia per aggiornare" */
 body.pull-dragging .pull-spinner { transition: none; }
 .pull-spinner.spinning svg { animation: pull-spin .8s steps(8) infinite; }
 @keyframes pull-spin { to { transform: rotate(360deg); } }
