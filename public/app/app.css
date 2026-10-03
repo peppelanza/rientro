@@ -685,9 +685,9 @@ body.pull-dragging .pull-spinner { transition: none; }
 /* Gruppi (pages/gruppo): side menu as in "Il tuo profilo", the open group on the right */
 .groups-layout { display: grid; grid-template-columns: 250px minmax(0, 720px); gap: 28px; padding: 28px var(--gutter) 0; box-sizing: border-box; }
 .groups-layout.solo { grid-template-columns: minmax(0, 720px); justify-content: center; } /* visitors: just the group */
-.groups-aside { align-self: start; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: 28px; }
+.groups-aside { align-self: start; } /* stays in view while scrolling: sticky-side.js */
 .groups-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-@media (max-width: 720px) { .groups-layout { grid-template-columns: minmax(0, 1fr); padding-top: 18px; } .groups-aside { position: static; max-height: none; } }
+@media (max-width: 720px) { .groups-layout { grid-template-columns: minmax(0, 1fr); padding-top: 18px; } }
 .group-post { scroll-margin-top: 16px; background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
 .group-body { margin: 0; font-size: 15px; line-height: 1.55; color: #1A1726; white-space: pre-wrap; overflow-wrap: anywhere; }
 .group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }

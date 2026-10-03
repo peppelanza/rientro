@@ -5,6 +5,7 @@
 // the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
 import { api, go, setMe, timeAgo, toastError } from '../lib.js';
 import { report } from '../social.js';
+import { stickSide } from '../sticky-side.js';
 import { homeFor, Page, peekMe } from './_base.js';
 
 export const title = 'Gruppi';
@@ -36,6 +37,9 @@ export default class extends Page {
     if (id) { try { await this.fetchAll(); } catch (err) { toastError(err); } }
     this.__rerender();
   }
+
+  // The menu stays in view while scrolling, as Scopri's filters do
+  didRender(el) { stickSide(el.querySelector('.groups-aside')); }
 
   componentDidMount() {
     super.componentDidMount();

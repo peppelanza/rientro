@@ -2,7 +2,7 @@
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
 import { api, debounce, getCatalog, getMe, go, SCOPRI_BACK_KEY } from '../lib.js';
 import { collapseCards } from '../card-collapse.js';
-import { stickFilters } from '../sticky-filters.js';
+import { stickSide } from '../sticky-side.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
 
@@ -150,7 +150,7 @@ export default class extends Page {
   didRender(el) {
     try { sessionStorage.setItem(SCOPRI_BACK_KEY, location.search); } catch {}
     collapseCards(el);
-    stickFilters(el.querySelector('aside[aria-label="Filtri"]'));
+    stickSide(el.querySelector('aside[aria-label="Filtri"]'));
   }
 
   renderVals() {
