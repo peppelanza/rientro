@@ -488,6 +488,14 @@ body { padding-top: var(--lb, 0px); }
 }
 /* The photo gets shorter as you scroll, 4:5 → 1:1, cropped at the centre (persona.js) */
 .persona-photo > .sc-host > div { aspect-ratio: var(--pr, 4 / 5) !important; }
+/* Profile on a computer: the short header that slides open under the photo (persona.js) */
+.persona-mini { display: grid; grid-template-rows: 0fr; margin-top: -12px; opacity: 0; transition: grid-template-rows .35s ease, margin-top .35s ease, opacity .25s ease; }
+.persona-mini > div { overflow: hidden; min-height: 0; }
+.persona-mini-in { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 4px 4px 2px; }
+.persona-mini-name { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; color: #1A1726; }
+body.persona-head-away .persona-mini { grid-template-rows: 1fr; margin-top: 0; opacity: 1; }
+@media (max-width: 720px) { .persona-mini { display: none; } }
+@media (prefers-reduced-motion: reduce) { .persona-mini { transition: none; } }
 
 /* Profile preview (pages/persona, ?anteprima): what others can click is shown, but inactive */
 .preview-off { opacity: .55; pointer-events: none; cursor: default; }
