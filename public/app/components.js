@@ -484,7 +484,7 @@ def('App City Jump', String.raw`
 <div class="city-jump {{ openClass }}">
 <label class="cj-lead" for="{{ uid }}">Scopri chi rientra a</label>
 <div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
-<input id="{{ uid }}" data-key="{{ uid }}" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="{{ uid }}-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<input id="{{ uid }}" data-key="{{ uid }}" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="{{ uid }}-list" aria-autocomplete="list" autocomplete="off" placeholder="{{ placeholder }}" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
 <sc-if value="{{ open }}"><div id="{{ uid }}-list" data-key="{{ uid }}-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}" onMouseLeave="{{ leave }}">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
@@ -495,7 +495,7 @@ def('App City Jump', String.raw`
 <sc-if value="{{ sheet }}"><div class="cj-sheet-backdrop" aria-hidden="true"></div><div class="cj-sheet" role="dialog" aria-modal="true" aria-label="Scegli la città">
 <div class="cj-sheet-top {{ anim }}">
 <button type="button" class="cj-sheet-close" aria-label="Chiudi" onClick="{{ close }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
-<label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Cerca la tua città" value="{{ query }}" onInput="{{ sheetInput }}" onKeyDown="{{ sheetKey }}"></label>
+<label class="cj-sheet-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="city-sheet-input" data-key="city-sheet" type="search" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Cerca la città" aria-controls="city-sheet-list" placeholder="Scegli la città" value="{{ query }}" onInput="{{ sheetInput }}" onKeyDown="{{ sheetKey }}"></label>
 </div>
 <div id="city-sheet-list" data-key="city-sheet-list" class="cj-sheet-list {{ anim }}" role="listbox" aria-label="Città"><dc-import name="App City Options" dc-props="{{ listProps }}"></dc-import></div>
 </div></sc-if>
@@ -538,6 +538,14 @@ def('App City Jump', String.raw`
     if (!fromHistory && history.state?.cjSheet) history.back();
   }
   popped = () => { if (this.state.sheet) this.closeSheet(true); };
+  // Phones: a copy in a top bar opens the hero's picker, the very same full-screen one (its own
+  // would be boxed in by the bar's blur and fade, which confine fixed elements inside them). Still
+  // inside the tap, so iOS shows the keyboard.
+  openPhonePicker() {
+    const hero = this.compact && document.getElementById('city-jump')?.closest('.cj-box');
+    if (hero) hero.click();
+    else this.openSheet();
+  }
   // Highlight rules: the option under the mouse (.is-hover, see hoverOption/refreshHover); with no
   // mouse on the list, only an option whose name is exactly what was typed, or the one reached with
   // the arrow keys. Nothing is highlighted just because it comes first. Moving the mouse after using
@@ -584,7 +592,7 @@ def('App City Jump', String.raw`
     const phone = this.phone;
     if (open) requestAnimationFrame(refreshHover); // options were redrawn
     return {
-      uid: this.props.uid ?? (this.compact ? 'city-jump-bar' : 'city-jump'),
+      uid: this.props.uid ?? (this.compact ? 'city-jump-bar' : 'city-jump'), placeholder: this.props.placeholder ?? 'scegli la città',
       query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '', leave: leaveList,
       phone, sheet: this.state.sheet, loading: !comuni,
       openClass: open && comuni && !phone ? 'cj-open' : '',
@@ -598,14 +606,14 @@ def('App City Jump', String.raw`
         if (box) box.scrollTop = 0;
       },
       close: () => this.closeSheet(),
-      boxClick: () => { if (this.phone) this.openSheet(); },
+      boxClick: () => { if (this.phone) this.openPhonePicker(); },
       sheetKey: e => {
         const first = searchCities(this.state.comuni ?? [], this.state.query)[0];
         if (e.key === 'Enter' && first) { e.preventDefault(); this.go(first.name); }
         else if (e.key === 'Escape') this.closeSheet();
       },
       input: e => { disarmHover(); this.setState({ query: e.target.value, open: true, kb: false, idx: -1 }); },
-      focus: () => { if (this.phone) return this.openSheet(); disarmHover(); this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
+      focus: () => { if (this.phone) return this.openPhonePicker(); disarmHover(); this.setState({ open: true }); this.load(); requestAnimationFrame(() => this.reveal()); },
       // The chevron and the rest of the pill open the list too (and close it when it's open)
       boxDown: e => {
         if (this.phone) { e.preventDefault(); return; } // the tap's click opens the full-screen picker
@@ -672,7 +680,7 @@ def('App Site Header', String.raw`
 <sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" aria-current="{{ l.current }}" style="height:36px;padding:{{ l.pad }};border-radius:999px;background:{{ l.bg }};color:{{ l.fg }};text-decoration:none;display:flex;align-items:center">{{ l.label }}</a></sc-for>
 </nav>
 <div style="flex:1"></div><div class="site-enter-wrap"><div class="site-enter"><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import></div>
-<sc-if value="{{ jump }}"><div class="site-jump"><dc-import name="App City Jump" compact="{{ true }}" uid="city-jump-head"></dc-import></div></sc-if></div>
+<sc-if value="{{ jump }}"><div class="site-jump"><dc-import name="App City Jump" compact="{{ true }}" uid="city-jump-head" placeholder="città"></dc-import></div></sc-if></div>
 </div></header>`, class extends DCLogic {
   renderVals() {
     const here = this.props.here ?? 'home';
