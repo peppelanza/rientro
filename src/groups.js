@@ -131,3 +131,51 @@ export function deleteComment(db, viewer, id, postId, commentId) {
   db.prepare('DELETE FROM group_comments WHERE id = ?').run(c.id);
   return { ok: true };
 }
+
+// --- Public: group pages are open to anyone and indexed by search engines (no link to them from the
+// public site; the sitemap lists them). Next to posts and comments only the author's name and photo;
+// the profile itself is for members.
+
+const VISIBLE_AUTHOR = `author_id IN (SELECT u.id FROM users u WHERE u.status = 'approved' AND u.deletion_requested_at IS NULL)`;
+
+function publicAuthor(db, id) {
+  const p = rawProfile(db, id);
+  return { name: nameOf(db, id) || 'Membro', photo_url: p?.photo_file_id ? `/api/public/photos/${p.photo_file_id}` : null };
+}
+
+export function publicGroup(db, id, query = new URLSearchParams()) {
+  const g = groupOr404(db, id);
+  const rows = db.prepare(`SELECT * FROM group_posts WHERE group_id = ? AND ${VISIBLE_AUTHOR} ORDER BY id DESC`).all(id);
+  const posts = paginate(rows, pageParams(query, 20), p => {
+    const comments = db.prepare(`SELECT * FROM group_comments WHERE post_id = ? AND ${VISIBLE_AUTHOR} ORDER BY id`).all(p.id)
+      .map(c => ({ id: c.id, body: c.body, created_at: c.created_at, author: publicAuthor(db, c.author_id) }));
+    return { id: p.id, body: p.body, created_at: p.created_at, author: publicAuthor(db, p.author_id), comments_count: comments.length, comments };
+  });
+  return { group: summary(db, g), posts };
+}
+
+// A profile photo is public only while its owner has written something in a group
+export function publicPhotoAllowed(db, fileId) {
+  return !!db.prepare(
+    `SELECT 1 FROM profiles p JOIN users u ON u.id = p.user_id
+     WHERE p.photo_file_id = ? AND u.status = 'approved' AND u.deletion_requested_at IS NULL
+       AND (EXISTS (SELECT 1 FROM group_posts WHERE author_id = p.user_id) OR EXISTS (SELECT 1 FROM group_comments WHERE author_id = p.user_id))`,
+  ).get(fileId);
+}
+
+export const groupIds = db => db.prepare('SELECT id FROM groups ORDER BY position').all().map(g => g.id);
+
+// The page's content written into the HTML for search engines and first paint (the app takes over)
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export function groupPageHtml(db, id) {
+  const g = db.prepare('SELECT * FROM groups WHERE id = ?').get(id);
+  if (!g) return null;
+  const { posts } = publicGroup(db, id);
+  const first = posts.items[0]?.body;
+  const description = `${g.description}${first ? ` ${first.slice(0, 120)}` : ''}`;
+  const body = `<main style="max-width:720px;margin:0 auto;padding:24px 16px;font-family:'Geist',sans-serif;color:#1A1726">
+<h1 style="font-family:'Unbounded',sans-serif">${esc(g.name)} · Gruppi di Rientro</h1><p>${esc(g.description)}</p>
+${posts.items.map(p => `<article><p><strong>${esc(p.author.name)}</strong></p><p style="white-space:pre-wrap">${esc(p.body)}</p>${p.comments.map(c => `<p><strong>${esc(c.author.name)}</strong>: ${esc(c.body)}</p>`).join('')}</article>`).join('\n')}
+</main>`;
+  return { title: `${g.name} · Gruppi · Rientro`, description, body };
+}

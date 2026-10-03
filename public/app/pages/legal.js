@@ -1,5 +1,6 @@
 // Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
-// Cookie Policy, texts of 1 October 2026. Changing one: bump its LEGAL_VERSIONS entry.
+// Cookie Policy: Privacy and Termini of 3 October 2026 (public groups), Cookie of 1 October 2026.
+// Changing one: bump its LEGAL_VERSIONS entry (before launch, as for the groups, not needed: nobody to ask).
 // No cookie banner (43c): only technical cookies; visit statistics without cookies (Cloudflare Web Analytics).
 import { Page } from './_base.js';
 
@@ -7,10 +8,10 @@ export const title = 'Informazioni legali';
 
 const DOCS = {
   privacy: {
-    title: 'Privacy Policy', updated: 'AGGIORNATA IL 1° OTTOBRE 2026',
+    title: 'Privacy Policy', updated: 'AGGIORNATA IL 3 OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
-      ['Chi lo vede', 'Solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email.'],
+      ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
       ['Cosa non facciamo', 'Non vendiamo i tuoi dati e non li cediamo a terzi per il loro marketing. Nessun cookie di tracciamento o pubblicità.'],
       ['Il controllo è tuo', 'Scarica o elimina tutto dalle impostazioni quando vuoi. Newsletter e notifiche si gestiscono in un clic. Per tutto il resto: privacy@rientro.it.'],
     ],
@@ -28,7 +29,7 @@ const DOCS = {
         'Dati che ci dai tu quando ti iscrivi e compili il profilo:',
         '• Account: indirizzo email.',
         '• Profilo: nome e cognome, foto, video di presentazione (facoltativo), anno di nascita (agli altri utenti mostriamo solo la fascia d’età che ne deriva), paese e città in cui vivi, da dove sei rientrato e in quale periodo, comuni in cui vorresti vivere, obiettivo (per esempio avviare un progetto o fare rete) e l’eventuale idea che vuoi sviluppare, area professionale, ruolo e azienda attuali, anni di esperienza, formazione ed esperienze lavorative, un risultato di cui vai fiero, settori di interesse, le persone e le competenze che cerchi, tempo che puoi dedicare e quando vuoi iniziare, cosa ti manca dell’Italia, link facoltativi (LinkedIn, sito, Instagram, X, calendario) e come hai conosciuto Rientro.',
-        '• Comunicazioni: le note che accompagnano le richieste di connessione, i messaggi che scambi con le tue connessioni, le segnalazioni che invii e il motivo, facoltativo, per cui cancelli l’account.',
+        '• Comunicazioni: le note che accompagnano le richieste di connessione, i messaggi che scambi con le tue connessioni, i post e i commenti che pubblichi nei gruppi, le segnalazioni che invii e il motivo, facoltativo, per cui cancelli l’account.',
         '• Preferenze: le tue scelte su newsletter e notifiche, e le conferme di presa visione dei nostri documenti legali.',
         'Dati che riceviamo se accedi con LinkedIn o Google: se scegli di accedere tramite uno di questi servizi, riceviamo da loro soltanto i dati che autorizzi nella schermata del fornitore, di norma nome, cognome, indirizzo email e foto del profilo. Non riceviamo mai la tua password e non pubblichiamo nulla sui tuoi account. Se non hai ancora una foto su Rientro, usiamo la foto del tuo account come foto profilo iniziale solo se mostra un volto; puoi cambiarla quando vuoi.',
         'Controllo del volto: quando carichi una foto profilo verifichiamo che mostri un volto. Il controllo avviene soltanto nel tuo browser, con un modello ospitato sui nostri server: la foto non viene inviata a terzi e non ricaviamo né conserviamo dati biometrici.',
@@ -46,8 +47,9 @@ const DOCS = {
       ['Chi può vedere i tuoi dati', [
         '• Gli altri membri di Rientro vedono il tuo profilo da quando lo pubblichi. Instagram, X e il link al calendario sono visibili solo alle persone con cui sei connesso. La tua email non viene mai mostrata a nessuno.',
         '• Le tue connessioni vedono i messaggi che vi scambiate: i messaggi sono visibili solo a chi partecipa alla conversazione.',
+        '• Gruppi: i post e i commenti che scrivi nei gruppi sono pubblici. Chiunque, anche senza essere iscritto a Rientro, può leggerli insieme al tuo nome, cognome e foto, e le pagine dei gruppi possono essere indicizzate dai motori di ricerca (per esempio Google). Il resto del tuo profilo resta riservato ai membri: per vederlo bisogna iscriversi. Puoi eliminare i tuoi post e commenti in qualsiasi momento; scrivere nei gruppi è facoltativo.',
         '• Aziende verificate: stiamo preparando la possibilità per le aziende di registrarsi a Rientro e contattare i membri dentro la piattaforma, come avviene su LinkedIn. Quando la attiveremo, le aziende verificate vedranno il tuo profilo come lo vedono i membri e potranno scriverti tramite Rientro; non riceveranno la tua email né altri dati fuori dalla piattaforma. Prima dell’attivazione ti avviseremo e troverai nelle impostazioni un interruttore per non essere visibile alle aziende.',
-        '• Il pubblico non vede il tuo profilo: le pagine pubbliche del sito, come quelle dedicate alle città, mostrano solo numeri aggregati, e mai gruppi di meno di 5 persone.',
+        '• Il pubblico non vede il tuo profilo: fuori da Rientro compaiono soltanto il tuo nome, cognome e foto accanto a quello che scrivi nei gruppi. Le altre pagine pubbliche del sito, come quelle dedicate alle città, mostrano solo numeri aggregati, e mai gruppi di meno di 5 persone.',
         '• Il titolare e le persone autorizzate che lo aiutano a gestire Rientro, vincolate alla riservatezza, accedono ai dati solo quando serve: per rivedere i profili prima della pubblicazione, gestire le segnalazioni e dare assistenza. Ogni accesso dell’area di amministrazione ai dati personali viene registrato. In caso di segnalazione, un moderatore può leggere la conversazione tra chi segnala e la persona segnalata.',
         '• I fornitori che ci aiutano a far funzionare il servizio, indicati al punto 7, nominati responsabili del trattamento (art. 28 GDPR).',
         '• Autorità pubbliche e giudiziarie, solo quando la legge ci obbliga.',
@@ -69,6 +71,7 @@ const DOCS = {
         'Conserviamo i dati solo per il tempo necessario alle finalità per cui li raccogliamo. Le cancellazioni indicate qui sotto avvengono automaticamente, ogni giorno:',
         '• Account e profilo: finché non cancelli l’account, che puoi fare in qualsiasi momento da Impostazioni. Dalla richiesta il tuo profilo non è più visibile a nessuno e vieni disconnesso; per 30 giorni puoi ripensarci semplicemente accedendo di nuovo, e ritrovi tutto com’era. Trascorsi i 30 giorni cancelliamo definitivamente l’account e tutti i dati collegati. Se preferisci la cancellazione immediata, scrivici a privacy@rientro.it.',
         '• Messaggi e connessioni: finché l’account di uno dei due partecipanti non viene cancellato definitivamente.',
+        '• Post e commenti nei gruppi: finché non li elimini tu o finché il tuo account non viene cancellato definitivamente. Dalla richiesta di cancellazione non sono più visibili a nessuno.',
         '• Codici di accesso: 10 minuti. Sessioni di accesso: 30 giorni dall’ultimo accesso, poi scadono e vengono cancellate.',
         '• Segnalazioni chiuse: 24 mesi dalla chiusura, per gestire eventuali abusi ripetuti.',
         '• Registro degli accessi dell’area di amministrazione e registro delle richieste di esportazione dei dati: 24 mesi.',
@@ -106,6 +109,7 @@ const DOCS = {
     purposes: [
       ['Creare e gestire il tuo account', 'Registrazione, accesso con codice via email o con LinkedIn e Google, sessioni, assistenza.', 'Email, dati ricevuti da LinkedIn o Google, dati tecnici di sessione.', 'Esecuzione del contratto, cioè dei Termini che accetti iscrivendoti (art. 6.1.b).'],
       ['Farti conoscere e far funzionare la community', 'Mostrare il tuo profilo agli altri membri, suggerirti persone affini, gestire richieste di connessione, messaggi e notifiche in app.', 'Dati del profilo, connessioni, messaggi.', 'Esecuzione del contratto (art. 6.1.b).'],
+      ['Gruppi', 'Pubblicare i post e i commenti che scrivi nei gruppi, visibili a chiunque anche fuori da Rientro e indicizzabili dai motori di ricerca, insieme al tuo nome, cognome e foto.', 'Post, commenti, nome, cognome e foto.', 'Esecuzione del contratto (art. 6.1.b): sei tu a scegliere di scrivere in un gruppo.'],
       ['Email di servizio', 'Codice di accesso, avvisi su nuove richieste e messaggi, conferma della richiesta di cancellazione dell’account, comunicazioni importanti sul servizio e sui tuoi dati. Dalle impostazioni scegli quali notifiche ricevere via email.', 'Email, dati necessari al singolo avviso.', 'Esecuzione del contratto (art. 6.1.b).'],
       ['Newsletter e comunicazioni promozionali', 'Novità su Rientro, eventi e iniziative. Solo se ci dai il consenso; puoi revocarlo quando vuoi dalle impostazioni o dal link in ogni email.', 'Email, nome.', 'Consenso (art. 6.1.a), separato e facoltativo.'],
       ['Visibilità alle aziende verificate (in arrivo)', 'Permettere alle aziende registrate e verificate di trovare il tuo profilo e contattarti dentro Rientro. Prima dell’attivazione ti avviseremo e potrai scegliere di non essere visibile.', 'Dati del profilo visibili ai membri.', 'Esecuzione del contratto (art. 6.1.b): è parte del servizio descritto nei Termini.'],
@@ -115,7 +119,7 @@ const DOCS = {
     ],
   },
   termini: {
-    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 1° OTTOBRE 2026',
+    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 3 OTTOBRE 2026',
     summary: [
       ['A cosa serve', 'Conoscere persone che rientrano in Italia o al Sud, per fare rete o costruire un progetto insieme.'],
       ['Profili rivisti', 'Ogni profilo viene letto da una persona del team prima di andare online. Un account a testa, con dati veri.'],
@@ -154,7 +158,7 @@ const DOCS = {
         'Una richiesta di connessione rifiutata va rispettata: non insistere e non contattare la persona in altri modi usando dati ottenuti su Rientro.',
       ]],
       ['I contenuti che pubblichi', [
-        'Testi, foto, video e messaggi che pubblichi restano tuoi. Ci concedi soltanto il permesso, gratuito e non esclusivo, di conservarli, adattarli tecnicamente (per esempio ridimensionare una foto o convertire un video) e mostrarli dentro Rientro alle persone che possono vederli secondo le tue impostazioni, per il solo scopo di far funzionare il servizio. Il permesso termina quando cancelli il contenuto o l’account, salvo i tempi tecnici di cancellazione indicati nella Privacy Policy.',
+        'Testi, foto, video e messaggi che pubblichi restano tuoi. Ci concedi soltanto il permesso, gratuito e non esclusivo, di conservarli, adattarli tecnicamente (per esempio ridimensionare una foto o convertire un video) e mostrarli dentro Rientro alle persone che possono vederli secondo le tue impostazioni, per il solo scopo di far funzionare il servizio. I post e i commenti che scrivi nei gruppi, insieme al tuo nome, cognome e foto, sono invece pubblici: ci permetti di mostrarli a chiunque visiti il sito, anche senza account, e di farli indicizzare dai motori di ricerca. Il permesso termina quando cancelli il contenuto o l’account, salvo i tempi tecnici di cancellazione indicati nella Privacy Policy.',
         'Dichiari di avere il diritto di pubblicare ciò che carichi e che foto e video ritraggono te o persone che hanno acconsentito. Sei responsabile dei contenuti che pubblichi e dei messaggi che invii.',
       ]],
       ['Segnalazioni, moderazione e sospensione', [

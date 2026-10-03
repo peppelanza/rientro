@@ -1,8 +1,10 @@
-// One group (gruppi.js lists them): anyone can write a post and comment, delete their own (admins
-// any), report someone else's. Newest posts first, 20 per page; under each post its last 3 comments.
-import { api, getMe, go, timeAgo, toastError } from '../lib.js';
+// One group (gruppi.js lists them): anyone with a profile can write a post and comment, delete their
+// own (admins any), report someone else's. Newest posts first, 20 per page; under each post its last
+// 3 comments. The page is public too: without an account (or before launch) it's read-only, with only
+// the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
+import { api, go, setMe, timeAgo, toastError } from '../lib.js';
 import { report } from '../social.js';
-import { homeFor, Page } from './_base.js';
+import { Page, peekMe } from './_base.js';
 
 export const title = 'Gruppo';
 export const tabbar = true;
@@ -11,13 +13,13 @@ const ini = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2);
 
 export default class extends Page {
   async load() {
-    const me = await getMe();
-    if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
+    const me = await peekMe();
+    if (me) setMe(me);
+    const member = !!me && me.user.status === 'approved' && (me.launched || me.user.role === 'admin');
     const id = this.props.params.id;
-    Object.assign(this.state, { me, id, draft: '', drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
-    const [group] = await Promise.all([api('GET', `/api/groups/${encodeURIComponent(id)}`), this.fetchPosts()]);
-    this.state.group = group;
-    document.title = `${group.name} · Gruppi · Rientro`;
+    Object.assign(this.state, { me, member, id, draft: '', drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
+    await this.fetchAll();
+    document.title = `${this.state.group.name} · Gruppi · Rientro`;
   }
 
   componentDidMount() {
@@ -28,17 +30,19 @@ export default class extends Page {
   }
   componentWillUnmount() { removeEventListener('click', this.closeMenu); }
 
-  async fetchPosts() {
+  async fetchAll() {
     const s = this.state;
-    s.feed = await api('GET', `/api/groups/${encodeURIComponent(s.id)}/posts?page=${s.page}`);
+    const id = encodeURIComponent(s.id);
+    if (!s.member) {
+      const r = await api('GET', `/api/public/groups/${id}?page=${s.page}`);
+      Object.assign(s, { group: r.group, feed: r.posts });
+      return;
+    }
+    [s.group, s.feed] = await Promise.all([api('GET', `/api/groups/${id}`), api('GET', `/api/groups/${id}/posts?page=${s.page}`)]);
   }
 
   // Pull to refresh (pull-refresh.js): the group and its posts, keeping what you're writing
-  async refresh() {
-    const s = this.state;
-    const [group] = await Promise.all([api('GET', `/api/groups/${encodeURIComponent(s.id)}`), this.fetchPosts()]);
-    s.group = group;
-  }
+  async refresh() { await this.fetchAll(); }
 
   publish = this.act(async () => {
     const s = this.state;
@@ -85,24 +89,26 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.group) return { loading: true, me: s.me || {} };
+    if (!s.group) return { loading: true, me: s.me || {}, member: false, visitor: false };
     const g = s.group;
-    const admin = s.me.user.role === 'admin';
-    const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role, href: `/persone/${a.id}` });
+    const admin = s.me?.user.role === 'admin';
+    // Outside Rientro the author is just a name and a photo; the profile is behind sign-up
+    const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role || '', href: s.member ? `/persone/${a.id}` : '/accedi' });
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
     const posts = s.feed.items.map(p => ({
       ...p, who: person(p.author), when: timeAgo(p.created_at),
       comments: p.comments.map(c => comment(p, c)),
       more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),
-      canDelete: p.mine || admin, del: () => this.remove(p), canReport: !p.mine,
+      canDelete: p.mine || admin, del: () => this.remove(p), canReport: !p.mine, hasMenu: s.member,
       doReport: async () => { this.setState({ menuFor: null }); await report({ id: p.author.id, name: p.author.name }); },
       replyField: `reply-${p.id}`, draft: s.drafts[p.id] || '',
       draftProps: { onInput: v => { s.drafts[p.id] = v; }, onEnter: () => this.comment(p) },
       send: () => this.comment(p),
     }));
     return {
-      loading: false, me: s.me, g,
+      loading: false, me: s.me || {}, g, member: s.member, visitor: !s.member,
+      signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
       stats: g.posts ? `${g.posts} post` : 'Nessun post ancora',
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,
       posts, empty: !posts.length,

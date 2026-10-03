@@ -144,8 +144,8 @@ def('App Nav', String.raw`
     // Admins are members like everyone else; before launch they can also preview the member area
     const open = approved && (me.launched || u.role === 'admin');
     const items = open ? [
-      ['scopri', 'Scopri chi torna', '/scopri', 0], ['gruppi', 'Gruppi', '/gruppi', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
-      ['messaggi', 'Messaggi', '/messaggi', c.unread_messages],
+      ['scopri', 'Scopri chi torna', '/scopri', 0], ['connessioni', 'Connessioni', '/connessioni', c.received],
+      ['messaggi', 'Messaggi', '/messaggi', c.unread_messages], ['gruppi', 'Gruppi', '/gruppi', 0],
     ].map(([k, label, href, n]) => ({ label, href, count: n, hasCount: !!n, current: k === a ? 'page' : false, bg: k === a ? '#1A1726' : 'transparent', fg: k === a ? '#FFFFFF' : '#6B6680' })) : [];
     const pendingNote = u.status === 'onboarding' ? 'Completa il profilo' : null;
     const menu = [
@@ -204,7 +204,7 @@ def('App TabBar', String.raw`
     const a = this.props.active ?? 'scopri';
     const c = this.props.me?.counts || {};
     // No room for a fifth: Profilo and Impostazioni are under the photo in the top bar
-    const items = [['scopri', 'Scopri', '/scopri', '50%', 0], ['gruppi', 'Gruppi', '/gruppi', '50% 50% 6px 6px', 0], ['connessioni', 'Connessioni', '/connessioni', '6px', c.received], ['messaggi', 'Messaggi', '/messaggi', '6px 6px 6px 2px', c.unread_messages]]
+    const items = [['scopri', 'Scopri', '/scopri', '50%', 0], ['connessioni', 'Connessioni', '/connessioni', '6px', c.received], ['messaggi', 'Messaggi', '/messaggi', '6px 6px 6px 2px', c.unread_messages], ['gruppi', 'Gruppi', '/gruppi', '50% 50% 6px 6px', 0]]
       .map(([k, label, href, radius, n]) => ({
         label, href, radius, dot: !!n && k !== a, current: k === a ? 'page' : false,
         bg: k === a ? '#EFEBFF' : 'transparent', fg: k === a ? '#3E2BA8' : '#6B6680', fill: k === a ? '#6C4DF5' : 'transparent', fw: k === a ? 600 : 500,

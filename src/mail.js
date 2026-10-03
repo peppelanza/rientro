@@ -61,12 +61,12 @@ export function welcomeEmail({ launched = isLaunched() } = {}) {
   const cta = launched ? ['Completa il profilo', url('/onboarding')] : ['Prepara il tuo profilo', url('/onboarding')];
   return {
     subject: launched ? 'Benvenuto su Rientro' : `Benvenuto su Rientro: apriamo il ${date}`,
-    text: `Benvenuto su Rientro!\n\n${intro}\n\n${how.map(([t, d], i) => `${i + 1}. ${t}: ${d}`).join('\n')}\n\nIl tuo profilo è visibile solo agli altri membri di Rientro e non è indicizzato dai motori di ricerca.\n\n${cta[0]}: ${cta[1]}${textFooter}`,
+    text: `Benvenuto su Rientro!\n\n${intro}\n\n${how.map(([t, d], i) => `${i + 1}. ${t}: ${d}`).join('\n')}\n\nIl tuo profilo è visibile solo agli altri membri di Rientro. Fuori da Rientro si vedono soltanto il tuo nome e la tua foto accanto a quello che scrivi nei gruppi.\n\n${cta[0]}: ${cta[1]}${textFooter}`,
     html: layout({
       preheader: launched ? 'Come funziona Rientro, in tre passi.' : `Apriamo il ${date}. Intanto prepara il tuo profilo.`,
       body: (launched ? '' : eyebrow(`Apre il ${date}`)) + h1('Benvenuto su Rientro') + p(intro)
         + steps(how) + button(...cta)
-        + p('Il tuo profilo è visibile solo agli altri membri di Rientro e non è indicizzato dai motori di ricerca.', { size: 13, color: '#8C84AE', margin: '0' }),
+        + p('Il tuo profilo è visibile solo agli altri membri di Rientro. Fuori da Rientro si vedono soltanto il tuo nome e la tua foto accanto a quello che scrivi nei gruppi.', { size: 13, color: '#8C84AE', margin: '0' }),
     }),
   };
 }

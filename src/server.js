@@ -14,7 +14,7 @@ import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb, tx } from './db.js';
-import { attachUpload, checkVideo, confirmVideo, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
+import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
@@ -245,9 +245,9 @@ function streamFile(req, res, f) {
 
 // --- pages ---------------------------------------------------------------------------------
 
-const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
+const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
-  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi(\/[^/]+)?$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
+  /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
@@ -500,6 +500,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.setReaction(db, user, params.id, params.msg, await readJson(req)));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
 
+  route('GET', '/api/public/groups/:id', ({ params, url }) => groups.publicGroup(db, params.id, url.searchParams), pub);
+  route('GET', '/api/public/photos/:id', ({ params, req, res }) => {
+    if (!groups.publicPhotoAllowed(db, params.id)) throw new HttpError(404, 'not_found');
+    streamFile(req, res, fileOnDisk(db, params.id));
+  }, { ...pub, raw: true });
   route('GET', '/api/groups', ({ user }) => groups.listGroups(db, user));
   route('GET', '/api/groups/:id', ({ user, params }) => groups.getGroup(db, user, params.id));
   route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));
@@ -634,6 +639,26 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         if (p === '/stato') { res.writeHead(302, { Location: '/profilo' }); res.end(); return; }
         // Blocked people are listed in Privacy now
         if (p === '/impostazioni/bloccati') { res.writeHead(302, { Location: '/impostazioni/privacy#bloccati' }); res.end(); return; }
+        // Search engines: group pages are public and listed here (not linked from the public site)
+        if (p === '/robots.txt') return reply(res, 200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' }, Buffer.from(`User-agent: *\nAllow: /\nSitemap: ${config.baseUrl}/sitemap.xml\n`));
+        if (p === '/sitemap.xml') {
+          const urls = ['/', ...groups.groupIds(db).map(id => `/gruppi/${id}`)];
+          return reply(res, 200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'no-cache' },
+            Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${config.baseUrl}${u}</loc></url>`).join('\n')}\n</urlset>\n`));
+        }
+        // A group page: its posts written into the HTML, for search engines and the first paint
+        const groupMatch = /^\/gruppi\/([^/]+)$/.exec(p);
+        if (groupMatch) {
+          const page = groups.groupPageHtml(db, decodeURIComponent(groupMatch[1]));
+          if (!page) return sendNotFound(res);
+          const attr = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+          const html = fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8')
+            .replace(/<title>[^<]*<\/title>/, `<title>${attr(page.title)}</title>\n<link rel="canonical" href="${config.baseUrl}${p}">`)
+            .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${attr(page.description)}">`)
+            .replace('<div id="app" aria-live="polite"></div>', `<div id="app" aria-live="polite">${page.body}</div>`)
+            .replace('</body>', `${beaconTag()}\n</body>`);
+          return reply(res, 200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }, Buffer.from(html));
+        }
         if (PUBLIC_PAGES.some(re => re.test(p))) return shell();
         const needsAdmin = ADMIN_PAGES.some(re => re.test(p));
         if (needsAdmin || MEMBER_PAGES.some(re => re.test(p))) {

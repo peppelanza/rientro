@@ -66,7 +66,8 @@ async function boot() {
 // Not on public pages, sign-in, legal pages or onboarding (it's asked once the profile has been sent).
 const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding']);
 async function askLegalUpdate() {
-  const me = await getMe().catch(() => null);
+  // the session without redirecting: public pages (a group) are open to visitors too
+  const me = await fetch('/api/session').then(r => (r.ok ? r.json() : null)).catch(() => null);
   if (!me?.legal?.needs?.length || me.user.status === 'onboarding' || me.impersonated) return;
   const tpl = `<div class="legal-update"><h2>Abbiamo aggiornato i nostri documenti</h2>
 <p>Dal 30 settembre 2026 sono in vigore i nuovi <a href="/legal/termini" target="_blank">Termini</a> e la nuova <a href="/legal/privacy" target="_blank">Privacy Policy</a>: tra le novità, 30 giorni per ripensarci quando cancelli l’account. Per continuare a usare Rientro, confermali.</p>

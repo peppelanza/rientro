@@ -223,6 +223,13 @@ export function readFileFor(db, viewer, fileId, canSeeConnectionsOnly) {
   return { mime: f.mime_type, size: f.size_bytes, path: diskPath(f.storage_key) };
 }
 
+// No permission check: for callers that have done their own (public photos of group authors, server.js)
+export function fileOnDisk(db, fileId) {
+  const f = db.prepare('SELECT mime_type, size_bytes, storage_key FROM files WHERE id = ?').get(fileId);
+  if (!f) throw new HttpError(404, 'not_found');
+  return { mime: f.mime_type, size: f.size_bytes, path: diskPath(f.storage_key) };
+}
+
 export function deleteFilesOf(db, userId) {
   const keys = db.prepare('SELECT storage_key FROM files WHERE owner_id = ?').all(userId).map(r => r.storage_key);
   return () => keys.forEach(k => fs.rmSync(diskPath(k), { force: true }));
