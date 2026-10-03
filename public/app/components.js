@@ -506,7 +506,7 @@ def('App City Jump', String.raw`
   // at the top and the list below, sized to the visible viewport so the keyboard never covers
   // it; the phone's back button closes it.
   get phone() { return matchMedia('(max-width: 720px)').matches; }
-  // compact: the copy in the home's top bar (App Home Bar), with its own element ids
+  // compact: a copy in a top bar (the home's), which opens where it is; uid: its element ids
   get compact() { return b(this.props.compact); }
   openSheet() {
     if (this.state.sheet) return;
@@ -584,7 +584,7 @@ def('App City Jump', String.raw`
     const phone = this.phone;
     if (open) requestAnimationFrame(refreshHover); // options were redrawn
     return {
-      uid: this.compact ? 'city-jump-bar' : 'city-jump',
+      uid: this.props.uid ?? (this.compact ? 'city-jump-bar' : 'city-jump'),
       query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '', leave: leaveList,
       phone, sheet: this.state.sheet, loading: !comuni,
       openClass: open && comuni && !phone ? 'cj-open' : '',
@@ -671,7 +671,8 @@ def('App Site Header', String.raw`
 <nav aria-label="Menu" class="r-hide-md" style="display:flex;gap:26px;color:#6B6680;align-items:center">
 <sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" aria-current="{{ l.current }}" style="height:36px;padding:{{ l.pad }};border-radius:999px;background:{{ l.bg }};color:{{ l.fg }};text-decoration:none;display:flex;align-items:center">{{ l.label }}</a></sc-for>
 </nav>
-<div style="flex:1"></div><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import>
+<div style="flex:1"></div><div class="site-enter-wrap"><div class="site-enter"><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import></div>
+<sc-if value="{{ jump }}"><div class="site-jump"><dc-import name="App City Jump" compact="{{ true }}" uid="city-jump-head"></dc-import></div></sc-if></div>
 </div></header>`, class extends DCLogic {
   renderVals() {
     const here = this.props.here ?? 'home';
@@ -683,7 +684,9 @@ def('App Site Header', String.raw`
       const on = page === here;
       return { label, href, current: on ? 'page' : 'false', pad: on ? '0 14px' : '0', bg: on ? '#1A1726' : 'transparent', fg: on ? '#FFFFFF' : '#6B6680' };
     });
-    return { links, enter: () => this.props.onEnter?.() };
+    // jump: on the home, phones swap "Accedi a Rientro" for the city picker once the hero's has
+    // scrolled away (app.css, body.home-bar-on)
+    return { links, enter: () => this.props.onEnter?.(), jump: b(this.props.jump) };
   }
 });
 
