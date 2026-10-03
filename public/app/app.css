@@ -595,9 +595,9 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
 @media (min-width: 721px) {
   .filters-more:not(.open) { display: none; }
   .filters-more.opening { animation: filters-open .2s ease-out; }
-  .filters-more-toggle { display: flex; align-items: center; justify-content: space-between; height: 44px; margin: -6px 0; padding: 0 16px; border: 1px solid #E4E0F2; border-radius: 999px; background: #FFFFFF; font: 500 14px 'Geist', sans-serif; color: #1A1726; cursor: pointer; }
-  .filters-more-toggle:hover { background: #F6F4FC; }
-  .filters-more-toggle svg { color: #6B6680; }
+  .filters-more-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -6px 0; padding: 4px 0; border: none; background: none; font: 500 14px 'Geist', sans-serif; color: #1A1726; cursor: pointer; }
+  .filters-more-toggle:hover { color: #6C4DF5; }
+  .filters-more-toggle svg { color: currentColor; }
   .filters-more-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
 }
 @keyframes filters-open { from { opacity: 0; transform: translateY(-8px); } }
