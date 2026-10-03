@@ -483,8 +483,11 @@ body { padding-top: var(--lb, 0px); }
 /* Chat (pages/messaggi): bubbles, emoji-only messages, reactions like WhatsApp */
 .msg-wrap { position: relative; max-width: 78%; display: flex; align-items: center; gap: 6px; -webkit-touch-callout: none; }
 .msg-row[data-from="me"] .msg-wrap { flex-direction: row-reverse; }
-.msg-bubble { padding: 11px 16px; font: 15px/1.45 'Geist', sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 22px 22px 22px 6px; background: #FFFFFF; color: #1A1726; box-shadow: 0 4px 14px rgba(80, 60, 160, .06); }
-.msg-row[data-from="me"] .msg-bubble { border-radius: 22px 22px 6px 22px; background: #6C4DF5; color: #FFFFFF; box-shadow: none; }
+.msg-bubble { padding: 11px 16px; font: 15px/1.45 'Geist', sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; border-radius: 22px; background: #FFFFFF; color: #1A1726; box-shadow: 0 4px 14px rgba(80, 60, 160, .06); }
+.msg-row[data-from="me"] .msg-bubble { background: #6C4DF5; color: #FFFFFF; box-shadow: none; }
+/* Pointed corner only on the last message of a run (left for them, right for me) */
+.msg-row[data-from="them"][data-tail="1"] .msg-bubble { border-bottom-left-radius: 6px; }
+.msg-row[data-from="me"][data-tail="1"] .msg-bubble { border-bottom-right-radius: 6px; }
 .msg-big { font-size: 44px; line-height: 1.15; }
 @media (hover: none) { .msg-row[data-from="them"] .msg-wrap { -webkit-user-select: none; user-select: none; } }
 .react-btn { flex: none; width: 30px; height: 30px; border-radius: 50%; border: none; background: #FFFFFF; color: #8C84AE; font-size: 16px; cursor: pointer; opacity: 0; transition: opacity .15s; box-shadow: 0 2px 8px rgba(80, 60, 160, .12); }

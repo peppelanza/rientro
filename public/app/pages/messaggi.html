@@ -46,7 +46,7 @@
 <sc-if value="{{ empty }}"><span style="align-self:center;font-size:13px;color:#8C84AE;padding:10px 0">Scrivi il primo messaggio.</span></sc-if>
 <sc-for list="{{ items }}" as="m">
 <sc-if value="{{ m.sep }}"><span style="align-self:center;font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE;padding:10px 0">{{ m.label }}</span></sc-if>
-<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" data-new="{{ m.isNew }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
+<sc-if value="{{ m.msg }}"><div class="msg-row" data-from="{{ m.from }}" data-tail="{{ m.tail }}" data-new="{{ m.isNew }}" style="display:flex;flex-direction:column;align-items:{{ m.align }};gap:2px">
 <div class="msg-wrap" style="margin-bottom:{{ m.pb }}" onPointerDown="{{ m.down }}" onPointerUp="{{ m.up }}" onPointerLeave="{{ m.cancel }}" onPointerCancel="{{ m.cancel }}" onContextMenu="{{ m.ctx }}">
 <sc-if value="{{ m.big }}"><span class="msg-big">{{ m.text }}<span class="msg-time">{{ m.at }}</span></span></sc-if>
 <sc-if value="{{ m.normal }}"><div class="msg-bubble">{{ m.text }}<span class="msg-time">{{ m.at }}</span></div></sc-if>

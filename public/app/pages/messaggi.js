@@ -249,7 +249,9 @@ export default class extends Page {
       const reaction = (m.reactions || [])[0];
       const big = isEmojiOnly(m.body);
       items.push({
-        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big, isNew: this.known && !this.known.has(m.id) ? '1' : '',
+        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big,
+        // the pointed corner only on the last of a run of messages from the same person (same day)
+        tail: !next || next.mine !== m.mine || dayKey(next.created_at) !== k ? '1' : '', isNew: this.known && !this.known.has(m.id) ? '1' : '',
         // the time sits inside the bubble; under my last message, once read, "Letto · hh:mm"
         at: fmtTime(m.created_at), time: m.mine && m.read_at && !next ? `Letto · ${fmtTime(m.read_at)}` : '', align: m.mine ? 'flex-end' : 'flex-start',
         // reactions: only on the other person's messages (mine on theirs, theirs on mine)
