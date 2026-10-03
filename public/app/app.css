@@ -641,15 +641,18 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
 .site-jump { display: none; }
 @media (max-width: 720px) {
   .home-bar { display: none; }
-  .site-jump { display: block; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 150px; opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
+  /* exactly over "Accedi a Rientro", same size */
+  .site-jump { display: block; position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity; transition: opacity .2s ease; }
   .site-jump .cj-lead { display: none; }
+  .site-jump > .sc-host, .site-jump .city-jump { height: 100%; }
   .site-jump .city-jump { font-size: 14px; font-weight: 500; }
-  .site-jump .cj-box { width: 100%; height: 40px; padding: 0 10px 0 16px; border-width: 1.5px; box-shadow: none; }
+  .site-jump .cj-box { width: 100%; height: 100%; padding: 0 10px 0 16px; border-width: 1.5px; box-shadow: none; }
   .site-jump .cj-input { font-size: 14px; font-weight: 500; }
   .site-jump .cj-chevron { width: 16px; height: 16px; }
-  .site-enter { transition: opacity .2s ease .2s, visibility 0s .2s; }
-  body.home-bar-on .site-enter { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
-  body.home-bar-on .site-jump { opacity: 1; visibility: visible; transition: opacity .2s ease .2s, visibility 0s .2s; }
+  /* opacity only (Safari skips a fade that starts from visibility: hidden); the hidden one takes no taps */
+  .site-enter { will-change: opacity; transition: opacity .2s ease .2s; }
+  body.home-bar-on .site-enter { opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  body.home-bar-on .site-jump { opacity: 1; pointer-events: auto; transition: opacity .2s ease .2s; }
 }
 }
 @media (prefers-reduced-motion: reduce) { .home-bar, .site-enter, .site-jump { transition: none !important; } }
