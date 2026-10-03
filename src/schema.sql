@@ -286,7 +286,8 @@ CREATE TABLE IF NOT EXISTS reports (
   resolution   TEXT,
   created_at   TEXT NOT NULL,
   resolved_at  TEXT,
-  resolved_by  TEXT
+  resolved_by  TEXT,
+  group_post_id INTEGER  -- a report from a group post's "···" menu: which post (groups.js)
 );
 
 -- ---------------------------------------------------------------------------

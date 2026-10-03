@@ -7,7 +7,7 @@ const ACTION = {
   'dashboard.view': 'Ha aperto la dashboard', 'users.list': 'Ha consultato la lista utenti', 'user.view': 'Ha aperto un profilo', 'user.note': 'Ha aggiunto una nota',
   'user.approve': 'Ha approvato', 'user.request_changes': 'Ha richiesto modifiche', 'user.reject': 'Ha rifiutato', 'user.suspend': 'Ha sospeso', 'user.unsuspend': 'Ha riattivato', 'user.hide': 'Ha nascosto un profilo', 'user.show': 'Ha reso di nuovo visibile un profilo',
   'approvals.list': 'Ha aperto la coda approvazioni', 'reports.list': 'Ha consultato le segnalazioni', 'report.dismiss': 'Ha ignorato una segnalazione',
-  'report.suspend': 'Ha sospeso da segnalazione', 'report.request_changes': 'Ha richiesto modifiche da segnalazione', 'report.view_chat': 'Ha letto una chat segnalata',
+  'report.suspend': 'Ha sospeso da segnalazione', 'report.request_changes': 'Ha richiesto modifiche da segnalazione', 'report.view_chat': 'Ha letto una chat segnalata', 'report.delete_post': 'Ha eliminato un post segnalato in un gruppo',
   'photos.list': 'Ha aperto le foto da controllare', 'demo.create': 'Ha creato le persone di prova', 'user.impersonate': 'È entrato come un utente', 'user.impersonate_end': 'È uscito da un utente', 'demo.remove': 'Ha eliminato le persone di prova', 'blocked.list': 'Ha aperto i contenuti bloccati', 'blocked.view_image': 'Ha visto un\'immagine bloccata', 'blocked.restore': 'Ha riattivato un account bloccato', 'blocked.confirm': 'Ha confermato un blocco', 'photo.ok': 'Ha confermato una foto',
   'analytics.view': 'Ha aperto le analytics', 'export.csv': 'Ha esportato un CSV', 'audit.view': 'Ha aperto il registro accessi',
 };

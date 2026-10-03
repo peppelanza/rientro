@@ -287,15 +287,21 @@ export function listBlocked(db, viewer, query = new URLSearchParams()) {
 }
 
 export function report(db, viewer, body) {
-  only(body, ['user_id', 'reason', 'details', 'block']);
+  only(body, ['user_id', 'reason', 'details', 'block', 'post_id']);
   const targetId = text(body.user_id, 'user_id', { max: 64, nullable: false });
   const reason = oneOf(body.reason, REPORT_REASONS.map(r => r[0]), 'Motivo', { nullable: false });
   const details = text(body.details, 'Dettagli', { max: 1000 }) ?? null;
   const alsoBlock = body.block === undefined ? false : bool(body.block, 'block');
   if (targetId === viewer.id || !db.prepare('SELECT 1 FROM users WHERE id = ?').get(targetId)) throw new HttpError(404, 'not_found');
+  // From a group post's menu: the post must be the reported person's
+  let postId = null;
+  if (body.post_id != null) {
+    postId = db.prepare('SELECT id FROM group_posts WHERE id = ? AND author_id = ?').get(Number(body.post_id), targetId)?.id;
+    if (!postId) throw new HttpError(404, 'not_found', 'Post non trovato.');
+  }
   const id = newId();
-  db.prepare('INSERT INTO reports (id, reporter_id, reported_id, reason, details, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(id, viewer.id, targetId, reason, details, now());
+  db.prepare('INSERT INTO reports (id, reporter_id, reported_id, reason, details, created_at, group_post_id) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(id, viewer.id, targetId, reason, details, now(), postId);
   if (alsoBlock) block(db, viewer, targetId);
   return { id };
 }

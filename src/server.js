@@ -565,6 +565,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/admin/reports', ({ user, url }) => admin.listReports(db, user, url.searchParams), adm);
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
+  route('DELETE', '/api/admin/reports/:id/post', ({ user, params }) => admin.deleteReportedPost(db, user, params.id), adm);
   route('GET', '/api/admin/traffic', ({ url }) => traffic(Math.min(365, Math.max(1, Number(url.searchParams.get('period')) || 30)), cfFetch), adm);
   route('GET', '/api/admin/analytics', ({ user, url }) => admin.analytics(db, user, url.searchParams), adm);
   route('POST', '/api/admin/exports', async ({ user, req, res }) => {

@@ -56,8 +56,8 @@ const REPORT = `
 <div style="display:flex;justify-content:flex-end;gap:8px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Invia segnalazione" on-click="{{ send }}" host-aria-disabled="{{ cantSend }}"></dc-import></div>
 </div>`;
 
-// Resolves to { blocked } when sent.
-export async function report(person) {
+// Resolves to { blocked } when sent. postId: reporting a group post (it reaches the admins with the report)
+export async function report(person, { postId } = {}) {
   const cat = await getCatalog();
   const first = person.first_name || person.name.split(' ')[0];
   const r = await openModal({
@@ -75,7 +75,7 @@ export async function report(person) {
           send: async () => {
             this.setState({ busy: true });
             try {
-              await api('POST', '/api/reports', { user_id: person.id, reason: s.reason, details: s.details.trim() || null, block: s.alsoBlock });
+              await api('POST', '/api/reports', { user_id: person.id, reason: s.reason, details: s.details.trim() || null, block: s.alsoBlock, ...(postId ? { post_id: postId } : {}) });
               this.close({ blocked: s.alsoBlock });
             } catch (err) { this.setState({ busy: false }); toast(err.message, { tone: 'err' }); }
           },

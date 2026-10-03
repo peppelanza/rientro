@@ -83,3 +83,23 @@ test('group pages are public: readable without an account, in the HTML, in the s
     assert.equal((await anon.get(`/api/public/photos/${quietPhoto}`)).status, 404, 'others\' photos are not');
   } finally { t.close(); }
 });
+
+test('reporting a group post reaches the admins with the post; they can delete it (audited); not your own', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('rp-post-a@example.com');
+    const b = await t.approved('rp-post-b@example.com');
+    const admin = await t.asAdmin();
+    const post = (await a.post('/api/groups/generale/posts', { body: 'Compra il mio corso!' })).body;
+    assert.equal((await a.post('/api/reports', { user_id: a.id, reason: 'spam', post_id: post.id })).status, 404, 'not your own');
+    assert.equal((await b.post('/api/reports', { user_id: a.id, reason: 'spam', post_id: 999999 })).status, 404);
+    assert.equal((await b.post('/api/reports', { user_id: a.id, reason: 'spam', post_id: post.id })).status, 200);
+    const r = (await admin.get('/api/admin/reports')).body.reports.find(x => x.reported_id === a.id);
+    assert.equal(r.post.body, 'Compra il mio corso!');
+    assert.equal(r.post.group, 'Generale');
+    assert.match(r.post.href, /\/gruppi\/generale#post-/);
+    assert.equal((await admin.del(`/api/admin/reports/${r.id}/post`)).status, 200);
+    assert.equal((await b.get('/api/groups/generale/posts')).body.items.length, 0);
+    assert.deepEqual((await admin.get('/api/admin/reports')).body.reports.find(x => x.id === r.id).post, { deleted: true });
+  } finally { t.close(); }
+});

@@ -2,6 +2,7 @@
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
 import { AGE_BANDS, label, orList, SOURCES, START, TIME } from './catalog.js';
+import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
 import { effectiveProfile, rawProfile } from './profiles.js';
@@ -221,7 +222,7 @@ export function listReports(db, admin, query) {
         who: [r.df, r.dl].filter(Boolean).join(' ') || 'Account eliminato',
         by: n > 1 ? `${n} utenti` : [r.rf, r.rl].filter(Boolean).join(' ') || 'Utente',
         reason: r.reason, reason_label: REASON[r.reason], details: r.details, age_h: hoursAgo(r.created_at),
-        status: r.status, resolution: r.resolution,
+        status: r.status, resolution: r.resolution, post: reportedPost(db, r),
       };
     }),
   };
@@ -236,6 +237,24 @@ export function resolveReport(db, admin, id, body) {
   db.prepare("UPDATE reports SET status = ?, resolution = ?, resolved_at = ?, resolved_by = ? WHERE reported_id = ? AND status = 'open'")
     .run(action === 'dismiss' ? 'dismissed' : 'resolved', action, now(), admin.id, r.reported_id);
   audit(db, admin.id, `report.${action}`, r.reported_id, { report_id: id });
+  return { ok: true };
+}
+
+// A report made on a group post: which group, the text, where it is (gone once deleted)
+function reportedPost(db, r) {
+  if (!r.group_post_id) return null;
+  const p = db.prepare('SELECT p.id, p.body, p.group_id, g.name AS group_name FROM group_posts p JOIN groups g ON g.id = p.group_id WHERE p.id = ?').get(r.group_post_id);
+  return p ? { id: p.id, body: p.body, group: p.group_name, href: `${config.baseUrl}/gruppi/${p.group_id}#post-${p.id}` } : { deleted: true };
+}
+
+// Deleting a reported group post, audited
+export function deleteReportedPost(db, admin, id) {
+  const r = db.prepare('SELECT * FROM reports WHERE id = ?').get(id);
+  if (!r?.group_post_id) throw new HttpError(404, 'not_found');
+  const p = db.prepare('SELECT id, group_id FROM group_posts WHERE id = ?').get(r.group_post_id);
+  if (!p) throw new HttpError(404, 'not_found', 'Il post è già stato eliminato.');
+  db.prepare('DELETE FROM group_posts WHERE id = ?').run(p.id);
+  audit(db, admin.id, 'report.delete_post', r.reported_id, { report_id: id, group: p.group_id });
   return { ok: true };
 }
 

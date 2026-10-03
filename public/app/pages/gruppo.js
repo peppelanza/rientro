@@ -125,7 +125,7 @@ export default class extends Page {
       more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),
       canDelete: p.mine || admin, del: () => this.remove(p), canReport: !p.mine, hasMenu: s.member,
-      doReport: async () => { this.setState({ menuFor: null }); await report({ id: p.author.id, name: p.author.name }); },
+      doReport: async () => { this.setState({ menuFor: null }); await report({ id: p.author.id, name: p.author.name }, { postId: p.id }); },
       replyField: `reply-${p.id}`, draft: s.drafts[p.id] || '',
       draftProps: { onInput: v => { s.drafts[p.id] = v; }, onEnter: () => this.comment(p) },
       send: () => this.comment(p),

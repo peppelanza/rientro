@@ -1,6 +1,6 @@
 // Admin · reports (design 06 · 48a). "Vedi chat" shows only the reporter↔reported conversation, audited.
 import { DCLogic } from '../../../dc/runtime.js';
-import { api, fmtTime, fmtShort, go, openModal, toast } from '../../lib.js';
+import { api, fmtTime, fmtShort, go, openModal, toast, toastError } from '../../lib.js';
 import { AdminPage } from './_admin.js';
 
 export const title = 'Segnalazioni · Admin';
@@ -35,6 +35,17 @@ export default class extends AdminPage {
     })();
   }
 
+  // A reported group post: delete it (the report stays open: dismiss or suspend as usual)
+  async deletePost(r) {
+    if (!confirm('Eliminare il post e i suoi commenti?')) return;
+    try {
+      await api('DELETE', `/api/admin/reports/${r.id}/post`);
+      r.post = { deleted: true };
+      toast('Post eliminato.');
+      this.__rerender();
+    } catch (err) { toastError(err); }
+  }
+
   async chat(r) {
     const msgs = await api('GET', `/api/admin/reports/${r.id}/chat`);
     openModal({
@@ -66,6 +77,7 @@ export default class extends AdminPage {
           profile: () => go(`/admin/utenti/${r.reported_id}`), resolution: RESOLUTION[r.resolution] ?? r.status,
           isHarass: r.reason === 'harassment', notHarass: r.reason !== 'harassment', hasChat: !!r.reporter_id,
           chat: () => this.chat(r), dismiss: () => this.resolve(r, 'dismiss'), suspend: () => this.resolve(r, 'suspend'),
+          hasPost: !!r.post && !r.post.deleted, postGone: !!r.post?.deleted, deletePost: () => this.deletePost(r),
           isFake: r.reason === 'fake_profile',
         };
       }),
