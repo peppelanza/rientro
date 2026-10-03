@@ -15,7 +15,6 @@ const b = v => v === true || v === 'true';
 // nav talks to the one drawn last
 let currentNav = null;
 const BELL_OUT_MS = 120; // app.css .bell-out
-const BELL_DIM_FADE = 48; // px of soft edge at the top of the dimmer; as in app.css
 
 // A click outside or Escape closes the bell dropdown and the account menu
 for (const type of ['click', 'keydown']) document.addEventListener(type, e => currentNav?.closeOnOutside(e));
@@ -34,8 +33,8 @@ function dimBehindBell(nav) {
   }
   // It starts below the top bar: iPhone Safari tints the status bar (clock, signal) with whatever
   // covers the top of the page, and that must stay as it is. A soft edge rather than a hard line
-  // covers the page, so it starts that much higher and fades in over it (app.css)
-  if (nav.state.bellOpen) dim.style.top = `${Math.max(0, (document.querySelector('.nav-root')?.getBoundingClientRect().bottom ?? 0) - BELL_DIM_FADE)}px`;
+  // Its first 200px fade in (app.css)
+  if (nav.state.bellOpen) dim.style.top = `${Math.max(0, document.querySelector('.nav-root')?.getBoundingClientRect().bottom ?? 0)}px`;
   // At the bottom the bottom menu's strip takes the tint itself (app.css), so the dimmer stops above it:
   // iPhone Safari colours the area around its address bar from what's at the bottom of the page
   const tabbar = document.querySelector('.tabbar');

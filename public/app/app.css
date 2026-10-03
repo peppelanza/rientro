@@ -462,7 +462,7 @@ body { padding-top: var(--lb, 0px); }
 @media (prefers-reduced-motion: reduce) { .bell-in, .bell-out { animation: none; } }
 .bell-backdrop { display: none; }
 @media (max-width: 720px) {
-  .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 48px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .bell-backdrop { display: block; position: fixed; inset: 0; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   body.bell-open .bell-backdrop { opacity: 1; pointer-events: auto; }
   /* the top bar with the dropdown, and the bottom menu, stay above it */
   body.bell-open .nav-root { z-index: 40 !important; }
