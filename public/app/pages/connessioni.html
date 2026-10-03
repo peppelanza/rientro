@@ -10,7 +10,7 @@
 <sc-if value="{{ notEmpty }}"><main style="padding:36px var(--gutter) 56px;display:flex;flex-direction:column;gap:22px;width:100%;box-sizing:border-box">
 <h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:40px;font-weight:600;letter-spacing:-.05em">Connessioni</h1>
 <div role="tablist" style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ tabs }}" as="t"><dc-import name="UI Chip" label="{{ t.l }}" tone="{{ t.tone }}" count="{{ t.count }}" on-click="{{ t.fn }}" host-role="tab" host-aria-selected="{{ t.on }}"></dc-import></sc-for></div>
-<div style="max-width:520px"><dc-import name="App Field" search="{{ true }}" field="conn-q" value="{{ q }}" placeholder="Cerca per nome, ruolo o città" dc-props="{{ searchProps }}"></dc-import></div>
+<div style="max-width:{{ listMax }}"><dc-import name="App Field" search="{{ true }}" field="conn-q" value="{{ q }}" placeholder="Cerca per nome, ruolo o città" dc-props="{{ searchProps }}"></dc-import></div>
 
 <sc-if value="{{ isConn }}">
 <sc-if value="{{ noConns }}"><span style="font-size:15px;color:#6B6680">{{ noConnsLabel }}</span></sc-if>
@@ -51,7 +51,7 @@
 <dc-import name="App Person Card" person="{{ r.person }}" ratio="4/3" da="inviate" noactions="{{ true }}"></dc-import>
 </section></sc-for>
 </div></sc-if>
-<div style="max-width:720px"><dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import></div>
+<div style="max-width:{{ listMax }}"><dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import></div>
 </main></sc-if>
 <dc-import name="App TabBar" active="connessioni" me="{{ me }}"></dc-import>
 </div>

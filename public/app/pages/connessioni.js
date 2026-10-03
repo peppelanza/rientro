@@ -67,6 +67,8 @@ export default class extends Page {
       loading: false, me: s.me, empty, notEmpty: !empty, tabs,
       isConn: s.tab === 'connessioni', isRec: s.tab === 'ricevute', isSent: s.tab === 'inviate',
       // search and pages
+      // The search is as wide as the list under it
+      listMax: s.tab === 'connessioni' ? 'none' : '1040px',
       q: s.q, searchProps: { onInput: v => this.searchTyped(v), onEnter: v => this.load2({ q: v.trim(), page: 1 }) },
       page: d.page, pages: d.pages, total: d.total, perPage: d.per_page, pagerProps: { onPage: n => this.load2({ page: n }, { scroll: true }) },
       noneLabel: none,
