@@ -31,7 +31,7 @@
 <sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
 
 <!-- Phones only: on a computer the search is the one in the top bar -->
-<div class="r-show-sm"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, ruolo, città, idea, settore" dc-props="{{ searchProps }}"></dc-import></div>
+<div class="r-show-sm"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, città e tanto altro" dc-props="{{ searchProps }}"></dc-import></div>
 
 <sc-if value="{{ isGrid }}"><div data-collapse-cards class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
 <sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>

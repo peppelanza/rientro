@@ -5,6 +5,7 @@
 // data loads. Safari's own pull-to-refresh is switched off on these pages.
 const PULL = 64; // px of (damped) pull that triggers a refresh; the page waits there while loading
 const SPOKES = 8;
+const MIN_SPIN = 1000; // ms the wheel turns at least, even when the data is back sooner
 
 export function pullToRefresh(page) {
   if (!matchMedia('(max-width: 720px)').matches) return;
@@ -54,7 +55,7 @@ export function pullToRefresh(page) {
     place(PULL);
     spinner.classList.remove('ready');
     spinner.classList.add('spinning');
-    try { await page.refresh(); } finally {
+    try { await Promise.all([page.refresh(), new Promise(r => setTimeout(r, MIN_SPIN))]); } finally {
       page.__rerender();
       busy = false;
       settle();

@@ -664,9 +664,11 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
    stays), an iOS-style spinner in the gap above */
 body.pull-active #app > div > :not([data-sc-name="App TabBar"]) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
 body.pull-dragging #app > div > :not([data-sc-name="App TabBar"]) { transition: none; }
-.pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; height: 26px; transform: translateX(-50%); display: flex; align-items: center; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
-.pull-spinner span, .pull-spinner.ready svg { display: none; }
-.pull-spinner.ready span { display: inline; } /* far enough: "Lascia per aggiornare" */
+.pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; width: 26px; height: 26px; margin-left: -13px; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
+/* the wheel and "Lascia per aggiornare" (once far enough) in the same spot, crossfading */
+.pull-spinner svg, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
+.pull-spinner span, .pull-spinner.ready svg { opacity: 0; }
+.pull-spinner.ready span { opacity: 1; }
 body.pull-dragging .pull-spinner { transition: none; }
 .pull-spinner.spinning svg { animation: pull-spin .8s steps(8) infinite; }
-@keyframes pull-spin { to { transform: rotate(360deg); } }
+@keyframes pull-spin { from { transform: translate(-50%, -50%) rotate(0); } to { transform: translate(-50%, -50%) rotate(360deg); } }
