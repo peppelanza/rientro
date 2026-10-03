@@ -81,6 +81,8 @@ export function requestConnection(db, viewer, body) {
   const target = db.prepare("SELECT id FROM users WHERE id = ? AND status = 'approved' AND deletion_requested_at IS NULL").get(to);
   if (!target || isBlocked(db, viewer.id, to)) throw new HttpError(404, 'not_found', 'Profilo non disponibile.');
   const existing = connectionBetween(db, viewer.id, to);
+  // They had already asked you: asking back means yes
+  if (existing?.status === 'pending' && existing.requester_id === to) return respondConnection(db, viewer, existing.id, 'accept');
   if (existing) throw new HttpError(409, 'already', existing.status === 'accepted' ? 'Siete già connessi.' : 'C’è già una richiesta in sospeso.');
   const id = newId();
   db.prepare("INSERT INTO connections (id, requester_id, addressee_id, status, note, created_at) VALUES (?, ?, ?, 'pending', ?, ?)")
@@ -101,6 +103,9 @@ export function respondConnection(db, viewer, id, action) {
   if (c.addressee_id !== viewer.id) throw new HttpError(404, 'not_found');
   if (action === 'accept') {
     db.prepare("UPDATE connections SET status = 'accepted', responded_at = ? WHERE id = ?").run(now(), id);
+    // Any other request still open between the two of them is settled by this
+    db.prepare(`UPDATE connections SET status = 'withdrawn', responded_at = ? WHERE id != ? AND status = 'pending'
+      AND ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))`).run(now(), id, c.requester_id, c.addressee_id, c.addressee_id, c.requester_id);
     notify(db, c.requester_id, 'connection_accepted', viewer.id, { connection_id: id });
     return { status: 'connected', other_id: c.requester_id };
   }
@@ -118,6 +123,12 @@ function allConnections(db, viewer) {
   const rows = db.prepare(
     `SELECT * FROM connections WHERE (requester_id = ? OR addressee_id = ?) AND status IN ('pending', 'accepted') ORDER BY COALESCE(responded_at, created_at) DESC`,
   ).all(viewer.id, viewer.id).filter(c => !isBlocked(db, c.requester_id, c.addressee_id));
+  // One place per person: connected wins over a request, a received one over a sent one
+  const other = c => (c.requester_id === viewer.id ? c.addressee_id : c.requester_id);
+  const rank = c => (c.status === 'accepted' ? 0 : c.addressee_id === viewer.id ? 1 : 2);
+  const best = new Map();
+  for (const c of rows) if (!best.has(other(c)) || rank(c) < rank(best.get(other(c)))) best.set(other(c), c);
+  rows.splice(0, rows.length, ...rows.filter(c => best.get(other(c)) === c));
   return {
     connected: rows.filter(c => c.status === 'accepted').map(c => toCard(c.requester_id === viewer.id ? c.addressee_id : c.requester_id, { connection_id: c.id, since: c.responded_at })),
     received: rows.filter(c => c.status === 'pending' && c.addressee_id === viewer.id).map(c => toCard(c.requester_id, { connection_id: c.id, note: c.note, created_at: c.created_at })),

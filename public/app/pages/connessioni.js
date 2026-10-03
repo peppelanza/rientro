@@ -61,7 +61,8 @@ export default class extends Page {
     const items = d.items;
     const empty = !counts.connected && !counts.received && !counts.sent;
     const none = s.q ? `Nessun risultato per “${s.q}”.` : '';
-    const tabs = [['connessioni', `Connessioni · ${counts.connected}`, 0], ['ricevute', 'Ricevute', counts.received], ['inviate', `Inviate · ${counts.sent}`, 0]]
+    // A count only when there is something to count
+    const tabs = [['connessioni', counts.connected ? `Connessioni · ${counts.connected}` : 'Connessioni', 0], ['ricevute', 'Ricevute', counts.received], ['inviate', counts.sent ? `Inviate · ${counts.sent}` : 'Inviate', 0]]
       .map(([k, l, n]) => ({ l, count: n || 0, tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.setTab(k) }));
     return {
       loading: false, me: s.me, empty, notEmpty: !empty, tabs,

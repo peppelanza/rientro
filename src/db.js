@@ -37,6 +37,7 @@ export function openDb(file = config.dbPath) {
   migrateChecks(db);
   migrateNoReview(db);
   migrateNoRequestExpiry(db);
+  settleDuplicateConnections(db);
   // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
   db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
   seed(db);
@@ -156,6 +157,23 @@ function migrateNoRequestExpiry(db) {
     db.exec(`PRAGMA schema_version = ${v + 1}`);
   } finally { db.exec('PRAGMA writable_schema = OFF'); }
   if (db.prepare('PRAGMA integrity_check').get().integrity_check !== 'ok') throw new Error('connections: CHECK migration failed');
+}
+
+// One open link per pair of people. Where they're connected, other open requests between them are
+// closed; where both had asked each other, the older request is accepted and the newer one closed.
+// Idempotent: nothing to do once it's clean.
+export function settleDuplicateConnections(db) {
+  const pair = `((o.requester_id = c.requester_id AND o.addressee_id = c.addressee_id) OR (o.requester_id = c.addressee_id AND o.addressee_id = c.requester_id))`;
+  db.exec(`UPDATE connections AS c SET status = 'withdrawn', responded_at = COALESCE(responded_at, created_at)
+    WHERE c.status = 'pending' AND EXISTS (SELECT 1 FROM connections o WHERE o.id != c.id AND o.status = 'accepted' AND ${pair})`);
+  db.exec(`UPDATE connections AS c SET status = 'accepted', responded_at = (SELECT MAX(o.created_at) FROM connections o WHERE o.id != c.id AND o.status = 'pending' AND ${pair})
+    WHERE c.status = 'pending' AND EXISTS (SELECT 1 FROM connections o WHERE o.id != c.id AND o.status = 'pending' AND o.requester_id = c.addressee_id AND o.addressee_id = c.requester_id AND o.created_at > c.created_at)`);
+  db.exec(`UPDATE connections AS c SET status = 'withdrawn', responded_at = COALESCE(responded_at, created_at)
+    WHERE c.status = 'pending' AND EXISTS (SELECT 1 FROM connections o WHERE o.id != c.id AND o.status = 'accepted' AND ${pair})`);
+  // Two open requests the same way round: keep the newest
+  db.exec(`UPDATE connections AS c SET status = 'withdrawn', responded_at = COALESCE(responded_at, created_at)
+    WHERE c.status = 'pending' AND EXISTS (SELECT 1 FROM connections o WHERE o.id != c.id AND o.status = 'pending'
+      AND o.requester_id = c.requester_id AND o.addressee_id = c.addressee_id AND o.created_at > c.created_at)`);
 }
 
 function seed(db) {

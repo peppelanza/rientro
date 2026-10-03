@@ -335,3 +335,38 @@ test('profile preview (?anteprima) is exactly what a member who is not connected
     assert.equal((await me.get(`/api/profiles/${me.id}`)).body.links.instagram_handle, '@mia.ig');
   } finally { t.close(); }
 });
+
+test('one link per pair: duplicates are settled at start, lists show a person once, asking back accepts', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('dup-a@example.com');
+    const b = await t.approved('dup-b@example.com');
+    const c = await t.approved('dup-c@example.com');
+    const d = await t.approved('dup-d@example.com');
+    const db = t.app.db;
+    const ins = db.prepare("INSERT INTO connections (id, requester_id, addressee_id, status, created_at) VALUES (?, ?, ?, ?, ?)");
+    const status = id => db.prepare('SELECT status FROM connections WHERE id = ?').get(id).status;
+    // a–b connected, plus open requests both ways (as found in production)
+    ins.run('ab-acc', a.id, b.id, 'accepted', '2026-10-01T10:00:00Z');
+    ins.run('ab-p1', b.id, a.id, 'pending', '2026-10-01T09:00:00Z');
+    ins.run('ab-p2', a.id, b.id, 'pending', '2026-10-01T11:00:00Z');
+    // a–d asked each other
+    ins.run('ad-1', a.id, d.id, 'pending', '2026-10-01T09:00:00Z');
+    ins.run('ad-2', d.id, a.id, 'pending', '2026-10-01T12:00:00Z');
+    const before = (await a.get('/api/connections')).body.counts;
+    assert.deepEqual(before, { connected: 1, received: 1, sent: 0 }, 'each person once: b connected, d received');
+
+    const { settleDuplicateConnections } = await import('../src/db.js');
+    settleDuplicateConnections(db);
+    assert.deepEqual(['ab-acc', 'ab-p1', 'ab-p2'].map(status), ['accepted', 'withdrawn', 'withdrawn']);
+    assert.deepEqual(['ad-1', 'ad-2'].map(status), ['accepted', 'withdrawn']);
+    assert.deepEqual((await a.get('/api/connections')).body.counts, { connected: 2, received: 0, sent: 0 });
+
+    // Asking back someone who asked you: accepted, not a second request
+    await c.post('/api/connections', { to: a.id });
+    const back = await a.post('/api/connections', { to: c.id });
+    assert.equal(back.status, 200);
+    assert.equal(back.body.status, 'connected');
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM connections WHERE status = 'pending' AND ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))").get(a.id, c.id, c.id, a.id).n, 0);
+  } finally { t.close(); }
+});
