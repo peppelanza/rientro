@@ -63,7 +63,7 @@ def('App Nav', String.raw`
 </a></sc-for>
 <sc-if value="{{ bellReady }}"><a href="/notifiche" style="margin-top:6px;padding:12px;border-radius:16px;background:#F1EFF8;color:#3E2BA8;font-weight:600;text-align:center;text-decoration:none">{{ bellMore }}</a></sc-if>
 </div></sc-if>
-<sc-if value="{{ menuOpen }}"><div role="menu" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
+<sc-if value="{{ menuOpen }}"><div role="menu" class="nav-menu {{ menuAnim }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
 <sc-for list="{{ menu }}" as="m"><a role="menuitem" href="{{ m.href }}" style="padding:10px 12px;border-radius:16px;color:{{ m.fg }};text-decoration:none">{{ m.l }}</a></sc-for>
 <div style="height:1px;background:#ECE8F7;margin:4px 0"></div>
 <button type="button" role="menuitem" onClick="{{ logout }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#1A1726;cursor:pointer">Esci</button>
@@ -78,7 +78,7 @@ def('App Nav', String.raw`
     const link = e.type === 'click' && e.target.closest('a[href]');
     if (link && !link.getAttribute('href').startsWith('#')) return;
     this.closeBell();
-    if (this.state.menuOpen) this.setState({ menuOpen: false });
+    this.closeMenu();
   }
 
   // Like Facebook: the latest 5, read or not; opening it clears the badge, the unread ones keep
@@ -99,6 +99,21 @@ def('App Nav', String.raw`
       c.notifications = 0;
       setTimeout(() => this.setState({}), 200); // the badge goes once the animation is over
     }
+  }
+
+  // The account menu opens and closes with the bell dropdown's fade (app.css .bell-in / .bell-out)
+  openMenu() {
+    this.animateMenu = true;
+    this.setState({ menuOpen: true, bellOpen: false });
+    this.animateMenu = false;
+  }
+  closeMenu() {
+    const menu = document.querySelector('.nav-menu');
+    if (!this.state.menuOpen || this.menuClosing) return;
+    if (!menu || matchMedia('(prefers-reduced-motion: reduce)').matches) return this.setState({ menuOpen: false });
+    this.menuClosing = true;
+    menu.classList.add('bell-out');
+    setTimeout(() => { this.menuClosing = false; this.setState({ menuOpen: false }); }, BELL_OUT_MS);
   }
 
   closeBell() {
@@ -140,7 +155,8 @@ def('App Nav', String.raw`
       } : null,
       showSearch: open, q: this.props.q ?? '',
       photo: p.photo_url, noPhoto: !p.photo_url, initials: `${(p.first_name || u.email || '?')[0]}${(p.last_name || '')[0] || ''}`.toUpperCase(),
-      toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
+      toggleMenu: () => (this.state.menuOpen ? this.closeMenu() : this.openMenu()),
+      menuAnim: this.animateMenu ? 'bell-in' : '',
       bellOpen: dimBehindBell(this),
       toggleBell: () => (this.state.bellOpen ? this.closeBell() : this.openBell()),
       bellAnim: this.animateBell ? 'bell-in' : '',
