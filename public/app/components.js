@@ -673,6 +673,16 @@ if (typeof window !== 'undefined') {
 // menu in the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli' | 'territori'),
 // onEnter(). Home sections are linked as /#section from the other pages.
 
+// Phones: the public header (sticky there) goes from nearly opaque to see-through over the first
+// 80px of scrolling, so it's already there over the headline, and stays so. Background only: no layout.
+const HEADER_A = [0.94, 0.7];
+const headerAlpha = () => {
+  const t = Math.min(1, scrollY / 80);
+  document.documentElement.style.setProperty('--site-header-a', (HEADER_A[0] - (HEADER_A[0] - HEADER_A[1]) * t).toFixed(3));
+};
+addEventListener('scroll', headerAlpha, { passive: true });
+headerAlpha();
+
 def('App Site Header', String.raw`
 <header style="padding:18px var(--gutter) 0"><div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500;font-family:'Geist',sans-serif">
 <a href="/" aria-label="Rientro, home" style="text-decoration:none"><dc-import name="UI Logo" size="28"></dc-import></a>
