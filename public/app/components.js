@@ -482,11 +482,11 @@ def('App City Options', String.raw`
 
 def('App City Jump', String.raw`
 <div class="city-jump {{ openClass }}">
-<label class="cj-lead" for="city-jump">Scopri chi rientra a</label>
+<label class="cj-lead" for="{{ uid }}">Scopri chi rientra a</label>
 <div class="cj-box" onMouseDown="{{ boxDown }}" onClick="{{ boxClick }}">
-<input id="city-jump" data-key="city-jump" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="city-jump-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<input id="{{ uid }}" data-key="{{ uid }}" class="cj-input bare-input" readonly="{{ phone }}" role="combobox" aria-expanded="{{ open }}" aria-controls="{{ uid }}-list" aria-autocomplete="list" autocomplete="off" placeholder="scegli la città" value="{{ query }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 <svg class="cj-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-<sc-if value="{{ open }}"><div id="city-jump-list" data-key="city-jump-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}" onMouseLeave="{{ leave }}">
+<sc-if value="{{ open }}"><div id="{{ uid }}-list" data-key="{{ uid }}-list" role="listbox" aria-label="Città" class="cj-list dd-list {{ kbClass }}" onMouseLeave="{{ leave }}">
 <sc-if value="{{ top }}"><span class="cj-head">Le città più grandi</span></sc-if>
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="cj-opt dd-opt" onMouseDown="{{ m.pick }}" onMouseOver="{{ m.hover }}" onMouseMove="{{ m.hover }}"><span>{{ m.name }}</span><span class="cj-meta">{{ m.region }}</span></div></sc-for>
 <sc-if value="{{ none }}"><span class="cj-head">Nessun comune trovato</span></sc-if>
@@ -506,6 +506,8 @@ def('App City Jump', String.raw`
   // at the top and the list below, sized to the visible viewport so the keyboard never covers
   // it; the phone's back button closes it.
   get phone() { return matchMedia('(max-width: 720px)').matches; }
+  // compact: the copy in the home's top bar (App Home Bar), with its own element ids
+  get compact() { return b(this.props.compact); }
   openSheet() {
     if (this.state.sheet) return;
     this.load();
@@ -555,6 +557,7 @@ def('App City Jump', String.raw`
   // Opening the list scrolls the hero headline up to the top of the screen, so the list has room
   // below it. Leaves room for the launch bar and, on phones, the sticky header; never scrolls back up.
   reveal() {
+    if (this.compact) return; // the copy in the home's compact top bar opens where it is
     const h1 = document.getElementById('city-jump')?.closest('section')?.querySelector('h1');
     if (!h1) return;
     const header = document.querySelector('.site-header');
@@ -581,6 +584,7 @@ def('App City Jump', String.raw`
     const phone = this.phone;
     if (open) requestAnimationFrame(refreshHover); // options were redrawn
     return {
+      uid: this.compact ? 'city-jump-bar' : 'city-jump',
       query, open: open && !!comuni && !phone, matches, top: !q && !!comuni, none: !!q && !!comuni && !found.length, kbClass: this.state.kb ? 'dd-kb' : '', leave: leaveList,
       phone, sheet: this.state.sheet, loading: !comuni,
       openClass: open && comuni && !phone ? 'cj-open' : '',

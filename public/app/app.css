@@ -622,3 +622,25 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
 [data-collapse-cards] .pc-head.pc-stuck::before { content: ''; position: absolute; z-index: -1; left: -1px; right: -1px; bottom: calc(100% - 28px); height: 100vh; background: #E9E6F5; }
 [data-collapse-cards] .pc-head.pc-stuck::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: 28px 28px 0 0; background: #FFFFFF; }
 @media (max-width: 720px) { [data-collapse-cards] .pc-head { top: 12px; } }
+
+/* Home: the compact top bar (logo, "Scopri chi rientra a [città]", Accedi) that slides in once the
+   hero's city picker has scrolled away, and stays on top; on phones it takes the header's place */
+.home-bar { position: fixed; left: 0; right: 0; top: var(--lb, 0px); z-index: 45; padding: 12px var(--gutter) 0; pointer-events: none; opacity: 0; transform: translateY(-16px); visibility: hidden; transition: opacity .25s ease, transform .25s ease, visibility .25s; }
+body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; pointer-events: auto; }
+.home-bar-in { height: 64px; padding: 0 10px 0 26px; box-sizing: border-box; border-radius: 999px; background: rgba(255,255,255,.94); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid #FFFFFF; box-shadow: 0 8px 30px rgba(80,60,160,.14); display: flex; align-items: center; gap: 24px; font-family: 'Geist', sans-serif; }
+.home-bar-jump { flex: 1; display: flex; justify-content: center; min-width: 0; }
+.home-bar .city-jump { font-size: 14px; font-weight: 500; gap: 10px; flex-wrap: nowrap; } /* as the menu links */
+.home-bar .cj-lead { white-space: nowrap; }
+.home-bar .cj-box { height: 40px; width: 220px; padding: 0 10px 0 16px; border-width: 1.5px; box-shadow: none; }
+.home-bar .cj-input { font-size: 14px; font-weight: 500; }
+.home-bar .cj-chevron { width: 16px; height: 16px; }
+.home-bar .cj-list { right: auto; width: 320px; max-width: calc(100vw - 32px); }
+@media (max-width: 720px) {
+  .home-bar { padding-top: 10px; }
+  .home-bar-in { height: 56px; padding: 0 8px 0 18px; gap: 10px; }
+  .home-bar .cj-lead, .home-bar-enter { display: none; }
+  .home-bar .cj-box { width: auto; flex: 1; height: 40px; }
+  .home-bar-jump, .home-bar .city-jump { flex: 1; }
+  body.home-bar-on .site-header { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) { .home-bar { transition: none; } }

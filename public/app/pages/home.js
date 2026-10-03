@@ -38,6 +38,16 @@ export default class extends Page {
     Object.assign(this.state, { me, launched: launch.launched });
   }
 
+  // The compact top bar shows once the hero's city picker is out of view above
+  didRender(el) {
+    this.heroWatch?.disconnect();
+    // (its wrapper: the picker redraws its own insides, which would leave the observer watching nothing)
+    const hero = el.querySelector('section > .sc-host[data-sc-name="App City Jump"]');
+    if (!hero) return;
+    this.heroWatch = new IntersectionObserver(([e]) => document.body.classList.toggle('home-bar-on', !e.isIntersecting && e.boundingClientRect.top < 0));
+    this.heroWatch.observe(hero);
+  }
+
   renderVals() {
     const me = this.state.me;
     return {

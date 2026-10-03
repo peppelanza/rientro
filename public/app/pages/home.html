@@ -1,6 +1,12 @@
 <!-- From design/Rientro 01 Landing e Accesso v2 · artboard 1a (desktop), 1b (mobile) -->
 <div class="r-page" style="background:#E9E6F5;min-height:100vh;overflow-x:clip">
 <dc-import name="App Site Header" host-class="site-header" here="home" dc-props="{{ headerProps }}"></dc-import>
+<!-- Once the hero's "Scopri chi rientra a…" has scrolled away: a compact bar stuck to the top (home.js) -->
+<div class="home-bar"><div class="home-bar-in">
+<a href="/" aria-label="Rientro, home" style="text-decoration:none;flex:none"><dc-import name="UI Logo" size="26"></dc-import></a>
+<div class="home-bar-jump"><dc-import name="App City Jump" compact="{{ true }}"></dc-import></div>
+<div class="home-bar-enter"><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import></div>
+</div></div>
 <section style="padding:clamp(88px,10vw,144px) var(--gutter) clamp(120px,13vw,200px);display:flex;flex-direction:column;gap:40px">
 <dc-import name="UI Eyebrow" text="Per chi torna, chi ci sta pensando e chi è già tornato"></dc-import>
 <h1 class="r-hero r-hero-long" style="margin:0;font-family:'Unbounded',sans-serif;font-size:clamp(48px,5.8vw,84px);line-height:.98;font-weight:600;letter-spacing:-.06em;max-width:1240px;text-wrap:balance">Rientra in Italia o al Sud e trova persone <span class="r-serif hero-sparks" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.03em;color:#6C4DF5;font-size:clamp(56px,6.7vw,96px)"><span class="hs-text">con cui costruire</span><span class="hs-layer" aria-hidden="true"></span></span></h1>
