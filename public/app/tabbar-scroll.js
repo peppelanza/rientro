@@ -1,7 +1,7 @@
 // Phone: the bottom menu (App TabBar) fades away while you scroll down and comes back when you
 // scroll up quickly, like the Facebook app: a slow scroll up (reading back) leaves it hidden.
 // Near the top of the page it is always there.
-const SHOW_SPEED = 0.6; // px per ms scrolling up (≈ a flick)
+const SHOW_SPEED = 0.8; // px per ms scrolling up (≈ a flick)
 
 export function tabbarOnScroll() {
   let last = scrollY;
