@@ -56,6 +56,25 @@ function mark(text, needle) {
   return i < 0 ? { a: t, m: '', b: '' } : { a: t.slice(0, i), m: t.slice(i, i + needle.length), b: t.slice(i + needle.length) };
 }
 
+// Computer: the filters panel stays in view while scrolling. When it's taller than the screen
+// ("Tutti i filtri" open) it scrolls along until its bottom reaches the bottom of the screen, then
+// stays there.
+const FILTERS_MARGIN = 16;
+let filtersObserver;
+function stickFilters(aside) {
+  filtersObserver?.disconnect();
+  if (!aside) return;
+  const place = () => {
+    if (innerWidth <= 720) { aside.style.position = ''; aside.style.top = ''; return; }
+    aside.style.position = 'sticky';
+    aside.style.top = `${Math.min(FILTERS_MARGIN, innerHeight - aside.offsetHeight - FILTERS_MARGIN)}px`;
+  };
+  place();
+  filtersObserver = new ResizeObserver(place); // opening "Tutti i filtri", the comune list…
+  filtersObserver.observe(aside);
+}
+addEventListener('resize', () => filtersObserver && document.querySelector('aside[aria-label="Filtri"]') && stickFilters(document.querySelector('aside[aria-label="Filtri"]')));
+
 export default class extends Page {
   async load() {
     const [me, cat] = await Promise.all([getMe(), getCatalog()]);
@@ -136,7 +155,10 @@ export default class extends Page {
     return this.placeList;
   }
 
-  didRender(el) { collapseCards(el); }
+  didRender(el) {
+    collapseCards(el);
+    stickFilters(el.querySelector('aside[aria-label="Filtri"]'));
+  }
 
   renderVals() {
     const s = this.state;
