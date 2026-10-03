@@ -27,7 +27,7 @@
 <sc-if value="{{ unknownPlaces }}"><span style="font-size:13px;color:#6B6680">Vive a {{ from }}</span></sc-if>
 </div></div></div>
 <div style="height:4px"></div>
-<sc-if value="{{ isNone }}"><div class="{{ previewClass }}" style="display:flex"><dc-import name="UI Button" label="Connettiti" variant="accent" size="lg" on-click="{{ connect }}" host-aria-disabled="{{ preview }}"></dc-import></div></sc-if>
+<sc-if value="{{ isNone }}"><div class="{{ previewClass }}" style="display:flex;justify-content:flex-end"><dc-import name="UI Button" label="Connettiti" variant="accent" size="lg" on-click="{{ connect }}" host-aria-disabled="{{ preview }}"></dc-import></div></sc-if>
 <sc-if value="{{ isSent }}"><dc-import name="UI Button" label="Richiesta inviata · in attesa" variant="secondary" size="lg" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import><dc-import name="UI Button" label="Annulla richiesta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ withdraw }}"></dc-import></sc-if>
 <sc-if value="{{ isConnected }}"><div style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
 <dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import>
