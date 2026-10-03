@@ -11,8 +11,25 @@ const b = v => v === true || v === 'true';
 // ---------------------------------------------------------------------------------------------
 // App Nav — from UI Nav (+ links, live counts, search, avatar menu)
 
+// Phone: the page dims behind the open bell dropdown, fading in and out (app.css). The dimmer lives
+// outside the nav, which is redrawn (and rebuilt) on every change, so the fade isn't cut short;
+// tapping it closes the dropdown. Returns whether the dropdown is open.
+let navForDimmer = null;
+function dimBehindBell(nav) {
+  navForDimmer = nav;
+  let dim = document.querySelector('.bell-backdrop');
+  if (!dim) {
+    dim = Object.assign(document.createElement('div'), { className: 'bell-backdrop' });
+    dim.setAttribute('aria-hidden', 'true');
+    dim.addEventListener('click', () => navForDimmer?.setState({ bellOpen: false }));
+    document.body.append(dim);
+  }
+  document.body.classList.toggle('bell-open', nav.state.bellOpen);
+  return nav.state.bellOpen;
+}
+
 def('App Nav', String.raw`
-<div style="width:100%;padding:18px var(--gutter) 0;box-sizing:border-box;font-family:'Geist',sans-serif;position:relative;z-index:20">
+<div class="nav-root" style="width:100%;padding:18px var(--gutter) 0;box-sizing:border-box;font-family:'Geist',sans-serif;position:relative;z-index:20">
 <div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);box-sizing:border-box;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:#1A1726">
 <a href="{{ home }}" aria-label="Rientro, home" style="display:flex;align-items:baseline;gap:3px;font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;line-height:1;margin-right:22px;color:#1A1726;text-decoration:none">Rientro<span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5;display:inline-block"></span></a>
 <sc-for list="{{ items }}" as="it">
@@ -106,7 +123,7 @@ def('App Nav', String.raw`
       showSearch: approved && me.launched, q: this.props.q ?? '',
       photo: p.photo_url, noPhoto: !p.photo_url, initials: `${(p.first_name || u.email || '?')[0]}${(p.last_name || '')[0] || ''}`.toUpperCase(),
       toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
-      bellOpen: this.state.bellOpen,
+      bellOpen: dimBehindBell(this),
       toggleBell: () => (this.state.bellOpen ? this.setState({ bellOpen: false }) : this.openBell()),
       bellLoading: this.state.bellOpen && !this.state.bellItems,
       bellEmpty: !!this.state.bellItems && !this.state.bellItems.length,
