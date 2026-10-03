@@ -110,7 +110,8 @@ button { font: inherit; }
 
 /* Chat fills the viewport; on phones it sits above the tab bar */
 @media (max-width: 720px) {
-  .chat-page { height: calc(100vh - 96px) !important; }
+  /* dvh: the screen that's actually visible (on iPhone 100vh is taller, under Safari's bars) */
+  .chat-page { height: calc(100vh - 96px) !important; height: calc(100dvh - 96px) !important; }
   .chat-grid { padding: 12px var(--gutter) !important; }
 }
 
