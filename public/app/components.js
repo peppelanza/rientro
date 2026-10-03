@@ -134,7 +134,7 @@ def('App Nav', String.raw`
         aria: c.notifications ? `Notifiche, ${c.notifications} da leggere` : 'Notifiche',
         current: a === 'notifiche' ? 'page' : false, bg: a === 'notifiche' ? '#1A1726' : 'transparent', fg: a === 'notifiche' ? '#FFFFFF' : '#1A1726',
       } : null,
-      showSearch: approved && me.launched, q: this.props.q ?? '',
+      showSearch: open, q: this.props.q ?? '',
       photo: p.photo_url, noPhoto: !p.photo_url, initials: `${(p.first_name || u.email || '?')[0]}${(p.last_name || '')[0] || ''}`.toUpperCase(),
       toggleMenu: () => this.setState({ menuOpen: !this.state.menuOpen, bellOpen: false }),
       bellOpen: dimBehindBell(this),
