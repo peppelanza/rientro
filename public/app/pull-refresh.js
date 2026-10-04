@@ -4,7 +4,6 @@
 // above; once far enough it says "Lascia per aggiornare", and after letting go it spins while the
 // data loads. Safari's own pull-to-refresh is switched off on these pages.
 const PULL = 64; // px of (damped) pull that triggers a refresh; the page waits there while loading
-const SPOKES = 8;
 const MIN_SPIN = 1000; // ms the wheel turns at least, even when the data is back sooner
 
 export function pullToRefresh(page) {
@@ -13,8 +12,7 @@ export function pullToRefresh(page) {
   root.style.overscrollBehaviorY = 'none';
   const spinner = Object.assign(document.createElement('div'), { className: 'pull-spinner' });
   spinner.setAttribute('aria-hidden', 'true');
-  spinner.innerHTML = `<b class="pull-wheel"><i><svg viewBox="0 0 24 24" width="26" height="26">${Array.from({ length: SPOKES }, (_, i) =>
-    `<rect x="11" y="2" width="2" height="6" rx="1" fill="currentColor" fill-opacity="${(0.25 + 0.75 * (SPOKES - i) / SPOKES).toFixed(2)}" transform="rotate(${i * 360 / SPOKES} 12 12)"/>`).join('')}</svg></i></b><span>Lascia per aggiornare</span>`;
+  spinner.innerHTML = '<b class="pull-wheel"><i class="ios-spinner"></i></b><span>Lascia per aggiornare</span>'; // the wheel: app.css
   document.body.append(spinner);
   let startY = null, pull = 0, busy = false;
   // The page (everything but the fixed bottom menu, app.css) and the spinner follow the pull

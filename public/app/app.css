@@ -53,13 +53,8 @@ html { -webkit-tap-highlight-color: transparent; }
 input:focus::placeholder, textarea:focus::placeholder { opacity: 0; }
 .dc-field:focus-within { border: 1.5px solid #6C4DF5 !important; box-shadow: 0 0 0 4px rgba(108,77,245,.15) !important; }
 
-/* Keyboard focus, matching design 00 "FOCUS" states */
-:focus { outline: none; }
-:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
-/* The ring takes the element's own shape (a square photo stays square). Design components draw their
-   pill inside their wrapper, so the wrapper's ring is rounded to match */
-.sc-host:focus-visible { border-radius: 999px; }
-[role="button"]:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
+/* No selection outline around anything focused or clicked (the owner's choice) */
+:focus, :focus-visible { outline: none; }
 /* Everything clickable shows the hand, whether or not its template says so; disabled controls
    show not-allowed, including their children (design components set cursor:pointer inline). */
 button, summary, select, label[for], label:has(input[type="checkbox"], input[type="radio"], input[type="file"]),
@@ -156,7 +151,6 @@ button { font: inherit; }
 .place-card { display: flex; flex-direction: column; border-radius: 28px; background: #FFFFFF; border: 1.5px solid #FFFFFF; box-shadow: 0 10px 30px rgba(80,60,160,.08); overflow: hidden; cursor: pointer; font-family: 'Geist', sans-serif; color: #1A1726; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
 .place-card:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(80,60,160,.16); }
 .place-card.is-on { border-color: #6C4DF5; box-shadow: 0 0 0 4px rgba(108,77,245,.15), 0 18px 44px rgba(80,60,160,.16); }
-.place-card:focus-visible { border-radius: 28px; }
 .place-art { background: linear-gradient(180deg, #F3F0FF, #FFFFFF); padding: 18px 18px 0; }
 .place-art svg { display: block; width: 100%; height: 200px; }
 .place-text { display: flex; flex-direction: column; gap: 6px; padding: 18px 24px 24px; }
@@ -206,7 +200,6 @@ button { font: inherit; }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary::after { content: '+'; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #F1EFF8; color: #6C4DF5; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; transition: transform .2s ease; }
 .faq-item[open] summary::after { transform: rotate(45deg); }
-.faq-item summary:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
 .faq-item p { margin: 0; padding: 0 24px 22px; font-size: 16px; line-height: 1.6; color: #4A4560; max-width: 720px; }
 
 /* Homepage "Per chi è" cards, illustrated like the onboarding location cards */
@@ -700,11 +693,12 @@ body.pull-dragging #app > div > :not([data-sc-name="App TabBar"], .scopri-top-gu
 /* the wheel and "Lascia per aggiornare" (once far enough) in the same spot, crossfading */
 .pull-wheel, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
 .pull-spinner span, .pull-spinner.ready .pull-wheel { opacity: 0; }
-.pull-wheel i, .pull-wheel svg { display: block; }
 .pull-spinner.ready span { opacity: 1; }
 body.pull-dragging .pull-spinner { transition: none; }
-/* the turning is on its own element (the centring is on .pull-wheel): iOS doesn't rotate the svg itself */
-.pull-spinner.spinning .pull-wheel i { animation: pull-spin .8s steps(8) infinite; }
+/* The iOS-style wheel (pull to refresh, photos uploading): 8 spokes in fading greys, turned a spoke at
+   a time. Drawn as a background so any element can be one; it turns on the element itself. */
+.ios-spinner { display: block; width: 26px; height: 26px; background: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='%236B6680'%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='1.00'%20transform='rotate(0%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.91'%20transform='rotate(45%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.81'%20transform='rotate(90%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.72'%20transform='rotate(135%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.62'%20transform='rotate(180%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.53'%20transform='rotate(225%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.44'%20transform='rotate(270%2012%2012)'/%3E%3Crect%20x='11'%20y='2'%20width='2'%20height='6'%20rx='1'%20fill-opacity='0.34'%20transform='rotate(315%2012%2012)'/%3E%3C/svg%3E") center / contain no-repeat; }
+.ios-spinner.turning, .pull-spinner.spinning .ios-spinner { animation: pull-spin .8s steps(8) infinite; }
 @keyframes pull-spin { to { transform: rotate(360deg); } }
 
 /* Benvenuto on phones: "Apri profilo" on the right */
@@ -738,7 +732,7 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .group-pending-img { position: relative; width: 84px; height: 84px; border-radius: 14px; overflow: hidden; background: #F1EFF8; }
 .group-pending-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .group-pending-img button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border: none; border-radius: 50%; background: rgba(26, 23, 38, .7); color: #FFFFFF; font-size: 11px; cursor: pointer; }
-.group-pending-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .6); font: 600 13px 'Geist Mono', monospace; color: #3E2BA8; }
+.group-pending-busy { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .6); }
 /* Pictures in a post: one large, or a grid */
 .group-images { display: grid; gap: 4px; border-radius: 18px; overflow: hidden; }
 .group-images img { width: 100%; height: 100%; object-fit: cover; display: block; background: #F1EFF8; }

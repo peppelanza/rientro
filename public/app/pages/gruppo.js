@@ -106,14 +106,14 @@ export default class extends Page {
     const s = this.state;
     const room = MAX_IMAGES - s.images.length;
     if (files.length > room) toast(`Puoi aggiungere al massimo ${MAX_IMAGES} foto.`, { tone: 'err' });
-    const added = [...files].slice(0, Math.max(0, room)).map(file => ({ file, key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file), pct: 0 }));
+    const added = [...files].slice(0, Math.max(0, room)).map(file => ({ file, key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file) }));
     s.images.push(...added);
     this.__rerender();
     await Promise.all(added.map(async img => {
       try {
         const blob = await shrinkImage(img.file);
         if ((await nsfwCheck(blob))?.blocked) throw new Error('Questa immagine non può essere pubblicata su Rientro.');
-        const r = await upload('/api/groups/images', blob, (loaded, total) => { img.pct = Math.round((loaded / total) * 100); this.__rerender(); });
+        const r = await upload('/api/groups/images', blob);
         img.id = r.id;
       } catch (err) {
         s.images = s.images.filter(x => x !== img);
@@ -239,7 +239,7 @@ export default class extends Page {
       // (a copy: emptying the field, so the same picture can be picked again, empties its list too)
       pick: e => { const files = [...e.target.files]; e.target.value = ''; if (files.length) { warmUpNsfwCheck(); this.addImages(files); } },
       canAddImage: s.images.length < MAX_IMAGES,
-      pending: s.images.map(img => ({ src: img.preview, uploading: !img.id, pct: `${img.pct}%`, remove: () => this.removeImage(img) })),
+      pending: s.images.map(img => ({ src: img.preview, uploading: !img.id, remove: () => this.removeImage(img) })),
       hasPending: s.images.length > 0,
       emojiOpen: s.emojiOpen, toggleEmoji: () => this.setState({ emojiOpen: !s.emojiOpen }),
       emoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),
