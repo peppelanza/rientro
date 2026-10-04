@@ -637,19 +637,6 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
 @keyframes filters-open { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .filters-more.opening { animation: none; } }
 
-/* Scopri: person cards fold while scrolling (card-collapse.js). The pinned top draws the card's
-   rounded top itself (::after) over a page-coloured cover reaching up off screen (::before), so the
-   details sliding underneath and the rest of the card above never show; the card drops its shadow
-   meanwhile (it would show beside the cover). Flat white cards, so the pinned top has no seam. */
-[data-collapse-cards] article { background: #FFFFFF !important; transition: box-shadow .2s ease; }
-[data-collapse-cards] article.pc-card-stuck { box-shadow: none !important; }
-[data-collapse-cards] .pc-head { position: sticky; top: 16px; z-index: 1; }
-[data-collapse-cards] .pc-head.pc-stuck::before { content: ''; position: absolute; z-index: -1; left: -1px; right: -1px; bottom: calc(100% - 28px); height: 100vh; background: #E9E6F5; }
-[data-collapse-cards] .pc-head.pc-stuck::after { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: 28px 28px 0 0; background: #FFFFFF; }
-@media (max-width: 720px) { [data-collapse-cards] .pc-head { top: 12px; } }
-/* Phones: iPhone Safari tints the status bar (clock, signal) from what's at the top of the screen; a
-   pinned card's white top was the nearest thing there. This strip, in the page's colour, is. */
-.scopri-top-guard { position: fixed; left: 0; right: 0; top: 0; height: 12px; z-index: 20; background: #E9E6F5; pointer-events: none; }
 
 /* Home: the compact top bar (logo, "Scopri chi rientra a [città]", Accedi) that slides in once the
    hero's city picker has scrolled away, and stays on top; on phones it takes the header's place */
@@ -687,8 +674,8 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
 
 /* Pull to refresh on phones (pull-refresh.js): the page slides down by --pull (the fixed bottom menu
    stays), an iOS-style spinner in the gap above */
-body.pull-active #app > div > :not([data-sc-name="App TabBar"], .scopri-top-guard) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
-body.pull-dragging #app > div > :not([data-sc-name="App TabBar"], .scopri-top-guard) { transition: none; }
+body.pull-active #app > div > :not([data-sc-name="App TabBar"]) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
+body.pull-dragging #app > div > :not([data-sc-name="App TabBar"]) { transition: none; }
 .pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; width: 26px; height: 26px; margin-left: -13px; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
 /* the wheel and "Lascia per aggiornare" (once far enough) in the same spot, crossfading */
 .pull-wheel, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
@@ -816,4 +803,17 @@ html.pv-open { overflow: hidden; }
 .group-hit-text { font-size: 15px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .group-hit-text mark { background: #EFEBFF; color: #3E2BA8; padding: 0 3px; border-radius: 4px; }
 .group-hits-empty { margin: 24px 0; text-align: center; color: #6B6680; font-size: 15px; }
+
+/* Scopri on phones: once the first card is reached, the cards go by one at a time, like Reels.
+   Each card has a page as tall as the screen, centred in it (clear of the bottom menu), and the scroll
+   stops on each page (it can't skip one). The top of the page and the pages bar at the end are
+   stops too, so the header and the next page stay reachable. (scopri.js sets html.scopri-snap.) */
+@media (max-width: 720px) {
+  html.scopri-snap { scroll-snap-type: y mandatory; }
+  html.scopri-snap [data-sc-name="App Nav"] { scroll-snap-align: start; }
+  html.scopri-snap .scopri-cards { gap: 0; }
+  html.scopri-snap .scopri-cards > * { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; scroll-snap-stop: always; }
+  html.scopri-snap .scopri-cards > * > article { height: auto !important; } /* its own size, not the page's */
+  html.scopri-snap [data-sc-name="App Pager"] { scroll-snap-align: end; }
+}
 

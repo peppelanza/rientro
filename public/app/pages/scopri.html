@@ -1,8 +1,5 @@
 <!-- From design/Rientro 03 Scopri e Profilo v2 · artboards 26a (filtri laterali), 26b (mobile), 27a (comuni), 28a (ricerca), 28b (nessun risultato). -->
 <div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
-<!-- Phones: page-coloured strip at the very top; the pinned cards stop under it (app.css). Here, at
-     the top level, so it stays put while pulling to refresh (Safari tints its bar from it) -->
-<div class="r-show-sm scopri-top-guard" aria-hidden="true"></div>
 <dc-import name="App Nav" active="scopri" me="{{ me }}" q="{{ f.q }}"></dc-import>
 <sc-if value="{{ loading }}"><div style="height:60vh"></div></sc-if>
 
@@ -38,7 +35,7 @@
 <!-- Phones only: on a computer the search is the one in the top bar -->
 <div class="r-show-sm"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, città e tanto altro" dc-props="{{ searchProps }}"></dc-import></div>
 
-<sc-if value="{{ isGrid }}"><div data-collapse-cards class="r-grid-md-2 r-grid-1" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+<sc-if value="{{ isGrid }}"><div class="r-grid-md-2 r-grid-1 scopri-cards" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
 <sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>
 </div></sc-if>
 

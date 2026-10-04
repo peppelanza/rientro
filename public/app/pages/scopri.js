@@ -1,7 +1,6 @@
 // Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
 import { api, debounce, getCatalog, getMe, go, SCOPRI_BACK_KEY, timeAgo } from '../lib.js';
-import { collapseCards } from '../card-collapse.js';
 import { stickSide } from '../sticky-side.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
@@ -169,8 +168,9 @@ export default class extends Page {
   }
 
   didRender(el) {
+    // phones: the cards one at a time (app.css html.scopri-snap), only while there are cards
+    document.documentElement.classList.toggle('scopri-snap', !!el.querySelector('.scopri-cards'));
     try { sessionStorage.setItem(SCOPRI_BACK_KEY, location.search); } catch {}
-    collapseCards(el);
     stickSide(el.querySelector('aside[aria-label="Filtri"]'));
   }
 
