@@ -318,7 +318,7 @@ CREATE TABLE IF NOT EXISTS review_events (
 CREATE TABLE IF NOT EXISTS files (
   id            TEXT PRIMARY KEY,
   owner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  kind          TEXT NOT NULL CHECK (kind IN ('profile_photo', 'profile_video')),
+  kind          TEXT NOT NULL CHECK (kind IN ('profile_photo', 'profile_video', 'group_image')),
   storage_key   TEXT NOT NULL UNIQUE,
   mime_type     TEXT NOT NULL,
   size_bytes    INTEGER NOT NULL,
@@ -421,3 +421,10 @@ CREATE TABLE IF NOT EXISTS group_comments (
   created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS group_comments_post ON group_comments(post_id, id);
+-- Pictures in a post (up to 4), in order; the files themselves are kind 'group_image'
+CREATE TABLE IF NOT EXISTS group_post_images (
+  post_id   INTEGER NOT NULL REFERENCES group_posts(id) ON DELETE CASCADE,
+  file_id   TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+  position  INTEGER NOT NULL,
+  PRIMARY KEY (post_id, file_id)
+);

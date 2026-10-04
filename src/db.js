@@ -116,8 +116,11 @@ const WIDENED_CHECKS = [
 ];
 // review_events: the admin can also hide and show a profile
 const WIDENED_REVIEW_CHECKS = [["'suspend', 'unsuspend')", "'suspend', 'unsuspend', 'hide', 'show')"]];
+// files: pictures in group posts
+const WIDENED_FILE_CHECKS = [["'profile_photo', 'profile_video')", "'profile_photo', 'profile_video', 'group_image')"]];
 function migrateChecks(db) {
   widenChecks(db, 'profiles', WIDENED_CHECKS);
+  widenChecks(db, 'files', WIDENED_FILE_CHECKS);
   widenChecks(db, 'review_events', WIDENED_REVIEW_CHECKS);
 }
 function widenChecks(db, table, pairs) {

@@ -701,6 +701,24 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 @media (prefers-reduced-motion: reduce) { .group-bar { transition: none; } }
 .group-cover { display: block; width: calc(100% + 32px); margin: -16px -16px 4px; aspect-ratio: 3 / 1; object-fit: cover; border-radius: 20px; background: #F1EFF8; }
 @media (max-width: 720px) { .group-cover { aspect-ratio: 2 / 1; } }
+/* Post box tools: emoji (computer only, as in the chat), pictures; pictures waiting to be posted */
+.group-tools { position: relative; display: flex; align-items: center; gap: 8px; }
+.group-tool { flex: none; width: 40px; height: 40px; border: none; border-radius: 50%; background: #F1EFF8; color: #6B6680; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: none; }
+.group-tool:hover { background: #E9E5F7; color: #6C4DF5; }
+.group-tools .emoji-picker-compose { left: 0; bottom: calc(100% + 6px); }
+.group-pending { display: flex; gap: 8px; flex-wrap: wrap; }
+.group-pending-img { position: relative; width: 84px; height: 84px; border-radius: 14px; overflow: hidden; background: #F1EFF8; }
+.group-pending-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.group-pending-img button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border: none; border-radius: 50%; background: rgba(26, 23, 38, .7); color: #FFFFFF; font-size: 11px; cursor: pointer; }
+.group-pending-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .6); font: 600 13px 'Geist Mono', monospace; color: #3E2BA8; }
+/* Pictures in a post: one large, or a grid */
+.group-images { display: grid; gap: 4px; border-radius: 18px; overflow: hidden; }
+.group-images img { width: 100%; height: 100%; object-fit: cover; display: block; background: #F1EFF8; }
+.group-images.n1 img { height: auto; max-height: 520px; }
+.group-images.n2, .group-images.n4 { grid-template-columns: 1fr 1fr; }
+.group-images.n2 a, .group-images.n4 a { aspect-ratio: 1; }
+.group-images.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 3 / 2; }
+.group-images.n3 a:first-child { grid-row: span 2; }
 .group-post { scroll-margin-top: 16px; background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
 .group-body { margin: 0; font-size: 15px; line-height: 1.55; color: #1A1726; white-space: pre-wrap; overflow-wrap: anywhere; }
 .group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }
@@ -716,3 +734,9 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .group-menu { position: absolute; right: 0; top: 42px; z-index: 10; min-width: 160px; padding: 6px; border-radius: 18px; background: #FFFFFF; box-shadow: 0 16px 36px rgba(40,30,90,.16); display: flex; flex-direction: column; }
 .group-menu button { height: 40px; padding: 0 12px; border: none; border-radius: 12px; background: none; font: 14px 'Geist', sans-serif; color: #1A1726; text-align: left; cursor: pointer; }
 .group-menu button:hover { background: #F1EFF8; }
+
+/* A group page as the server writes it (search engines, first paint), until the app takes over */
+.ssr-group { max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
+.ssr-group h1 { font-family: 'Unbounded', sans-serif; }
+.ssr-group .ssr-body { white-space: pre-wrap; }
+.ssr-group img { max-width: 100%; }

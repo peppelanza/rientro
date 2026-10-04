@@ -14,7 +14,7 @@ import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb, tx } from './db.js';
-import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
+import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, storeGroupImage, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
@@ -505,6 +505,16 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     if (!groups.publicPhotoAllowed(db, params.id)) throw new HttpError(404, 'not_found');
     streamFile(req, res, fileOnDisk(db, params.id));
   }, { ...pub, raw: true });
+  route('GET', '/api/public/group-images/:id', ({ params, req, res }) => {
+    if (!groups.publicImageAllowed(db, params.id)) throw new HttpError(404, 'not_found');
+    streamFile(req, res, fileOnDisk(db, params.id));
+  }, { ...pub, raw: true });
+  // A picture for a post, before publishing it (the browser has resized and checked it)
+  route('POST', '/api/groups/images', async ({ user, req }) => {
+    legal(user);
+    groups.requireMemberArea(user);
+    return storeGroupImage(db, user, await receiveUpload(req, 'group_image'));
+  });
   route('GET', '/api/groups', ({ user }) => groups.listGroups(db, user));
   route('GET', '/api/groups/:id', ({ user, params }) => groups.getGroup(db, user, params.id));
   route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));

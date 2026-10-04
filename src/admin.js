@@ -5,6 +5,7 @@ import { AGE_BANDS, label, orList, SOURCES, START, TIME } from './catalog.js';
 import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
+import { removePost } from './groups.js';
 import { effectiveProfile, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
@@ -253,7 +254,7 @@ export function deleteReportedPost(db, admin, id) {
   if (!r?.group_post_id) throw new HttpError(404, 'not_found');
   const p = db.prepare('SELECT id, group_id FROM group_posts WHERE id = ?').get(r.group_post_id);
   if (!p) throw new HttpError(404, 'not_found', 'Il post è già stato eliminato.');
-  db.prepare('DELETE FROM group_posts WHERE id = ?').run(p.id);
+  removePost(db, p.id);
   audit(db, admin.id, 'report.delete_post', r.reported_id, { report_id: id, group: p.group_id });
   return { ok: true };
 }

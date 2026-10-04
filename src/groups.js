@@ -5,11 +5,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { REGIONS } from './catalog.js';
 import { config } from './config.js';
-import { now } from './db.js';
+import { now, tx } from './db.js';
+import { removeFile } from './files.js';
 import { fileUrl, isBlocked, rawProfile } from './profiles.js';
 import { pageParams, paginate } from './paging.js';
 import { nameOf, notify, requireLaunched } from './social.js';
-import { HttpError, only, text } from './validate.js';
+import { HttpError, bad, only, text } from './validate.js';
 
 const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -26,7 +27,7 @@ export function seedGroups(db) {
   db.prepare(`DELETE FROM groups WHERE id NOT IN (${rows.map(() => '?').join(', ')})`).run(...rows.map(r => r[0]));
 }
 
-function requireMemberArea(user) {
+export function requireMemberArea(user) {
   requireLaunched(user);
   if (user.status !== 'approved') throw new HttpError(403, 'not_approved', 'Completa il profilo per entrare nei gruppi.');
 }
@@ -69,12 +70,30 @@ export function getGroup(db, viewer, id) {
 }
 
 const COMMENTS_SHOWN = 3; // under each post; the rest on request
+export const MAX_IMAGES = 4;
+
+// A post's pictures, in order (public addresses: the posts are public too)
+const imagesOf = (db, postId) => db.prepare('SELECT file_id FROM group_post_images WHERE post_id = ? ORDER BY position').all(postId)
+  .map(r => `/api/public/group-images/${r.file_id}`);
+
+// Deleting a post takes its pictures with it (the comments go by cascade)
+export function removePost(db, postId) {
+  const files = db.prepare('SELECT file_id FROM group_post_images WHERE post_id = ?').all(postId).map(r => r.file_id);
+  db.prepare('DELETE FROM group_posts WHERE id = ?').run(postId);
+  for (const id of files) removeFile(db, id);
+}
+
+// A picture of a post is public while its author is visible
+export function publicImageAllowed(db, fileId) {
+  return !!db.prepare(`SELECT 1 FROM group_post_images i JOIN group_posts p ON p.id = i.post_id
+    WHERE i.file_id = ? AND p.${VISIBLE_AUTHOR}`).get(fileId);
+}
 
 function postView(db, viewer, p) {
   const comments = db.prepare(`SELECT * FROM group_comments WHERE post_id = $post AND author_id NOT IN ${HIDDEN} ORDER BY id`)
     .all({ $post: p.id, $viewer: viewer.id });
   return {
-    id: p.id, body: p.body, created_at: p.created_at, author: author(db, p.author_id), mine: p.author_id === viewer.id,
+    id: p.id, body: p.body, images: imagesOf(db, p.id), created_at: p.created_at, author: author(db, p.author_id), mine: p.author_id === viewer.id,
     comments_count: comments.length,
     comments: comments.slice(-COMMENTS_SHOWN).map(c => commentView(db, viewer, c)),
   };
@@ -93,10 +112,24 @@ export function listPosts(db, viewer, id, query = new URLSearchParams()) {
 export function createPost(db, viewer, id, body) {
   requireMemberArea(viewer);
   groupOr404(db, id);
-  only(body, ['body']);
-  const msg = text(body.body, 'Post', { max: 4000, nullable: false });
-  const r = db.prepare('INSERT INTO group_posts (group_id, author_id, body, created_at) VALUES (?, ?, ?, ?)').run(id, viewer.id, msg, now());
-  return postView(db, viewer, db.prepare('SELECT * FROM group_posts WHERE id = ?').get(Number(r.lastInsertRowid)));
+  only(body, ['body', 'images']);
+  // Up to 4 pictures, uploaded beforehand by the author (/api/groups/images) and not used yet
+  const images = Array.isArray(body.images) ? body.images.map(String) : [];
+  if (images.length > MAX_IMAGES || new Set(images).size !== images.length) throw bad('images', `Al massimo ${MAX_IMAGES} foto.`);
+  for (const f of images) {
+    const ok = db.prepare("SELECT 1 FROM files WHERE id = ? AND owner_id = ? AND kind = 'group_image' AND id NOT IN (SELECT file_id FROM group_post_images)").get(f, viewer.id);
+    if (!ok) throw bad('images', 'Una delle foto non è più disponibile: caricala di nuovo.');
+  }
+  // With pictures the text can be empty
+  const msg = (text(body.body, 'Post', { max: 4000 }) ?? '').trim();
+  if (!msg && !images.length) throw bad('body', 'Scrivi qualcosa o aggiungi una foto.');
+  const postId = tx(db, () => {
+    const r = db.prepare('INSERT INTO group_posts (group_id, author_id, body, created_at) VALUES (?, ?, ?, ?)').run(id, viewer.id, msg, now());
+    const pid = Number(r.lastInsertRowid);
+    images.forEach((f, i) => db.prepare('INSERT INTO group_post_images (post_id, file_id, position) VALUES (?, ?, ?)').run(pid, f, i));
+    return pid;
+  });
+  return postView(db, viewer, db.prepare('SELECT * FROM group_posts WHERE id = ?').get(postId));
 }
 
 function postOr404(db, viewer, groupId, postId) {
@@ -143,7 +176,7 @@ export function deletePost(db, viewer, id, postId) {
   requireMemberArea(viewer);
   const p = postOr404(db, viewer, id, postId);
   if (p.author_id !== viewer.id && viewer.role !== 'admin') throw new HttpError(403, 'forbidden', 'Puoi eliminare solo i tuoi post.');
-  db.prepare('DELETE FROM group_posts WHERE id = ?').run(p.id);
+  removePost(db, p.id);
   return { ok: true };
 }
 
@@ -174,7 +207,7 @@ export function publicGroup(db, id, query = new URLSearchParams()) {
   const posts = paginate(rows, pageParams(query, 20), p => {
     const comments = db.prepare(`SELECT * FROM group_comments WHERE post_id = ? AND ${VISIBLE_AUTHOR} ORDER BY id`).all(p.id)
       .map(c => ({ id: c.id, body: c.body, created_at: c.created_at, author: publicAuthor(db, c.author_id) }));
-    return { id: p.id, body: p.body, created_at: p.created_at, author: publicAuthor(db, p.author_id), comments_count: comments.length, comments };
+    return { id: p.id, body: p.body, images: imagesOf(db, p.id), created_at: p.created_at, author: publicAuthor(db, p.author_id), comments_count: comments.length, comments };
   });
   return { group: summary(db, g), posts };
 }
@@ -198,9 +231,10 @@ export function groupPageHtml(db, id) {
   const { posts } = publicGroup(db, id);
   const first = posts.items[0]?.body;
   const description = `${g.description}${first ? ` ${first.slice(0, 120)}` : ''}`;
-  const body = `<main style="max-width:720px;margin:0 auto;padding:24px 16px;font-family:'Geist',sans-serif;color:#1A1726">
-<h1 style="font-family:'Unbounded',sans-serif">${esc(g.name)} · Gruppi di Rientro</h1><p>${esc(g.description)}</p>
-${posts.items.map(p => `<article><p><strong>${esc(p.author.name)}</strong></p><p style="white-space:pre-wrap">${esc(p.body)}</p>${p.comments.map(c => `<p><strong>${esc(c.author.name)}</strong>: ${esc(c.body)}</p>`).join('')}</article>`).join('\n')}
+  // (styled by class: the site's security policy doesn't allow inline styles)
+  const body = `<main class="ssr-group">
+<h1>${esc(g.name)} · Gruppi di Rientro</h1><p>${esc(g.description)}</p>
+${posts.items.map(p => `<article><p><strong>${esc(p.author.name)}</strong></p><p class="ssr-body">${esc(p.body)}</p>${p.images.map(src => `<img src="${src}" alt="Foto di ${esc(p.author.name)}">`).join('')}${p.comments.map(c => `<p><strong>${esc(c.author.name)}</strong>: ${esc(c.body)}</p>`).join('')}</article>`).join('\n')}
 </main>`;
   return { title: `${g.name} · Gruppi · Rientro`, description, body };
 }

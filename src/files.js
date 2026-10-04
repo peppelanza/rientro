@@ -18,8 +18,8 @@ function sniff(buf) {
 }
 
 const diskPath = key => path.join(config.uploadDir, key);
-const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes };
-const TYPES = { profile_photo: /^image\//, profile_video: /^video\// };
+const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes, group_image: config.maxPhotoBytes };
+const TYPES = { profile_photo: /^image\//, profile_video: /^video\//, group_image: /^image\// };
 
 // Streams the request body to disk (videos can be 200 MB), checking size and type as it goes.
 export function receiveUpload(req, kind) {
@@ -173,7 +173,7 @@ export function confirmVideo(db, userId) {
 
 const fileRow = (db, id) => (id ? db.prepare('SELECT * FROM files WHERE id = ?').get(id) : null);
 
-function removeFile(db, id) {
+export function removeFile(db, id) {
   const f = fileRow(db, id);
   if (!f) return;
   db.prepare('DELETE FROM files WHERE id = ?').run(id);
@@ -193,6 +193,15 @@ export function attachUpload(db, user, kind, upload) {
   });
   if (replaced && replaced !== id) { cancelConversion(replaced); removeFile(db, replaced); }
   return { id, url: `/api/files/${id}` };
+}
+
+// A picture for a group post: stored now, attached when the post is published (groups.js); one never
+// attached is deleted the next day (retention.js)
+export function storeGroupImage(db, user, upload) {
+  const id = newId();
+  db.prepare("INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES (?, ?, 'group_image', ?, ?, ?, ?, ?)")
+    .run(id, user.id, upload.key, upload.mime, upload.size, upload.sha256, now());
+  return { id, url: `/api/public/group-images/${id}` };
 }
 
 export function removeVideo(db, userId) {

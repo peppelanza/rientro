@@ -3,7 +3,10 @@
 // profile can write a post and comment, delete their own (admins any), report someone else's. Newest posts first, 20 per page; under each post its last
 // 3 comments. The page is public too: without an account (or before launch) it's read-only, with only
 // the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
-import { api, go, setMe, timeAgo, toastError } from '../lib.js';
+import { EMOJI } from '../emoji.js';
+import { shrinkImage } from '../image-shrink.js';
+import { api, go, setMe, timeAgo, toast, toastError, upload } from '../lib.js';
+import { nsfwCheck, warmUpNsfwCheck } from '../nsfw.js';
 import { report } from '../social.js';
 import { stickSide } from '../sticky-side.js';
 import { homeFor, Page, peekMe } from './_base.js';
@@ -11,6 +14,7 @@ import { homeFor, Page, peekMe } from './_base.js';
 export const title = 'Gruppi';
 export const tabbar = true;
 
+const MAX_IMAGES = 4; // as the server (groups.js)
 const ini = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2);
 
 export default class extends Page {
@@ -20,7 +24,7 @@ export default class extends Page {
     const member = !!me && me.user.status === 'approved' && (me.launched || me.user.role === 'admin');
     const id = this.props.params.id || null;
     if (!member && !id) return go(homeFor(me)); // the list is for members (the server sends visitors to sign in)
-    Object.assign(this.state, { me, member, id, draft: '', drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
+    Object.assign(this.state, { me, member, id, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
     if (member) this.state.groups = (await api('GET', '/api/groups')).groups;
     if (id) await this.fetchAll();
     addEventListener('popstate', () => location.reload());
@@ -31,7 +35,7 @@ export default class extends Page {
     const s = this.state;
     if (id === s.id) return;
     history.pushState(null, '', id ? `/gruppi/${id}` : '/gruppi');
-    Object.assign(s, { id, group: null, feed: null, page: 1, draft: '', drafts: {}, open: {}, menuFor: null });
+    Object.assign(s, { id, group: null, feed: null, page: 1, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null });
     this.__rerender();
     window.scrollTo(0, 0);
     if (id) { try { await this.fetchAll(); } catch (err) { toastError(err); } }
@@ -51,8 +55,13 @@ export default class extends Page {
 
   componentDidMount() {
     super.componentDidMount();
-    // A post's "···" menu closes on a click elsewhere
-    this.closeMenu = e => { if (this.state.menuFor && !e.target.closest('.group-more, .group-menu')) this.setState({ menuFor: null }); };
+    // A post's "···" menu and the emoji picker close on a click elsewhere
+    this.closeMenu = e => {
+      const s = this.state;
+      if (s.menuFor && !e.target.closest('.group-more, .group-menu')) this.setState({ menuFor: null });
+      // (a click that redrew its own button isn't one outside: its target is gone from the page)
+      if (s.emojiOpen && e.target.isConnected && !e.target.closest('.emoji-picker, .emoji-toggle')) this.setState({ emojiOpen: false });
+    };
     addEventListener('click', this.closeMenu);
   }
   componentWillUnmount() {
@@ -80,11 +89,59 @@ export default class extends Page {
     if (s.id) await this.fetchAll();
   }
 
+  // Pictures for the post (up to 4): resized, checked for explicit content and uploaded right away,
+  // so publishing only has to send their ids
+  async addImages(files) {
+    const s = this.state;
+    const room = MAX_IMAGES - s.images.length;
+    if (files.length > room) toast(`Puoi aggiungere al massimo ${MAX_IMAGES} foto.`, { tone: 'err' });
+    for (const file of [...files].slice(0, Math.max(0, room))) {
+      const img = { key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file), pct: 0 };
+      s.images.push(img);
+      this.__rerender();
+      try {
+        const blob = await shrinkImage(file);
+        if ((await nsfwCheck(blob))?.blocked) throw new Error('Questa immagine non può essere pubblicata su Rientro.');
+        const r = await upload('/api/groups/images', blob, (loaded, total) => { img.pct = Math.round((loaded / total) * 100); this.__rerender(); });
+        img.id = r.id;
+      } catch (err) {
+        s.images = s.images.filter(x => x !== img);
+        URL.revokeObjectURL(img.preview);
+        toast(err.message, { tone: 'err' });
+      }
+      this.__rerender();
+    }
+  }
+
+  removeImage(img) {
+    const s = this.state;
+    s.images = s.images.filter(x => x !== img);
+    URL.revokeObjectURL(img.preview);
+    this.__rerender();
+  }
+
+  // The emoji goes where the cursor is in the post box (computer only: phones have it on the keyboard)
+  insertEmoji(emoji) {
+    const s = this.state;
+    const ta = document.querySelector('[data-key="group-post"]');
+    const at = ta?.selectionStart ?? s.draft.length;
+    const end = ta?.selectionEnd ?? at;
+    s.draft = s.draft.slice(0, at) + emoji + s.draft.slice(end);
+    if (!ta) return this.__rerender();
+    ta.value = s.draft;
+    ta.focus();
+    ta.setSelectionRange(at + emoji.length, at + emoji.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true })); // grows with the text
+  }
+
   publish = this.act(async () => {
     const s = this.state;
     const body = s.draft.trim();
-    if (!body) return;
-    const post = await api('POST', `/api/groups/${encodeURIComponent(s.id)}/posts`, { body });
+    if (s.images.some(i => !i.id)) return toast('Aspetta che le foto finiscano di caricarsi.');
+    if (!body && !s.images.length) return;
+    const post = await api('POST', `/api/groups/${encodeURIComponent(s.id)}/posts`, { body, images: s.images.map(i => i.id) });
+    s.images.forEach(i => URL.revokeObjectURL(i.preview));
+    Object.assign(s, { images: [], emojiOpen: false });
     s.draft = '';
     if (s.page === 1) s.feed.items.unshift(post);
     s.group.posts++;
@@ -133,6 +190,7 @@ export default class extends Page {
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
     const posts = (s.feed?.items || []).map(p => ({
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
+      hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 4)}`,
       comments: p.comments.map(c => comment(p, c)),
       more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),
@@ -164,6 +222,14 @@ export default class extends Page {
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
       stats: g.posts ? `${g.posts} post` : '', // nothing when there are none yet
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,
+      // pictures and emoji in the post box
+      // (a copy: emptying the field, so the same picture can be picked again, empties its list too)
+      pick: e => { const files = [...e.target.files]; e.target.value = ''; if (files.length) { warmUpNsfwCheck(); this.addImages(files); } },
+      canAddImage: s.images.length < MAX_IMAGES,
+      pending: s.images.map(img => ({ src: img.preview, uploading: !img.id, pct: `${img.pct}%`, remove: () => this.removeImage(img) })),
+      hasPending: s.images.length > 0,
+      emojiOpen: s.emojiOpen, toggleEmoji: () => this.setState({ emojiOpen: !s.emojiOpen }),
+      emoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),
       posts, empty: !!s.feed && !posts.length,
       page: s.feed?.page ?? 1, pages: s.feed?.pages ?? 1, total: s.feed?.total ?? 0, perPage: s.feed?.per_page ?? 20,
       pagerProps: { onPage: n => { location.search = `?page=${n}`; } },

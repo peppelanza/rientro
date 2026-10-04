@@ -103,3 +103,28 @@ test('reporting a group post reaches the admins with the post; they can delete i
     assert.deepEqual((await admin.get('/api/admin/reports')).body.reports.find(x => x.id === r.id).post, { deleted: true });
   } finally { t.close(); }
 });
+
+test('pictures in posts: uploaded first, attached once (up to 4), public with the post, gone with it; text optional', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('img-a@example.com');
+    const b = await t.approved('img-b@example.com');
+    const anon = makeClient(t.base, '');
+    const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a49f0000000049454e44ae426082', 'hex');
+    const up = async who => (await who.raw('POST', '/api/groups/images', PNG)).body;
+    const img = await up(a);
+    assert.ok(img.id);
+    assert.equal((await anon.get(img.url)).status, 404, 'not public before it is in a post');
+    assert.equal((await b.post('/api/groups/generale/posts', { body: 'x', images: [img.id] })).status, 400, 'only your own pictures');
+    const post = (await a.post('/api/groups/generale/posts', { images: [img.id] })).body;
+    assert.equal(post.body, '');
+    assert.deepEqual(post.images, [img.url]);
+    assert.equal((await anon.get(img.url)).status, 200);
+    assert.equal((await a.post('/api/groups/generale/posts', { body: 'again', images: [img.id] })).status, 400, 'a picture is used once');
+    const five = await Promise.all([1, 2, 3, 4, 5].map(() => up(a)));
+    assert.equal((await a.post('/api/groups/generale/posts', { body: 'tante', images: five.map(f => f.id) })).status, 400, 'at most 4');
+    assert.equal((await a.post('/api/groups/generale/posts', {})).status, 400, 'text or pictures');
+    await a.del(`/api/groups/generale/posts/${post.id}`);
+    assert.equal((await anon.get(img.url)).status, 404, 'deleted with the post');
+  } finally { t.close(); }
+});

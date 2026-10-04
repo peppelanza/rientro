@@ -23,9 +23,9 @@ export const PROCESSING_REGISTER = [
   {
     purpose: 'groups',
     description: 'Gruppi: pubblicare i post e i commenti che i membri scrivono nei gruppi (Generale e uno per regione), visibili a chiunque anche senza account e indicizzabili dai motori di ricerca, con nome, cognome e foto dell’autore.',
-    data_categories: 'post, commenti, nome, cognome, foto profilo dell’autore',
+    data_categories: 'post (testi e foto), commenti, nome, cognome, foto profilo dell’autore',
     proposed_basis: 'Esecuzione del contratto (art. 6.1.b): scrivere in un gruppo è una scelta del membro',
-    retention: 'Finché l’autore non li elimina o non cancella l’account; nascosti dalla richiesta di cancellazione',
+    retention: 'Finché l’autore non li elimina o non cancella l’account; nascosti dalla richiesta di cancellazione; foto di post mai pubblicati: 1 giorno',
     recipients: 'Pubblico e motori di ricerca; Render (hosting, UE)',
   },
   {
