@@ -406,17 +406,19 @@ const SEARCH_PARTS = [
   ['chi cerca', 1, p => [p.seeking_description, ...p.seeking_backgrounds]],
   ['“Cosa mi manca dell’Italia”', 1, p => [p.misses_italy]],
 ];
-// { score, where } or null
+// { found, score, where, word } or null when no word is there; found: how many of the words are;
+// where/word: the first one found outside what a result row shows, and where
 export function searchHit(p, ts, fuzzy = false) {
   const parts = SEARCH_PARTS.map(([where, weight, texts]) => [where, weight, wordsOf(texts(p).filter(Boolean).join(' '))]);
-  let score = 0, where = '';
+  let found = 0, score = 0, where = '', word = '';
   for (const t of ts) {
-    const found = parts.find(([, , words]) => hit(t, words, fuzzy));
-    if (!found) return null;
-    score += found[1];
-    if (found[0] && !where) where = typeof found[0] === 'function' ? found[0](p) : found[0];
+    const part = parts.find(([, , words]) => hit(t, words, fuzzy));
+    if (!part) continue;
+    found++;
+    score += part[1];
+    if (part[0] && !where) { where = typeof part[0] === 'function' ? part[0](p) : part[0]; word = t; }
   }
-  return { score, where };
+  return found ? { found, score, where, word } : null;
 }
 
 export function parseDiscoverQuery(q) {
@@ -460,17 +462,18 @@ export function discover(db, viewer, filters) {
   // a search that finds nothing exactly tries once more forgiving a typo
   let results = forgiving(fuzzy => { filters.fuzzy = fuzzy; return rows.filter(p => passes(p)); });
   if (filters.q) {
-    // the best matches first (a name above a word in the experience), the newest within each
+    // the best matches first: more of the words, then where they are (a name above a word in the
+    // experience), then the newest
     const hits = new Map(results.map(p => [p, searchHit(p, filters.terms, filters.fuzzy)]));
-    results = results.sort((a, b) => hits.get(b).score - hits.get(a).score);
-    for (const p of results) p.match_in = hits.get(p).where;
+    results = results.sort((a, b) => hits.get(b).found - hits.get(a).found || hits.get(b).score - hits.get(a).score);
+    for (const p of results) Object.assign(p, { match_in: hits.get(p).where, match_word: hits.get(p).word });
   } else if (filters.sort === 'match') {
     // Complementary profiles first; the newest first within each group (sort is stable)
     results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
   }
   const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
   const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE },
-    p => ({ ...card(db, viewer, p, viewerP), ...(filters.q ? { match_in: p.match_in } : {}) }));
+    p => ({ ...card(db, viewer, p, viewerP), ...(filters.q ? { match_in: p.match_in, match_word: p.match_word } : {}) }));
   return {
     total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
     people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)

@@ -8,12 +8,16 @@ import { Page } from './_base.js';
 export const title = 'Cerca';
 export const tabbar = true;
 
-// Splits text around the first case-insensitive match, to highlight it
-function mark(text, needle) {
+// Splits text around the first of the words typed that's in it (case-insensitive), to highlight it
+function mark(text, words) {
   const t = text || '';
-  const i = needle ? t.toLowerCase().indexOf(needle.toLowerCase()) : -1;
-  return i < 0 ? { a: t, m: '', b: '' } : { a: t.slice(0, i), m: t.slice(i, i + needle.length), b: t.slice(i + needle.length) };
+  for (const w of words) {
+    const i = w ? t.toLowerCase().indexOf(w.toLowerCase()) : -1;
+    if (i >= 0) return { a: t.slice(0, i), m: t.slice(i, i + w.length), b: t.slice(i + w.length) };
+  }
+  return { a: t, m: '', b: '' };
 }
+const fold = w => w.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 const initials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2);
 
 // Loading: the results as they will be (pages/_base.js skeleton()), placeholder rows
@@ -80,7 +84,7 @@ export default class extends Page {
     const count = groupsTab ? res?.items.length ?? 0 : res?.total ?? 0;
     // only similar results (a typo forgiven: src/search.js) say so
     const similar = !!res?.fuzzy && count > 0;
-    const first = q.split(/\s+/)[0];
+    const words = q.split(/\s+/).filter(Boolean);
     return {
       loading: false, me: s.me, q, noQuery: !q, hasQuery: !!q,
       heading: similar ? `Risultati simili a “${q}”` : `Risultati per “${q}”`,
@@ -92,11 +96,12 @@ export default class extends Page {
       peopleTab: !groupsTab, groupsTab,
       // Persone: a row each, the words highlighted; found elsewhere in the profile, it says where
       rows: groupsTab ? [] : (res?.people || []).map(p => {
-        const one = mark(p.role, first); const two = mark([p.from, p.to].filter(Boolean).join(' → '), first);
+        const one = mark(p.role, words); const two = mark([p.from, p.to].filter(Boolean).join(' → '), words);
         return {
           name: p.name, photo: p.photo_url, ini: initials(p.name), href: `/persone/${p.id}?da=cerca`, // back: "Torna ai risultati"
           a: one.a, m1: one.m, b: one.b, has1: !!one.m, c: two.a, m2: two.m, d: two.b, has2: !!two.m,
-          cites: p.match_in ? `Cita “${q}” in ${p.match_in}` : '',
+          // the word as typed (the server's has no accents nor capitals)
+          cites: p.match_in ? `Cita “${q.split(/\s+/).find(w => fold(w) === p.match_word) ?? p.match_word}” in ${p.match_in}` : '',
         };
       }),
       hasRows: !groupsTab && count > 0, noPeople: !groupsTab && !!res && !count,
@@ -107,7 +112,7 @@ export default class extends Page {
         l: g.name, tone: s.inGroup === g.id ? 'selected' : 'default', aria: s.inGroup === g.id ? 'true' : 'false', pick: () => this.change({ inGroup: g.id }),
       })),
       hits: groupsTab ? (res?.items || []).map(h => {
-        const m = mark(h.text.length > 240 ? `${h.text.slice(0, 239)}…` : h.text, first);
+        const m = mark(h.text.length > 240 ? `${h.text.slice(0, 239)}…` : h.text, words);
         return {
           href: `/gruppi/${h.group.id}#post-${h.post_id}`, group: h.group.name, name: h.author.name, photo: h.author.photo_url,
           ini: initials(h.author.name), when: timeAgo(h.created_at), where: h.in_comment ? 'in un commento' : '',

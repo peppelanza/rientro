@@ -3,7 +3,7 @@ import { newId, now, tx } from './db.js';
 import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { matches, pageParams, paginate } from './paging.js';
-import { fixedWords, forgiving, hitsAll, terms, wordsOf } from './search.js';
+import { fixedWords, forgiving, hits, terms, wordsOf } from './search.js';
 import { HttpError, bad, bool, oneOf, only, text } from './validate.js';
 
 // Discovery and connecting open on launch day (design 01 pre-lancio); admins can preview them before.
@@ -176,21 +176,27 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   if (ts.length) {
     // all the viewer's messages, newest first, each split into words once (they never change)
     const mine = db.prepare('SELECT * FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id DESC').all(viewer.id, viewer.id);
+    // a conversation counts the most words its name or one of its messages has (that message shown)
     found = forgiving(fuzzy => connected.flatMap(c => {
-      if (hitsAll(ts, wordsOf(c.name), fuzzy)) return [[c, null]];
-      const said = mine.find(m => (m.sender_id === c.id || m.recipient_id === c.id) && hitsAll(ts, fixedWords(`m${m.id}`, m.body), fuzzy));
-      return said ? [[c, said]] : [];
+      let best = hits(ts, wordsOf(c.name), fuzzy), said = null;
+      for (const m of mine) {
+        if (best === ts.length) break;
+        if (m.sender_id !== c.id && m.recipient_id !== c.id) continue;
+        const n = hits(ts, fixedWords(`m${m.id}`, m.body), fuzzy);
+        if (n > best) { best = n; said = m; }
+      }
+      return best ? [[c, said, best]] : [];
     }));
   }
-  const threads = found.map(([c, said]) => {
+  const threads = found.map(([c, said, best = 0]) => {
     const last = said || lastOf(c);
     const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').get(c.id, viewer.id).n;
     return {
       id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, photo_url: c.photo_url,
       last: last ? `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}` : 'Nuova connessione: scrivi per primo',
-      time: last?.created_at ?? c.since, unread: unread > 0, found_in_messages: !!said,
+      time: last?.created_at ?? c.since, unread: unread > 0, found_in_messages: !!said, best,
     };
-  }).sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+  }).sort((a, b) => b.best - a.best || (b.time || '').localeCompare(a.time || '')); // more of the words first
   return { ...paginate(threads, pp), fuzzy: !!found.fuzzy };
 }
 

@@ -2,8 +2,9 @@
 // No index server: the texts are few enough to scan, so the work goes into making each scan cheap
 // and the matching forgiving.
 //   - Accents and capitals don't matter ("citta" finds "Città"), punctuation splits words.
-//   - Every word typed must be there, in any order, each as the start of a word: "svilup" finds
-//     "sviluppatore", but "ma" doesn't find "Roma".
+//   - Each word typed counts on its own, as the start of a word ("svilup" finds "sviluppatore", "ma"
+//     doesn't find "Roma"): a result has at least one of them, and the more it has, the higher it
+//     comes ("backend torino": both first, then either).
 //   - Nothing at all? A second pass forgives a missing, extra or swapped letter in words of 4+
 //     letters ("Milno", "sviluppatroe"), and a wrong one only from 6 letters up (else "marco" would
 //     find "mario"). Those results say they're only similar (results.fuzzy).
@@ -57,8 +58,8 @@ export function hit(term, words, fuzzy = false) {
   return false;
 }
 
-// Every term in these words
-export const hitsAll = (ts, words, fuzzy) => ts.every(t => hit(t, words, fuzzy));
+// How many of the terms are in these words (0: none)
+export const hits = (ts, words, fuzzy) => ts.filter(t => hit(t, words, fuzzy)).length;
 
 // Runs a search exactly, and once more forgiving when it found nothing: run(fuzzy) → results[];
 // forgiven results carry .fuzzy = true (shown as "similar", not as matches)
