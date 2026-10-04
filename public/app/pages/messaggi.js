@@ -132,6 +132,7 @@ export default class extends Page {
     // however the chat was reached (the list, Connessioni, a notification, a profile, a new
     // message), the cursor waits in the box, ready to write (didRender)
     this.focusCompose = !s.closed;
+    s.composeLeft = false; // no hint until the box is left (see composeHint)
   }
 
   async poll() {
@@ -485,6 +486,10 @@ export default class extends Page {
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
       note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
+      // the chat opens with the cursor in the box: its hint only once you've left it (it would flash);
+      // set on the box itself, not by redrawing (the click that took the focus may be on a message)
+      composeHint: s.composeLeft && p ? `Scrivi a ${p.first_name}…` : '',
+      composeBlur: e => { if (!p) return; s.composeLeft = true; e.target.placeholder = `Scrivi a ${p.first_name}…`; },
       replying: !!s.replyTo, replyName: s.replyTo ? (s.replyTo.mine ? 'Tu' : p?.first_name || '') : '', replyText: s.replyTo?.body ?? '',
       cancelReply: () => this.setState({ replyTo: null }),
       composeInput: e => { s.draft = e.target.value; fitCompose(e.target); },
