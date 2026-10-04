@@ -1011,7 +1011,7 @@ def('App Person Card', String.raw`
     const action = {
       none: { l: 'Connettiti', v: 'primary', fn: () => this.props.onConnect?.(p), off: false },
       pending_sent: { l: 'In attesa', v: 'secondary', fn: go('/connessioni?tab=inviate'), off: false }, // to your sent requests
-      pending_received: { l: 'Rispondi', v: 'accent', fn: go(`/persone/${p.id}`), off: false },
+      pending_received: { l: 'Rispondi', v: 'accent', fn: go('/connessioni?tab=ricevute'), off: false }, // to the requests you received
       connected: { l: 'Messaggio', v: 'primary', fn: go(`/messaggi/${p.id}`), off: false },
     }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
     return {
