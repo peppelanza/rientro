@@ -304,7 +304,29 @@ export default class extends Page {
     requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
   });
 
+  // New message (the pencil by "Messaggi"): the middle column asks who to, among your connections;
+  // picking one opens the chat, which joins the list with its first message
+  startNew() {
+    const s = this.state;
+    history.pushState(null, '', '/messaggi');
+    Object.assign(s, { composing: true, active: null, closed: false, toQuery: '', menuOpen: false });
+    this.__rerender();
+    requestAnimationFrame(() => document.querySelector('[data-key="new-to"]')?.focus());
+    this.findContacts('');
+  }
+  async findContacts(q) {
+    const r = await api('GET', `/api/connections?${new URLSearchParams({ tab: 'connected', ...(q ? { q } : {}) })}`).catch(() => null);
+    if (r && this.state.composing) { this.state.contacts = r.items; this.__rerender(); }
+  }
+  findTyped = debounce(v => this.findContacts(v.trim()));
+  pickContact(id) {
+    this.state.composing = false;
+    this.select(id);
+    requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
+  }
+
   select(id) {
+    this.state.composing = false;
     this.from = null;
     history.pushState(null, '', `/messaggi/${id}`);
     this.openThread(id).then(() => this.__rerender());
@@ -312,7 +334,7 @@ export default class extends Page {
 
   didRender(el) {
     // Phone: an open chat takes the whole screen (no top bar, no bottom menu); app.css
-    document.body.classList.toggle('chat-open', !!this.state.active && !this.state.closed);
+    document.body.classList.toggle('chat-open', (!!this.state.active && !this.state.closed) || !!this.state.composing);
     fitViewport();
     fitCompose(el.querySelector('[data-key="compose"]'));
     if (this.keepScroll) {
@@ -405,15 +427,21 @@ export default class extends Page {
     return {
       loading: false, me: s.me,
       // (a chat opened before its first message, from a profile or Connessioni, shows even with no conversation yet)
-      noThreads: !s.anyThreads && !s.active, hasThreads: !!s.anyThreads || !!s.active,
+      noThreads: !s.anyThreads && !s.active && !s.composing, hasThreads: !!s.anyThreads || !!s.active || !!s.composing,
       threads, noMatch: !!q && !threads.length, query: s.query,
       similarOnly: !!q && !!s.list?.fuzzy && threads.length > 0, // a typo forgiven (src/search.js)
       searchProps: { onInput: v => this.searchTyped(v) },
       page: s.list.page, pages: s.list.pages, total: s.list.total, perPage: s.list.per_page,
       pagerProps: { onPage: n => this.listChange({ page: n }) },
       hasOlder: !!s.hasOlder && !!s.messages?.length, loadingOlder: !!s.loadingOlder,
-      hasActive: !!s.active && !!p, noActive: !s.active, closed: !!s.closed,
-      listClass: s.active ? 'r-hide-sm' : '', chatClass: s.active ? '' : 'r-hide-sm',
+      hasActive: !!s.active && !!p, noActive: !s.active && !s.composing, closed: !!s.closed,
+      listClass: s.active || s.composing ? 'r-hide-sm' : '', chatClass: s.active || s.composing ? '' : 'r-hide-sm',
+      // new message: who to, among your connections
+      startNew: () => this.startNew(), composing: !!s.composing, toQuery: s.toQuery ?? '',
+      toProps: { onInput: v => { s.toQuery = v; this.findTyped(v); } },
+      contacts: (s.contacts || []).map(c => ({ name: c.name, role: c.role.split(' · ')[0], photo: c.photo_url, ini: ini(c.name), pick: () => this.pickContact(c.id) })),
+      noContacts: !!s.contacts && !s.contacts.length, noContactsLabel: s.toQuery ? `Nessuna connessione per “${s.toQuery}”.` : 'Non hai ancora connessioni a cui scrivere.',
+      cancelNew: () => { s.composing = false; this.__rerender(); },
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
       // under the name: where they live → where they want to go (no job title), as in the list
       sub: p ? [p.lives_in_city, orList(p.desired_comuni, 3)].filter(Boolean).join(' → ') : '',

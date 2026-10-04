@@ -6,12 +6,12 @@
 <div aria-hidden="true" style="display:flex;gap:6px;flex-direction:column;width:150px"><div style="height:22px;width:100px;border-radius:12px 12px 12px 4px;background:#FFFFFF"></div><div style="height:22px;width:76px;border-radius:12px 12px 4px 12px;background:#6C4DF5;align-self:flex-end"></div></div>
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Non hai ancora messaggi.</h1>
 <span style="font-size:16px;color:#4A4560;max-width:420px;line-height:1.5">Quando una connessione accetta la tua richiesta, potrete iniziare a parlare.</span>
-<div style="margin-top:6px"><dc-import name="UI Button" label="Vedi richieste inviate" variant="accent" size="lg" on-click="{{ sentRequests }}"></dc-import></div>
+<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><dc-import name="UI Button" label="Nuovo messaggio" variant="accent" size="lg" on-click="{{ startNew }}"></dc-import><dc-import name="UI Button" label="Vedi richieste inviate" variant="glass" size="lg" on-click="{{ sentRequests }}"></dc-import></div>
 </main></sc-if>
 
 <sc-if value="{{ hasThreads }}"><div class="r-grid-1 chat-grid" style="flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 290px;gap:12px;padding:16px var(--gutter) 24px;min-height:0">
 <nav aria-label="Conversazioni" data-keep-scroll="threads" class="{{ listClass }}" style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto">
-<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">Messaggi</h1><dc-import name="App Field" placeholder="Cerca" search="{{ true }}" field="thread-search" value="{{ query }}" dc-props="{{ searchProps }}"></dc-import></div>
+<div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.035em">Messaggi</h1><button type="button" class="new-msg-btn" aria-label="Nuovo messaggio" title="Nuovo messaggio" onClick="{{ startNew }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div><dc-import name="App Field" placeholder="Cerca" search="{{ true }}" field="thread-search" value="{{ query }}" dc-props="{{ searchProps }}"></dc-import></div>
 <sc-for list="{{ threads }}" as="t"><a href="/messaggi/{{ t.id }}" onClick="{{ t.open }}" aria-current="{{ t.active }}" style="text-decoration:none">
 <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:22px;background:{{ t.bg }};box-shadow:{{ t.sh }};font-family:'Geist',sans-serif;color:#1A1726;cursor:pointer">
 <dc-import name="App Photo" size="44" src="{{ t.photo }}" initials="{{ t.ini }}"></dc-import>
@@ -27,6 +27,13 @@
 
 <section aria-label="Chat" class="{{ chatClass }}" style="background:#FFFFFF;border-radius:28px;display:flex;flex-direction:column;min-height:0;overflow:hidden">
 <sc-if value="{{ noActive }}"><div style="flex:1;display:flex;align-items:center;justify-content:center;color:#8C84AE;font-size:15px;background:#F6F4FC"><span>Scegli una conversazione.</span></div></sc-if>
+<!-- New message: who to, among your connections (messaggi.js startNew) -->
+<sc-if value="{{ composing }}"><div class="new-msg">
+<div class="new-msg-head"><button type="button" class="r-show-sm" onClick="{{ cancelNew }}" aria-label="Torna ai messaggi" style="border:none;background:none;font-size:20px;width:28px;padding:0;cursor:pointer">←</button><h2>Nuovo messaggio</h2></div>
+<div class="new-msg-to"><span>A:</span><dc-import name="App Field" search="{{ true }}" field="new-to" value="{{ toQuery }}" placeholder="Cerca tra le tue connessioni" dc-props="{{ toProps }}"></dc-import></div>
+<div class="new-msg-list"><sc-for list="{{ contacts }}" as="c"><button type="button" class="new-msg-contact" onClick="{{ c.pick }}"><dc-import name="App Photo" size="44" src="{{ c.photo }}" initials="{{ c.ini }}"></dc-import><span><b>{{ c.name }}</b><small>{{ c.role }}</small></span></button></sc-for>
+<sc-if value="{{ noContacts }}"><span class="new-msg-none">{{ noContactsLabel }}</span></sc-if></div>
+</div></sc-if>
 <sc-if value="{{ closed }}"><div style="flex:1;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:#6B6680;font-size:15px;background:#F6F4FC;padding:20px;text-align:center">Questa conversazione non è più disponibile.<a href="/messaggi" style="font-size:14px">← Messaggi</a></div></sc-if>
 <sc-if value="{{ hasActive }}">
 <div style="height:68px;border-bottom:1px solid #ECE8F7;padding:0 20px;display:flex;align-items:center;gap:12px;flex:none;position:relative">
