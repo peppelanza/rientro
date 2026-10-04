@@ -794,3 +794,12 @@ html.pv-open { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .pv { animation: none; } }
 
+/* Top bar search: the member's last searches under the empty field (search-history.js) */
+.recent-searches { position: fixed; z-index: 60; box-sizing: border-box; padding: 8px; border-radius: 20px; background: #FFFFFF; box-shadow: 0 16px 36px rgba(40, 30, 90, .16); font-family: 'Geist', sans-serif; font-size: 14px; animation: bell-in .16s ease-out; transform-origin: top center; }
+.recent-title { display: block; padding: 6px 10px 6px; font: 500 11px 'Geist Mono', monospace; letter-spacing: .06em; text-transform: uppercase; color: #6B6680; }
+.recent-row { display: flex; align-items: center; border-radius: 12px; }
+.recent-row:hover { background: #F6F4FC; }
+.recent-q { flex: 1; min-width: 0; padding: 9px 10px; border: none; background: none; font: inherit; color: #1A1726; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.recent-x { flex: none; width: 30px; height: 30px; margin-right: 4px; border: none; border-radius: 50%; background: none; color: #8C84AE; font-size: 11px; cursor: pointer; }
+.recent-x:hover { background: #ECE8F7; color: #1A1726; }
+

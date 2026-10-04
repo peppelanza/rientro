@@ -7,6 +7,7 @@ import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
 import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
+import { searchHistory } from './search-history.js';
 import { tapFeedback } from './tap-feedback.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
@@ -84,6 +85,7 @@ async function askLegalUpdate() {
 }
 
 tapFeedback();
+searchHistory();
 launchBar();
 impersonationFrame();
 tabbarOnScroll();
