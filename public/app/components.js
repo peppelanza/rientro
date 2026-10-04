@@ -717,6 +717,28 @@ if (typeof window !== 'undefined') {
   addEventListener('resize', () => tocSpy(), { passive: true });
 }
 
+// App People Filters — the people filters' side panel (design 03 · 26a), in Scopri and in the
+// search's Persone tab; its values come whole from people-filters.js filterPanel (dc-props).
+
+def('App People Filters', String.raw`
+<aside aria-label="Filtri" class="{{ filterClass }}" style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Reset</button></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vuole vivere"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" dc-props="{{ desiredProps }}"></dc-import>
+<sc-if value="{{ hasDesired }}"><dc-import name="UI Checkbox" label="Includi chi ha scelto “Non lo so ancora”" checked="{{ includeUnknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ includeUnknown }}"></dc-import></sc-if></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Dove vive"></dc-import><dc-import name="App Segmented" label="Dove vive" options="{{ livesOpts }}" value="{{ lives }}" onWhite="{{ true }}" dc-props="{{ livesProps }}"></dc-import></div>
+<sc-if value="{{ moreClosed }}"><button type="button" class="filters-more-toggle" aria-expanded="{{ moreOpen }}" onClick="{{ toggleMore }}">{{ moreLabel }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></sc-if>
+<div class="{{ moreCls }}">
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Obiettivo"></dc-import><sc-for list="{{ intents }}" as="i"><dc-import name="UI Checkbox" label="{{ i.l }}" count="{{ i.count }}" checked="{{ i.on }}" on-click="{{ i.fn }}" host-role="checkbox" host-aria-checked="{{ i.on }}"></dc-import></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:4px"><dc-import name="UI Eyebrow" text="Background"></dc-import><sc-for list="{{ bgs }}" as="i"><dc-import name="UI Checkbox" label="{{ i.l }}" count="{{ i.count }}" checked="{{ i.on }}" on-click="{{ i.fn }}" host-role="checkbox" host-aria-checked="{{ i.on }}"></dc-import></sc-for><button type="button" onClick="{{ toggleMoreBg }}" style="align-self:flex-start;border:none;background:none;padding:4px 0 0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">{{ moreBgLabel }}</button></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Settori"></dc-import><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for><sc-if value="{{ hasMoreSectors }}"><dc-import name="UI Chip" label="{{ moreSectorsLabel }}" tone="dashed" size="sm" on-click="{{ toggleMoreSectors }}"></dc-import></sc-if></div></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Tempo"></dc-import><dc-import name="App Segmented" label="Tempo" options="{{ timeOpts }}" value="{{ time }}" clearable="{{ true }}" dc-props="{{ timeProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Fascia d'età"></dc-import><dc-import name="App Segmented" label="Fascia d'età" options="{{ ageOpts }}" value="{{ age }}" clearable="{{ true }}" dc-props="{{ ageProps }}"></dc-import></div>
+</div>
+<sc-if value="{{ moreOpenFlag }}"><button type="button" class="filters-more-toggle" aria-expanded="{{ moreOpen }}" onClick="{{ toggleMore }}">{{ moreLabel }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></sc-if>
+</aside>`, class extends DCLogic {
+  renderVals() { return this.props; }
+});
+
 // App Enter — "Accedi a Rientro" on the public pages (UI Button's dark pill); signed in, with your
 // round profile photo on its left (lib.js knownMe)
 def('App Enter', String.raw`

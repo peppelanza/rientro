@@ -74,8 +74,8 @@ for (const type of ['focusin', 'focusout']) {
 
 const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
-// Loading: the conversation list as it will be (pages/_base.js skeleton())
-const FAKE_THREADS = Array.from({ length: 6 }, (_, i) => ({
+// Loading: the conversation list as it will be (pages/_base.js skeleton()), one placeholder conversation
+const FAKE_THREADS = Array.from({ length: 1 }, (_, i) => ({
   id: `sk${i}`, name: 'Nome Cognome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', photo_url: null,
   last: 'L’ultimo messaggio della conversazione', time: new Date().toISOString(), unread: false,
 }));
@@ -342,7 +342,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.threads) return this.skeleton({ threads: FAKE_THREADS, list: { total: 6, page: 1, pages: 1, per_page: 30, items: FAKE_THREADS }, anyThreads: true, query: s.query ?? '', active: null });
+    if (!s.threads) return this.skeleton({ threads: FAKE_THREADS, list: { total: 1, page: 1, pages: 1, per_page: 30, items: FAKE_THREADS }, anyThreads: true, query: s.query ?? '', active: null });
     const q = s.query.trim();
     const threads = s.threads.map(t => ({
       ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), // Where they live → where they want to go, instead of the job title

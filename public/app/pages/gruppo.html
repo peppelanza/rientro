@@ -10,6 +10,12 @@
 <sc-if value="{{ choosing }}"><section style="background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:10px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.045em">Scegli un gruppo</h1><span style="font-size:15px;color:#4A4560;line-height:1.5">A sinistra trovi il gruppo Generale e quelli delle regioni: scrivi, fai domande, conosci chi torna dove torni tu.</span></section></sc-if>
 <sc-if value="{{ opening }}"><div style="height:40vh"></div></sc-if>
 <sc-if value="{{ hasGroup }}">
+<!-- One post on its own (from the search): the group's bar fixed on top, "Apri gruppo" to all of it -->
+<sc-if value="{{ onePost }}"><div class="group-bar-fixed"><div class="group-bar-in">
+<span class="group-bar-name">{{ g.name }}</span>
+<a href="{{ groupHref }}" onClick="{{ openGroupClick }}" style="text-decoration:none"><dc-import name="UI Button" label="Apri gruppo" variant="accent" size="sm"></dc-import></a>
+</div></div></sc-if>
+<sc-if value="{{ wholeGroup }}">
 <!-- Once the header and the post box have scrolled away: a bar like the menu, stuck to the top of this
      column (gruppo.js) -->
 <div class="group-bar-wrap"><div class="group-bar"><div class="group-bar-in">
@@ -38,7 +44,8 @@
 </div>
 </section></sc-if>
 <sc-if value="{{ empty }}"><div style="text-align:center;padding:32px 0;color:#8C84AE;font-size:14px">Ancora nessun post. Rompi il ghiaccio!</div></sc-if>
-<sc-for list="{{ posts }}" as="p"><article class="group-post" id="{{ p.anchor }}">
+</sc-if>
+<sc-for list="{{ posts }}" as="p"><article class="{{ postCls }}" id="{{ p.anchor }}">
 <div style="display:flex;gap:12px;align-items:center">
 <a href="{{ p.who.href }}" style="flex:none;border-radius:50%"><dc-import name="App Photo" size="40" src="{{ p.who.photo }}" initials="{{ p.who.ini }}"></dc-import></a>
 <div style="display:flex;flex-direction:column;min-width:0;flex:1"><a href="{{ p.who.href }}" style="font-weight:600;font-size:15px;color:#1A1726;text-decoration:none">{{ p.who.name }}</a><span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.when }}<sc-if value="{{ p.who.role }}"> · {{ p.who.role }}</sc-if></span></div>

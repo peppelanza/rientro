@@ -199,6 +199,13 @@ function postOr404(db, viewer, groupId, postId) {
   return p;
 }
 
+// One post with all its comments (a post opened from the search)
+export function getPost(db, viewer, id, postId) {
+  requireMemberArea(viewer);
+  const p = postOr404(db, viewer, id, postId);
+  return { ...postView(db, viewer, p), ...listComments(db, viewer, id, postId) };
+}
+
 export function listComments(db, viewer, id, postId) {
   requireMemberArea(viewer);
   const p = postOr404(db, viewer, id, postId);

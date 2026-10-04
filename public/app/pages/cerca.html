@@ -1,29 +1,42 @@
-<!-- Search: Persone (rows, as design 03 · 28a) and Gruppi (posts and comments), see cerca.js -->
+<!-- Search: Persone (rows, as design 03 · 28a, with Scopri's filters) and Gruppi (posts and comments,
+     with the groups to search in), see cerca.js -->
 <div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
 <dc-import name="App Nav" active="" me="{{ me }}" q="{{ q }}"></dc-import>
-<sc-if value="{{ loading }}"><div style="height:60vh"></div></sc-if>
 <sc-if value="{{ noQuery }}"><p class="search-hint">Scrivi cosa cercare: persone, città, settori o parole dei gruppi.</p></sc-if>
-<sc-if value="{{ hasQuery }}"><div class="search-page">
+<sc-if value="{{ hasQuery }}"><div class="r-page">
+<!-- Phones: the filters (Persone) or the group (Gruppi) behind a chip, as in Scopri -->
+<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
+<sc-if value="{{ peopleTab }}"><dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import>
+<sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for></sc-if>
+<sc-if value="{{ groupsTab }}"><dc-import name="UI Chip" label="{{ groupChip }}" tone="{{ filtersTone }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import></sc-if>
+</div></div>
+
+<div class="r-grid-1" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px var(--gutter) 0">
+<sc-if value="{{ peopleTab }}"><dc-import name="App People Filters" dc-props="{{ filterUi }}"></dc-import></sc-if>
+<sc-if value="{{ groupsTab }}"><aside aria-label="Gruppo" class="{{ groupClass }}" style="align-self:start"><dc-import name="App Side Menu" title="Gruppo" items="{{ groupMenu }}" active="{{ groupActive }}"></dc-import></aside></sc-if>
+
+<main style="display:flex;flex-direction:column;gap:22px;min-width:0">
 <div class="search-tabs" role="tablist" aria-label="Cerca in"><sc-for list="{{ tabs }}" as="t"><button type="button" role="tab" class="{{ t.cls }}" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}">{{ t.l }}</button></sc-for></div>
 <div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1;overflow-wrap:anywhere">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ countLabel }}</span></div>
 
 <sc-if value="{{ peopleTab }}">
+<sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
 <sc-if value="{{ hasRows }}"><div class="no-last-divider" style="background:#FFFFFF;border-radius:24px;padding:4px 20px;display:flex;flex-direction:column">
 <sc-for list="{{ rows }}" as="r">
-<div class="r-grid-1" style="display:grid;grid-template-columns:48px 1fr 260px auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid #ECE8F7"><dc-import name="App Photo" size="48" src="{{ r.photo }}" initials="{{ r.ini }}"></dc-import><div style="display:flex;flex-direction:column;gap:3px"><a href="{{ r.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:13px;color:#6B6680">{{ r.a }}<sc-if value="{{ r.has1 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m1 }}</mark></sc-if>{{ r.b }}</span><sc-if value="{{ r.cites }}"><span style="font-size:13px;color:#6C4DF5">{{ r.cites }}</span></sc-if></div><span style="font-size:13px;color:#6B6680">{{ r.c }}<sc-if value="{{ r.has2 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m2 }}</mark></sc-if>{{ r.d }}</span><a href="{{ r.href }}" style="text-decoration:none"><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm"></dc-import></a></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:48px 1fr 220px auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid #ECE8F7"><dc-import name="App Photo" size="48" src="{{ r.photo }}" initials="{{ r.ini }}"></dc-import><div style="display:flex;flex-direction:column;gap:3px"><a href="{{ r.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:13px;color:#6B6680">{{ r.a }}<sc-if value="{{ r.has1 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m1 }}</mark></sc-if>{{ r.b }}</span><sc-if value="{{ r.cites }}"><span style="font-size:13px;color:#6C4DF5">{{ r.cites }}</span></sc-if></div><span style="font-size:13px;color:#6B6680">{{ r.c }}<sc-if value="{{ r.has2 }}"><mark style="background:#EFEBFF;color:#3E2BA8;padding:0 3px;border-radius:4px">{{ r.m2 }}</mark></sc-if>{{ r.d }}</span><a href="{{ r.href }}" style="text-decoration:none"><dc-import name="UI Button" label="Profilo" variant="secondary" size="sm"></dc-import></a></div>
 </sc-for>
 </div>
 <dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" noun="persone" dc-props="{{ pagerProps }}"></dc-import></sc-if>
-<sc-if value="{{ noPeople }}"><p class="group-hits-empty">Nessuna persona per “{{ q }}”. Prova con altre parole, o guarda nei gruppi.</p></sc-if>
+<sc-if value="{{ noPeople }}"><p class="group-hits-empty">Nessuna persona per “{{ q }}”{{ withFilters }}. Prova con altre parole, o guarda nei gruppi.</p></sc-if>
 </sc-if>
 
 <sc-if value="{{ groupsTab }}">
-<div class="group-filter" role="radiogroup" aria-label="Gruppo"><sc-for list="{{ groupChoices }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.pick }}" host-role="radio" host-aria-checked="{{ c.aria }}"></dc-import></sc-for></div>
 <sc-if value="{{ hasHits }}"><div class="group-hits">
-<sc-for list="{{ hits }}" as="h"><a class="group-hit" href="{{ h.href }}"><dc-import name="App Photo" size="40" src="{{ h.photo }}" initials="{{ h.ini }}"></dc-import><div class="group-hit-body"><span class="group-hit-top"><b>{{ h.name }}</b> in {{ h.group }} · {{ h.when }}<sc-if value="{{ h.where }}"> · {{ h.where }}</sc-if></span><span class="group-hit-text">{{ h.a }}<sc-if value="{{ h.hasM }}"><mark>{{ h.m }}</mark></sc-if>{{ h.b }}</span></div></a></sc-for>
+<sc-for list="{{ hits }}" as="h"><div class="group-hit"><dc-import name="App Photo" size="40" src="{{ h.photo }}" initials="{{ h.ini }}"></dc-import><div class="group-hit-body"><span class="group-hit-top"><b>{{ h.name }}</b> in {{ h.group }} · {{ h.when }}<sc-if value="{{ h.where }}"> · {{ h.where }}</sc-if></span><span class="group-hit-text">{{ h.a }}<sc-if value="{{ h.hasM }}"><mark>{{ h.m }}</mark></sc-if>{{ h.b }}</span></div><a href="{{ h.href }}" class="group-hit-go"><dc-import name="UI Button" label="Vai al post" variant="secondary" size="sm"></dc-import></a></div></sc-for>
 </div></sc-if>
 <sc-if value="{{ noHits }}"><p class="group-hits-empty">Nei gruppi nessuno ha ancora scritto di “{{ q }}”.</p></sc-if>
 </sc-if>
-</div></sc-if>
+</main>
+</div></div></sc-if>
 <dc-import name="App TabBar" active="" me="{{ me }}"></dc-import>
 </div>

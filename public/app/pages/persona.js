@@ -45,11 +45,11 @@ function shrinkPhoto() {
 const FAKE_PROFILE = {
   id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null, video_locked: false, age_band: '30–34',
   lives_in_city: 'Città', lives_in_country: 'Paese', arrived: null, desired_comuni: ['Città'], desired_unknown: 0, places: 'Città o Città',
-  primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore', 'Settore', 'Settore'],
+  primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore'],
   idea: { title: 'Il titolo di un’idea da costruire', description: 'Qualche riga che racconta l’idea, cosa risolve e per chi, abbastanza lunga da andare a capo almeno una volta.', stage: null },
   bio: 'Qualche riga di presentazione: chi è, cosa ha fatto finora e cosa cerca tornando, lunga abbastanza da occupare due righe.',
   seeking: { backgrounds: ['Prodotto'], description: '', location: null }, time: { commitment: 'Full-time', start: null },
-  experiences: [{ company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2020-01', end_month: null, current: 1 }, { company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2016-01', end_month: '2019-12', current: 0 }],
+  experiences: [{ company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2020-01', end_month: null, current: 1 }],
   education: [{ school: 'Università', degree: 'Laurea', years: '2010 – 2015' }], achievement: null, misses_italy: null,
   links: {}, complement: null, connection: { status: 'none' }, viewer_background: null,
 };

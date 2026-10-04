@@ -21,7 +21,7 @@ const MAX_IMAGES = 5; // as the server (groups.js)
 const ini = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2);
 
 // Loading: the group as it will be (pages/_base.js skeleton()); its name, cover and the menu are
-// real as soon as the list of groups is in, the posts are placeholders
+// real as soon as the list of groups is in, one placeholder post
 const FAKE_POST = i => ({
   id: -1 - i, body: 'Il testo di un post, abbastanza lungo da andare a capo come uno vero scritto nel gruppo.', images: [],
   created_at: new Date().toISOString(), author: { id: '', name: 'Nome Cognome', photo_url: null, role: 'Ruolo · Azienda' },
@@ -32,7 +32,7 @@ const skeletonState = s => {
   return {
     member: s.member ?? true, id: s.id || 'sk', groups: s.groups || [],
     group: { name: 'Nome del gruppo', description: 'Una riga che racconta il gruppo.', posts: 3, following: false, ...known },
-    feed: { items: [0, 1, 2].map(FAKE_POST), page: 1, pages: 1, total: 3 },
+    feed: { items: [FAKE_POST(0)], page: 1, pages: 1, total: 1 },
   };
 };
 
@@ -43,7 +43,9 @@ export default class extends Page {
     const member = !!me && me.user.status === 'approved' && (me.launched || me.user.role === 'admin');
     const id = this.props.params.id || null;
     if (!member && !id) return go(homeFor(me)); // the list is for members (the server sends visitors to sign in)
-    Object.assign(this.state, { me, member, id, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
+    // ?post=: that one post on its own (opened from the search), under a fixed bar to the whole group
+    const post = Number(new URLSearchParams(location.search).get('post')) || null;
+    Object.assign(this.state, { me, member, id, post, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
     this.__rerender(); // the top bar for real, the group still a skeleton
     if (member) { this.state.groups = (await api('GET', '/api/groups')).groups; this.__rerender(); }
     if (id) await this.fetchAll();
@@ -55,7 +57,7 @@ export default class extends Page {
     const s = this.state;
     if (id === s.id) return;
     history.pushState(null, '', id ? `/gruppi/${id}` : '/gruppi');
-    Object.assign(s, { id, group: null, feed: null, page: 1, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null });
+    Object.assign(s, { id, post: null, group: null, feed: null, page: 1, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null });
     this.__rerender();
     window.scrollTo(0, 0);
     if (id) { try { await this.fetchAll(); } catch (err) { toastError(err); } }
@@ -97,6 +99,11 @@ export default class extends Page {
     if (!s.member) {
       const r = await api('GET', `/api/public/groups/${id}?page=${s.page}`);
       Object.assign(s, { group: r.group, feed: r.posts });
+      return;
+    }
+    if (s.post) {
+      const [group, post] = await Promise.all([api('GET', `/api/groups/${id}`), api('GET', `/api/groups/${id}/posts/${s.post}`)]);
+      Object.assign(s, { group, feed: { items: [post], page: 1, pages: 1, total: 1 }, open: { [post.id]: true } });
       return;
     }
     [s.group, s.feed] = await Promise.all([api('GET', `/api/groups/${id}`), api('GET', `/api/groups/${id}/posts?page=${s.page}`)]);
@@ -258,6 +265,10 @@ export default class extends Page {
       mainCls: s.id ? 'groups-main' : 'groups-main r-hide-sm',
       hasGroup: !!s.group, choosing: !s.id, opening: !!s.id && !s.group,
       backToList: e => { e.preventDefault(); this.select(null); },
+      // one post on its own (?post=): a fixed bar with the group's name and the way to all of it
+      onePost: !!s.post, wholeGroup: !s.post, groupHref: `/gruppi/${s.id}`,
+      openGroupClick: e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); const id = s.id; s.id = null; this.select(id); },
+      postCls: s.post ? 'group-post group-post-found' : 'group-post', // the post found: a purple frame
       // "Pubblica" in the top bar: back to the post box, ready to type. On a computer all the way up to
       // the top of the page; on a phone just far enough for the box to reach the top of the screen
       toComposer: () => {

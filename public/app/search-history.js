@@ -56,12 +56,12 @@ function open(input) {
   panel.style.width = `${r.width}px`;
 }
 
-// Where a search goes: its own page (cerca.js). From there a new search keeps the tab (Persone or
-// Gruppi) and the group picked; the list starts from page 1.
+// Where a search goes: its own page (cerca.js). From there a new search keeps what's set: the tab
+// (Persone or Gruppi), the people filters, the group; the list starts from page 1.
 export function searchUrl(q) {
-  const here = location.pathname === '/cerca' ? new URLSearchParams(location.search) : new URLSearchParams();
-  const p = new URLSearchParams({ q: q.trim() });
-  for (const k of ['tab', 'gruppo']) if (here.get(k)) p.set(k, here.get(k));
+  const p = location.pathname === '/cerca' ? new URLSearchParams(location.search) : new URLSearchParams();
+  p.set('q', q.trim());
+  p.delete('page');
   return `/cerca?${p}`;
 }
 
