@@ -30,7 +30,7 @@
 <!-- New message: who to, among your connections (messaggi.js startNew) -->
 <sc-if value="{{ composing }}"><div class="new-msg">
 <div class="new-msg-head"><button type="button" class="r-show-sm" onClick="{{ cancelNew }}" aria-label="Torna ai messaggi" style="border:none;background:none;font-size:20px;width:28px;padding:0;cursor:pointer">←</button><h2>Nuovo messaggio</h2></div>
-<div class="new-msg-to"><span>A:</span><dc-import name="App Field" search="{{ true }}" field="new-to" value="{{ toQuery }}" placeholder="" dc-props="{{ toProps }}"></dc-import></div>
+<div class="new-msg-to"><span>A:</span><dc-import name="App Field" search="{{ true }}" field="new-to" value="{{ toQuery }}" placeholder="Cerca tra le tue connessioni" dc-props="{{ toProps }}"></dc-import></div>
 <div class="new-msg-list"><sc-for list="{{ contacts }}" as="c"><button type="button" class="new-msg-contact" onClick="{{ c.pick }}"><dc-import name="App Photo" size="44" src="{{ c.photo }}" initials="{{ c.ini }}"></dc-import><span><b>{{ c.name }}</b><small>{{ c.role }}</small></span></button></sc-for>
 <sc-if value="{{ noContacts }}"><span class="new-msg-none">{{ noContactsLabel }}</span></sc-if></div>
 </div></sc-if>
