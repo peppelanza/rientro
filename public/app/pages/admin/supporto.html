@@ -27,7 +27,7 @@
 <div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><sc-if value="{{ m.hasBody }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></sc-if><sc-if value="{{ m.hasImages }}"><div class="{{ m.gridCls }}"><sc-for list="{{ m.images }}" as="im"><a href="{{ im.src }}" target="_blank" rel="noopener"><img src="{{ im.src }}" alt="" loading="lazy"></a></sc-for></div></sc-if></div></sc-for></div>
 <sc-if value="{{ closed }}"><p class="support-closed">Il ticket è chiuso: se rispondi resta chiuso, se scrive il membro si riapre.</p></sc-if>
 <dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
-<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="8" field="support-team-reply" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Rispondi come Team Rientro" dc-props="{{ draftProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ reply }}"></dc-import></div>
+<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="8" field="support-team-reply" maxlength="4000" value="{{ draft }}" placeholder="Rispondi come Team Rientro" dc-props="{{ draftProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ reply }}"></dc-import></div>
 </section>
 </sc-if>
 

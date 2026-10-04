@@ -964,3 +964,11 @@ html.search-sheet-open { overflow: hidden; }
 .support-compose > .sc-host:nth-child(2) { flex: 1; min-width: 0; }
 @media (max-width: 720px) { .support-row { grid-template-columns: minmax(0, 1fr) auto; } .support-row .support-code { grid-column: 1 / -1; } }
 
+/* Scopri: a card's photo answers the mouse with a very small zoom inside its frame, not by lightening */
+@media (hover: hover) and (pointer: fine) {
+  .scopri-cards article > a[aria-hidden] { opacity: 1 !important; }
+  .scopri-cards article > a[aria-hidden] [data-sc-name="App Photo"] img { transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+  .scopri-cards article > a[aria-hidden]:hover [data-sc-name="App Photo"] img { transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) { .scopri-cards article > a[aria-hidden] [data-sc-name="App Photo"] img { transition: none; } }
+

@@ -27,7 +27,7 @@
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Continua con email</h1>
 <span style="font-size:15px;color:#4A4560;line-height:1.5">Ti mandiamo un codice di 6 cifre. Niente password da ricordare.</span>
 <form onSubmit="{{ sendCode }}" style="display:flex;flex-direction:column;gap:18px">
-<dc-import name="App Field" label="Email" type="email" size="lg" field="email" value="{{ email }}" autocomplete="email" inputmode="email" placeholder="nome@esempio.it" error="{{ emailError }}" dc-props="{{ emailProps }}"></dc-import>
+<dc-import name="App Field" label="Email" type="email" size="lg" field="email" maxlength="254" value="{{ email }}" autocomplete="email" inputmode="email" placeholder="nome@esempio.it" error="{{ emailError }}" dc-props="{{ emailProps }}"></dc-import>
 <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:#6B6680;cursor:pointer"><input type="checkbox" class="sr-only" checked="{{ marketing }}" onChange="{{ toggleMarketing }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;border:{{ mBorder }};box-sizing:border-box;flex:none;background:{{ mBg }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ mMark }}</span>Voglio ricevere aggiornamenti su Rientro via email. Facoltativo, puoi cambiare idea quando vuoi.</label>
 <button type="submit" class="sr-only">Invia codice</button>
 <dc-import name="UI Button" label="{{ sendLabel }}" size="lg" full="{{ true }}" on-click="{{ sendCode }}" host-aria-disabled="{{ busy }}"></dc-import>

@@ -17,7 +17,7 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><sc-for list="{{ stats }}" as="x"><dc-import name="UI Stat" label="{{ x.l }}" value="{{ x.v }}" delta=""></dc-import></sc-for></div>
 <div style="background:#FFFFFF;border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;font-weight:600">Note admin</span>
 <sc-for list="{{ notes }}" as="n"><div style="display:flex;flex-direction:column;gap:3px;font-size:14px"><span style="white-space:pre-line">{{ n.b }}</span><span style="font-size:11px;color:#8C84AE;font-family:'Geist Mono',monospace">{{ n.m }}</span></div></sc-for>
-<dc-import name="App Field" rows="2" field="admin-note" value="{{ note }}" placeholder="Nota interna, non visibile all'utente" dc-props="{{ noteProps }}"></dc-import>
+<dc-import name="App Field" rows="2" field="admin-note" maxlength="1000" value="{{ note }}" placeholder="Nota interna, non visibile all'utente" dc-props="{{ noteProps }}"></dc-import>
 <div style="display:flex;justify-content:flex-end"><dc-import name="UI Button" label="Aggiungi nota" variant="secondary" size="sm" on-click="{{ addNote }}"></dc-import></div></div>
 <div style="background:#FFFFFF;border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:8px">
 <sc-if value="{{ canImpersonate }}"><dc-import name="UI Button" label="{{ impersonateLabel }}" variant="accent" full="{{ true }}" on-click="{{ impersonate }}"></dc-import></sc-if>

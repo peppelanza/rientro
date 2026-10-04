@@ -12,7 +12,7 @@
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Conferma l'eliminazione</h2>
 <dc-import name="App Select" label="Perché te ne vai?" optional="{{ true }}" placeholder="Scegli un motivo" options="{{ reasons }}" value="{{ reason }}" field="del-reason" dc-props="{{ reasonProps }}"></dc-import>
 <span style="font-size:12px;color:#8C84AE;margin-top:-10px">La risposta resta anonima e non è collegata al tuo account.</span>
-<div style="display:flex;flex-direction:column;gap:6px"><label for="del-confirm" style="font-size:13px;font-weight:500">Scrivi <span style="font-family:'Geist Mono',monospace;background:#F1EFF8;padding:1px 6px;border-radius:6px">ELIMINA</span> per confermare</label><dc-import name="App Field" field="del-confirm" value="{{ confirm }}" autocomplete="off" dc-props="{{ confirmProps }}"></dc-import></div>
+<div style="display:flex;flex-direction:column;gap:6px"><label for="del-confirm" style="font-size:13px;font-weight:500">Scrivi <span style="font-family:'Geist Mono',monospace;background:#F1EFF8;padding:1px 6px;border-radius:6px">ELIMINA</span> per confermare</label><dc-import name="App Field" field="del-confirm" maxlength="20" value="{{ confirm }}" autocomplete="off" dc-props="{{ confirmProps }}"></dc-import></div>
 <sc-if value="{{ error }}"><span role="alert" style="font-size:13px;color:#B42318">{{ error }}</span></sc-if>
 <dc-import name="UI Button" label="Elimina account" variant="destructive" size="lg" full="{{ true }}" on-click="{{ doDelete }}" host-aria-disabled="{{ cantDelete }}"></dc-import>
 <dc-import name="UI Button" label="Annulla" variant="ghost" full="{{ true }}" on-click="{{ cancel }}"></dc-import>

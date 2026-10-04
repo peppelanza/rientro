@@ -18,7 +18,7 @@ const SECTIONS = [
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
   ['interessi', 'Interessi e tempo', ['sectors', 'time_commitment', 'start_when']],
   ['italia', "Cosa mi manca dell'Italia", ['misses_italy']],
-  ['link', 'Link', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
+  ['link', 'Links', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
 ];
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
@@ -156,8 +156,7 @@ export default class extends Page {
       menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 720px)').matches) return; e.preventDefault(); this.goSection(k); } })),
       isIndex: s.index, mainCls: s.index ? 'r-hide-sm' : '',
       activeLabel: this.sec[1], heading: this.sec[1],
-      badgeKind: status === 'approved' ? 'success' : 'neutral',
-      badgeLabel: status === 'approved' ? 'Online' : 'Non pubblicato',
+      notPublished: status !== 'approved', // (published: no label)
       dirty: s.dirty, saveVariant: s.dirty ? 'primary' : 'secondary', save: this.save, cancel: () => this.cancel(),
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),

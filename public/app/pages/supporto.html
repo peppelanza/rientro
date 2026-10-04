@@ -17,7 +17,7 @@
 <a href="/supporto" class="support-back">← Supporto</a>
 <section class="support-card"><h1>Nuovo ticket</h1>
 <dc-import name="App Field" label="Oggetto" field="support-subject" maxlength="120" value="{{ subject }}" placeholder="In breve, di cosa si tratta" dc-props="{{ subjectProps }}"></dc-import>
-<dc-import name="App Field" label="Messaggio" rows="5" grow="12" field="support-body" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Raccontaci cosa succede o cosa ti serve" dc-props="{{ draftProps }}"></dc-import>
+<dc-import name="App Field" label="Messaggio" rows="5" grow="12" field="support-body" maxlength="4000" value="{{ draft }}" placeholder="Raccontaci cosa succede o cosa ti serve" dc-props="{{ draftProps }}"></dc-import>
 <dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
 <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><span style="flex:1"></span><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ create }}"></dc-import></div>
 </section>
@@ -30,7 +30,7 @@
 <div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><sc-if value="{{ m.hasBody }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></sc-if><sc-if value="{{ m.hasImages }}"><div class="{{ m.gridCls }}"><sc-for list="{{ m.images }}" as="im"><a href="{{ im.src }}" target="_blank" rel="noopener"><img src="{{ im.src }}" alt="" loading="lazy"></a></sc-for></div></sc-if></div></sc-for></div>
 <sc-if value="{{ closed }}"><p class="support-closed">Il ticket è chiuso. Se scrivi, lo riapri.</p></sc-if>
 <dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
-<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="6" field="support-reply" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Scrivi al supporto" dc-props="{{ writeProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ write }}"></dc-import></div>
+<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="6" field="support-reply" maxlength="4000" value="{{ draft }}" placeholder="Scrivi al supporto" dc-props="{{ writeProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ write }}"></dc-import></div>
 </section>
 </sc-if>
 
