@@ -101,6 +101,8 @@ export function respondConnection(db, viewer, id, action) {
     return { status: 'none' };
   }
   if (c.addressee_id !== viewer.id) throw new HttpError(404, 'not_found');
+  // Answered (either way, wherever from): its notification counts as read, as a chat opened does
+  db.prepare("UPDATE notifications SET read_at = ? WHERE kind = 'connection_request' AND user_id = ? AND actor_id = ? AND read_at IS NULL").run(now(), viewer.id, c.requester_id);
   if (action === 'accept') {
     db.prepare("UPDATE connections SET status = 'accepted', responded_at = ? WHERE id = ?").run(now(), id);
     // Any other request still open between the two of them is settled by this

@@ -86,11 +86,13 @@ test('connection request with note → accept → chat; decline is silent', asyn
   assert.equal(inbox.items[0].note, 'Ciao Giulia!');
   assert.ok((await a.get('/api/notifications')).body.items.some(n => n.kind === 'connection_request'));
   await a.post(`/api/connections/${req.body.id}/accept`);
+  assert.ok((await a.get('/api/notifications')).body.items.find(n => n.kind === 'connection_request').read, 'answered: its notification is read');
   assert.ok((await b.get('/api/notifications')).body.items.some(n => n.kind === 'connection_accepted'));
   await b.post(`/api/threads/${a.id}`, { body: 'Ti va una call giovedì?' });
   assert.equal((await a.get('/api/me')).body.counts.unread_messages, 1);
   const thread = (await a.get(`/api/threads/${b.id}`)).body;
   assert.equal(thread.messages[0].body, 'Ti va una call giovedì?');
+  assert.ok((await a.get('/api/notifications')).body.items.filter(n => n.kind === 'message').every(n => n.read), 'chat opened: its notification is read');
   assert.equal((await a.get('/api/me')).body.counts.unread_messages, 0);
 
   const c = await t.approved('carla@x.it');
