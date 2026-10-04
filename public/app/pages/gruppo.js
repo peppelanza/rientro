@@ -5,7 +5,7 @@
 // the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
 import { EMOJI } from '../emoji.js';
 import { shrinkImage } from '../image-shrink.js';
-import { api, go, setMe, timeAgo, toast, toastError, upload } from '../lib.js';
+import { api, go, overlayClosing, setMe, timeAgo, toast, toastError, upload } from '../lib.js';
 import { nsfwCheck, warmUpNsfwCheck } from '../nsfw.js';
 import { photoViewer } from '../photo-viewer.js';
 import { report } from '../social.js';
@@ -30,8 +30,7 @@ export default class extends Page {
     Object.assign(this.state, { me, member, id, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
     if (member) this.state.groups = (await api('GET', '/api/groups')).groups;
     if (id) await this.fetchAll();
-    // (not the back step that closes the photo viewer: photo-viewer.js)
-    addEventListener('popstate', () => { if (!document.documentElement.classList.contains('pv-open')) location.reload(); });
+    addEventListener('popstate', () => { if (!overlayClosing()) location.reload(); });
   }
 
   // Another group from the menu, in place (the address follows)

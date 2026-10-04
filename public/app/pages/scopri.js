@@ -1,6 +1,6 @@
 // Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
 // Filters live in the URL so a filtered view can be bookmarked and survives reloads.
-import { api, debounce, getCatalog, getMe, go, SCOPRI_BACK_KEY, timeAgo } from '../lib.js';
+import { api, getCatalog, getMe, go, SCOPRI_BACK_KEY, timeAgo } from '../lib.js';
 import { stickSide } from '../sticky-side.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
@@ -146,8 +146,6 @@ export default class extends Page {
     })();
   }
 
-  searchTyped = debounce(v => { if (v.trim() !== this.state.f.q) this.set({ q: v.trim() }); });
-
   set(patch) { this.apply({ ...this.state.f, ...patch }); }
   toggle(key, v) { const l = this.state.f[key]; this.set({ [key]: l.includes(v) ? l.filter(x => x !== v) : [...l, v] }); }
 
@@ -168,8 +166,17 @@ export default class extends Page {
   }
 
   didRender(el) {
-    // phones: the cards one at a time (app.css html.scopri-snap), only while there are cards
-    document.documentElement.classList.toggle('scopri-snap', !!el.querySelector('.scopri-cards'));
+    // phones: the cards one at a time (app.css html.scopri-snap), only while there are cards; once
+    // what comes after the last one shows (the pages bar, the end of the page), the scroll is free
+    // again, and back up among the cards it snaps again
+    const cards = el.querySelector('.scopri-cards');
+    document.documentElement.classList.toggle('scopri-snap', !!cards);
+    this.endWatch?.disconnect();
+    const end = el.querySelector('.scopri-end'); // right after the last card
+    if (end) {
+      this.endWatch = new IntersectionObserver(([e]) => document.documentElement.classList.toggle('scopri-snap-free', e.isIntersecting || e.boundingClientRect.top < 0));
+      this.endWatch.observe(end);
+    }
     try { sessionStorage.setItem(SCOPRI_BACK_KEY, location.search); } catch {}
     stickSide(el.querySelector('aside[aria-label="Filtri"]'));
   }
@@ -234,7 +241,6 @@ export default class extends Page {
       // pages and search
       page: res.page, pages: res.pages, perPage: res.per_page, total2: res.total,
       pagerProps: { onPage: n => this.apply(f, { page: n, scroll: true }) },
-      searchProps: { onInput: v => this.searchTyped(v), onEnter: v => this.set({ q: v.trim() }) },
       isSearch: !!qn && !groupsTab && res.total > 0, isGrid: !qn && res.total > 0, isEmpty: !groupsTab && res.total === 0, showPager: !groupsTab,
       heading: qn ? `Risultati per “${qn}”` : 'Scopri chi torna',
       people, cardProps: { onConnect: p => this.connectTo(p) },

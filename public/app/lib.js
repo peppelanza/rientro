@@ -79,6 +79,11 @@ export function haptic() {
   } catch {}
 }
 
+// The back step that closes something laid over the page (photo viewer, phone search) isn't the
+// page's: pages that reload on going back (gruppo.js, messaggi.js) leave that one alone. The
+// overlay's class is still on while the page's own listener runs (it was added first).
+export const overlayClosing = () => document.documentElement.matches('.pv-open, .search-sheet-open');
+
 // --- Formatting (Italian) --------------------------------------------------------------------
 
 const MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];

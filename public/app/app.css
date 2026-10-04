@@ -804,18 +804,18 @@ html.pv-open { overflow: hidden; }
 .group-hit-text mark { background: #EFEBFF; color: #3E2BA8; padding: 0 3px; border-radius: 4px; }
 .group-hits-empty { margin: 24px 0; text-align: center; color: #6B6680; font-size: 15px; }
 
+.scopri-end { height: 1px; margin-top: -23px; } /* right after the last card (scopri.js); takes no room: cancels the column's gap */
 /* Scopri on phones: once the first card is reached, the cards go by one at a time, like Reels: the
    scroll stops with a card in the middle of the screen (the one before and after peeking in, at the
-   usual spacing) and can't skip one. The top of the page and the pages bar at the end are stops
-   too, so the header and the next page stay reachable. (scopri.js sets html.scopri-snap.) */
+   usual spacing) and can't skip one. The top of the page is a stop too; past the last card the scroll
+   is free (scopri.js sets html.scopri-snap, and .scopri-snap-free while the end of the list shows). */
 @media (max-width: 720px) {
-  html.scopri-snap { scroll-snap-type: y mandatory; }
+  html.scopri-snap:not(.scopri-snap-free) { scroll-snap-type: y mandatory; }
   /* not while pulling to refresh: the page slides down, the stops with it, and the browser would
      scroll to meet them, ending the pull before the data is back */
   html.scopri-snap:has(> body.pull-active) { scroll-snap-type: none; }
   html.scopri-snap [data-sc-name="App Nav"] { scroll-snap-align: start; }
   html.scopri-snap .scopri-cards > * { scroll-snap-align: center; scroll-snap-stop: always; }
-  html.scopri-snap [data-sc-name="App Pager"] { scroll-snap-align: end; }
 }
 
 /* Gruppi: the bell beside the group's name follows it (the top bar's bell, filled while on) */
@@ -823,4 +823,19 @@ html.pv-open { overflow: hidden; }
 .group-follow { flex: none; width: 44px; height: 44px; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s ease, color .15s ease; }
 .group-follow[aria-pressed="true"] { background: #EFEBFF; color: #3E2BA8; }
 .group-follow[aria-pressed="true"] svg path:first-child { fill: currentColor; }
+
+/* Phones: the magnifying glass in the top bar (left of the bell) and the search it opens over the
+   whole screen (search-history.js openSearchSheet) */
+.nav-search-btn { display: none; width: 44px; height: 44px; margin-left: 8px; border: none; padding: 0; border-radius: 50%; background: transparent; color: #1A1726; align-items: center; justify-content: center; flex: none; cursor: pointer; }
+@media (max-width: 720px) { .nav-search-btn { display: flex; } }
+html.search-sheet-open { overflow: hidden; }
+.search-sheet { position: fixed; inset: 0; z-index: 210; display: flex; flex-direction: column; background: #FFFFFF; font-family: 'Geist', sans-serif; animation: bell-in .16s ease-out; }
+.search-sheet-top { flex: none; display: flex; align-items: center; gap: 8px; padding: max(12px, env(safe-area-inset-top)) 12px 12px; border-bottom: 1px solid #ECE8F7; }
+.search-sheet-back { flex: none; width: 44px; height: 44px; border: none; border-radius: 50%; background: none; color: #1A1726; display: flex; align-items: center; justify-content: center; }
+.search-sheet-field { flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 999px; background: #F1EFF8; color: #8C84AE; }
+.search-sheet-field input { flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: transparent; padding: 0; font: 16px 'Geist', sans-serif; color: #1A1726; -webkit-appearance: none; appearance: none; }
+.search-sheet-field input::placeholder { color: #8C84AE; }
+.search-sheet-field input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.search-sheet-list { flex: 1; overflow-y: auto; padding: 10px 12px; font-size: 16px; }
+.search-sheet-list .recent-q { padding: 12px 10px; }
 

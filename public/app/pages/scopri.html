@@ -32,12 +32,10 @@
 <div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
 <sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
 
-<!-- Phones only: on a computer the search is the one in the top bar -->
-<div class="r-show-sm"><dc-import name="App Field" search="{{ true }}" field="scopri-q" value="{{ f.q }}" placeholder="Cerca per nome, città e tanto altro" dc-props="{{ searchProps }}"></dc-import></div>
 
 <sc-if value="{{ isGrid }}"><div class="r-grid-md-2 r-grid-1 scopri-cards" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
 <sc-for list="{{ people }}" as="p"><dc-import name="App Person Card" person="{{ p }}" dc-props="{{ cardProps }}"></dc-import></sc-for>
-</div></sc-if>
+</div><div class="scopri-end" aria-hidden="true"></div></sc-if>
 
 <sc-if value="{{ isSearch }}"><div class="no-last-divider" style="background:#FFFFFF;border-radius:24px;padding:4px 20px;display:flex;flex-direction:column">
 <sc-for list="{{ rows }}" as="r">

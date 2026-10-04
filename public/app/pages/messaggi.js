@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, threadTime, toast, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, overlayClosing, threadTime, toast, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -101,7 +101,7 @@ export default class extends Page {
     // the chat box is redrawn often: listen at the document (scroll events don't bubble, so capture)
     document.addEventListener('scroll', this.onChatScroll, true);
     this.listTimer = setInterval(() => this.refreshList(), 20000);
-    window.addEventListener('popstate', () => location.reload());
+    window.addEventListener('popstate', () => { if (!overlayClosing()) location.reload(); });
   }
 
   async openThread(id) {

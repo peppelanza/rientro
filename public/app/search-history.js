@@ -1,6 +1,8 @@
 // The search in the top bar (App Nav): no browser suggestions (autocomplete off), but the member's
 // own last 5 searches, under the empty field while it's in use, each with × to forget it. Kept in
 // this browser only. Hooked to the page rather than the bar, so the bar can redraw at any time.
+// Phones have a magnifying glass in the bar instead, opening the same search full screen
+// (openSearchSheet), the recent searches under the field.
 const KEY = 'rientro.recentSearches';
 const MAX = 5;
 const FIELD = 'form[role="search"] input[name="q"]';
@@ -69,3 +71,56 @@ export function searchHistory() {
   // the bar's own submit then goes to Scopri
   document.addEventListener('submit', e => { if (e.target.matches?.('form[role="search"]')) remember(new FormData(e.target).get('q') || ''); }, true);
 }
+
+// Phones: the search over the whole screen, the field ready to type (the keyboard comes up: it's
+// called inside the tap) and the recent searches under it; Invio opens the results in Scopri, with
+// its Persone and Gruppi tabs. The phone's back button closes it.
+export function openSearchSheet() {
+  const sheet = document.createElement('div');
+  sheet.className = 'search-sheet';
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-label', 'Cerca');
+  sheet.innerHTML = `<form class="search-sheet-top" autocomplete="off">
+<button type="button" class="search-sheet-back" aria-label="Chiudi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+<label class="search-sheet-field"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" enterkeyhint="search" autocomplete="off" placeholder="Cerca persone e gruppi" aria-label="Cerca"></label>
+</form><div class="search-sheet-list"></div>`;
+  const input = sheet.querySelector('input');
+  const list = sheet.querySelector('.search-sheet-list');
+  const go = q => { q = q.trim(); if (!q) return; remember(q); location.href = `/scopri?q=${encodeURIComponent(q)}`; };
+  const draw = () => {
+    const recent = read();
+    list.replaceChildren();
+    if (!recent.length) return;
+    list.append(Object.assign(document.createElement('span'), { className: 'recent-title', textContent: 'Ricerche recenti' }));
+    for (const q of recent) {
+      const row = document.createElement('div');
+      row.className = 'recent-row';
+      const pick = Object.assign(document.createElement('button'), { type: 'button', className: 'recent-q', textContent: q });
+      pick.addEventListener('click', () => go(q));
+      const x = Object.assign(document.createElement('button'), { type: 'button', className: 'recent-x', textContent: '✕' });
+      x.setAttribute('aria-label', `Togli “${q}” dalle ricerche recenti`);
+      x.addEventListener('click', () => { write(read().filter(r => r !== q)); draw(); });
+      row.append(pick, x);
+      list.append(row);
+    }
+  };
+  let closed = false;
+  const finish = () => {
+    if (closed) return;
+    closed = true;
+    sheet.remove();
+    document.documentElement.classList.remove('search-sheet-open');
+    removeEventListener('popstate', finish);
+  };
+  const close = () => (history.state?.searchSheet ? history.back() : finish());
+  sheet.querySelector('form').addEventListener('submit', e => { e.preventDefault(); go(input.value); });
+  sheet.querySelector('.search-sheet-back').addEventListener('click', close);
+  sheet.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  draw();
+  document.body.append(sheet);
+  document.documentElement.classList.add('search-sheet-open');
+  history.pushState({ searchSheet: true }, '');
+  addEventListener('popstate', finish);
+  input.focus();
+}
+
