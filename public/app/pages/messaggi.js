@@ -80,6 +80,8 @@ const FAKE_THREADS = Array.from({ length: 1 }, (_, i) => ({
   last: 'L’ultimo messaggio della conversazione', time: new Date().toISOString(), unread: false,
 }));
 
+const SIDE_MS = 280; // app.css .chat-grid side-in / side-out
+
 export default class extends Page {
   async load() {
     const me = await getMe();
@@ -304,6 +306,17 @@ export default class extends Page {
     requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
   });
 
+  // The right column, with or without a person: the change plays a fade (side-in / side-out). The
+  // page is redrawn anew meanwhile (new elements), so each redraw carries on from where it was
+  // (sideDelay: a negative delay) instead of starting it again
+  sideClass(side) {
+    if (this.side !== undefined && this.side !== side) this.sideAnim = { cls: side ? ' side-in' : ' side-out', at: performance.now() };
+    this.side = side;
+    const t = this.sideAnim ? performance.now() - this.sideAnim.at : Infinity;
+    if (t > SIDE_MS) this.sideAnim = null;
+    return { cls: `${side ? '' : 'no-side'}${this.sideAnim?.cls ?? ''}`, delay: `${-Math.round(Math.min(t, SIDE_MS))}ms` };
+  }
+
   // New message (the pencil by "Messaggi"): the middle column asks who to, among your connections;
   // picking one opens the chat, which joins the list with its first message
   startNew() {
@@ -435,6 +448,8 @@ export default class extends Page {
       pagerProps: { onPage: n => this.listChange({ page: n }) },
       hasOlder: !!s.hasOlder && !!s.messages?.length, loadingOlder: !!s.loadingOlder,
       hasActive: !!s.active && !!p, noActive: !s.active && !s.composing, closed: !!s.closed,
+      // the right column (the person) only with a chat open; it fades in and out (app.css)
+      ...(side => ({ sideCls: side.cls, sideDelay: side.delay }))(this.sideClass(!!s.active && !!p)),
       listClass: s.active || s.composing ? 'r-hide-sm' : '', chatClass: s.active || s.composing ? '' : 'r-hide-sm',
       // new message: who to, among your connections
       startNew: () => this.startNew(), composing: !!s.composing, toQuery: s.toQuery ?? '',
