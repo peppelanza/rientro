@@ -50,7 +50,7 @@ export default class extends Page {
       places: t.places.slice(0, 12).map(c => ({ name: c.name, n: c.n == null ? 'Meno di 5 persone' : `${c.n} persone`, href: `/territori/${slug(c.name)}` })),
       steps: [
         { n: '01', t: 'Crea il profilo', d: `Indica ${t.name} tra i posti dove vuoi vivere. Ci vogliono circa 10 minuti.` },
-        { n: '02', t: 'Lo rivediamo', d: 'Ogni profilo viene letto da una persona prima di andare online.' },
+        { n: '02', t: 'Sei online', d: 'Appena lo pubblichi, il tuo profilo è visibile agli altri membri.' },
         { n: '03', t: 'Connettiti', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
       ],
       closing: t.count == null ? 'Le prime persone ti aspettano' : `${t.count.toLocaleString('it-IT')} persone ti aspettano`,

@@ -1,5 +1,5 @@
 // Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
-// Cookie Policy: Privacy of 4 October 2026 (the age stays private), Termini of 3 October 2026 (public groups), Cookie of 1 October 2026.
+// Cookie Policy: Privacy of 4 October 2026 (the age stays private; no review before publishing), Termini of 4 October 2026 (no review before publishing), Cookie of 1 October 2026.
 // Changing one: bump its LEGAL_VERSIONS entry (before launch, as for the groups, not needed: nobody to ask).
 // No cookie banner (43c): only technical cookies; visit statistics without cookies (Cloudflare Web Analytics).
 import { Page } from './_base.js';
@@ -100,7 +100,7 @@ const DOCS = {
         'Nessun sistema è sicuro al 100%. Se dovesse verificarsi una violazione dei dati che presenta un rischio per te, la notificheremo al Garante entro 72 ore e, quando il rischio è elevato, ti informeremo senza ritardo (artt. 33 e 34 GDPR).',
       ]],
       ['Decisioni automatizzate', [
-        'Non prendiamo decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogo su di te (art. 22 GDPR). Ogni profilo viene letto da una persona prima di essere pubblicato, e le decisioni di moderazione sono prese da persone.',
+        'Non prendiamo decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogo su di te (art. 22 GDPR). L’unico controllo automatico riguarda le foto: un’immagine esplicita viene bloccata prima di essere pubblicata e, se era la foto del profilo, l’account viene sospeso in via cautelativa; una persona del team rivede ogni caso e può annullare la sospensione. Le altre decisioni di moderazione, come quelle sulle segnalazioni, sono prese da persone.',
       ]],
       ['Modifiche a questa informativa', [
         'Potremo aggiornare questa informativa. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
@@ -119,10 +119,10 @@ const DOCS = {
     ],
   },
   termini: {
-    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 3 OTTOBRE 2026',
+    title: 'Termini e condizioni', updated: 'AGGIORNATI IL 4 OTTOBRE 2026',
     summary: [
       ['A cosa serve', 'Conoscere persone che rientrano in Italia o al Sud, per fare rete o costruire un progetto insieme.'],
-      ['Profili rivisti', 'Ogni profilo viene letto da una persona del team prima di andare online. Un account a testa, con dati veri.'],
+      ['Profili veri', 'Un account a testa, con dati veri. Il profilo è visibile agli altri membri appena lo pubblichi; segnalazioni e moderazione sono gestite da persone del team.'],
       ['Rispetto', 'Messaggi solo dopo che una richiesta di connessione è stata accettata. Segnalazioni e blocchi sempre disponibili.'],
       ['Gratuito', 'Iscriversi e usare Rientro è gratuito. Puoi cancellare il tuo account quando vuoi.'],
     ],
