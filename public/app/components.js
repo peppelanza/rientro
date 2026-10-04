@@ -2,7 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
-import { api, getCatalog, INTENT_BADGE, timeAgo } from './lib.js';
+import { api, getCatalog, INTENT_BADGE, knownMe, timeAgo } from './lib.js';
 import { describeNotification, notificationInitials } from './notifications.js';
 import { openSearchSheet, searchUrl } from './search-history.js';
 
@@ -617,8 +617,13 @@ def('App City Jump', String.raw`
     const top = h1.getBoundingClientRect().top + window.scrollY - lb - stuck - 24;
     if (top > window.scrollY + 4) { pauseHoverWhileScrolling(); window.scrollTo({ top, behavior: 'smooth' }); }
   }
-  // To sign-up, carrying the city for the sign-up page's headline
-  go(name) { location.href = `/accedi?citta=${encodeURIComponent(name)}`; }
+  // Signed in (a member who can browse): Scopri with that city picked; otherwise to sign-up,
+  // carrying the city for the sign-up page's headline
+  go(name) {
+    const me = knownMe();
+    const member = me?.user.status === 'approved' && (me.launched || me.user.role === 'admin');
+    location.href = member ? `/scopri?${new URLSearchParams({ desired: name })}` : `/accedi?citta=${encodeURIComponent(name)}`;
+  }
   renderVals() {
     const { query, open, idx, comuni } = this.state;
     const q = fold(query.trim()).out;
@@ -662,7 +667,7 @@ def('App City Jump', String.raw`
         if (this.phone) { e.preventDefault(); return; } // the tap's click opens the full-screen picker
         if (e.target.closest('.cj-list') || e.target.tagName === 'INPUT') return;
         e.preventDefault();
-        const input = document.getElementById('city-jump');
+        const input = e.currentTarget.querySelector('input'); // this picker's own (the top bar has a copy of the hero's)
         if (document.activeElement === input) { disarmHover(); this.setState({ open: !this.state.open }); }
         else input?.focus();
       },
@@ -712,6 +717,16 @@ if (typeof window !== 'undefined') {
   addEventListener('resize', () => tocSpy(), { passive: true });
 }
 
+// App Enter — "Accedi a Rientro" on the public pages (UI Button's dark pill); signed in, with your
+// round profile photo on its left (lib.js knownMe)
+def('App Enter', String.raw`
+<button type="button" class="enter-btn {{ withPhoto }}"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" class="enter-photo"></sc-if>Accedi a Rientro</button>`, class extends DCLogic {
+  renderVals() {
+    const photo = knownMe()?.profile?.photo_url || null;
+    return { photo, withPhoto: photo ? 'has-photo' : '' };
+  }
+});
+
 // App Site Header — the public pages' header (home, Rientro dei cervelli, territori): logo, the same
 // menu in the same order everywhere, and "Accedi a Rientro". Props: here ('home' | 'cervelli' | 'territori'),
 // onEnter(). Home sections are linked as /#section from the other pages.
@@ -732,7 +747,7 @@ def('App Site Header', String.raw`
 <nav aria-label="Menu" class="r-hide-md" style="display:flex;gap:26px;color:#6B6680;align-items:center">
 <sc-for list="{{ links }}" as="l"><a href="{{ l.href }}" aria-current="{{ l.current }}" style="height:36px;padding:{{ l.pad }};border-radius:999px;background:{{ l.bg }};color:{{ l.fg }};text-decoration:none;display:flex;align-items:center">{{ l.label }}</a></sc-for>
 </nav>
-<div style="flex:1"></div><div class="site-enter-wrap"><div class="site-enter"><dc-import name="UI Button" label="Accedi a Rientro" on-click="{{ enter }}"></dc-import></div>
+<div style="flex:1"></div><div class="site-enter-wrap"><div class="site-enter"><dc-import name="App Enter" on-click="{{ enter }}"></dc-import></div>
 <sc-if value="{{ jump }}"><div class="site-jump"><dc-import name="App City Jump" compact="{{ true }}" uid="city-jump-head" placeholder="città"></dc-import></div></sc-if></div>
 </div></header>`, class extends DCLogic {
   renderVals() {

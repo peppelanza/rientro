@@ -864,3 +864,8 @@ html.search-sheet-open { overflow: hidden; }
 @keyframes sk-shine { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
 @media (prefers-reduced-motion: reduce) { #app.skeleton * { animation: none !important; } }
 
+/* "Accedi a Rientro" on the public pages (App Enter): UI Button's dark pill, your photo on its left */
+.enter-btn { height: 44px; padding: 0 18px; border: none; border-radius: 999px; background: #1A1726; color: #FFFFFF; font: 500 14px 'Geist', sans-serif; display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; cursor: pointer; }
+.enter-btn.has-photo { padding-left: 6px; }
+.enter-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; }
+

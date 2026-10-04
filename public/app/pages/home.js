@@ -1,3 +1,4 @@
+import { setMe } from '../lib.js';
 import { Page, homeFor, peekMe } from './_base.js';
 import { startSparkles } from '../sparkles.js';
 
@@ -35,6 +36,7 @@ export default class extends Page {
   async load() {
     startSparkles();
     const [me, launch] = await Promise.all([peekMe(), fetch('/api/public/launch').then(r => r.json()).catch(() => ({ launched: true }))]);
+    if (me) setMe(me); // the button with your photo, the city picker straight to Scopri (components.js)
     Object.assign(this.state, { me, launched: launch.launched });
   }
 

@@ -43,6 +43,9 @@ export async function getMe(fresh = false) {
   return meCache;
 }
 export const setMe = me => { meCache = me; };
+// Who's signed in, if a page already knows (no request): the public pages' "Accedi a Rientro" and
+// city picker read it (home.js sets it from the session)
+export const knownMe = () => meCache;
 
 let catalogCache = null;
 // Intent (onboarding "Cosa stai cercando su Rientro?"): badge label and UI Badge kind
