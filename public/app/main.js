@@ -7,6 +7,7 @@ import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
 import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
+import { tapFeedback } from './tap-feedback.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
 const ROUTES = [
@@ -82,8 +83,7 @@ async function askLegalUpdate() {
   } });
 }
 
-// iPhone Safari applies :active (the tap feedback in app.css) only once the page listens for touches
-document.addEventListener('touchstart', () => {}, { passive: true });
+tapFeedback();
 launchBar();
 impersonationFrame();
 tabbarOnScroll();

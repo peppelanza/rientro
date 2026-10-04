@@ -32,12 +32,12 @@ body { min-height: 100vh; }
 .sc-host { min-width: 0; }
 
 /* Touch screens: no grey/blue box the browser paints around whatever is tapped; instead the thing
-   itself dims while the finger is on it (its own shape: a round photo stays round) and fades back.
-   Only the innermost tapped control dims, not the link around it too. */
+   itself dims for a moment (its own shape: a round photo stays round) and fades back. Only on a real
+   tap, not when the finger lands to scroll (tap-feedback.js adds .tapped). */
 html { -webkit-tap-highlight-color: transparent; }
 @media (hover: none) {
   :is(a[href], button, [role="button"], summary) { transition: opacity .18s ease; }
-  :is(a[href], button, [role="button"], summary):not(:disabled):active:not(:has(:is(a[href], button, [role="button"], summary):active)) { opacity: .55; transition: none; }
+  :is(a[href], button, [role="button"], summary).tapped { opacity: .55; transition: none; }
 }
 
 /* Real inputs rendered inside UI Input-styled boxes */
