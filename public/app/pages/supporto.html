@@ -1,5 +1,5 @@
 <!-- Supporto: your tickets, a new one, a ticket's chat with the team (supporto.js) -->
-<div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
+<div style="min-height:100vh;box-sizing:border-box;background:#E9E6F5;padding-bottom:20px">
 <dc-import name="App Nav" active="" me="{{ me }}"></dc-import>
 <div class="support-page">
 
@@ -30,7 +30,7 @@
 <div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><sc-if value="{{ m.hasBody }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></sc-if><sc-if value="{{ m.hasImages }}"><div class="{{ m.gridCls }}"><sc-for list="{{ m.images }}" as="im"><a href="{{ im.src }}" target="_blank" rel="noopener"><img src="{{ im.src }}" alt="" loading="lazy"></a></sc-for></div></sc-if></div></sc-for></div>
 <sc-if value="{{ closed }}"><p class="support-closed">Il ticket è chiuso. Se scrivi, lo riapri.</p></sc-if>
 <dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
-<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="6" field="support-reply" maxlength="4000" value="{{ draft }}" placeholder="Scrivi al supporto" dc-props="{{ writeProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ write }}"></dc-import></div>
+<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="6" field="support-reply" maxlength="4000" value="{{ draft }}" placeholder="{{ writeHint }}" dc-props="{{ writeProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ write }}"></dc-import></div>
 </section>
 </sc-if>
 

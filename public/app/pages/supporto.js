@@ -15,6 +15,19 @@ const MAX_IMAGES = 5; // as the server (support.js)
 const TRAY = { endpoint: '/api/support/images', max: MAX_IMAGES };
 photoViewer('.support-images'); // the pictures in the chat open in the viewer
 
+// A ticket's chat fills what's left of the screen below where it starts (above the bottom menu on
+// phones), whatever the page puts over it (member or admin); its messages scroll inside it
+export function fitChat(el) {
+  const card = el.querySelector('.support-chat');
+  if (!card) return;
+  const h = innerHeight - (card.getBoundingClientRect().top + scrollY);
+  card.style.height = `${Math.max(380, h)}px`;
+  // whatever the page still adds below it (margins, the room for the bottom menu on phones): taken
+  // off, so nothing scrolls but the chat
+  const over = document.documentElement.scrollHeight - innerHeight;
+  if (over > 0) card.style.height = `${Math.max(380, h - over)}px`;
+}
+
 // A message's pictures, as a group post's (1 large, 2–5 in a grid)
 export const messageImages = images => ({ hasImages: images.length > 0, images: images.map(src => ({ src })), gridCls: `group-images support-images n${Math.min(images.length, 5)}` });
 
@@ -31,7 +44,7 @@ export default class extends Page {
     }
   }
 
-  componentWillUnmount() { clearInterval(this.timer); }
+  componentWillUnmount() { clearInterval(this.timer); removeEventListener('resize', this.onResize); }
 
   async poll() {
     const t = this.state.ticket;
@@ -59,6 +72,10 @@ export default class extends Page {
   });
 
   didRender(el) {
+    fitChat(el);
+    this.onResize ??= () => fitChat(document.getElementById('app'));
+    removeEventListener('resize', this.onResize);
+    addEventListener('resize', this.onResize);
     if (this.state.view === 'ticket' && (this.scrollDown || !this.scrolled)) {
       this.scrollDown = false;
       this.scrolled = true;
@@ -91,6 +108,8 @@ export default class extends Page {
       closed: t?.status === 'closed',
       messages: (t?.messages || []).map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, hasBody: !!m.body, who: m.from_team ? 'Team Rientro' : 'Tu', at: fmtTime(m.created_at), align: m.mine ? 'flex-end' : 'flex-start', ...messageImages(m.images || []) })),
       tray: trayVals(this, TRAY),
+      // a phone's box is narrow: the short hint
+      writeHint: matchMedia('(max-width: 720px)').matches ? 'Scrivi…' : 'Scrivi al supporto',
       write: this.write, writeProps: { onInput: v => { s.draft = v; } },
       onError: toastError,
     };

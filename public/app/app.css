@@ -953,7 +953,8 @@ html.search-sheet-open { overflow: hidden; }
 .support-chat-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .support-chat-head h1 { flex: 1; min-width: 0; font-size: 22px; }
 .support-meta { margin: -6px 0 0; font-size: 13px; color: #6B6680; }
-.support-thread { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: #F6F4FC; height: min(56vh, 520px); overflow-y: auto; overscroll-behavior: contain; } /* fixed height, scrolls inside */
+.support-chat { box-sizing: border-box; } /* its height: what's left of the screen (supporto.js fitChat) */
+.support-thread { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: #F6F4FC; overflow-y: auto; overscroll-behavior: contain; } /* the rest of the card, scrolls inside */
 .support-thread > .support-msg:first-child { margin-top: auto; } /* few messages: at the bottom, as in a chat */
 .support-msg .group-images { width: min(320px, 80%); }
 .support-msg { display: flex; flex-direction: column; gap: 4px; }
@@ -962,7 +963,18 @@ html.search-sheet-open { overflow: hidden; }
 .support-compose { display: flex; gap: 10px; align-items: flex-end; }
 .support-compose > .sc-host:first-child { flex: none; }
 .support-compose > .sc-host:nth-child(2) { flex: 1; min-width: 0; }
-@media (max-width: 720px) { .support-row { grid-template-columns: minmax(0, 1fr) auto; } .support-row .support-code { grid-column: 1 / -1; } }
+@media (max-width: 720px) {
+  .support-row { grid-template-columns: minmax(0, 1fr) auto; } .support-row .support-code { grid-column: 1 / -1; }
+  /* a ticket on a phone: code and status on top, the subject under them, room for the chat */
+  .support-card { padding: 16px; gap: 12px; border-radius: 24px; }
+  .support-chat-head { justify-content: space-between; }
+  .support-chat-head h1 { order: 3; flex-basis: 100%; font-size: 18px; }
+  .support-thread { padding: 12px; }
+  .support-compose { gap: 8px; }
+  .support-compose .dc-field { padding-left: 14px !important; padding-right: 14px !important; }
+}
+.support-compose textarea { scrollbar-width: none; } /* a line or two: no bar beside it */
+.support-compose textarea::-webkit-scrollbar { display: none; }
 
 /* Scopri: a card's photo answers the mouse with a very small zoom inside its frame, not by lightening */
 @media (hover: hover) and (pointer: fine) {

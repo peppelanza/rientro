@@ -4,7 +4,7 @@
 import { clearTray, trayBusy, trayIds, trayVals } from '../../image-tray.js';
 import { api, fmtShort, fmtTime, go, timeAgo, toast } from '../../lib.js';
 import { photoViewer } from '../../photo-viewer.js';
-import { messageImages } from '../supporto.js';
+import { fitChat, messageImages } from '../supporto.js';
 import { AdminPage, initials } from './_admin.js';
 
 export const title = 'Supporto · Admin';
@@ -22,7 +22,7 @@ export default class extends AdminPage {
     } else await this.fetch();
   }
 
-  componentWillUnmount() { clearInterval(this.timer); }
+  componentWillUnmount() { clearInterval(this.timer); removeEventListener('resize', this.onResize); }
 
   listPath = '/api/admin/support';
   listExtra() { return { status: this.state.tab }; }
@@ -54,6 +54,10 @@ export default class extends AdminPage {
   }
 
   didRender(el) {
+    fitChat(el);
+    this.onResize ??= () => fitChat(document.getElementById('app'));
+    removeEventListener('resize', this.onResize);
+    addEventListener('resize', this.onResize);
     const box = this.state.ticket && el.querySelector('.support-thread'); // scrolls inside, down to the latest
     if (box) box.scrollTop = box.scrollHeight;
   }
@@ -68,6 +72,7 @@ export default class extends AdminPage {
         opened: `${fmtShort(t.created_at)} ${fmtTime(t.created_at)}`, closed: t.status === 'closed', open: t.status === 'open',
         messages: t.messages.map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, hasBody: !!m.body, who: m.from_team ? 'Team Rientro' : (t.user.name || 'Membro'), at: `${fmtShort(m.created_at)} ${fmtTime(m.created_at)}`, align: m.mine ? 'flex-end' : 'flex-start', ...messageImages(m.images || []) })),
         tray: trayVals(this, TRAY),
+        replyHint: matchMedia('(max-width: 720px)').matches ? 'Rispondi…' : 'Rispondi come Team Rientro',
         draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, reply: this.reply,
         close: () => this.setStatus('closed'), reopen: () => this.setStatus('open'),
       };
