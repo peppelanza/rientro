@@ -810,6 +810,9 @@ html.pv-open { overflow: hidden; }
    too, so the header and the next page stay reachable. (scopri.js sets html.scopri-snap.) */
 @media (max-width: 720px) {
   html.scopri-snap { scroll-snap-type: y mandatory; }
+  /* not while pulling to refresh: the page slides down, the stops with it, and the browser would
+     scroll to meet them, ending the pull before the data is back */
+  html.scopri-snap:has(> body.pull-active) { scroll-snap-type: none; }
   html.scopri-snap [data-sc-name="App Nav"] { scroll-snap-align: start; }
   html.scopri-snap .scopri-cards > * { scroll-snap-align: center; scroll-snap-stop: always; }
   html.scopri-snap [data-sc-name="App Pager"] { scroll-snap-align: end; }
