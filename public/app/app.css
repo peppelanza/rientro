@@ -87,11 +87,16 @@ button { font: inherit; }
 .modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
 .modal-box { max-width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: 32px; }
 @media (max-width: 720px) {
-  .modal-overlay { align-items: flex-end; padding: 0; }
-  .modal-box { width: 100%; max-height: 92vh; border-radius: 32px 32px 0 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; overflow: visible; }
+  .modal-box { width: 100%; max-height: 92%; border-radius: 32px 32px 0 0; }
   /* the dialog's own white box (the template's root) and older ones wrapped once more: square at the
      bottom, so the sheet comes out of the screen's edge */
   .modal-box > div:first-child, .modal-box > * > div:first-child { width: 100% !important; border-radius: 32px 32px 0 0 !important; }
+  /* the dialog's white carries on below the bottom of what's visible: behind Safari's bar over the
+     keyboard, so no page shows between the two (lib.js openModal fits the overlay to it) */
+  .modal-overlay::after { content: ''; position: absolute; left: 0; right: 0; top: calc(100% - 1px); height: calc(50vh + 1px); background: #FFFFFF; pointer-events: none; }
+  /* (it starts 1px inside: Safari colours its bottom bar from the last row of a fixed element, so the
+     bar turns white with the dialog, not dark like the dimmed page) */
   /* iPhone Safari zooms into any field with text under 16px when it's tapped: never on phones */
   input, textarea, select { font-size: 16px !important; }
 }
@@ -765,3 +770,8 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .ssr-group h1 { font-family: 'Unbounded', sans-serif; }
 .ssr-group .ssr-body { white-space: pre-wrap; }
 .ssr-group img { max-width: 100%; }
+
+/* Gruppi: the post box is one line while empty and not in use; tapped, it opens to three, then grows
+   with the text (App Field grow) */
+.group-compose textarea { transition: min-height .15s ease; }
+.group-compose textarea:placeholder-shown:not(:focus) { min-height: 1lh !important; height: 1lh !important; }

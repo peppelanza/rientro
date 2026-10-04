@@ -159,8 +159,19 @@ export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,
     box.setAttribute('aria-modal', 'true');
     overlay.append(box);
     const previous = document.activeElement;
+    // Phones: the dialog rises from the bottom of what's visible, so with the keyboard up it sits
+    // right on it (and its white carries on below, app.css), instead of floating with a gap
+    const vv = window.visualViewport;
+    const fit = () => {
+      overlay.style.top = `${vv.offsetTop}px`;
+      overlay.style.bottom = 'auto';
+      overlay.style.height = `${vv.height}px`;
+    };
+    const phone = vv && matchMedia('(max-width: 720px)').matches;
+    if (phone) { fit(); vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
     const close = result => {
       overlay.remove();
+      if (phone) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); }
       document.removeEventListener('keydown', onKey);
       previous?.focus?.();
       resolve(result);
