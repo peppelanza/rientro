@@ -1,6 +1,7 @@
 import { AGE_BANDS, AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
+import { forgiving, hit, terms, wordsOf } from './search.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
 // A: has an idea, B: looking for one with others, C: networking only (no idea step)
@@ -384,9 +385,39 @@ const FACETS = {
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   time: (p, v) => !v || p.time_commitment === v,
   age: (p, v) => !v.length || v.includes(p.age_band),
-  q: (p, v) => !v || [p.first_name, p.last_name, p.current_role, p.current_company, p.lives_in_city, p.idea_title, ...p.sectors, ...p.desired_comuni]
-    .filter(Boolean).join(' ').toLowerCase().includes(v),
+  q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
 };
+
+// Search (the top bar's, Scopri's: src/search.js): every word typed somewhere in what the profile
+// shows. The parts in order of weight; a word counts where it's first found, and the result says
+// where if that's outside what a result row already shows (name, role, cities: highlighted there):
+// "Cita “x” in esperienza".
+const SEARCH_PARTS = [
+  ['', 10, p => [p.first_name, p.last_name]],
+  ['', 6, p => [p.current_role, p.current_company]],
+  ['', 5, p => [p.lives_in_city, p.lives_in_country, ...p.desired_comuni]],
+  [p => (p.primary_intent === 'has_idea' ? 'cosa vuole costruire' : 'cosa vorrebbe costruire'), 4, p => [p.idea_title, p.idea_description]],
+  ['esperienza', 3, p => (p.exp || []).flatMap(e => [e.company, e.role, e.city])],
+  ['interessi', 3, p => p.sectors],
+  ['presentazione', 2, p => [p.bio]],
+  ['formazione', 2, p => (p.edu || []).flatMap(e => [e.school, e.degree])],
+  ['background', 2, p => [p.background_area]],
+  ['un risultato di cui va fiero/a', 1, p => [p.achievement]],
+  ['chi cerca', 1, p => [p.seeking_description, ...p.seeking_backgrounds]],
+  ['“Cosa mi manca dell’Italia”', 1, p => [p.misses_italy]],
+];
+// { score, where } or null
+export function searchHit(p, ts, fuzzy = false) {
+  const parts = SEARCH_PARTS.map(([where, weight, texts]) => [where, weight, wordsOf(texts(p).filter(Boolean).join(' '))]);
+  let score = 0, where = '';
+  for (const t of ts) {
+    const found = parts.find(([, , words]) => hit(t, words, fuzzy));
+    if (!found) return null;
+    score += found[1];
+    if (found[0] && !where) where = typeof found[0] === 'function' ? found[0](p) : found[0];
+  }
+  return { score, where };
+}
 
 export function parseDiscoverQuery(q) {
   const arr = k => (q.get(k) ? q.get(k).split(',').map(s => s.trim()).filter(Boolean).slice(0, 20) : []);
@@ -417,13 +448,29 @@ export function discover(db, viewer, filters) {
     for (const f of JSON_FIELDS) p[f] = JSON.parse(p[f]);
     return p;
   });
+  if (filters.q) { // the search looks into experiences and education too
+    const byUser = sql => Map.groupBy(db.prepare(sql).all(), r => r.user_id);
+    const exp = byUser('SELECT user_id, company, role, city FROM experiences');
+    const edu = byUser('SELECT user_id, school, degree FROM education');
+    for (const p of rows) { p.exp = exp.get(p.user_id); p.edu = edu.get(p.user_id); }
+  }
+  filters = { ...filters, terms: terms(filters.q || ''), fuzzy: false };
   const passes = (p, except) => Object.entries(FACETS).every(([k, fn]) => k === except || fn(p, filters[k], filters, db));
   const viewerP = rawProfile(db, viewer.id);
-  let results = rows.filter(p => passes(p));
-  // Complementary profiles first; the newest first within each group (sort is stable)
-  if (filters.sort === 'match') results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
+  // a search that finds nothing exactly tries once more forgiving a typo
+  let results = forgiving(fuzzy => { filters.fuzzy = fuzzy; return rows.filter(p => passes(p)); });
+  if (filters.q) {
+    // the best matches first (a name above a word in the experience), the newest within each
+    const hits = new Map(results.map(p => [p, searchHit(p, filters.terms, filters.fuzzy)]));
+    results = results.sort((a, b) => hits.get(b).score - hits.get(a).score);
+    for (const p of results) p.match_in = hits.get(p).where;
+  } else if (filters.sort === 'match') {
+    // Complementary profiles first; the newest first within each group (sort is stable)
+    results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
+  }
   const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
-  const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE }, p => card(db, viewer, p, viewerP));
+  const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE },
+    p => ({ ...card(db, viewer, p, viewerP), ...(filters.q ? { match_in: p.match_in } : {}) }));
   return {
     total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
     people: pg.items,

@@ -3,6 +3,7 @@ import { newId, now, tx } from './db.js';
 import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { matches, pageParams, paginate } from './paging.js';
+import { fixedWords, forgiving, hitsAll, terms, wordsOf } from './search.js';
 import { HttpError, bad, bool, oneOf, only, text } from './validate.js';
 
 // Discovery and connecting open on launch day (design 01 pre-lancio); admins can preview them before.
@@ -162,19 +163,32 @@ function requireConnected(db, a, b) {
   return c;
 }
 
-// Conversations, latest first; searchable by name (?q=), 30 per page
+// Conversations, latest first, 30 per page; searchable (?q=, src/search.js) by the other person's name
+// and by what was written: a conversation found by its messages shows the latest one that says it
+// instead of the last one
 export function listThreads(db, viewer, query = new URLSearchParams()) {
   const { connected } = allConnections(db, viewer);
   const pp = pageParams(query, 30);
-  const threads = connected.filter(c => matches(pp.q, c.name)).map(c => {
-    const last = db.prepare(
-      'SELECT * FROM messages WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?) ORDER BY id DESC LIMIT 1',
-    ).get(viewer.id, c.id, c.id, viewer.id);
+  const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
+  const lastOf = c => db.prepare(`SELECT * FROM messages WHERE ${pair} ORDER BY id DESC LIMIT 1`).get(viewer.id, c.id, c.id, viewer.id);
+  let found = connected.map(c => [c, null]);
+  const ts = terms(pp.q);
+  if (ts.length) {
+    // all the viewer's messages, newest first, each split into words once (they never change)
+    const mine = db.prepare('SELECT * FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id DESC').all(viewer.id, viewer.id);
+    found = forgiving(fuzzy => connected.flatMap(c => {
+      if (hitsAll(ts, wordsOf(c.name), fuzzy)) return [[c, null]];
+      const said = mine.find(m => (m.sender_id === c.id || m.recipient_id === c.id) && hitsAll(ts, fixedWords(`m${m.id}`, m.body), fuzzy));
+      return said ? [[c, said]] : [];
+    }));
+  }
+  const threads = found.map(([c, said]) => {
+    const last = said || lastOf(c);
     const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').get(c.id, viewer.id).n;
     return {
       id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, photo_url: c.photo_url,
       last: last ? `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}` : 'Nuova connessione: scrivi per primo',
-      time: last?.created_at ?? c.since, unread: unread > 0,
+      time: last?.created_at ?? c.since, unread: unread > 0, found_in_messages: !!said,
     };
   }).sort((a, b) => (b.time || '').localeCompare(a.time || ''));
   return paginate(threads, pp);

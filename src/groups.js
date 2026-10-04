@@ -9,6 +9,7 @@ import { now, tx } from './db.js';
 import { removeFile } from './files.js';
 import { fileUrl, isBlocked, rawProfile } from './profiles.js';
 import { pageParams, paginate } from './paging.js';
+import { fixedWords, forgiving, hitsAll, terms } from './search.js';
 import { nameOf, notify, requireLaunched } from './social.js';
 import { HttpError, bad, only, text } from './validate.js';
 
@@ -107,6 +108,31 @@ export function listPosts(db, viewer, id, query = new URLSearchParams()) {
   const rows = db.prepare(`SELECT * FROM group_posts WHERE group_id = $group AND author_id NOT IN ${HIDDEN} ORDER BY id DESC`)
     .all({ $group: id, $viewer: viewer.id });
   return paginate(rows, pageParams(query, 20), p => postView(db, viewer, p));
+}
+
+// Search in the groups (Scopri's "Gruppi" tab: src/search.js): posts and comments by what they say,
+// across every group, newest first, at most 50. A post found by a comment shows that comment.
+export function searchGroups(db, viewer, query = new URLSearchParams()) {
+  requireMemberArea(viewer);
+  const ts = terms(query.get('q') || '');
+  if (!ts.length) return { items: [] };
+  const v = { $viewer: viewer.id };
+  const posts = db.prepare(`SELECT * FROM group_posts WHERE author_id NOT IN ${HIDDEN} ORDER BY id DESC`).all(v);
+  const comments = db.prepare(`SELECT * FROM group_comments WHERE author_id NOT IN ${HIDDEN} ORDER BY id DESC`).all(v);
+  const names = new Map(db.prepare('SELECT id, name FROM groups').all().map(g => [g.id, g.name]));
+  const items = forgiving(fuzzy => {
+    const found = new Map(); // post id -> the comment that says it, or null (the post itself)
+    for (const p of posts) if (hitsAll(ts, fixedWords(`p${p.id}`, p.body), fuzzy)) found.set(p.id, null);
+    for (const c of comments) if (!found.has(c.post_id) && hitsAll(ts, fixedWords(`c${c.id}`, c.body), fuzzy)) found.set(c.post_id, c);
+    return posts.filter(p => found.has(p.id)).slice(0, 50).map(p => {
+      const c = found.get(p.id);
+      return {
+        group: { id: p.group_id, name: names.get(p.group_id) }, post_id: p.id,
+        author: author(db, (c || p).author_id), text: (c || p).body, in_comment: !!c, created_at: (c || p).created_at,
+      };
+    });
+  });
+  return { items };
 }
 
 export function createPost(db, viewer, id, body) {

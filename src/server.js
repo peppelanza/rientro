@@ -516,6 +516,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return storeGroupImage(db, user, await receiveUpload(req, 'group_image'));
   });
   route('GET', '/api/groups', ({ user }) => groups.listGroups(db, user));
+  route('GET', '/api/groups/search', ({ user, url }) => groups.searchGroups(db, user, url.searchParams)); // before :id
   route('GET', '/api/groups/:id', ({ user, params }) => groups.getGroup(db, user, params.id));
   route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));
   route('POST', '/api/groups/:id/posts', async ({ user, params, req }) => groups.createPost(db, user, params.id, await readJson(req)));

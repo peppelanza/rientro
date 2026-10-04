@@ -13,7 +13,6 @@
 <!-- Once the header and the post box have scrolled away: a bar like the menu, stuck to the top of this
      column (gruppo.js) -->
 <div class="group-bar-wrap"><div class="group-bar"><div class="group-bar-in">
-<sc-if value="{{ g.cover }}"><img src="{{ g.cover }}" alt="" class="group-bar-pic"></sc-if>
 <span class="group-bar-name">{{ g.name }}</span>
 <sc-if value="{{ member }}"><dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ toComposer }}"></dc-import></sc-if>
 <sc-if value="{{ visitor }}"><dc-import name="UI Button" label="Iscriviti" variant="accent" size="sm" on-click="{{ signUp }}"></dc-import></sc-if>

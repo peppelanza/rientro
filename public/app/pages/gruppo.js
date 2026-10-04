@@ -226,10 +226,13 @@ export default class extends Page {
       mainCls: s.id ? 'groups-main' : 'groups-main r-hide-sm',
       hasGroup: !!s.group, choosing: !s.id, opening: !!s.id && !s.group,
       backToList: e => { e.preventDefault(); this.select(null); },
-      // "Pubblica" in the top bar: back to the post box, ready to type
+      // "Pubblica" in the top bar: back to the post box, ready to type. On a computer all the way up to
+      // the top of the page; on a phone just far enough for the box to reach the top of the screen
       toComposer: () => {
         const box = document.querySelector('[data-key="group-post"]');
-        box?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const phone = matchMedia('(max-width: 720px)').matches;
+        const top = phone && box ? box.closest('.group-compose').getBoundingClientRect().top + scrollY - 12 : 0;
+        scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         box?.focus({ preventScroll: true });
       },
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
