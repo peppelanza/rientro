@@ -25,6 +25,7 @@ import * as profiles from './profiles.js';
 import { territory } from './public.js';
 import * as social from './social.js';
 import * as groups from './groups.js';
+import * as support from './support.js';
 import { HttpError } from './validate.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
@@ -246,9 +247,9 @@ function streamFile(req, res, f) {
 // --- pages ---------------------------------------------------------------------------------
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
-const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/cerca$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
+const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/cerca$/, /^\/supporto(\/[^/]+)?$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|supporto(\/\d+)?|analytics|esportazioni|registro))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
@@ -542,6 +543,15 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // ---- admin (role checked server-side on every request)
   route('GET', '/api/admin/sidebar', () => admin.sidebarCounts(db), adm);
+  // Supporto: the member's tickets, and the team's side
+  route('GET', '/api/support', ({ user }) => support.myTickets(db, user));
+  route('POST', '/api/support', async ({ user, req }) => support.openTicket(db, user, await readJson(req)));
+  route('GET', '/api/support/:id', ({ user, params }) => support.getMyTicket(db, user, params.id));
+  route('POST', '/api/support/:id', async ({ user, params, req }) => support.writeMine(db, user, params.id, await readJson(req)));
+  route('GET', '/api/admin/support', ({ url }) => support.teamTickets(db, url.searchParams), adm);
+  route('GET', '/api/admin/support/:id', ({ user, params }) => support.teamTicket(db, user, params.id), adm);
+  route('POST', '/api/admin/support/:id', async ({ user, params, req }) => support.teamWrite(db, user, params.id, await readJson(req)), adm);
+  route('POST', '/api/admin/support/:id/status', async ({ user, params, req }) => support.teamStatus(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/dashboard', ({ user, url }) => admin.dashboard(db, user, url.searchParams), adm);
   route('GET', '/api/admin/users', ({ user, url }) => admin.listUsers(db, user, url.searchParams), adm);
   route('GET', '/api/admin/users/:id', ({ user, params }) => {

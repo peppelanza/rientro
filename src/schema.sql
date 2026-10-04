@@ -438,3 +438,29 @@ CREATE TABLE IF NOT EXISTS group_post_images (
   position  INTEGER NOT NULL,
   PRIMARY KEY (post_id, file_id)
 );
+
+-- ---------------------------------------------------------------------------
+-- Supporto (support.js): a member's tickets to the team, each a chat; the code is R-<id>
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  subject        TEXT NOT NULL,
+  status         TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+  created_at     TEXT NOT NULL,
+  updated_at     TEXT NOT NULL,
+  user_read_at   TEXT,   -- when the member last opened it (what the team wrote after is unread)
+  admin_read_at  TEXT    -- when the team last opened it
+);
+CREATE INDEX IF NOT EXISTS support_tickets_user ON support_tickets(user_id, updated_at);
+CREATE INDEX IF NOT EXISTS support_tickets_status ON support_tickets(status, updated_at);
+CREATE TABLE IF NOT EXISTS support_messages (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  ticket_id   INTEGER NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+  author_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
+  from_team   INTEGER NOT NULL DEFAULT 0,
+  body        TEXT NOT NULL,
+  created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS support_messages_ticket ON support_messages(ticket_id, id);
+

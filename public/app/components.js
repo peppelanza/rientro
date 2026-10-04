@@ -153,6 +153,7 @@ def('App Nav', String.raw`
     const menu = [
       { l: 'Il tuo profilo', href: u.status === 'onboarding' ? '/onboarding' : '/profilo', fg: '#1A1726' },
       { l: 'Impostazioni', href: '/impostazioni', fg: '#1A1726' },
+      { l: 'Supporto', href: '/supporto', fg: '#1A1726' },
       ...(me.admin_url ? [{ l: 'Admin', href: me.admin_url, fg: '#6C4DF5' }] : []),
     ];
     return {
@@ -262,6 +263,7 @@ def('App Admin Sidebar', String.raw`
     const items = [
       ['dashboard', 'Dashboard', '/admin', ''], ['utenti', 'Utenti', '/admin/utenti', c.users ? c.users.toLocaleString('it-IT') : ''],
       ['foto', 'Foto da controllare', '/admin/foto', c.photos ? String(c.photos) : ''], ['bloccati', 'Contenuti bloccati', '/admin/bloccati', c.blocked ? String(c.blocked) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
+      ['supporto', 'Supporto', '/admin/supporto', c.support ? String(c.support) : ''],
       ['analytics', 'Analytics', '/admin/analytics', ''], ['esportazioni', 'Esportazioni', '/admin/esportazioni', ''], ['registro', 'Registro accessi', '/admin/registro', ''],
     ].map(([k, label, href, count]) => ({
       label, href, count, hasCount: !!count, current: k === a ? 'page' : false,

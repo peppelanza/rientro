@@ -1,6 +1,7 @@
 // Internal moderation and analytics (design 44–50). Every read or write of a user's personal
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
+import { waitingCount } from './support.js';
 import { AGE_BANDS, label, orList, SOURCES, START, TIME } from './catalog.js';
 import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
@@ -364,6 +365,7 @@ export function sidebarCounts(db) {
   return {
     users: db.prepare('SELECT COUNT(*) AS n FROM users').get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
+    support: waitingCount(db),
     blocked: db.prepare('SELECT COUNT(*) AS n FROM blocked_uploads WHERE resolved_at IS NULL').get().n,
     photos: db.prepare('SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id WHERE p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL').get().n,
   };

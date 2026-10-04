@@ -1,0 +1,38 @@
+<!-- Supporto: your tickets, a new one, a ticket's chat with the team (supporto.js) -->
+<div style="min-height:100vh;background:#E9E6F5;padding-bottom:40px">
+<dc-import name="App Nav" active="" me="{{ me }}"></dc-import>
+<div class="support-page">
+
+<sc-if value="{{ isList }}">
+<div class="support-head"><div><h1>Supporto</h1><p>Hai una domanda o qualcosa non funziona? Scrivici: ti risponde il team di Rientro, qui e nelle notifiche.</p></div><dc-import name="UI Button" label="Nuovo ticket" variant="accent" on-click="{{ newTicket }}"></dc-import></div>
+<sc-if value="{{ noTickets }}"><p class="support-empty">Non hai ancora aperto ticket.</p></sc-if>
+<div class="support-list"><sc-for list="{{ tickets }}" as="t"><a class="support-row" href="{{ t.href }}">
+<span class="support-code">{{ t.code }}</span>
+<span class="support-main"><b>{{ t.subject }}</b><span>{{ t.last }}</span></span>
+<span class="support-side"><dc-import name="UI Badge" kind="{{ t.kind }}" label="{{ t.status }}"></dc-import><span>{{ t.when }}</span></span>
+<sc-if value="{{ t.unread }}"><span class="support-dot" aria-label="Risposta da leggere"></span></sc-if>
+</a></sc-for></div>
+</sc-if>
+
+<sc-if value="{{ isNew }}">
+<a href="/supporto" class="support-back">← Supporto</a>
+<section class="support-card"><h1>Nuovo ticket</h1>
+<dc-import name="App Field" label="Oggetto" field="support-subject" maxlength="120" value="{{ subject }}" placeholder="In breve, di cosa si tratta" dc-props="{{ subjectProps }}"></dc-import>
+<dc-import name="App Field" label="Messaggio" rows="5" grow="12" field="support-body" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Raccontaci cosa succede o cosa ti serve" dc-props="{{ draftProps }}"></dc-import>
+<div style="display:flex;gap:8px;justify-content:flex-end"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ create }}"></dc-import></div>
+</section>
+</sc-if>
+
+<sc-if value="{{ isTicket }}">
+<a href="/supporto" class="support-back">← Supporto</a>
+<section class="support-card support-chat">
+<div class="support-chat-head"><span class="support-code">{{ code }}</span><h1>{{ ticketSubject }}</h1><dc-import name="UI Badge" kind="{{ kind }}" label="{{ status }}"></dc-import></div>
+<div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></div></sc-for><div class="support-end"></div></div>
+<sc-if value="{{ closed }}"><p class="support-closed">Il ticket è chiuso. Se scrivi, lo riapri.</p></sc-if>
+<div class="support-compose"><dc-import name="App Field" rows="1" grow="6" field="support-reply" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Scrivi al team" dc-props="{{ writeProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ write }}"></dc-import></div>
+</section>
+</sc-if>
+
+</div>
+<dc-import name="App TabBar" active="" me="{{ me }}"></dc-import>
+</div>

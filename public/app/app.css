@@ -928,3 +928,32 @@ html.search-sheet-open { overflow: hidden; }
 [role="menu"] { animation: bell-in .16s ease-out; }
 @media (prefers-reduced-motion: reduce) { .modal-overlay, .modal-overlay > .modal-box, [role="menu"] { animation: none !important; } }
 
+/* Supporto: the member's tickets and a ticket's chat (supporto.js), the same in the admin panel */
+.support-page { max-width: 880px; margin: 0 auto; padding: 28px var(--gutter) 0; display: flex; flex-direction: column; gap: 18px; font-family: 'Geist', sans-serif; }
+.support-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.support-head h1, .support-card h1 { margin: 0; font: 600 32px 'Unbounded', sans-serif; letter-spacing: -.045em; }
+.support-head p { margin: 8px 0 0; max-width: 520px; font-size: 15px; line-height: 1.5; color: #4A4560; }
+.support-empty { margin: 24px 0; text-align: center; color: #8C84AE; font-size: 15px; }
+.support-list { display: flex; flex-direction: column; background: #FFFFFF; border-radius: 24px; padding: 4px 18px; }
+.support-list:not(:has(.support-row)) { background: none; }
+.support-row { position: relative; display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 16px 0; border: none; border-bottom: 1px solid #ECE8F7; background: none; text-align: left; font: inherit; color: #1A1726; text-decoration: none; cursor: pointer; }
+.support-row:last-of-type { border-bottom: none; }
+.support-code { font: 500 12px 'Geist Mono', monospace; color: #6C4DF5; }
+.support-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.support-main b { font-weight: 600; font-size: 15px; }
+.support-main span { font-size: 13px; color: #6B6680; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.support-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 12px; color: #8C84AE; }
+.support-dot { position: absolute; left: -10px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #6C4DF5; }
+.support-back { font-size: 14px; color: #6B6680; text-decoration: none; }
+.support-card { background: #FFFFFF; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 14px 40px rgba(80, 60, 160, .10); }
+.support-chat-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.support-chat-head h1 { flex: 1; min-width: 0; font-size: 22px; }
+.support-meta { margin: -6px 0 0; font-size: 13px; color: #6B6680; }
+.support-thread { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: #F6F4FC; min-height: 160px; max-height: 60vh; overflow-y: auto; }
+.support-msg { display: flex; flex-direction: column; gap: 4px; }
+.support-who { font-size: 11px; color: #8C84AE; padding: 0 6px; }
+.support-closed { margin: 0; font-size: 13px; color: #8C84AE; text-align: center; }
+.support-compose { display: flex; gap: 10px; align-items: flex-end; }
+.support-compose > .sc-host:first-child { flex: 1; min-width: 0; }
+@media (max-width: 720px) { .support-row { grid-template-columns: minmax(0, 1fr) auto; } .support-row .support-code { grid-column: 1 / -1; } }
+
