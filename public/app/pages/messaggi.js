@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, overlayClosing, threadTime, toast, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, overlayClosing, routeOf, threadTime, toast, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -383,7 +383,7 @@ export default class extends Page {
     const q = s.query.trim();
     const threads = s.threads.map(t => ({
       ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), // Where they live → where they want to go, instead of the job title
-      route: t.from && t.to ? `${t.from} → ${t.to}` : t.from || t.role.split(' · ')[0],
+      route: routeOf(t) || t.role.split(' · ')[0],
       // Unread conversations are tinted, like unread notifications; the open one is white
       bg: t.id === s.active ? '#FFFFFF' : t.unread ? '#EFEBFF' : 'transparent', sh: t.id === s.active ? '0 8px 24px rgba(80,60,160,.10)' : 'none',
       w: t.unread ? 600 : 500, c: t.unread ? '#1A1726' : '#8C84AE', active: t.id === s.active ? 'page' : false,

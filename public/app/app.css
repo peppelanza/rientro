@@ -911,3 +911,20 @@ html.search-sheet-open { overflow: hidden; }
 @media (max-width: 1024px) { .chat-grid, .chat-grid.no-side { grid-template-columns: 340px minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .chat-grid, .chat-grid > aside { animation: none !important; } }
 
+/* Every dialog (lib.js openModal) opens with a short animation and closes with it backwards:
+   on a computer it fades in and grows a little; on a phone, a sheet, it slides up from the bottom */
+.modal-overlay { animation: modal-fade .2s ease; }
+.modal-overlay > .modal-box { animation: modal-pop .22s cubic-bezier(.2, .8, .2, 1); }
+.modal-overlay.closing { animation: modal-fade .18s ease reverse forwards; pointer-events: none; }
+.modal-overlay.closing > .modal-box { animation: modal-pop .18s ease-in reverse forwards; }
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes modal-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+@media (max-width: 720px) {
+  .modal-overlay > .modal-box { animation: modal-up .32s cubic-bezier(.2, .8, .2, 1); }
+  .modal-overlay.closing > .modal-box { animation: modal-up .2s ease-in reverse forwards; }
+}
+@keyframes modal-up { from { transform: translateY(100%); } }
+/* Every menu that opens from a button (the "···" ones, reactions, emoji): the bell dropdown's fade */
+[role="menu"] { animation: bell-in .16s ease-out; }
+@media (prefers-reduced-motion: reduce) { .modal-overlay, .modal-overlay > .modal-box, [role="menu"] { animation: none !important; } }
+

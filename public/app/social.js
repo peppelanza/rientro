@@ -1,6 +1,6 @@
 // Shared dialogs: connection request (design 03 · 30a/30b), report (05 · 42a), block (05 · 43a).
 import { DCLogic } from '../dc/runtime.js';
-import { api, getCatalog, openModal, toast } from './lib.js';
+import { api, getCatalog, openModal, routeOf, toast } from './lib.js';
 
 const CLOSE = `<button type="button" onClick="{{ cancel }}" aria-label="Chiudi" style="width:40px;height:40px;border-radius:50%;border:none;background:#F1EFF8;display:flex;align-items:center;justify-content:center;font-size:18px;color:#6B6680;align-self:flex-start;cursor:pointer;flex:none">×</button>`;
 
@@ -22,7 +22,7 @@ export async function connect(person) {
       renderVals() {
         return {
           first, photo: person.photo_url, ini: (person.name || first).split(' ').map(w => w[0]).join('').slice(0, 2),
-          sub: [person.role?.split(' · ')[0], person.from && person.to ? `${person.from} → ${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
+          sub: [person.role?.split(' · ')[0], person.back_from ? routeOf(person) : person.from && person.to ? `${person.from} → ${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
           // two lines on phones (the keyboard takes half the screen), four on a computer
           noteRows: matchMedia('(max-width: 720px)').matches ? 2 : 4,
           note: this.state.note, noteProps: { onInput: v => { this.state.note = v; } },

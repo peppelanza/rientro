@@ -121,6 +121,10 @@ export function threadTime(iso) {
   return fmtShort(iso);
 }
 
+// Where a person is going, in a line: "Berlino → Napoli"; already back in Italy, where they came
+// back from: "Berlino → Bologna" (profiles.js card back_from)
+export const routeOf = p => (p.back_from ? `${p.back_from} → ${p.from}` : p.from && p.to ? `${p.from} → ${p.to}` : p.from || '');
+
 export const initials = (first, last) => `${(first || '?')[0]}${(last || '')[0] || ''}`.toUpperCase();
 export const fullName = p => [p?.first_name, p?.last_name].filter(Boolean).join(' ');
 
@@ -157,7 +161,9 @@ export const toastError = err => toast(err?.message || 'Qualcosa è andato stort
 
 // --- Modals --------------------------------------------------------------------------------
 
-// Mounts a dc template in an overlay. The Logic gets `this.close(result)`.
+// Mounts a dc template in an overlay, which opens and closes with a short animation (app.css). The
+// Logic gets `this.close(result)`.
+const MODAL_OUT_MS = 180;
 export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,38,.45)', sheet = false }) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
@@ -179,8 +185,10 @@ export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,
     };
     const phone = vv && matchMedia('(max-width: 720px)').matches;
     if (phone) { fit(); vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+    // closing plays the opening backwards (app.css .modal-overlay.closing), then it goes
     const close = result => {
-      overlay.remove();
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) overlay.remove();
+      else { overlay.classList.add('closing'); setTimeout(() => overlay.remove(), MODAL_OUT_MS); }
       if (phone) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); }
       document.removeEventListener('keydown', onKey);
       previous?.focus?.();

@@ -194,7 +194,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   const threads = found.map(([c, said, best = 0]) => [c, said || lastOf(c), said, best]).filter(([, last]) => last).map(([c, last, said, best]) => {
     const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').get(c.id, viewer.id).n;
     return {
-      id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, photo_url: c.photo_url,
+      id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, back_from: c.back_from, photo_url: c.photo_url,
       last: `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}`,
       time: last.created_at, unread: unread > 0, found_in_messages: !!said, best,
     };

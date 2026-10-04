@@ -3,7 +3,7 @@
 // filter. Persone has Scopri's filters beside it (people-filters.js), Gruppi the groups to search
 // in. Words, tab, filters, group and page live in the address, so a new search from here keeps
 // them (search-history.js searchUrl).
-import { api, CERCA_BACK_KEY, getCatalog, getMe, go, timeAgo } from '../lib.js';
+import { api, CERCA_BACK_KEY, getCatalog, getMe, go, routeOf, timeAgo } from '../lib.js';
 import { apiQuery, filterPanel, moreOpenAtStart, readFilters, toQuery } from '../people-filters.js';
 import { stickSide } from '../sticky-side.js';
 import { Page } from './_base.js';
@@ -122,7 +122,7 @@ export default class extends Page {
       peopleTab: !groupsTab, groupsTab,
       // Persone: a row each, the words highlighted; found elsewhere in the profile, it says where
       rows: groupsTab ? [] : (res?.people || []).map(p => {
-        const one = mark(p.role, words); const two = mark([p.from, p.to].filter(Boolean).join(' → '), words);
+        const one = mark(p.role, words); const two = mark(routeOf(p), words);
         return {
           name: p.name, photo: p.photo_url, ini: initials(p.name), href: `/persone/${p.id}?da=cerca`, // back: "Torna ai risultati"
           a: one.a, m1: one.m, b: one.b, has1: !!one.m, c: two.a, m2: two.m, d: two.b, has2: !!two.m,

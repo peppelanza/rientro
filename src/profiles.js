@@ -351,6 +351,8 @@ export function card(db, viewer, p, viewerP) {
     age: label(AGE_BANDS, p.age_band) ?? '',
     role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
     from: p.lives_in_city ?? '',
+    // already back in Italy: where from (shown "Rientro da X a Y" instead of where they'd like to go)
+    back_from: p.lives_in === 'italy' && !p.always_in_italy ? (p.arrived_from_city || p.arrived_from_country || '') : '',
     to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
     intent: p.primary_intent,
