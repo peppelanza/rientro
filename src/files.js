@@ -18,8 +18,8 @@ function sniff(buf) {
 }
 
 const diskPath = key => path.join(config.uploadDir, key);
-const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes, group_image: config.maxPhotoBytes };
-const TYPES = { profile_photo: /^image\//, profile_video: /^video\//, group_image: /^image\// };
+const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes, group_image: config.maxPhotoBytes, support_image: config.maxPhotoBytes };
+const TYPES = { profile_photo: /^image\//, profile_video: /^video\//, group_image: /^image\//, support_image: /^image\// };
 
 // Streams the request body to disk (videos can be 200 MB), checking size and type as it goes.
 export function receiveUpload(req, kind) {
@@ -197,6 +197,15 @@ export function attachUpload(db, user, kind, upload) {
 
 // A picture for a group post: stored now, attached when the post is published (groups.js); one never
 // attached is deleted the next day (retention.js)
+// A picture for a support message (support.js), before sending it: seen only by the ticket's
+// member and the team
+export function storeSupportImage(db, user, upload) {
+  const id = newId();
+  db.prepare("INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES (?, ?, 'support_image', ?, ?, ?, ?, ?)")
+    .run(id, user.id, upload.key, upload.mime, upload.size, upload.sha256, now());
+  return { id, url: `/api/support/images/${id}` };
+}
+
 export function storeGroupImage(db, user, upload) {
   const id = newId();
   db.prepare("INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES (?, ?, 'group_image', ?, ?, ?, ?, ?)")

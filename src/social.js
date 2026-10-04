@@ -66,6 +66,9 @@ export function badgeCounts(db, user) {
     received: db.prepare("SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'").get(user.id).n,
     unread_messages: db.prepare('SELECT COUNT(DISTINCT sender_id) AS n FROM messages WHERE recipient_id = ? AND read_at IS NULL').get(user.id).n,
     notifications: db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n,
+    // tickets with an answer from the team not read yet ("Non letto" by Supporto in the account menu)
+    support_unread: db.prepare(`SELECT COUNT(*) AS n FROM support_tickets t WHERE t.user_id = ? AND EXISTS (SELECT 1 FROM support_messages m
+      WHERE m.ticket_id = t.id AND m.from_team = 1 AND (t.user_read_at IS NULL OR m.created_at > t.user_read_at))`).get(user.id).n,
   };
 }
 

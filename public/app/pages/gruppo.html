@@ -34,11 +34,11 @@
 <sc-if value="{{ visitor }}"><section class="group-join group-compose" aria-label="Iscriviti"><span>Per scrivere nel gruppo e conoscere chi torna, iscriviti a Rientro: è gratuito.</span><dc-import name="UI Button" label="Iscriviti" variant="accent" size="sm" on-click="{{ signUp }}"></dc-import></section></sc-if>
 <sc-if value="{{ member }}"><section class="group-compose" aria-label="Scrivi al gruppo" style="background:#FFFFFF;border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px">
 <dc-import name="App Field" rows="3" grow="10" field="group-post" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Scrivi qualcosa al gruppo…" dc-props="{{ draftProps }}"></dc-import>
-<sc-if value="{{ hasPending }}"><div class="group-pending"><sc-for list="{{ pending }}" as="i"><div class="group-pending-img"><img src="{{ i.src }}" alt=""><sc-if value="{{ i.uploading }}"><span class="group-pending-busy" role="status" aria-label="Caricamento"><i class="ios-spinner turning"></i></span></sc-if><button type="button" aria-label="Togli la foto" onClick="{{ i.remove }}">✕</button></div></sc-for></div></sc-if>
+<dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
 <div class="group-tools">
 <button type="button" class="emoji-toggle group-tool" aria-label="Emoji" aria-expanded="{{ emojiOpen }}" onClick="{{ toggleEmoji }}">😊</button>
 <sc-if value="{{ emojiOpen }}"><div class="emoji-picker emoji-picker-compose" role="menu" aria-label="Emoji"><sc-for list="{{ emoji }}" as="q"><button type="button" role="menuitem" onClick="{{ q.pick }}">{{ q.e }}</button></sc-for></div></sc-if>
-<sc-if value="{{ canAddImage }}"><label class="group-tool" aria-label="Aggiungi foto"><input type="file" accept="image/*,.heic,.heif" multiple class="sr-only" onChange="{{ pick }}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg></label></sc-if>
+<dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import>
 <span style="flex:1"></span>
 <dc-import name="UI Button" label="Pubblica" variant="accent" size="sm" on-click="{{ publish }}"></dc-import>
 </div>

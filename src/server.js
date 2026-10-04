@@ -14,7 +14,7 @@ import * as auth from './auth.js';
 import { catalog, COMUNI } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb, tx } from './db.js';
-import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, storeGroupImage, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
+import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, storeGroupImage, storeSupportImage, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
 import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
@@ -544,6 +544,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // ---- admin (role checked server-side on every request)
   route('GET', '/api/admin/sidebar', () => admin.sidebarCounts(db), adm);
   // Supporto: the member's tickets, and the team's side
+  // pictures in support messages: uploaded first (resized and checked in the browser), seen only by
+  // the ticket's member and the team
+  route('POST', '/api/support/images', async ({ user, req }) => storeSupportImage(db, user, await receiveUpload(req, 'support_image')));
+  route('GET', '/api/support/images/:id', ({ user, params, req, res }) => {
+    if (!support.imageAllowed(db, user, params.id)) throw new HttpError(404, 'not_found');
+    streamFile(req, res, fileOnDisk(db, params.id));
+  }, { raw: true });
   route('GET', '/api/support', ({ user }) => support.myTickets(db, user));
   route('POST', '/api/support', async ({ user, req }) => support.openTicket(db, user, await readJson(req)));
   route('GET', '/api/support/:id', ({ user, params }) => support.getMyTicket(db, user, params.id));

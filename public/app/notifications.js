@@ -17,7 +17,7 @@ export function describeNotification(n) {
       href: `/gruppi/${n.data.group_id}#post-${n.data.post_id}`,
     };
     // Supporto (src/support.js): the team's answer, to the member; a new ticket or message, to the team
-    case 'support_reply': return { text: `Il team di Rientro ha risposto al ticket #${n.data.code}: ${n.data.subject}.`, icon: 'R', ibg: '#EFEBFF', ifg: '#3E2BA8', href: `/supporto/${n.data.ticket_id}` };
+    case 'support_reply': return { text: 'Nuova risposta dal supporto di Rientro', icon: 'R', ibg: '#EFEBFF', ifg: '#3E2BA8', href: `/supporto/${n.data.ticket_id}` };
     case 'support_new': return { who, rest: ` ha aperto il ticket #${n.data.code}: ${n.data.subject}.`, href: `/admin/supporto/${n.data.ticket_id}` };
     case 'support_message': return { who, rest: ` ha scritto nel ticket #${n.data.code}.`, href: `/admin/supporto/${n.data.ticket_id}` };
     default: return { text: 'Aggiornamento dal team Rientro.', icon: 'i', ibg: '#EFEBFF', ifg: '#3E2BA8', href: null };

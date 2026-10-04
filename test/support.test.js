@@ -30,7 +30,7 @@ test('supporto: a member opens tickets (as many as they like), the team answers 
     const answered = (await admin.post(`/api/admin/support/${one.id}`, { body: 'Ciao! Stiamo controllando.' })).body;
     assert.equal(sent.length, 1, 'an answer always emails the member');
     assert.equal(sent[0].to, 'sup-a@example.com');
-    assert.match(sent[0].subject, /ti ha risposto · #R-\d{4}: Non vedo le foto/);
+    assert.equal(sent[0].subject, 'Nuova risposta dal supporto di Rientro');
     assert.match(sent[0].text, /Stiamo controllando/);
     assert.equal(answered.messages.at(-1).from_team, true);
     assert.equal((await admin.get('/api/admin/sidebar')).body.support, 1, 'answered: no longer waiting');

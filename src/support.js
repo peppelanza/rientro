@@ -10,6 +10,36 @@ import { nameOf, notify } from './social.js';
 import { HttpError, bad, oneOf, only, text } from './validate.js';
 
 const MAX_OPEN = 10; // open tickets per member at once
+const MAX_IMAGES = 5; // per message
+
+// A message's text and pictures (ids uploaded beforehand by its author, /api/support/images, not
+// used yet); text may be empty with pictures
+function readMessage(db, author, body, label) {
+  const images = Array.isArray(body.images) ? body.images.map(String) : [];
+  if (images.length > MAX_IMAGES || new Set(images).size !== images.length) throw bad('images', `Al massimo ${MAX_IMAGES} foto.`);
+  for (const f of images) {
+    const ok = db.prepare("SELECT 1 FROM files WHERE id = ? AND owner_id = ? AND kind = 'support_image' AND id NOT IN (SELECT file_id FROM support_message_images)").get(f, author.id);
+    if (!ok) throw bad('images', 'Una delle foto non è più disponibile: caricala di nuovo.');
+  }
+  const msg = (text(body.body, label, { max: 4000 }) ?? '').trim();
+  if (!msg && !images.length) throw bad('body', 'Scrivi qualcosa o aggiungi una foto.');
+  return { msg, images };
+}
+function addMessage(db, ticketId, author, fromTeam, { msg, images }, at) {
+  const r = db.prepare('INSERT INTO support_messages (ticket_id, author_id, from_team, body, created_at) VALUES (?, ?, ?, ?, ?)').run(ticketId, author.id, fromTeam ? 1 : 0, msg, at);
+  const mid = Number(r.lastInsertRowid);
+  images.forEach((f, i) => db.prepare('INSERT INTO support_message_images (message_id, file_id, position) VALUES (?, ?, ?)').run(mid, f, i));
+}
+const imagesOf = (db, messageId) => db.prepare('SELECT file_id FROM support_message_images WHERE message_id = ? ORDER BY position').all(messageId).map(r => `/api/support/images/${r.file_id}`);
+
+// A support picture: its uploader before it's sent; once in a message, the ticket's member and the team
+export function imageAllowed(db, viewer, fileId) {
+  const f = db.prepare("SELECT owner_id FROM files WHERE id = ? AND kind = 'support_image'").get(fileId);
+  if (!f) return false;
+  if (viewer.role === 'admin' || f.owner_id === viewer.id) return true;
+  return !!db.prepare(`SELECT 1 FROM support_message_images i JOIN support_messages m ON m.id = i.message_id JOIN support_tickets t ON t.id = m.ticket_id
+    WHERE i.file_id = ? AND t.user_id = ?`).get(fileId, viewer.id);
+}
 export const ticketCode = id => `R-${String(id).padStart(4, '0')}`;
 
 const ticketOr404 = (db, id, userId = null) => {
@@ -27,7 +57,7 @@ function summary(db, t, side) {
   const fromOther = last && (side === 'team' ? !last.from_team : !!last.from_team);
   return {
     id: t.id, code: ticketCode(t.id), subject: t.subject, status: t.status, created_at: t.created_at, updated_at: t.updated_at,
-    last: last ? `${last.from_team ? (side === 'team' ? 'Tu: ' : 'Team Rientro: ') : side === 'team' ? '' : 'Tu: '}${last.body}` : '',
+    last: last ? `${last.from_team ? (side === 'team' ? 'Tu: ' : 'Team Rientro: ') : side === 'team' ? '' : 'Tu: '}${last.body || '📷 Foto'}` : '',
     unread: !!fromOther && (!readAt || readAt < last.created_at),
     // the team's lists: who, and whether it waits for an answer
     ...(side === 'team' ? { user: { id: t.user_id, name: nameOf(db, t.user_id) || '', email: db.prepare('SELECT email FROM users WHERE id = ?').get(t.user_id)?.email }, waiting: t.status === 'open' && !!last && !last.from_team } : {}),
@@ -36,7 +66,7 @@ function summary(db, t, side) {
 
 function thread(db, t, side) {
   const messages = db.prepare('SELECT id, from_team, body, created_at FROM support_messages WHERE ticket_id = ? ORDER BY id').all(t.id)
-    .map(m => ({ id: m.id, from_team: !!m.from_team, mine: side === 'team' ? !!m.from_team : !m.from_team, body: m.body, created_at: m.created_at }));
+    .map(m => ({ id: m.id, from_team: !!m.from_team, mine: side === 'team' ? !!m.from_team : !m.from_team, body: m.body, images: imagesOf(db, m.id), created_at: m.created_at }));
   return { ...summary(db, t, side), messages };
 }
 
@@ -49,16 +79,16 @@ export function myTickets(db, user) {
 }
 
 export function openTicket(db, user, body) {
-  only(body, ['subject', 'body']);
+  only(body, ['subject', 'body', 'images']);
   const subject = text(body.subject, 'Oggetto', { max: 120, nullable: false });
-  const msg = text(body.body, 'Messaggio', { max: 4000, nullable: false });
+  const first = readMessage(db, user, body, 'Messaggio');
   const open = db.prepare("SELECT COUNT(*) AS n FROM support_tickets WHERE user_id = ? AND status = 'open'").get(user.id).n;
   if (open >= MAX_OPEN) throw bad('subject', `Hai già ${MAX_OPEN} ticket aperti: scrivi in uno di quelli.`);
   const id = tx(db, () => {
     const at = now();
     const r = db.prepare('INSERT INTO support_tickets (user_id, subject, created_at, updated_at, user_read_at) VALUES (?, ?, ?, ?, ?)').run(user.id, subject, at, at, at);
     const tid = Number(r.lastInsertRowid);
-    db.prepare('INSERT INTO support_messages (ticket_id, author_id, from_team, body, created_at) VALUES (?, ?, 0, ?, ?)').run(tid, user.id, msg, at);
+    addMessage(db, tid, user, false, first, at);
     return tid;
   });
   for (const a of teamIds(db)) if (a !== user.id) notify(db, a, 'support_new', user.id, { ticket_id: id, code: ticketCode(id), subject });
@@ -74,11 +104,11 @@ export function getMyTicket(db, user, id) {
 
 // Writing in a closed ticket reopens it
 export function writeMine(db, user, id, body) {
-  only(body, ['body']);
+  only(body, ['body', 'images']);
   const t = ticketOr404(db, id, user.id);
-  const msg = text(body.body, 'Messaggio', { max: 4000, nullable: false });
+  const m = readMessage(db, user, body, 'Messaggio');
   const at = now();
-  db.prepare('INSERT INTO support_messages (ticket_id, author_id, from_team, body, created_at) VALUES (?, ?, 0, ?, ?)').run(t.id, user.id, msg, at);
+  tx(db, () => addMessage(db, t.id, user, false, m, at));
   db.prepare("UPDATE support_tickets SET status = 'open', updated_at = ?, user_read_at = ? WHERE id = ?").run(at, at, t.id);
   // the team: one unread notification per ticket, the latest
   for (const a of teamIds(db)) {
@@ -122,11 +152,12 @@ export function teamTicket(db, admin, id) {
 }
 
 export function teamWrite(db, admin, id, body) {
-  only(body, ['body']);
+  only(body, ['body', 'images']);
   const t = ticketOr404(db, id);
-  const msg = text(body.body, 'Risposta', { max: 4000, nullable: false });
+  const m = readMessage(db, admin, body, 'Risposta');
+  const msg = m.msg || (m.images.length === 1 ? '📷 Una foto' : `📷 ${m.images.length} foto`);
   const at = now();
-  db.prepare('INSERT INTO support_messages (ticket_id, author_id, from_team, body, created_at) VALUES (?, ?, 1, ?, ?)').run(t.id, admin.id, msg, at);
+  tx(db, () => addMessage(db, t.id, admin, true, m, at));
   db.prepare('UPDATE support_tickets SET updated_at = ?, admin_read_at = ? WHERE id = ?').run(at, at, t.id);
   db.prepare("DELETE FROM notifications WHERE user_id = ? AND kind = 'support_reply' AND json_extract(data, '$.ticket_id') = ? AND read_at IS NULL").run(t.user_id, t.id);
   notify(db, t.user_id, 'support_reply', null, { ticket_id: t.id, code: ticketCode(t.id), subject: t.subject });

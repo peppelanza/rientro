@@ -4,9 +4,8 @@
 // 3 comments. The page is public too: without an account (or before launch) it's read-only, with only
 // the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
 import { EMOJI } from '../emoji.js';
-import { shrinkImage } from '../image-shrink.js';
-import { api, go, overlayClosing, setMe, timeAgo, toast, toastError, upload } from '../lib.js';
-import { nsfwCheck, warmUpNsfwCheck } from '../nsfw.js';
+import { clearTray, trayBusy, trayIds, trayVals } from '../image-tray.js';
+import { api, go, overlayClosing, setMe, timeAgo, toast, toastError } from '../lib.js';
 import { photoViewer } from '../photo-viewer.js';
 import { report } from '../social.js';
 import { stickSide } from '../sticky-side.js';
@@ -138,39 +137,6 @@ export default class extends Page {
     return s.regionsOpen ?? s.groups?.find(x => x.id === s.id)?.kind === 'region';
   }
 
-  // Pictures for the post (up to 5), picked one or several at a time: all show at once, then each is
-  // resized and converted (image-shrink.js), checked for explicit content and uploaded, side by side,
-  // so publishing only has to send their ids
-  async addImages(files) {
-    const s = this.state;
-    const room = MAX_IMAGES - s.images.length;
-    if (files.length > room) toast(`Puoi aggiungere al massimo ${MAX_IMAGES} foto.`, { tone: 'err' });
-    const added = [...files].slice(0, Math.max(0, room)).map(file => ({ file, key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file) }));
-    s.images.push(...added);
-    this.__rerender();
-    await Promise.all(added.map(async img => {
-      try {
-        const blob = await shrinkImage(img.file);
-        if ((await nsfwCheck(blob))?.blocked) throw new Error('Questa immagine non può essere pubblicata su Rientro.');
-        const r = await upload('/api/groups/images', blob);
-        img.id = r.id;
-      } catch (err) {
-        s.images = s.images.filter(x => x !== img);
-        URL.revokeObjectURL(img.preview);
-        toast(err.message, { tone: 'err' });
-      }
-      delete img.file;
-      this.__rerender();
-    }));
-  }
-
-  removeImage(img) {
-    const s = this.state;
-    s.images = s.images.filter(x => x !== img);
-    URL.revokeObjectURL(img.preview);
-    this.__rerender();
-  }
-
   // The emoji goes where the cursor is in the post box (computer only: phones have it on the keyboard)
   insertEmoji(emoji) {
     const s = this.state;
@@ -188,11 +154,11 @@ export default class extends Page {
   publish = this.act(async () => {
     const s = this.state;
     const body = s.draft.trim();
-    if (s.images.some(i => !i.id)) return toast('Aspetta che le foto finiscano di caricarsi.');
+    if (trayBusy(this)) return toast('Aspetta che le foto finiscano di caricarsi.');
     if (!body && !s.images.length) return;
-    const post = await api('POST', `/api/groups/${encodeURIComponent(s.id)}/posts`, { body, images: s.images.map(i => i.id) });
-    s.images.forEach(i => URL.revokeObjectURL(i.preview));
-    Object.assign(s, { images: [], emojiOpen: false });
+    const post = await api('POST', `/api/groups/${encodeURIComponent(s.id)}/posts`, { body, images: trayIds(this) });
+    clearTray(this);
+    s.emojiOpen = false;
     s.draft = '';
     if (s.page === 1) s.feed.items.unshift(post);
     s.group.posts++;
@@ -288,12 +254,8 @@ export default class extends Page {
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
       stats: g.posts ? `${g.posts} post` : '', // nothing when there are none yet
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,
-      // pictures and emoji in the post box
-      // (a copy: emptying the field, so the same picture can be picked again, empties its list too)
-      pick: e => { const files = [...e.target.files]; e.target.value = ''; if (files.length) { warmUpNsfwCheck(); this.addImages(files); } },
-      canAddImage: s.images.length < MAX_IMAGES,
-      pending: s.images.map(img => ({ src: img.preview, uploading: !img.id, remove: () => this.removeImage(img) })),
-      hasPending: s.images.length > 0,
+      // pictures (image-tray.js) and emoji in the post box
+      tray: trayVals(this, { endpoint: '/api/groups/images', max: MAX_IMAGES }),
       emojiOpen: s.emojiOpen, toggleEmoji: () => this.setState({ emojiOpen: !s.emojiOpen }),
       emoji: EMOJI.map(q => ({ e: q, pick: () => this.insertEmoji(q) })),
       posts, empty: !!s.feed && !posts.length,

@@ -152,11 +152,11 @@ export function sendAccountRestoredEmail(email) {
 // answer to what the member asked), whatever the notification settings.
 export function supportUpdateEmail({ code, subject, kind, body = '', ticketId }) {
   const link = url(`/supporto/${ticketId}`);
-  const what = { reply: 'Il team di Rientro ti ha risposto', closed: 'Abbiamo chiuso il tuo ticket', open: 'Abbiamo riaperto il tuo ticket' }[kind];
+  const what = { reply: 'Nuova risposta dal supporto di Rientro', closed: 'Abbiamo chiuso il tuo ticket', open: 'Abbiamo riaperto il tuo ticket' }[kind];
   const title = `${what} · #${code}`;
   const preview = body.length > 600 ? `${body.slice(0, 599)}…` : body;
   return {
-    subject: `${title}: ${subject}`,
+    subject: kind === 'reply' ? what : `${title}: ${subject}`, // an answer: just that
     text: `Ciao,\n\n${what} (#${code}, “${subject}”).${preview ? `\n\n“${preview}”` : ''}${kind === 'closed' ? '\n\nSe ti serve altro, rispondi nel ticket: si riapre.' : ''}\n\nApri il ticket: ${link}\n\nIl team di Rientro${textFooter}`,
     html: layout({
       preheader: preview || title,

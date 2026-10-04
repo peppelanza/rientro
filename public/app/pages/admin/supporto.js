@@ -1,16 +1,21 @@
 // Admin · Supporto (src/support.js): the members' tickets, open ones first (those waiting for an
 // answer on top), and a ticket's chat (/admin/supporto/<id>), where the team answers, closes or
 // reopens it. Opening, answering, closing are in the access log.
+import { clearTray, trayBusy, trayIds, trayVals } from '../../image-tray.js';
 import { api, fmtShort, fmtTime, go, timeAgo, toast } from '../../lib.js';
+import { photoViewer } from '../../photo-viewer.js';
+import { messageImages } from '../supporto.js';
 import { AdminPage, initials } from './_admin.js';
 
 export const title = 'Supporto · Admin';
 const POLL_MS = 15000;
+const TRAY = { endpoint: '/api/support/images', max: 5 }; // as the server (support.js)
+photoViewer('.support-images');
 
 export default class extends AdminPage {
   async loadAdmin() {
     const id = this.props.params.id;
-    Object.assign(this.state, { tab: 'open', draft: '' });
+    Object.assign(this.state, { tab: 'open', draft: '', images: [] });
     if (id) {
       this.state.ticket = await api('GET', `/api/admin/support/${encodeURIComponent(id)}`);
       this.timer = setInterval(() => this.poll(), POLL_MS);
@@ -32,9 +37,11 @@ export default class extends AdminPage {
 
   reply = this.act(async () => {
     const s = this.state;
-    if (!s.draft.trim()) return;
-    s.ticket = await api('POST', `/api/admin/support/${s.ticket.id}`, { body: s.draft.trim() });
+    if (!s.draft.trim() && !s.images.length) return;
+    if (trayBusy(this)) return toast('Aspetta che le foto finiscano di caricarsi.');
+    s.ticket = await api('POST', `/api/admin/support/${s.ticket.id}`, { body: s.draft.trim(), images: trayIds(this) });
     s.draft = '';
+    clearTray(this);
     await this.refreshCounts();
   });
 
@@ -47,7 +54,8 @@ export default class extends AdminPage {
   }
 
   didRender(el) {
-    if (this.state.ticket) el.querySelector('.support-end')?.scrollIntoView({ block: 'end' });
+    const box = this.state.ticket && el.querySelector('.support-thread'); // scrolls inside, down to the latest
+    if (box) box.scrollTop = box.scrollHeight;
   }
 
   renderVals() {
@@ -58,7 +66,8 @@ export default class extends AdminPage {
         loading: false, side: this.side('supporto'), isTicket: true,
         code: `#${t.code}`, subject: t.subject, user: t.user.name || t.user.email, email: t.user.email, userHref: `/admin/utenti/${t.user.id}`,
         opened: `${fmtShort(t.created_at)} ${fmtTime(t.created_at)}`, closed: t.status === 'closed', open: t.status === 'open',
-        messages: t.messages.map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, who: m.from_team ? 'Team Rientro' : (t.user.name || 'Membro'), at: `${fmtShort(m.created_at)} ${fmtTime(m.created_at)}`, align: m.mine ? 'flex-end' : 'flex-start' })),
+        messages: t.messages.map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, hasBody: !!m.body, who: m.from_team ? 'Team Rientro' : (t.user.name || 'Membro'), at: `${fmtShort(m.created_at)} ${fmtTime(m.created_at)}`, align: m.mine ? 'flex-end' : 'flex-start', ...messageImages(m.images || []) })),
+        tray: trayVals(this, TRAY),
         draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, reply: this.reply,
         close: () => this.setStatus('closed'), reopen: () => this.setStatus('open'),
       };

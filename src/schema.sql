@@ -319,7 +319,7 @@ CREATE TABLE IF NOT EXISTS review_events (
 CREATE TABLE IF NOT EXISTS files (
   id            TEXT PRIMARY KEY,
   owner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  kind          TEXT NOT NULL CHECK (kind IN ('profile_photo', 'profile_video', 'group_image')),
+  kind          TEXT NOT NULL CHECK (kind IN ('profile_photo', 'profile_video', 'group_image', 'support_image')),
   storage_key   TEXT NOT NULL UNIQUE,
   mime_type     TEXT NOT NULL,
   size_bytes    INTEGER NOT NULL,
@@ -463,4 +463,12 @@ CREATE TABLE IF NOT EXISTS support_messages (
   created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS support_messages_ticket ON support_messages(ticket_id, id);
+-- Pictures in a support message (up to 5), in order; the files are kind 'support_image', seen only by
+-- the ticket's member and the team
+CREATE TABLE IF NOT EXISTS support_message_images (
+  message_id  INTEGER NOT NULL REFERENCES support_messages(id) ON DELETE CASCADE,
+  file_id     TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+  position    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (message_id, file_id)
+);
 

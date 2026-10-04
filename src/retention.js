@@ -36,9 +36,10 @@ export function runRetention(db, { at = new Date() } = {}) {
   out.export_log = n(db.prepare('DELETE FROM data_exports WHERE created_at < ?').run(monthsBefore(at, R.exportLogMonths)));
   // 4. Images stopped as explicit (moderation.js): 30 days in quarantine at most
   out.quarantine = purgeQuarantine(db, new Date(at.getTime() - 30 * 86_400_000).toISOString());
-  // 5. Pictures uploaded for a group post that was never published: gone the next day
-  const orphans = db.prepare(`SELECT id FROM files WHERE kind = 'group_image' AND created_at < ?
-    AND id NOT IN (SELECT file_id FROM group_post_images)`).all(new Date(at.getTime() - 86_400_000).toISOString());
+  // 5. Pictures uploaded for a group post or a support message that never went out (or whose ticket
+  // went with its member's account): gone the next day
+  const orphans = db.prepare(`SELECT id FROM files WHERE kind IN ('group_image', 'support_image') AND created_at < ?
+    AND id NOT IN (SELECT file_id FROM group_post_images) AND id NOT IN (SELECT file_id FROM support_message_images)`).all(new Date(at.getTime() - 86_400_000).toISOString());
   for (const f of orphans) removeFile(db, f.id);
   out.unposted_images = orphans.length;
   out.leaving_feedback = n(db.prepare('DELETE FROM deletion_feedback WHERE created_at < ?').run(monthsBefore(at, R.exportLogMonths).slice(0, 7)));

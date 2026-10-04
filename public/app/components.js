@@ -74,7 +74,7 @@ def('App Nav', String.raw`
 <sc-if value="{{ bellReady }}"><a href="/notifiche" style="margin-top:6px;padding:12px;border-radius:16px;background:#F1EFF8;color:#3E2BA8;font-weight:600;text-align:center;text-decoration:none">{{ bellMore }}</a></sc-if>
 </div></sc-if>
 <sc-if value="{{ menuOpen }}"><div role="menu" class="nav-menu {{ menuAnim }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:22px;padding:6px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;width:220px">
-<sc-for list="{{ menu }}" as="m"><a role="menuitem" href="{{ m.href }}" style="padding:10px 12px;border-radius:16px;color:{{ m.fg }};text-decoration:none">{{ m.l }}</a></sc-for>
+<sc-for list="{{ menu }}" as="m"><a role="menuitem" href="{{ m.href }}" style="padding:10px 12px;border-radius:16px;color:{{ m.fg }};text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:10px">{{ m.l }}<sc-if value="{{ m.tag }}"><span class="unread-tag">{{ m.tag }}</span></sc-if></a></sc-for>
 <div style="height:1px;background:#ECE8F7;margin:4px 0"></div>
 <button type="button" role="menuitem" onClick="{{ logout }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#1A1726;cursor:pointer">Esci</button>
 </div></sc-if>
@@ -153,7 +153,7 @@ def('App Nav', String.raw`
     const menu = [
       { l: 'Il tuo profilo', href: u.status === 'onboarding' ? '/onboarding' : '/profilo', fg: '#1A1726' },
       { l: 'Impostazioni', href: '/impostazioni', fg: '#1A1726' },
-      { l: 'Supporto', href: '/supporto', fg: '#1A1726' },
+      { l: 'Supporto', href: '/supporto', fg: '#1A1726', tag: c.support_unread ? 'Non letto' : '' }, // an answer waits
       ...(me.admin_url ? [{ l: 'Admin', href: me.admin_url, fg: '#6C4DF5' }] : []),
     ];
     return {
@@ -737,6 +737,19 @@ def('App People Filters', String.raw`
 </div>
 <sc-if value="{{ moreOpenFlag }}"><button type="button" class="filters-more-toggle" aria-expanded="{{ moreOpen }}" onClick="{{ toggleMore }}">{{ moreLabel }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></sc-if>
 </aside>`, class extends DCLogic {
+  renderVals() { return this.props; }
+});
+
+// App Pending Images / App Photo Pick — the pictures about to be sent with a group post or a support
+// message, and the button that picks them; both take image-tray.js trayVals() whole (dc-props)
+
+def('App Pending Images', String.raw`
+<sc-if value="{{ hasPending }}"><div class="group-pending"><sc-for list="{{ pending }}" as="i"><div class="group-pending-img"><img src="{{ i.src }}" alt=""><sc-if value="{{ i.uploading }}"><span class="group-pending-busy" role="status" aria-label="Caricamento"><i class="ios-spinner turning"></i></span></sc-if><button type="button" aria-label="Togli la foto" onClick="{{ i.remove }}">✕</button></div></sc-for></div></sc-if>`, class extends DCLogic {
+  renderVals() { return this.props; }
+});
+
+def('App Photo Pick', String.raw`
+<sc-if value="{{ canAddImage }}"><label class="group-tool" aria-label="Aggiungi foto"><input type="file" accept="image/*,.heic,.heif" multiple class="sr-only" onChange="{{ pick }}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg></label></sc-if>`, class extends DCLogic {
   renderVals() { return this.props; }
 });
 

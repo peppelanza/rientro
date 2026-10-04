@@ -10,9 +10,8 @@
 <sc-if value="{{ empty }}"><p class="support-empty">{{ emptyText }}</p></sc-if>
 <sc-for list="{{ tickets }}" as="t"><button type="button" class="support-row" onClick="{{ t.open }}">
 <span class="support-code">{{ t.code }}</span>
-<span class="support-main"><b>{{ t.subject }}</b><span>{{ t.who }} · {{ t.last }}</span></span>
-<span class="support-side"><sc-if value="{{ t.waiting }}"><dc-import name="UI Badge" kind="idea" label="Da rispondere"></dc-import></sc-if><span>{{ t.when }}</span></span>
-<sc-if value="{{ t.unread }}"><span class="support-dot" aria-label="Da leggere"></span></sc-if>
+<span class="support-main"><span class="support-top"><b>{{ t.subject }}</b><span class="support-when">{{ t.when }}</span></span><span class="support-last">{{ t.who }} · {{ t.last }}</span></span>
+<span class="support-side"><sc-if value="{{ t.waiting }}"><span class="unread-tag">Da rispondere</span></sc-if></span>
 </button></sc-for>
 </div>
 <dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import>
@@ -25,9 +24,10 @@
 <sc-if value="{{ open }}"><dc-import name="UI Button" label="Chiudi ticket" variant="secondary" size="sm" on-click="{{ close }}"></dc-import></sc-if>
 <sc-if value="{{ closed }}"><dc-import name="UI Button" label="Riapri" variant="secondary" size="sm" on-click="{{ reopen }}"></dc-import></sc-if></div>
 <p class="support-meta">Da <a href="{{ userHref }}">{{ user }}</a> · {{ email }} · aperto il {{ opened }}</p>
-<div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></div></sc-for><div class="support-end"></div></div>
+<div class="support-thread"><sc-for list="{{ messages }}" as="m"><div class="support-msg" style="align-items:{{ m.align }}"><span class="support-who">{{ m.who }} · {{ m.at }}</span><sc-if value="{{ m.hasBody }}"><dc-import name="UI Bubble" from="{{ m.from }}" text="{{ m.body }}"></dc-import></sc-if><sc-if value="{{ m.hasImages }}"><div class="{{ m.gridCls }}"><sc-for list="{{ m.images }}" as="im"><a href="{{ im.src }}" target="_blank" rel="noopener"><img src="{{ im.src }}" alt="" loading="lazy"></a></sc-for></div></sc-if></div></sc-for></div>
 <sc-if value="{{ closed }}"><p class="support-closed">Il ticket è chiuso: se rispondi resta chiuso, se scrive il membro si riapre.</p></sc-if>
-<div class="support-compose"><dc-import name="App Field" rows="1" grow="8" field="support-team-reply" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Rispondi come Team Rientro" dc-props="{{ draftProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ reply }}"></dc-import></div>
+<dc-import name="App Pending Images" dc-props="{{ tray }}"></dc-import>
+<div class="support-compose"><dc-import name="App Photo Pick" dc-props="{{ tray }}"></dc-import><dc-import name="App Field" rows="1" grow="8" field="support-team-reply" maxlength="4000" counter="{{ false }}" value="{{ draft }}" placeholder="Rispondi come Team Rientro" dc-props="{{ draftProps }}"></dc-import><dc-import name="UI Button" label="Invia" variant="accent" on-click="{{ reply }}"></dc-import></div>
 </section>
 </sc-if>
 
