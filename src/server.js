@@ -19,6 +19,7 @@ import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
 import { sendNotificationDigests } from './email-digest.js';
+import { sendLegalNotices } from './legal-notice.js';
 import { runRetention } from './retention.js';
 import { checkLinkedinState, linkedinEnabled, linkedinProfile, startLinkedin, STATE_COOKIE } from './linkedin.js';
 import * as profiles from './profiles.js';
@@ -762,6 +763,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   setInterval(async () => {
     if (digesting) return;
     digesting = true;
-    try { await sendNotificationDigests(db); } catch (err) { console.error('[digest]', err); } finally { digesting = false; }
+    try { await sendNotificationDigests(db); } catch (err) { console.error('[digest]', err); }
+    // Terms / Privacy updated: the members told by email, a batch a minute (legal-notice.js)
+    try { await sendLegalNotices(db); } catch (err) { console.error('[legal notice]', err); } finally { digesting = false; }
   }, 60_000).unref();
 }

@@ -69,6 +69,8 @@ export const config = {
 export const cookieDomain = () => (config.adminHost ? config.adminHost.split('.').slice(1).join('.') : '');
 export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).protocol}//${config.adminHost}/admin` : '/admin');
 
+// A new version of terms or privacy (the day it applies, YYYY-MM-DD) emails every member about it
+// once (legal-notice.js); nothing has to be accepted again.
 export const LEGAL_VERSIONS = {
   privacy: '2026-10-01',
   terms: '2026-10-01',

@@ -472,3 +472,20 @@ CREATE TABLE IF NOT EXISTS support_message_images (
   PRIMARY KEY (message_id, file_id)
 );
 
+-- Terms / Privacy updated: the email telling members (legal-notice.js). A version first seen is the
+-- starting point (baseline: nobody is emailed about it); each email sent is recorded
+CREATE TABLE IF NOT EXISTS legal_notices (
+  doc         TEXT NOT NULL,
+  version     TEXT NOT NULL,
+  started_at  TEXT NOT NULL,
+  baseline    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (doc, version)
+);
+CREATE TABLE IF NOT EXISTS legal_notice_sends (
+  user_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  doc      TEXT NOT NULL,
+  version  TEXT NOT NULL,
+  sent_at  TEXT NOT NULL,
+  PRIMARY KEY (user_id, doc, version)
+);
+
