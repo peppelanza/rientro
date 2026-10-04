@@ -80,6 +80,7 @@ const FAKE_THREADS = Array.from({ length: 1 }, (_, i) => ({
   last: 'L’ultimo messaggio della conversazione', time: new Date().toISOString(), unread: false,
 }));
 
+const TO_HINT = 'Cerca tra le tue connessioni'; // the new message's "A:"
 const SIDE_MS = 280; // app.css .chat-grid side-in / side-out
 
 export default class extends Page {
@@ -322,7 +323,7 @@ export default class extends Page {
   startNew() {
     const s = this.state;
     history.pushState(null, '', '/messaggi');
-    Object.assign(s, { composing: true, active: null, closed: false, toQuery: '', menuOpen: false });
+    Object.assign(s, { composing: true, active: null, closed: false, toQuery: '', toLeft: false, menuOpen: false });
     this.__rerender();
     requestAnimationFrame(() => document.querySelector('[data-key="new-to"]')?.focus());
     this.findContacts('');
@@ -453,7 +454,14 @@ export default class extends Page {
       listClass: s.active || s.composing ? 'r-hide-sm' : '', chatClass: s.active || s.composing ? '' : 'r-hide-sm',
       // new message: who to, among your connections
       startNew: () => this.startNew(), composing: !!s.composing, toQuery: s.toQuery ?? '',
-      toProps: { onInput: v => { s.toQuery = v; this.findTyped(v); } },
+      // the hint only once you've left the field (it opens focused: shown first, it would flash)
+      // (set on the field itself, not by redrawing: the click that took the focus may be on a contact)
+      toHint: s.toLeft ? TO_HINT : '',
+      toProps: { onInput: v => { s.toQuery = v; this.findTyped(v); }, onBlur: () => {
+        s.toLeft = true;
+        const f = document.querySelector('[data-key="new-to"]');
+        if (f) f.placeholder = TO_HINT;
+      } },
       contacts: (s.contacts || []).map(c => ({ name: c.name, role: c.role.split(' · ')[0], photo: c.photo_url, ini: ini(c.name), pick: () => this.pickContact(c.id) })),
       noContacts: !!s.contacts && !s.contacts.length, noContactsLabel: s.toQuery ? `Nessuna connessione per “${s.toQuery}”.` : 'Non hai ancora connessioni a cui scrivere.',
       cancelNew: () => { s.composing = false; this.__rerender(); },
