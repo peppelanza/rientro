@@ -14,12 +14,16 @@ export function exportData(db, user) {
   }
   db.prepare('INSERT INTO data_exports (user_id, created_at) VALUES (?, ?)').run(user.id, now());
   const all = (sql, ...p) => db.prepare(sql).all(...p);
+  // "Cerco anche lavoro in Italia" was removed: its data (and its notice's version) only for whoever
+  // had chosen it then
+  const jobRow = !!db.prepare('SELECT 1 FROM job_preferences WHERE user_id = ?').get(user.id);
+  const { job_seeking_notice, ...legalVersions } = LEGAL_VERSIONS;
   return {
     generated_at: now(),
-    format_version: 2,
+    format_version: 3,
     account: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at },
-    profile: getOwnProfile(db, user.id),
-    job_seeking: getJobPreferences(db, user.id),
+    profile: exportedProfile(getOwnProfile(db, user.id)),
+    ...(jobRow ? { job_seeking: getJobPreferences(db, user.id) } : {}),
     communication_preferences: getCommunicationPreferences(db, user.id),
     preference_history: preferenceHistory(db, user.id),
     legal_acknowledgements: all('SELECT doc, version, created_at FROM legal_acknowledgements WHERE user_id = ? ORDER BY id', user.id),
@@ -38,7 +42,8 @@ export function exportData(db, user) {
       FROM group_posts p WHERE p.author_id = ? ORDER BY p.id`, user.id).map(p => ({ ...p, images: JSON.parse(p.images) })),
     group_comments: all('SELECT p.group_id, c.body, c.created_at FROM group_comments c JOIN group_posts p ON p.id = c.post_id WHERE c.author_id = ? ORDER BY c.id', user.id),
     support_tickets: all('SELECT id, subject, status, created_at FROM support_tickets WHERE user_id = ? ORDER BY id', user.id).map(t => ({
-      ...t, messages: all('SELECT from_team, body, created_at FROM support_messages WHERE ticket_id = ? ORDER BY id', t.id),
+      ...t, messages: all(`SELECT m.from_team, m.body, m.created_at, (SELECT json_group_array('/api/support/images/' || file_id) FROM support_message_images WHERE message_id = m.id) AS images
+        FROM support_messages m WHERE m.ticket_id = ? ORDER BY m.id`, t.id).map(m => ({ ...m, images: JSON.parse(m.images) })),
     })),
     groups_followed: all('SELECT group_id, created_at FROM group_follows WHERE user_id = ? ORDER BY created_at', user.id),
     blocked: all('SELECT blocked_id, created_at FROM blocks WHERE blocker_id = ?', user.id),
@@ -46,8 +51,19 @@ export function exportData(db, user) {
     files: all('SELECT id, kind, mime_type, size_bytes, created_at FROM files WHERE owner_id = ?', user.id)
       .map(f => ({ ...f, download_url: `/api/files/${f.id}` })),
     active_sessions: all('SELECT created_at, last_used_at, user_agent FROM sessions WHERE user_id = ?', user.id),
-    current_legal_versions: LEGAL_VERSIONS,
+    current_legal_versions: jobRow ? LEGAL_VERSIONS : legalVersions,
   };
+}
+
+// The profile as stored, without what no longer means anything (review_note: profiles aren't reviewed
+// any more) and without the app's own bookkeeping while it's empty (onboarding step, a suggested
+// photo, the automatic photo check)
+const INTERNAL_WHEN_EMPTY = ['onboarding_step', 'suggested_photo_url', 'photo_check'];
+function exportedProfile(p) {
+  if (!p) return p;
+  const { review_note, ...rest } = p;
+  for (const k of INTERNAL_WHEN_EMPTY) if (rest[k] == null) delete rest[k];
+  return rest;
 }
 
 // Design 41a/41b: two steps, "Scrivi ELIMINA per confermare", optional reason. The account is

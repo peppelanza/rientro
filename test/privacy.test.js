@@ -114,6 +114,16 @@ test('export contains the user’s data; second export within 24h is refused', a
   assert.equal((await u.get('/api/me/export')).status, 429);
 });
 
+test('export leaves out what no longer exists: no job-seeking block nor its notice for who never chose it, no review note, no empty bookkeeping', async () => {
+  const u = await t.member('export-clean@x.it');
+  const r = (await u.get('/api/me/export')).body;
+  assert.equal(r.format_version, 3);
+  assert.ok(!('job_seeking' in r));
+  assert.ok(!('job_seeking_notice' in r.current_legal_versions));
+  for (const k of ['review_note', 'onboarding_step', 'suggested_photo_url', 'photo_check']) assert.ok(!(k in r.profile), k);
+  assert.ok(r.profile.first_name, 'the rest of the profile is there');
+});
+
 test('account deletion removes personal data and pseudonymises the ledger', async () => {
   const u = await t.approved('bye@x.it');
   const friend = await t.approved('friend@x.it');
