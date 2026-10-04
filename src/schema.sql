@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS communication_preferences (
   notify_messages_app    INTEGER NOT NULL DEFAULT 1,
   notify_status_email    INTEGER NOT NULL DEFAULT 1,
   notify_status_app      INTEGER NOT NULL DEFAULT 1,
+  notify_groups_email    INTEGER NOT NULL DEFAULT 1,   -- groups followed: new posts; replies to my posts and comments
   updated_at             TEXT NOT NULL
 );
 
@@ -421,7 +422,16 @@ CREATE TABLE IF NOT EXISTS group_comments (
   created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS group_comments_post ON group_comments(post_id, id);
--- Pictures in a post (up to 4), in order; the files themselves are kind 'group_image'
+-- Groups a member follows (the bell on the group): their new posts reach the bell, and email too
+-- with notify_groups_email on
+CREATE TABLE IF NOT EXISTS group_follows (
+  user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  created_at  TEXT NOT NULL,
+  PRIMARY KEY (user_id, group_id)
+);
+CREATE INDEX IF NOT EXISTS group_follows_group ON group_follows(group_id);
+-- Pictures in a post (up to 5), in order; the files themselves are kind 'group_image'
 CREATE TABLE IF NOT EXISTS group_post_images (
   post_id   INTEGER NOT NULL REFERENCES group_posts(id) ON DELETE CASCADE,
   file_id   TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,

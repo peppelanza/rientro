@@ -130,3 +130,33 @@ test('pictures in posts: uploaded first, attached once (up to 5), public with th
     assert.equal((await anon.get(img.url)).status, 404, 'deleted with the post');
   } finally { t.close(); }
 });
+
+test('following a group: its new posts reach the bell (not the author\'s own, not from people blocked), unfollowing stops them; replies and posts go in the email digest with "Gruppi" on', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('fol-a@example.com');
+    const b = await t.approved('fol-b@example.com');
+    assert.equal((await a.get('/api/groups/regione-lazio')).body.following, false);
+    assert.equal((await a.post('/api/groups/regione-lazio/follow')).body.following, true);
+    assert.equal((await a.get('/api/groups/regione-lazio')).body.following, true);
+    await b.post('/api/groups/regione-lazio/posts', { body: 'Primo post' });
+    await b.post('/api/groups/regione-lazio/posts', { body: 'Secondo post' });
+    await a.post('/api/groups/regione-lazio/posts', { body: 'Il mio' });
+    const { sendNotificationDigests } = await import('../src/email-digest.js');
+    const sent = [];
+    await sendNotificationDigests(t.app.db, { send: async m => sent.push(m), at: Date.now() + 16 * 60_000 });
+    assert.equal(sent.length, 1);
+    assert.match(sent[0].subject, /ha pubblicato in Lazio/);
+    assert.match(sent[0].text, /Secondo post/);
+    const bell = (await a.get('/api/notifications')).body.items.filter(n => n.kind === 'group_post');
+    assert.equal(bell.length, 1, 'one per author and group while unread');
+    assert.equal(bell[0].data.group_name, 'Lazio');
+    assert.equal((await b.get('/api/notifications')).body.items.filter(n => n.kind === 'group_post').length, 0, 'not followed, nothing');
+    await a.del('/api/groups/regione-lazio/follow');
+    await a.post('/api/notifications/read');
+    await b.post('/api/groups/regione-lazio/posts', { body: 'Terzo' });
+    assert.equal((await a.get('/api/notifications')).body.items.filter(n => n.kind === 'group_post' && !n.read).length, 0, 'unfollowed');
+    assert.equal((await a.get('/api/me')).body.communication.notify_groups_email, true, 'email on by default');
+    assert.equal((await a.patch('/api/me/notifications', { notify_groups_email: false })).body.notify_groups_email, false);
+  } finally { await t.close(); }
+});

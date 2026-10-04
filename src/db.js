@@ -59,6 +59,8 @@ function migrateUserColumns(db) {
   const reportCols = new Set(db.prepare('PRAGMA table_info(reports)').all().map(c => c.name));
   if (!reportCols.has('group_post_id')) db.exec('ALTER TABLE reports ADD COLUMN group_post_id INTEGER');
   if (!sessionCols.has('impersonator_id')) db.exec('ALTER TABLE sessions ADD COLUMN impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE');
+  const commCols = new Set(db.prepare('PRAGMA table_info(communication_preferences)').all().map(c => c.name));
+  if (!commCols.has('notify_groups_email')) db.exec('ALTER TABLE communication_preferences ADD COLUMN notify_groups_email INTEGER NOT NULL DEFAULT 1');
   const messageCols = new Set(db.prepare('PRAGMA table_info(messages)').all().map(c => c.name));
   if (!messageCols.has('reply_to_id')) db.exec('ALTER TABLE messages ADD COLUMN reply_to_id INTEGER REFERENCES messages(id) ON DELETE SET NULL');
 }

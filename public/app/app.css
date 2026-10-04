@@ -817,3 +817,9 @@ html.pv-open { overflow: hidden; }
   html.scopri-snap [data-sc-name="App Pager"] { scroll-snap-align: end; }
 }
 
+/* Gruppi: the bell beside the group's name follows it (the top bar's bell, filled while on) */
+.group-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.group-follow { flex: none; width: 44px; height: 44px; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.group-follow[aria-pressed="true"] { background: #EFEBFF; color: #3E2BA8; }
+.group-follow[aria-pressed="true"] svg path:first-child { fill: currentColor; }
+

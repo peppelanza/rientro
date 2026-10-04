@@ -86,6 +86,22 @@ export default class extends Page {
     [s.group, s.feed] = await Promise.all([api('GET', `/api/groups/${id}`), api('GET', `/api/groups/${id}/posts?page=${s.page}`)]);
   }
 
+  async toggleFollow() {
+    const g = this.state.group;
+    if (!g) return;
+    const on = !g.following;
+    g.following = on; // at once; put back if the server says no
+    this.__rerender();
+    try {
+      await api(on ? 'POST' : 'DELETE', `/api/groups/${encodeURIComponent(g.id)}/follow`);
+      toast(on ? `Ti avviseremo dei nuovi post in ${g.name}.` : `Non riceverai più notifiche da ${g.name}.`);
+    } catch (err) {
+      g.following = !on;
+      this.__rerender();
+      toastError(err);
+    }
+  }
+
   // Pull to refresh (pull-refresh.js): the group and its posts, keeping what you're writing
   async refresh() {
     const s = this.state;
@@ -235,6 +251,10 @@ export default class extends Page {
         scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         box?.focus({ preventScroll: true });
       },
+      // The bell on the group: its new posts in the notifications (and by email, with "Gruppi" on)
+      followPressed: s.group?.following ? 'true' : 'false',
+      followLabel: s.group?.following ? 'Non ricevere più le notifiche di questo gruppo' : 'Ricevi una notifica per ogni nuovo post',
+      toggleFollow: () => this.toggleFollow(),
       signUp: () => go('/accedi'), headerProps: { onEnter: () => go('/accedi') },
       stats: g.posts ? `${g.posts} post` : '', // nothing when there are none yet
       draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, publish: this.publish,

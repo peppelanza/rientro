@@ -20,7 +20,8 @@
 <sc-if value="{{ member }}"><a href="/gruppi" class="r-show-sm" onClick="{{ backToList }}" style="font-size:14px;color:#6B6680;text-decoration:none">← Gruppi</a></sc-if>
 <section style="background:#FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 14px 40px rgba(80,60,160,.10)">
 <sc-if value="{{ g.cover }}"><img class="group-cover" src="{{ g.cover }}" alt=""></sc-if>
-<h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:36px;letter-spacing:-.045em;line-height:1.05">{{ g.name }}</h1>
+<div class="group-title-row"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:36px;letter-spacing:-.045em;line-height:1.05">{{ g.name }}</h1>
+<sc-if value="{{ member }}"><button type="button" class="group-follow" aria-pressed="{{ followPressed }}" aria-label="{{ followLabel }}" title="{{ followLabel }}" onClick="{{ toggleFollow }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button></sc-if></div>
 <span style="font-size:15px;color:#4A4560;line-height:1.5">{{ g.description }}</span>
 <sc-if value="{{ stats }}"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8C84AE">{{ stats }}</span></sc-if>
 </section>

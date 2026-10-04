@@ -67,7 +67,18 @@ export function listGroups(db, viewer) {
 
 export function getGroup(db, viewer, id) {
   requireMemberArea(viewer);
-  return summary(db, groupOr404(db, id));
+  return { ...summary(db, groupOr404(db, id)), following: following(db, viewer.id, id) };
+}
+
+// The bell on a group: follow it to hear of its new posts (in the app; by email too, with "Gruppi"
+// on in the notification settings)
+const following = (db, userId, groupId) => !!db.prepare('SELECT 1 FROM group_follows WHERE user_id = ? AND group_id = ?').get(userId, groupId);
+export function setFollow(db, viewer, id, on) {
+  requireMemberArea(viewer);
+  groupOr404(db, id);
+  if (on) db.prepare('INSERT OR IGNORE INTO group_follows (user_id, group_id, created_at) VALUES (?, ?, ?)').run(viewer.id, id, now());
+  else db.prepare('DELETE FROM group_follows WHERE user_id = ? AND group_id = ?').run(viewer.id, id);
+  return { following: on };
 }
 
 const COMMENTS_SHOWN = 3; // under each post; the rest on request
@@ -155,7 +166,21 @@ export function createPost(db, viewer, id, body) {
     images.forEach((f, i) => db.prepare('INSERT INTO group_post_images (post_id, file_id, position) VALUES (?, ?, ?)').run(pid, f, i));
     return pid;
   });
+  notifyPost(db, viewer, id, postId);
   return postView(db, viewer, db.prepare('SELECT * FROM group_posts WHERE id = ?').get(postId));
+}
+
+// A new post tells whoever follows the group (not its author, nor people blocked either way). One
+// notification per person, group and author: a new post replaces an unread one.
+function notifyPost(db, viewer, groupId, postId) {
+  const g = db.prepare('SELECT name FROM groups WHERE id = ?').get(groupId);
+  const followers = db.prepare('SELECT user_id FROM group_follows WHERE group_id = ? AND user_id != ?').all(groupId, viewer.id).map(r => r.user_id);
+  for (const userId of followers) {
+    if (isBlocked(db, userId, viewer.id)) continue;
+    db.prepare(`DELETE FROM notifications WHERE user_id = ? AND kind = 'group_post' AND actor_id = ? AND read_at IS NULL
+      AND json_extract(data, '$.group_id') = ?`).run(userId, viewer.id, groupId);
+    notify(db, userId, 'group_post', viewer.id, { group_id: groupId, group_name: g?.name, post_id: postId });
+  }
 }
 
 function postOr404(db, viewer, groupId, postId) {

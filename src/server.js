@@ -518,6 +518,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/groups', ({ user }) => groups.listGroups(db, user));
   route('GET', '/api/groups/search', ({ user, url }) => groups.searchGroups(db, user, url.searchParams)); // before :id
   route('GET', '/api/groups/:id', ({ user, params }) => groups.getGroup(db, user, params.id));
+  route('POST', '/api/groups/:id/follow', ({ user, params }) => groups.setFollow(db, user, params.id, true));
+  route('DELETE', '/api/groups/:id/follow', ({ user, params }) => groups.setFollow(db, user, params.id, false));
   route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));
   route('POST', '/api/groups/:id/posts', async ({ user, params, req }) => groups.createPost(db, user, params.id, await readJson(req)));
   route('DELETE', '/api/groups/:id/posts/:post', ({ user, params }) => groups.deletePost(db, user, params.id, params.post));

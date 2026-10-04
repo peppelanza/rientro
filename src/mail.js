@@ -76,14 +76,16 @@ export const sendWelcomeEmail = (email, opts) => sendEmail({ to: email, ...welco
 // --- Notifications digest (email-digest.js): new requests and unread messages, grouped -------
 
 // requests: [{ name, note }], messages: [{ name, count, preview, id }]
-export function digestEmail({ requests = [], messages = [] }) {
+export function digestEmail({ requests = [], messages = [], groups = [] }) {
   const nMsg = messages.reduce((n, m) => n + m.count, 0);
   const people = messages.length;
   const parts = [];
   if (requests.length) parts.push(requests.length === 1 ? `${requests[0].name} vuole entrare in contatto con te` : `${requests.length} nuove richieste di connessione`);
   if (nMsg) parts.push(people === 1 ? `${nMsg === 1 ? 'un nuovo messaggio' : `${nMsg} nuovi messaggi`} da ${messages[0].name}` : `${nMsg} nuovi messaggi da ${people} persone`);
+  if (groups.length) parts.push(groups.length === 1 && !parts.length ? groups[0].title : 'novità dai gruppi');
   const subject = parts.length ? parts.join(' e ').replace(/^./, c => c.toUpperCase()) : 'Novità su Rientro';
-  let body = h1(requests.length && !nMsg ? 'Hai nuove richieste' : !requests.length ? 'Hai nuovi messaggi' : 'Novità per te su Rientro');
+  const only = [requests.length, nMsg, groups.length].filter(Boolean).length === 1;
+  let body = h1(!only ? 'Novità per te su Rientro' : requests.length ? 'Hai nuove richieste' : nMsg ? 'Hai nuovi messaggi' : 'Novità dai tuoi gruppi');
   let text = '';
   if (requests.length) {
     body += eyebrow(requests.length === 1 ? 'Richiesta di connessione' : `${requests.length} richieste di connessione`)
@@ -96,6 +98,12 @@ export function digestEmail({ requests = [], messages = [] }) {
       + rows(messages.map(m => row({ title: `${esc(m.name)}${m.count > 1 ? ` · ${m.count} messaggi` : ''}`, text: m.preview ? esc(m.preview) : '', href: url(`/messaggi/${m.id}`) })))
       + button(people === 1 ? `Rispondi a ${esc(messages[0].first || messages[0].name)}` : 'Apri i messaggi', url(people === 1 ? `/messaggi/${messages[0].id}` : '/messaggi'));
     text += `Messaggi da leggere:\n${messages.map(m => `- ${m.name}${m.count > 1 ? ` (${m.count})` : ''}${m.preview ? `: ${m.preview}` : ''}`).join('\n')}\nApri: ${url('/messaggi')}\n\n`;
+  }
+  if (groups.length) {
+    body += eyebrow('Dai gruppi')
+      + rows(groups.map(g => row({ title: esc(g.title), text: g.preview ? esc(g.preview) : '', href: url(g.href) })))
+      + button(groups.length === 1 ? 'Apri il post' : 'Apri i gruppi', url(groups.length === 1 ? groups[0].href : '/gruppi'));
+    text += `Dai gruppi:\n${groups.map(g => `- ${g.title}${g.preview ? `: ${g.preview}` : ''}`).join('\n')}\nApri: ${url('/gruppi')}\n\n`;
   }
   return {
     subject,

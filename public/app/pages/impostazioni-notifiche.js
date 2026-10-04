@@ -9,6 +9,7 @@ export const tabbar = true;
 const NOTIF = [
   ['Nuove richieste di connessione', 'notify_requests'],
   ['Nuovi messaggi', 'notify_messages'],
+  ['Gruppi: nuovi post nei gruppi che segui e risposte ai tuoi post', 'notify_groups'],
 ];
 
 export default class extends Page {
