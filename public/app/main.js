@@ -82,6 +82,8 @@ async function askLegalUpdate() {
   } });
 }
 
+// iPhone Safari applies :active (the tap feedback in app.css) only once the page listens for touches
+document.addEventListener('touchstart', () => {}, { passive: true });
 launchBar();
 impersonationFrame();
 tabbarOnScroll();

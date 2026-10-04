@@ -31,6 +31,15 @@ body { min-height: 100vh; }
 #app { min-height: 100vh; }
 .sc-host { min-width: 0; }
 
+/* Touch screens: no grey/blue box the browser paints around whatever is tapped; instead the thing
+   itself dims while the finger is on it (its own shape: a round photo stays round) and fades back.
+   Only the innermost tapped control dims, not the link around it too. */
+html { -webkit-tap-highlight-color: transparent; }
+@media (hover: none) {
+  :is(a[href], button, [role="button"], summary) { transition: opacity .18s ease; }
+  :is(a[href], button, [role="button"], summary):not(:disabled):active:not(:has(:is(a[href], button, [role="button"], summary):active)) { opacity: .55; transition: none; }
+}
+
 /* Real inputs rendered inside UI Input-styled boxes */
 .bare-input { border: none; background: transparent; outline: none; font: inherit; color: inherit; flex: 1; min-width: 0; width: 100%; padding: 0; border-radius: 0; caret-color: #6C4DF5; }
 .bare-input::placeholder { color: #8C84AE; opacity: 1; transition: opacity .15s; }
@@ -445,6 +454,9 @@ body { padding-top: var(--lb, 0px); }
 
 /* Notifications bell in the top bar (App Nav) */
 .nav-bell:not([aria-current="page"]):hover { background: #F1EFF8 !important; }
+/* While its dropdown is open: a tinted circle and a filled bell (like Facebook's), plain again once closed */
+.nav-bell[aria-expanded="true"]:not([aria-current="page"]) { background: #EFEBFF !important; color: #3E2BA8 !important; }
+.nav-bell[aria-expanded="true"] svg path:first-child { fill: currentColor; }
 
 /* Admin "Accedi come" (impersonation.js): red frame around the screen, who you are bottom right */
 .imp-frame { position: fixed; inset: 0; z-index: 1000; pointer-events: none; border: 4px solid #D92D20; }
