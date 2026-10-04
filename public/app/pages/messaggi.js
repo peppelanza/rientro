@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, orList, threadTime, toast, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, threadTime, toast, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -170,7 +170,7 @@ export default class extends Page {
     if (e.target.closest('button')) return;
     clearTimeout(this.pressTimer);
     this.pressed = false;
-    this.pressTimer = setTimeout(() => { this.pressed = true; this.setState({ barFor: m.mine ? null : m.id, menuFor: m.id, pickerFor: null }); }, 450);
+    this.pressTimer = setTimeout(() => { this.pressed = true; haptic(); this.setState({ barFor: m.mine ? null : m.id, menuFor: m.id, pickerFor: null }); }, 450);
   }
   tapUp(e, m) {
     clearTimeout(this.pressTimer);

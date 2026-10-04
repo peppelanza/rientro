@@ -61,6 +61,24 @@ export const go = href => { location.href = href; };
 // from a profile (persona.js)
 export const SCOPRI_BACK_KEY = 'rientro.scopri.back';
 
+// A short, light vibration (a long press that opened something). Android: the Vibration API. iPhone
+// Safari has none, but toggling a native switch (<input type="checkbox" switch>, iOS 18+) plays the
+// system's light tick, so a hidden one is toggled; elsewhere nothing happens.
+let hapticSwitch = null;
+export function haptic() {
+  if (navigator.vibrate) { navigator.vibrate(12); return; }
+  try {
+    if (!hapticSwitch) {
+      hapticSwitch = document.createElement('label');
+      hapticSwitch.setAttribute('aria-hidden', 'true');
+      hapticSwitch.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none';
+      hapticSwitch.innerHTML = '<input type="checkbox" switch tabindex="-1">';
+      document.body.append(hapticSwitch);
+    }
+    hapticSwitch.click();
+  } catch {}
+}
+
 // --- Formatting (Italian) --------------------------------------------------------------------
 
 const MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];

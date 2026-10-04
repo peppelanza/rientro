@@ -17,7 +17,7 @@ const faq = [
   ['Devo avere già un’idea?', 'No. Puoi avere un’idea e cercare un socio, non averla ancora e cercare qualcuno con cui trovarla, oppure semplicemente conoscere chi rientra come te e fare rete.'],
   ['Come trovo le persone?', 'Nella sezione Scopri filtri per città, settori, competenze e tempo a disposizione. Nessun punteggio: vedi le persone, non percentuali.'],
   ['Come funzionano i messaggi?', 'Invii una richiesta di connessione con una nota. La chat si apre solo se l’altra persona accetta.'],
-  ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi. Fuori da Rientro si vedono soltanto il tuo nome e la tua foto accanto a quello che scrivi nei gruppi.'],
+  ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
 ].map(([q, a]) => ({ q, a }));
 const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Raccontaci di te.' },
