@@ -36,17 +36,14 @@ body { min-height: 100vh; }
    tap, not when the finger lands to scroll (tap-feedback.js adds .tapped). */
 html { -webkit-tap-highlight-color: transparent; }
 @media (hover: none) {
-  :is(a[href], button, [role="button"], summary) { transition: opacity .18s ease; }
+  :where(a[href], button, [role="button"], summary) { transition: opacity .18s ease; }
   :is(a[href], button, [role="button"], summary).tapped { opacity: .55; transition: none; }
 }
-/* Computers: a hover on everything clickable (hover-feedback.js tags each control the first time the
-   mouse reaches it). Surfaces get a faint veil in their own text colour; text links turn purple. */
+/* Computers: whatever is clickable lightens a little under the mouse (only the innermost one, not the
+   card or row around it too) */
 @media (hover: hover) and (pointer: fine) {
-  :where(.hov-rel) { position: relative; }
-  .hov-fill::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity .15s ease; pointer-events: none; }
-  .hov-fill:hover::after { opacity: .08; }
-  .hov-text { transition: color .15s ease; }
-  .hov-text:hover { color: #6C4DF5 !important; }
+  :where(a[href], button, [role="button"], [role="checkbox"], [role="radio"], [role="tab"], [role="menuitem"], summary) { transition: opacity .15s ease; }
+  :is(a[href], button, [role="button"], [role="checkbox"], [role="radio"], [role="tab"], [role="menuitem"], summary):not(:disabled):hover:not(:has(:is(a[href], button, [role="button"], [role="checkbox"], [role="radio"], [role="tab"], [role="menuitem"], summary):hover)) { opacity: .78; }
 }
 
 /* Real inputs rendered inside UI Input-styled boxes */

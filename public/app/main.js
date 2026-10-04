@@ -8,7 +8,6 @@ import { launchBar } from './launchbar.js';
 import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
 import { tapFeedback } from './tap-feedback.js';
-import { hoverFeedback } from './hover-feedback.js';
 import { api, getMe, openModal, showFlash, template } from './lib.js';
 
 const ROUTES = [
@@ -85,7 +84,6 @@ async function askLegalUpdate() {
 }
 
 tapFeedback();
-hoverFeedback();
 launchBar();
 impersonationFrame();
 tabbarOnScroll();
