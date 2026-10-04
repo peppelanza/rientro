@@ -89,7 +89,11 @@ button { font: inherit; }
 @media (max-width: 720px) {
   .modal-overlay { align-items: flex-end; padding: 0; }
   .modal-box { width: 100%; max-height: 92vh; border-radius: 32px 32px 0 0; }
-  .modal-box > * > div:first-child { width: 100% !important; border-radius: 32px 32px 0 0 !important; }
+  /* the dialog's own white box (the template's root) and older ones wrapped once more: square at the
+     bottom, so the sheet comes out of the screen's edge */
+  .modal-box > div:first-child, .modal-box > * > div:first-child { width: 100% !important; border-radius: 32px 32px 0 0 !important; }
+  /* iPhone Safari zooms into any field with text under 16px when it's tapped: never on phones */
+  input, textarea, select { font-size: 16px !important; }
 }
 
 /* Layout helpers used by page templates */

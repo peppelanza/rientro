@@ -8,8 +8,8 @@ const CONNECT = `
 <div style="width:540px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 30px 80px rgba(26,23,38,.3);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;gap:14px;align-items:center"><dc-import name="App Photo" size="56" src="{{ photo }}" initials="{{ ini }}"></dc-import><div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:21px;font-weight:600;letter-spacing:-.03em">Connettiti con {{ first }}</h2><span style="font-size:13px;color:#6B6680">{{ sub }}</span></div>${CLOSE}</div>
 <div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:500">Vuoi aggiungere una nota?</span><span style="font-size:13px;color:#8C84AE">Facoltativa</span></div>
-<dc-import name="App Field" rows="4" field="note" maxlength="300" counter="{{ false }}" value="{{ note }}" placeholder="Scrivi un breve messaggio..." dc-props="{{ noteProps }}"></dc-import></div>
-<div class="r-stack" style="display:flex;gap:8px;justify-content:flex-end"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="{{ sendLabel }}" variant="accent" on-click="{{ send }}" host-aria-disabled="{{ busy }}"></dc-import></div>
+<dc-import name="App Field" rows="{{ noteRows }}" field="note" maxlength="300" counter="{{ false }}" value="{{ note }}" placeholder="Scrivi un breve messaggio..." dc-props="{{ noteProps }}"></dc-import></div>
+<div style="display:flex;gap:8px;justify-content:flex-end"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="{{ sendLabel }}" variant="accent" on-click="{{ send }}" host-aria-disabled="{{ busy }}"></dc-import></div>
 </div>`;
 
 // Opens the request dialog; resolves to the new connection state or undefined if cancelled.
@@ -23,6 +23,8 @@ export async function connect(person) {
         return {
           first, photo: person.photo_url, ini: (person.name || first).split(' ').map(w => w[0]).join('').slice(0, 2),
           sub: [person.role?.split(' · ')[0], person.from && person.to ? `${person.from} → ${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
+          // two lines on phones (the keyboard takes half the screen), four on a computer
+          noteRows: matchMedia('(max-width: 720px)').matches ? 2 : 4,
           note: this.state.note, noteProps: { onInput: v => { this.state.note = v; } },
           busy: this.state.busy, sendLabel: this.state.busy ? 'Invio…' : 'Invia richiesta',
           cancel: () => this.close(),
