@@ -72,6 +72,11 @@ export default class extends Page {
     const counts = d.counts;
     const items = d.items;
     const empty = !counts.connected && !counts.received && !counts.sent;
+    // a person's card, the same in the three tabs
+    const card = c => ({
+      name: c.name, role: [c.role.split(' · ')[0], c.from && c.to ? `${c.from} → ${c.to}` : c.from].filter(Boolean).join(' · '),
+      photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, note: c.note ? `“${c.note}”` : '', when: timeAgo(c.created_at).toUpperCase(),
+    });
     const none = s.q ? `Nessun risultato per “${s.q}”.` : '';
     // A count only when there is something to count
     const tabs = [['connessioni', counts.connected ? `Connessioni · ${counts.connected}` : 'Connessioni', 0], ['ricevute', 'Ricevute', counts.received], ['inviate', counts.sent ? `Inviate · ${counts.sent}` : 'Inviate', 0]]
@@ -80,27 +85,17 @@ export default class extends Page {
       loading: false, me: s.me, empty, notEmpty: !empty, tabs,
       isConn: s.tab === 'connessioni', isRec: s.tab === 'ricevute', isSent: s.tab === 'inviate',
       // search and pages
-      // The search is as wide as the list under it
-      listMax: s.tab === 'connessioni' ? 'none' : '1040px',
       q: s.q, searchProps: { onInput: v => this.searchTyped(v), onEnter: v => this.load2({ q: v.trim(), page: 1 }) },
       page: d.page, pages: d.pages, total: d.total, perPage: d.per_page, pagerProps: { onPage: n => this.load2({ page: n }, { scroll: true }) },
       noneLabel: none,
-      conns: (s.tab === 'connessioni' ? items : []).map(c => ({ name: c.name, role: [c.role.split(' · ')[0], c.from && c.to ? `${c.from} → ${c.to}` : c.from].filter(Boolean).join(' · '), since: fmtShort(c.since).toUpperCase(), photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, msg: () => go(`/messaggi/${c.id}?da=connessioni`) })),
+      conns: (s.tab === 'connessioni' ? items : []).map(c => ({ ...card(c), since: fmtShort(c.since).toUpperCase(), msg: () => go(`/messaggi/${c.id}?da=connessioni`) })),
       noConns: s.tab === 'connessioni' && !items.length, noConnsLabel: none || 'Nessuna connessione accettata per ora.',
-      // As the old request page (design 04 · 31a): who, their note, answer here; the card opens the profile
+      // Ricevute and Inviate: the same cards as Connessioni, with the note and the answer
       received: (s.tab === 'ricevute' ? items : []).map(c => ({
-        aria: `Richiesta di ${c.name}`, eyebrow: `Nuova richiesta · ${timeAgo(c.created_at)}`,
-        heading: `${c.first_name} vuole entrare in contatto con te.`, first: c.first_name,
-        note: c.note ? `“${c.note}”` : '', person: c,
-        accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
+        ...card(c), aria: `Richiesta di ${c.name}`, accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
       })),
       noReceived: s.tab === 'ricevute' && !items.length, noReceivedLabel: none || 'Nessuna richiesta in attesa.',
-      // Same block as Ricevute, from the other side: your note, waiting, withdraw
-      sent: (s.tab === 'inviate' ? items : []).map(c => ({
-        aria: `Richiesta a ${c.name}`, eyebrow: `Richiesta inviata · ${timeAgo(c.created_at)}`,
-        heading: `Aspetti la risposta di ${c.first_name}.`, first: c.first_name,
-        note: c.note ? `“${c.note}”` : '', person: c, withdraw: () => this.respond(c, 'withdraw'),
-      })),
+      sent: (s.tab === 'inviate' ? items : []).map(c => ({ ...card(c), aria: `Richiesta a ${c.name}`, withdraw: () => this.respond(c, 'withdraw') })),
       noSent: s.tab === 'inviate' && !items.length, noSentLabel: none || 'Nessuna richiesta inviata in attesa.',
       discover: () => go('/scopri'),
     };

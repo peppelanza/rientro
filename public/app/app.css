@@ -872,3 +872,11 @@ html.search-sheet-open { overflow: hidden; }
 .enter-btn.has-photo { padding-left: 6px; }
 .enter-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; }
 
+/* Connessioni: one card for a person in the three tabs (connected, request received, request sent) */
+.conn-card { background: linear-gradient(180deg, #FFFFFF, #F6F4FC); border-radius: 24px; padding: 14px; display: flex; gap: 14px; align-items: center; box-shadow: 0 10px 30px rgba(80, 60, 160, .08); }
+.conn-note { margin-top: 4px; font-size: 13px; line-height: 1.4; color: #4A4560; font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.conn-actions { flex: none; display: flex; gap: 8px; align-items: center; }
+.conn-waiting { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: #FFF4DC; color: #7A4E00; font: 500 13px 'Geist', sans-serif; }
+.conn-waiting > span { width: 7px; height: 7px; border-radius: 50%; background: #C9922E; }
+@media (max-width: 720px) { .conn-card { flex-wrap: wrap; } .conn-actions { width: 100%; justify-content: flex-end; } }
+
