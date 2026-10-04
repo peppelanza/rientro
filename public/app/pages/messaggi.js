@@ -129,6 +129,9 @@ export default class extends Page {
       Object.assign(s, { active: id, closed: true, thread: null, person: null, messages: [] });
     }
     this.scrollDown = true;
+    // however the chat was reached (the list, Connessioni, a notification, a profile, a new
+    // message), the cursor waits in the box, ready to write (didRender)
+    this.focusCompose = !s.closed;
   }
 
   async poll() {
@@ -336,7 +339,6 @@ export default class extends Page {
   pickContact(id) {
     this.state.composing = false;
     this.select(id);
-    requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
   }
 
   select(id) {
@@ -355,6 +357,10 @@ export default class extends Page {
       const box = el.querySelector('#chat-scroll');
       if (box) box.scrollTop = box.scrollHeight - this.keepScroll;
       this.keepScroll = 0;
+    }
+    if (this.focusCompose) {
+      const box = el.querySelector('[data-key="compose"]');
+      if (box) { this.focusCompose = false; box.focus({ preventScroll: true }); }
     }
     // Messages drawn once are no longer new (the entrance animation plays once)
     for (const m of this.state.messages || []) this.known?.add(m.id);
