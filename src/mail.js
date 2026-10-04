@@ -177,16 +177,17 @@ export function legalUpdateEmail({ docs, versions }) {
   const names = docs.map(d => LEGAL_DOC[d][0]);
   const both = names.length > 1;
   const what = both ? `${names[0]} e ${names[1]}` : names[0];
-  const from = new Date(versions[docs[0]]).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' });
+  const from = new Date(versions[docs[0]]).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ');
+  const apply = both ? 'valgono le nuove versioni' : 'vale la nuova versione';
   const subject = `Abbiamo aggiornato ${what}`;
   const links = docs.map(d => `${LEGAL_DOC[d][0].replace(/^(i|la) /, '').replace(/^./, c => c.toUpperCase())}: ${url(LEGAL_DOC[d][1])}`);
   return {
     subject: subject.replace(/^./, c => c.toUpperCase()),
-    text: `Ciao,\n\nabbiamo aggiornato ${what} di Rientro: ${both ? 'le nuove versioni sono in vigore' : 'la nuova versione è in vigore'} dal ${from}.\n\n${links.join('\n')}\n\nNon devi fare nulla: continuando a usare Rientro, valgono le nuove versioni. Se hai domande, scrivici dal Supporto.\n\nIl team di Rientro${textFooter}`,
+    text: `Ciao,\n\nabbiamo aggiornato ${what} di Rientro: ${both ? 'le nuove versioni sono in vigore' : 'la nuova versione è in vigore'} dal ${from}.\n\n${links.join('\n')}\n\nNon devi fare nulla: continuando a usare Rientro, ${apply}. Se hai domande, scrivici dal Supporto.\n\nIl team di Rientro${textFooter}`,
     html: layout({
       preheader: `In vigore dal ${from}.`,
       body: h1(subject.replace(/^./, c => c.toUpperCase()))
-        + p(`${both ? 'Le nuove versioni sono in vigore' : 'La nuova versione è in vigore'} dal <strong>${from}</strong>. Non devi fare nulla: continuando a usare Rientro, valgono le nuove versioni.`)
+        + p(`${both ? 'Le nuove versioni sono in vigore' : 'La nuova versione è in vigore'} dal <strong>${from}</strong>. Non devi fare nulla: continuando a usare Rientro, ${apply}.`)
         + docs.map(d => button(`Leggi ${LEGAL_DOC[d][0].replace(/^(i|la) /, '')}`, url(LEGAL_DOC[d][1]))).join('')
         + p('Se hai domande, scrivici dal Supporto.'),
     }),
