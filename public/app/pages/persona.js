@@ -41,6 +41,19 @@ function shrinkPhoto() {
   wrap.style.setProperty('--pr', (w / (w * 5 / 4 - t * range)).toFixed(4));
 }
 
+// Loading: the profile as it will be (pages/_base.js skeleton()), from a placeholder person
+const FAKE_PROFILE = {
+  id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null, video_locked: false, age_band: '30–34',
+  lives_in_city: 'Città', lives_in_country: 'Paese', arrived: null, desired_comuni: ['Città'], desired_unknown: 0, places: 'Città o Città',
+  primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore', 'Settore', 'Settore'],
+  idea: { title: 'Il titolo di un’idea da costruire', description: 'Qualche riga che racconta l’idea, cosa risolve e per chi, abbastanza lunga da andare a capo almeno una volta.', stage: null },
+  bio: 'Qualche riga di presentazione: chi è, cosa ha fatto finora e cosa cerca tornando, lunga abbastanza da occupare due righe.',
+  seeking: { backgrounds: ['Prodotto'], description: '', location: null }, time: { commitment: 'Full-time', start: null },
+  experiences: [{ company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2020-01', end_month: null, current: 1 }, { company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2016-01', end_month: '2019-12', current: 0 }],
+  education: [{ school: 'Università', degree: 'Laurea', years: '2010 – 2015' }], achievement: null, misses_italy: null,
+  links: {}, complement: null, connection: { status: 'none' }, viewer_background: null,
+};
+
 export default class extends Page {
   componentDidMount() {
     super.componentDidMount();
@@ -74,6 +87,7 @@ export default class extends Page {
     const me = await getMe();
     this.state.me = me;
     this.state.self = me.user.id === this.props.params.id;
+    this.__rerender(); // the top bar for real, the profile still a skeleton
     if (this.state.self && !new URLSearchParams(location.search).has('anteprima')) return go('/profilo');
     this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
     document.title = `${this.state.p.first_name} ${this.state.p.last_name} · Rientro`;
@@ -86,7 +100,8 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.p) return { loading: !s.ready, me: s.me || {}, notFound: s.ready, ...from() };
+    if (!s.p && !s.ready) return this.skeleton({ p: FAKE_PROFILE });
+    if (!s.p) return { me: s.me || {}, notFound: true, ...from() };
     const p = s.p;
     const c = p.connection.status;
     const name = `${p.first_name} ${p.last_name}`;

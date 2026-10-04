@@ -849,3 +849,18 @@ html.search-sheet-open { overflow: hidden; }
 .search-page { max-width: 880px; margin: 0 auto; padding: 28px var(--gutter) 0; display: flex; flex-direction: column; gap: 22px; }
 .search-hint { max-width: 880px; margin: 60px auto 0; padding: 0 var(--gutter); text-align: center; color: #6B6680; font-size: 15px; }
 
+/* Skeleton (pages/_base.js skeleton()): the page drawn from placeholder data, every text a bar the
+   size of the text, buttons, chips and photos grey shapes of their own size and rounding, all
+   shimmering together. The top bar and the bottom menu stay as they are; nothing can be used. */
+#app.skeleton { --sk: linear-gradient(100deg, #E4E0F1 30%, #EFECF8 50%, #E4E0F1 70%) 0 0 / 200vw 100% fixed; }
+#app.skeleton :not([data-sc-name="App Nav"], [data-sc-name="App Nav"] *, [data-sc-name="App TabBar"], [data-sc-name="App TabBar"] *) { pointer-events: none; }
+#app.skeleton :not([data-sc-name="App Nav"] *, [data-sc-name="App TabBar"] *) { color: transparent !important; }
+#app.skeleton ::placeholder { color: transparent !important; }
+#app.skeleton :is([data-sc-name="UI Button"], [data-sc-name="UI Chip"]) > div { background: var(--sk) !important; border-color: transparent !important; box-shadow: none !important; animation: sk-shine 1.4s linear infinite; }
+/* a text: an element with words and no other element inside */
+#app.skeleton :not(:has(*)):not(:empty):not(svg *, [data-sc-name="App Nav"] *, [data-sc-name="App TabBar"] *) { color: transparent !important; background: var(--sk) !important; border-radius: 6px; border-color: transparent !important; box-shadow: none !important; animation: sk-shine 1.4s linear infinite; }
+#app.skeleton [data-sc-name="App Photo"] > div { background: var(--sk) !important; animation: sk-shine 1.4s linear infinite; }
+#app.skeleton [data-sc-name="App Photo"] > div > *, #app.skeleton img:not([data-sc-name="App Nav"] img, .group-cover), #app.skeleton :is(main, section, article, aside) svg { visibility: hidden; }
+@keyframes sk-shine { from { background-position: 100vw 0; } to { background-position: -100vw 0; } }
+@media (prefers-reduced-motion: reduce) { #app.skeleton * { animation: none !important; } }
+

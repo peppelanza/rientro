@@ -8,6 +8,17 @@ export const tabbar = true;
 const ini = n => n.split(' ').map(w => w[0]).join('').slice(0, 2);
 const API_TAB = { connessioni: 'connected', ricevute: 'received', inviate: 'sent' };
 
+// Loading: the page as it will be (pages/_base.js skeleton()), placeholder people in the open tab
+const FAKE = i => ({
+  id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', since: new Date().toISOString(),
+  created_at: new Date().toISOString(), note: 'Una breve nota per presentarsi.', photo_url: null, age: '30–34',
+  seeks: 'Prodotto', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', connection: null,
+});
+const skeletonState = s => {
+  const c = s.me?.counts || {};
+  return { data: { counts: { connected: c.connections || 1, received: c.received || 0, sent: 0 }, items: Array.from({ length: s.tab === 'connessioni' ? 6 : 2 }, (_, i) => FAKE(i)), page: 1, pages: 1, total: 6, per_page: 20 } };
+};
+
 export default class extends Page {
   async load() {
     const me = await getMe();
@@ -18,6 +29,7 @@ export default class extends Page {
     this.state.tab = ['ricevute', 'inviate', 'connessioni'].includes(asked) ? asked : me.counts?.received ? 'ricevute' : 'connessioni';
     this.state.q = '';
     this.state.page = 1;
+    this.__rerender(); // the top bar and the tabs for real, the list still a skeleton
     await this.fetch();
   }
 
@@ -55,7 +67,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.data) return { loading: true, me: s.me || {} };
+    if (!s.data) return this.skeleton(skeletonState(s));
     const d = s.data;
     const counts = d.counts;
     const items = d.items;

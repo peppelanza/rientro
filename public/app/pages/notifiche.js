@@ -7,9 +7,13 @@ import { Page } from './_base.js';
 export const title = 'Notifiche';
 export const tabbar = true;
 
+// Loading: the page as it will be (pages/_base.js skeleton())
+const FAKE = Array.from({ length: 6 }, (_, i) => ({ id: -i, kind: 'message', read: true, created_at: new Date().toISOString(), data: {}, actor: { id: '', name: 'Nome Cognome' } }));
+
 export default class extends Page {
   async load() {
     this.state.me = await getMe();
+    this.__rerender(); // the top bar for real, the list still a skeleton
     this.state.page = Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1);
     await this.fetch();
   }
@@ -36,7 +40,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.items) return { loading: true, me: s.me || {} };
+    if (!s.items) return this.skeleton({ items: FAKE, list: { total: 6, page: 1, pages: 1, per_page: 20 } });
     const map = n => {
       const d = describe(n);
       return {

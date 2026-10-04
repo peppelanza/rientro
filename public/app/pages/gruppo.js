@@ -20,6 +20,22 @@ export const tabbar = true;
 const MAX_IMAGES = 5; // as the server (groups.js)
 const ini = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2);
 
+// Loading: the group as it will be (pages/_base.js skeleton()); its name, cover and the menu are
+// real as soon as the list of groups is in, the posts are placeholders
+const FAKE_POST = i => ({
+  id: -1 - i, body: 'Il testo di un post, abbastanza lungo da andare a capo come uno vero scritto nel gruppo.', images: [],
+  created_at: new Date().toISOString(), author: { id: '', name: 'Nome Cognome', photo_url: null, role: 'Ruolo · Azienda' },
+  mine: false, comments_count: 0, comments: [],
+});
+const skeletonState = s => {
+  const known = s.groups?.find(g => g.id === s.id);
+  return {
+    member: s.member ?? true, id: s.id || 'sk', groups: s.groups || [],
+    group: { name: 'Nome del gruppo', description: 'Una riga che racconta il gruppo.', posts: 3, following: false, ...known },
+    feed: { items: [0, 1, 2].map(FAKE_POST), page: 1, pages: 1, total: 3 },
+  };
+};
+
 export default class extends Page {
   async load() {
     const me = await peekMe();
@@ -28,7 +44,8 @@ export default class extends Page {
     const id = this.props.params.id || null;
     if (!member && !id) return go(homeFor(me)); // the list is for members (the server sends visitors to sign in)
     Object.assign(this.state, { me, member, id, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
-    if (member) this.state.groups = (await api('GET', '/api/groups')).groups;
+    this.__rerender(); // the top bar for real, the group still a skeleton
+    if (member) { this.state.groups = (await api('GET', '/api/groups')).groups; this.__rerender(); }
     if (id) await this.fetchAll();
     addEventListener('popstate', () => { if (!overlayClosing()) location.reload(); });
   }
@@ -209,7 +226,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.me && !s.group) return { loading: true, me: {}, member: false, visitor: false };
+    if ((!s.me && !s.group) || (s.id && !s.group)) return this.skeleton(skeletonState(s));
     const g = s.group || {};
     const admin = s.me?.user.role === 'admin';
     // Outside Rientro the author is just a name and a photo; the profile is behind sign-up

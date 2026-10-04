@@ -6,6 +6,23 @@ export class Page extends DCLogic {
   constructor(props) {
     super(props);
     this.state = { ready: false, error: null };
+    // While a page shows its skeleton (see skeleton()), #app says so: app.css greys it out
+    const own = this.renderVals.bind(this);
+    this.renderVals = () => {
+      const vals = own();
+      document.getElementById('app')?.classList.toggle('skeleton', !!vals?.skeleton);
+      return vals;
+    };
+  }
+
+  // Loading: the page draws itself as it will be, from placeholder data shaped like the real one
+  // (fake: the state it would have), and app.css turns every text into a bar of its size, every
+  // photo and button into a grey shape of theirs. So the skeleton is exactly the page to come, and
+  // nothing moves when the data arrives. Nothing in it can be used meanwhile.
+  skeleton(fake) {
+    const real = this.state;
+    this.state = { ...real, ...fake };
+    try { return { ...this.renderVals(), skeleton: true }; } finally { this.state = real; }
   }
   async componentDidMount() {
     try { await this.load?.(); } catch (err) {

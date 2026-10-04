@@ -74,11 +74,18 @@ for (const type of ['focusin', 'focusout']) {
 
 const WEEKDAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 
+// Loading: the conversation list as it will be (pages/_base.js skeleton())
+const FAKE_THREADS = Array.from({ length: 6 }, (_, i) => ({
+  id: `sk${i}`, name: 'Nome Cognome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', photo_url: null,
+  last: 'L’ultimo messaggio della conversazione', time: new Date().toISOString(), unread: false,
+}));
+
 export default class extends Page {
   async load() {
     const me = await getMe();
     if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
     Object.assign(this.state, { me, query: '', page: 1, draft: '', menuOpen: false });
+    this.__rerender(); // the top bar for real, the list still a skeleton
     await this.fetchList();
     // Whether there's any conversation at all (the search can empty the list)
     this.state.anyThreads = this.state.list.total > 0;
@@ -335,7 +342,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.threads) return { loading: true, me: s.me || {} };
+    if (!s.threads) return this.skeleton({ threads: FAKE_THREADS, list: { total: 6, page: 1, pages: 1, per_page: 30, items: FAKE_THREADS }, anyThreads: true, query: s.query ?? '', active: null });
     const q = s.query.trim();
     const threads = s.threads.map(t => ({
       ...t, time: threadTime(t.time), photo: t.photo_url, ini: ini(t.name), // Where they live → where they want to go, instead of the job title

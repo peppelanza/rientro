@@ -57,6 +57,17 @@ function saveMore(open) {
   try { sessionStorage.setItem(MORE_KEY, open ? '1' : ''); } catch {}
 }
 
+// Loading: the page as it will be (pages/_base.js skeleton()), with placeholder people
+const FAKE_PERSON = i => ({
+  id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', age: '30–34', role: 'Ruolo · Azienda', from: 'Città', to: 'Città o Città',
+  seeks: 'Prodotto, Engineering', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', photo_url: null, connection: null,
+});
+const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], time: [], comuni: [], regions: [] };
+const skeletonState = s => ({
+  cat: s.cat || FAKE_CAT, f: s.f || readFilters(), sort: s.sort || readSort(), moreFilters: s.moreFilters ?? false, comuneCounts: {},
+  res: { total: 6, page: 1, pages: 1, per_page: 12, people: Array.from({ length: 6 }, (_, i) => FAKE_PERSON(i)), counts: { intent: {}, backgrounds: {}, desired: {} } },
+});
+
 export default class extends Page {
   async load() {
     // an old search address (/scopri?q=): the search is its own page now
@@ -69,6 +80,7 @@ export default class extends Page {
     // "Tutti i filtri" starts open when one of them is in use (e.g. a bookmarked search) or when you
     // left it open (coming back from a profile)
     Object.assign(this.state, { me, cat, f, moreFilters: hiddenFilters(f) > 0 || readMore(), page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
+    this.__rerender(); // the top bar and the filters for real, the people still a skeleton
     const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${this.listQuery()}`), api('GET', '/api/comuni/counts')]);
     this.state.res = res;
     this.state.comuneCounts = comuneCounts;
@@ -130,7 +142,8 @@ export default class extends Page {
   // The picker offers the 20 regions too ("Sicilia (regione)": anyone who chose a comune there),
   // ranked by population like the comuni, so typing "Sic" shows Sicilia first
   places(cat) {
-    if (!this.placeList) {
+    if (this.placeCat !== cat) { // (worked out again once the real catalogue replaces the skeleton's)
+      this.placeCat = cat;
       const pop = {};
       for (const c of cat.comuni) pop[c[2]] = (pop[c[2]] || 0) + c[3];
       this.placeList = [...cat.regions.map(r => [`${r} (regione)`, '', 'Regione', pop[r] || 0]), ...cat.comuni];
@@ -156,7 +169,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.res) return { loading: true, me: s.me || {} };
+    if (!s.res) return this.skeleton(skeletonState(s));
     const { f, cat, res } = s;
     const counts = res.counts;
     const act = this.active();

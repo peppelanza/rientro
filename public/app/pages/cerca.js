@@ -16,6 +16,10 @@ function mark(text, needle) {
 }
 const initials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2);
 
+// Loading: the results as they will be (pages/_base.js skeleton()), placeholder rows
+const FAKE_PEOPLE = { total: 5, page: 1, pages: 1, per_page: 12, people: Array.from({ length: 5 }, (_, i) => ({ id: `sk${i}`, name: 'Nome Cognome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', photo_url: null })) };
+const FAKE_HITS = { items: Array.from({ length: 4 }, (_, i) => ({ post_id: -i, group: { id: '', name: 'Gruppo' }, author: { name: 'Nome Cognome', photo_url: null }, text: 'Il testo di un post nei gruppi, abbastanza lungo da occupare una riga e mezza.', in_comment: false, created_at: new Date().toISOString() })) };
+
 export default class extends Page {
   async load() {
     const me = await getMe();
@@ -27,6 +31,7 @@ export default class extends Page {
       inGroup: here.get('gruppo') || null, page: Math.max(1, Number(here.get('page')) || 1),
     });
     if (this.state.q) document.title = `${this.state.q} · Cerca · Rientro`;
+    this.__rerender(); // the top bar and the tabs for real, the results still a skeleton
     await this.fetch();
   }
 
@@ -64,7 +69,11 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    if (!s.me) return { loading: true, me: {} };
+    const waiting = s.q && !(s.tab === 'gruppi' ? s.hits : s.people);
+    if (!s.me || waiting) {
+      const here = new URLSearchParams(location.search);
+      return this.skeleton({ me: s.me || {}, q: s.q ?? (here.get('q') || '').trim(), tab: s.tab ?? (here.get('tab') === 'gruppi' ? 'gruppi' : 'persone'), people: FAKE_PEOPLE, hits: FAKE_HITS });
+    }
     const { q } = s;
     const groupsTab = s.tab === 'gruppi';
     const res = groupsTab ? s.hits : s.people;

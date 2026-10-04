@@ -26,7 +26,7 @@
 </nav>
 
 <section aria-label="Chat" class="{{ chatClass }}" style="background:#FFFFFF;border-radius:28px;display:flex;flex-direction:column;min-height:0;overflow:hidden">
-<sc-if value="{{ noActive }}"><div style="flex:1;display:flex;align-items:center;justify-content:center;color:#8C84AE;font-size:15px;background:#F6F4FC">Scegli una conversazione.</div></sc-if>
+<sc-if value="{{ noActive }}"><div style="flex:1;display:flex;align-items:center;justify-content:center;color:#8C84AE;font-size:15px;background:#F6F4FC"><span>Scegli una conversazione.</span></div></sc-if>
 <sc-if value="{{ closed }}"><div style="flex:1;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:#6B6680;font-size:15px;background:#F6F4FC;padding:20px;text-align:center">Questa conversazione non è più disponibile.<a href="/messaggi" style="font-size:14px">← Messaggi</a></div></sc-if>
 <sc-if value="{{ hasActive }}">
 <div style="height:68px;border-bottom:1px solid #ECE8F7;padding:0 20px;display:flex;align-items:center;gap:12px;flex:none;position:relative">
