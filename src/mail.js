@@ -145,3 +145,26 @@ export function sendAccountRestoredEmail(email) {
     }),
   });
 }
+
+// --- Supporto --------------------------------------------------------------------------------
+
+// A ticket's update from the team (support.js): an answer, closed or reopened. Always sent (it's the
+// answer to what the member asked), whatever the notification settings.
+export function supportUpdateEmail({ code, subject, kind, body = '', ticketId }) {
+  const link = url(`/supporto/${ticketId}`);
+  const what = { reply: 'Il team di Rientro ti ha risposto', closed: 'Abbiamo chiuso il tuo ticket', open: 'Abbiamo riaperto il tuo ticket' }[kind];
+  const title = `${what} · #${code}`;
+  const preview = body.length > 600 ? `${body.slice(0, 599)}…` : body;
+  return {
+    subject: `${title}: ${subject}`,
+    text: `Ciao,\n\n${what} (#${code}, “${subject}”).${preview ? `\n\n“${preview}”` : ''}${kind === 'closed' ? '\n\nSe ti serve altro, rispondi nel ticket: si riapre.' : ''}\n\nApri il ticket: ${link}\n\nIl team di Rientro${textFooter}`,
+    html: layout({
+      preheader: preview || title,
+      body: h1(what) + eyebrow(`Ticket #${esc(code)}`) + p(`“${esc(subject)}”`)
+        + (preview ? note(esc(preview).replace(/\n/g, '<br>')) : '')
+        + (kind === 'closed' ? p('Se ti serve altro, rispondi nel ticket: si riapre.') : '')
+        + button('Apri il ticket', link),
+    }),
+  };
+}
+

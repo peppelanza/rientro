@@ -3,6 +3,7 @@
 // admin panel (Supporto), and closes or reopens it; a member writing in a closed ticket reopens it.
 // The team hears of a new ticket or message in its notifications, the member of an answer in theirs.
 import { audit } from './admin.js';
+import { canSendEmail, sendEmail, supportUpdateEmail } from './mail.js';
 import { now, tx } from './db.js';
 import { pageParams, paginate } from './paging.js';
 import { nameOf, notify } from './social.js';
@@ -88,6 +89,17 @@ export function writeMine(db, user, id, body) {
   return thread(db, ticketOr404(db, t.id), 'member');
 }
 
+// Every update from the team reaches the member by email too, always (supportUpdateEmail); in the
+// background, so the team's answer never waits on the mail provider. send: tests pass their own.
+export const mailer = { send: sendEmail, enabled: canSendEmail };
+function emailUpdate(db, t, kind, body = '') {
+  if (!mailer.enabled()) return;
+  const to = db.prepare('SELECT email FROM users WHERE id = ? AND deletion_requested_at IS NULL').get(t.user_id)?.email;
+  if (!to) return;
+  Promise.resolve(mailer.send({ to, ...supportUpdateEmail({ code: ticketCode(t.id), subject: t.subject, kind, body, ticketId: t.id }) }))
+    .catch(err => console.error('[email] support update', t.id, err?.message ?? err));
+}
+
 // --- The team (admin panel) ----------------------------------------------------------------
 
 // ?status=open|closed (open first: those waiting for an answer on top), ?q= code, subject, person
@@ -119,6 +131,7 @@ export function teamWrite(db, admin, id, body) {
   db.prepare("DELETE FROM notifications WHERE user_id = ? AND kind = 'support_reply' AND json_extract(data, '$.ticket_id') = ? AND read_at IS NULL").run(t.user_id, t.id);
   notify(db, t.user_id, 'support_reply', null, { ticket_id: t.id, code: ticketCode(t.id), subject: t.subject });
   audit(db, admin.id, 'support.reply', t.user_id, { ticket: ticketCode(t.id) });
+  emailUpdate(db, t, 'reply', msg);
   return thread(db, ticketOr404(db, t.id), 'team');
 }
 
@@ -127,6 +140,7 @@ export function teamStatus(db, admin, id, body) {
   const t = ticketOr404(db, id);
   const status = oneOf(body.status, ['open', 'closed'], 'status', { nullable: false });
   db.prepare('UPDATE support_tickets SET status = ?, updated_at = ? WHERE id = ?').run(status, now(), t.id);
+  if (status !== t.status) emailUpdate(db, t, status);
   audit(db, admin.id, status === 'closed' ? 'support.close' : 'support.reopen', t.user_id, { ticket: ticketCode(t.id) });
   return thread(db, ticketOr404(db, t.id), 'team');
 }
