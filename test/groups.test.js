@@ -104,7 +104,7 @@ test('reporting a group post reaches the admins with the post; they can delete i
   } finally { t.close(); }
 });
 
-test('pictures in posts: uploaded first, attached once (up to 4), public with the post, gone with it; text optional', async () => {
+test('pictures in posts: uploaded first, attached once (up to 5), public with the post, gone with it; text optional', async () => {
   const t = await startApp();
   try {
     const a = await t.approved('img-a@example.com');
@@ -121,8 +121,10 @@ test('pictures in posts: uploaded first, attached once (up to 4), public with th
     assert.deepEqual(post.images, [img.url]);
     assert.equal((await anon.get(img.url)).status, 200);
     assert.equal((await a.post('/api/groups/generale/posts', { body: 'again', images: [img.id] })).status, 400, 'a picture is used once');
-    const five = await Promise.all([1, 2, 3, 4, 5].map(() => up(a)));
-    assert.equal((await a.post('/api/groups/generale/posts', { body: 'tante', images: five.map(f => f.id) })).status, 400, 'at most 4');
+    const six = await Promise.all([1, 2, 3, 4, 5, 6].map(() => up(a)));
+    assert.equal((await a.post('/api/groups/generale/posts', { body: 'tante', images: six.map(f => f.id) })).status, 400, 'at most 5');
+    const five = (await a.post('/api/groups/generale/posts', { body: 'cinque', images: six.slice(0, 5).map(f => f.id) })).body;
+    assert.equal(five.images.length, 5);
     assert.equal((await a.post('/api/groups/generale/posts', {})).status, 400, 'text or pictures');
     await a.del(`/api/groups/generale/posts/${post.id}`);
     assert.equal((await anon.get(img.url)).status, 404, 'deleted with the post');

@@ -70,7 +70,7 @@ export function getGroup(db, viewer, id) {
 }
 
 const COMMENTS_SHOWN = 3; // under each post; the rest on request
-export const MAX_IMAGES = 4;
+export const MAX_IMAGES = 5;
 
 // A post's pictures, in order (public addresses: the posts are public too)
 const imagesOf = (db, postId) => db.prepare('SELECT file_id FROM group_post_images WHERE post_id = ? ORDER BY position').all(postId)
@@ -113,7 +113,7 @@ export function createPost(db, viewer, id, body) {
   requireMemberArea(viewer);
   groupOr404(db, id);
   only(body, ['body', 'images']);
-  // Up to 4 pictures, uploaded beforehand by the author (/api/groups/images) and not used yet
+  // Up to 5 pictures, uploaded beforehand by the author (/api/groups/images) and not used yet
   const images = Array.isArray(body.images) ? body.images.map(String) : [];
   if (images.length > MAX_IMAGES || new Set(images).size !== images.length) throw bad('images', `Al massimo ${MAX_IMAGES} foto.`);
   for (const f of images) {

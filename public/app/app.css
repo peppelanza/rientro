@@ -56,8 +56,9 @@ input:focus::placeholder, textarea:focus::placeholder { opacity: 0; }
 /* Keyboard focus, matching design 00 "FOCUS" states */
 :focus { outline: none; }
 :focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
-/* Pill-shaped focus ring, except on text fields: rounding a field clips its caret and selection */
-:focus-visible:not(input, textarea, select) { border-radius: 999px; }
+/* The ring takes the element's own shape (a square photo stays square). Design components draw their
+   pill inside their wrapper, so the wrapper's ring is rounded to match */
+.sc-host:focus-visible { border-radius: 999px; }
 [role="button"]:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #6C4DF5; outline-offset: 3px; }
 /* Everything clickable shows the hand, whether or not its template says so; disabled controls
    show not-allowed, including their children (design components set cursor:pointer inline). */
@@ -746,6 +747,14 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .group-images.n2 a, .group-images.n4 a { aspect-ratio: 1; }
 .group-images.n3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 3 / 2; }
 .group-images.n3 a:first-child { grid-row: span 2; }
+/* five: two above, three below */
+.group-images.n5 { grid-template-columns: repeat(6, 1fr); }
+.group-images.n5 a { grid-column: span 2; aspect-ratio: 1; }
+.group-images.n5 a:nth-child(-n+2) { grid-column: span 3; aspect-ratio: 4 / 3; }
+/* App Side Menu: a title that folds the links under it (Gruppi: Regioni) */
+.side-fold { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 6px; padding: 16px 12px 8px; border: none; border-top: 1px solid rgba(26,23,38,.08); border-radius: 0; background: none; font: 500 11px 'Geist Mono', monospace; letter-spacing: .06em; text-transform: uppercase; color: #6B6680; cursor: pointer; text-align: left; }
+.side-fold svg { flex: none; transition: transform .2s ease; }
+.side-fold[aria-expanded="true"] svg { transform: rotate(180deg); }
 .group-post { scroll-margin-top: 16px; background: #FFFFFF; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(80,60,160,.06); font-family: 'Geist', sans-serif; }
 .group-body { margin: 0; font-size: 15px; line-height: 1.55; color: #1A1726; white-space: pre-wrap; overflow-wrap: anywhere; }
 .group-comments { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #ECE8F7; }

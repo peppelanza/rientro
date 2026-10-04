@@ -216,18 +216,19 @@ def('App TabBar', String.raw`
 
 // ---------------------------------------------------------------------------------------------
 // App Side Menu — from UI Side Menu (+ links). items: [{ l, href, danger? }], or { heading } for a
-// small title between groups of links
+// small title between groups of links; { heading, toggle, open } makes it a button that folds the
+// links under it (the page leaves them out while closed)
 
 def('App Side Menu', String.raw`
 <nav style="background:rgba(255,255,255,.55);border:1px solid #FFFFFF;border-radius:28px;padding:18px 10px;display:flex;flex-direction:column;gap:2px;font-family:'Geist',sans-serif;font-size:14px;color:#1A1726">
 <sc-if value="{{ hasTitle }}"><span style="font-family:'Unbounded',sans-serif;font-size:19px;font-weight:600;letter-spacing:-.04em;padding:0 12px 14px">{{ title }}</span></sc-if>
 <sc-if value="{{ hasEyebrow }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#6B6680;padding:0 12px 10px">{{ eyebrow }}</span></sc-if>
-<sc-for list="{{ items }}" as="it"><sc-if value="{{ it.heading }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#6B6680;padding:16px 12px 8px;margin-top:6px;border-top:1px solid rgba(26,23,38,.08)">{{ it.heading }}</span></sc-if><sc-if value="{{ it.link }}"><a href="{{ it.href }}" onClick="{{ it.click }}" aria-current="{{ it.current }}" style="padding:10px 14px;border-radius:999px;background:{{ it.bg }};color:{{ it.fg }};font-weight:{{ it.fw }};cursor:pointer;text-decoration:none">{{ it.l }}</a></sc-if></sc-for>
+<sc-for list="{{ items }}" as="it"><sc-if value="{{ it.plain }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#6B6680;padding:16px 12px 8px;margin-top:6px;border-top:1px solid rgba(26,23,38,.08)">{{ it.heading }}</span></sc-if><sc-if value="{{ it.folding }}"><button type="button" class="side-fold" aria-expanded="{{ it.expanded }}" onClick="{{ it.toggle }}">{{ it.heading }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></sc-if><sc-if value="{{ it.link }}"><a href="{{ it.href }}" onClick="{{ it.click }}" aria-current="{{ it.current }}" style="padding:10px 14px;border-radius:999px;background:{{ it.bg }};color:{{ it.fg }};font-weight:{{ it.fw }};cursor:pointer;text-decoration:none">{{ it.l }}</a></sc-if></sc-for>
 </nav>`, class extends DCLogic {
   renderVals() {
     const a = this.props.active;
     const items = (this.props.items || []).map(it => {
-      if (it.heading) return { heading: it.heading, link: false };
+      if (it.heading) return { heading: it.heading, link: false, plain: !it.toggle, folding: !!it.toggle, toggle: it.toggle, expanded: it.open ? 'true' : 'false' };
       const on = it.l === a;
       return { ...it, link: true, heading: '', current: on ? 'page' : false, bg: on ? '#1A1726' : 'transparent', fg: on ? '#FFFFFF' : it.danger ? '#B42318' : '#1A1726', fw: on ? 600 : 400 };
     });

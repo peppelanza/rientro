@@ -17,7 +17,7 @@ photoViewer('.group-images'); // the photos in posts open in the viewer
 export const title = 'Gruppi';
 export const tabbar = true;
 
-const MAX_IMAGES = 4; // as the server (groups.js)
+const MAX_IMAGES = 5; // as the server (groups.js)
 const ini = n => (n || '?').split(' ').map(w => w[0]).join('').slice(0, 2);
 
 export default class extends Page {
@@ -93,18 +93,25 @@ export default class extends Page {
     if (s.id) await this.fetchAll();
   }
 
-  // Pictures for the post (up to 4): resized, checked for explicit content and uploaded right away,
+  // The regions in the menu: as the member left them, otherwise open only while one is shown
+  get regionsOpen() {
+    const s = this.state;
+    return s.regionsOpen ?? s.groups?.find(x => x.id === s.id)?.kind === 'region';
+  }
+
+  // Pictures for the post (up to 5), picked one or several at a time: all show at once, then each is
+  // resized and converted (image-shrink.js), checked for explicit content and uploaded, side by side,
   // so publishing only has to send their ids
   async addImages(files) {
     const s = this.state;
     const room = MAX_IMAGES - s.images.length;
     if (files.length > room) toast(`Puoi aggiungere al massimo ${MAX_IMAGES} foto.`, { tone: 'err' });
-    for (const file of [...files].slice(0, Math.max(0, room))) {
-      const img = { key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file), pct: 0 };
-      s.images.push(img);
-      this.__rerender();
+    const added = [...files].slice(0, Math.max(0, room)).map(file => ({ file, key: Math.random().toString(36).slice(2), preview: URL.createObjectURL(file), pct: 0 }));
+    s.images.push(...added);
+    this.__rerender();
+    await Promise.all(added.map(async img => {
       try {
-        const blob = await shrinkImage(file);
+        const blob = await shrinkImage(img.file);
         if ((await nsfwCheck(blob))?.blocked) throw new Error('Questa immagine non può essere pubblicata su Rientro.');
         const r = await upload('/api/groups/images', blob, (loaded, total) => { img.pct = Math.round((loaded / total) * 100); this.__rerender(); });
         img.id = r.id;
@@ -113,8 +120,9 @@ export default class extends Page {
         URL.revokeObjectURL(img.preview);
         toast(err.message, { tone: 'err' });
       }
+      delete img.file;
       this.__rerender();
-    }
+    }));
   }
 
   removeImage(img) {
@@ -194,7 +202,7 @@ export default class extends Page {
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
     const posts = (s.feed?.items || []).map(p => ({
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
-      hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 4)}`,
+      hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
       comments: p.comments.map(c => comment(p, c)),
       more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),
@@ -207,10 +215,11 @@ export default class extends Page {
     return {
       loading: false, me: s.me || {}, g, member: s.member, visitor: !s.member,
       // the menu (members); on phones either the menu or the open group
-      // Generale, then the regions under their own title
+      // Generale, then the regions under their own title, folded until opened (open by itself while
+      // you're in one of them)
       menu: (s.groups || []).flatMap((x, i, all) => [
-        ...(x.kind === 'region' && all[i - 1]?.kind !== 'region' ? [{ heading: 'Regioni' }] : []),
-        { l: x.name, href: `/gruppi/${x.id}`, click: e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); this.select(x.id); } },
+        ...(x.kind === 'region' && all[i - 1]?.kind !== 'region' ? [{ heading: 'Regioni', open: this.regionsOpen, toggle: () => { s.regionsOpen = !this.regionsOpen; this.__rerender(); } }] : []),
+        ...(x.kind === 'region' && !this.regionsOpen ? [] : [{ l: x.name, href: `/gruppi/${x.id}`, click: e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); this.select(x.id); } }]),
       ]),
       activeLabel: s.groups?.find(x => x.id === s.id)?.name ?? '',
       layoutCls: s.member ? 'groups-layout' : 'groups-layout solo', asideCls: s.id ? 'groups-aside r-hide-sm' : 'groups-aside',
