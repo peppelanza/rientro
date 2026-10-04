@@ -239,6 +239,7 @@ export default class extends Page {
     // Outside Rientro the author is just a name and a photo; the profile is behind sign-up
     const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role || '', href: s.member ? `/persone/${a.id}` : '/accedi' });
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
+    const phone = matchMedia('(max-width: 720px)').matches;
     const posts = (s.feed?.items || []).map(p => ({
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
       hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
@@ -248,7 +249,9 @@ export default class extends Page {
       canDelete: p.mine || admin, del: () => this.remove(p), canReport: !p.mine, hasMenu: s.member,
       doReport: async () => { this.setState({ menuFor: null }); await report({ id: p.author.id, name: p.author.name }, { postId: p.id }); },
       replyField: `reply-${p.id}`, draft: s.drafts[p.id] || '',
-      draftProps: { onInput: v => { s.drafts[p.id] = v; }, onEnter: () => this.comment(p) },
+      // Invio sends on a computer (Shift+Invio: a new line); on a phone the keyboard's Invio is a new
+      // line and "Invia" sends
+      draftProps: { onInput: v => { s.drafts[p.id] = v; }, ...(phone ? {} : { onEnter: () => this.comment(p) }) },
       send: () => this.comment(p),
     }));
     return {
