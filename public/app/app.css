@@ -804,16 +804,14 @@ html.pv-open { overflow: hidden; }
 .group-hit-text mark { background: #EFEBFF; color: #3E2BA8; padding: 0 3px; border-radius: 4px; }
 .group-hits-empty { margin: 24px 0; text-align: center; color: #6B6680; font-size: 15px; }
 
-/* Scopri on phones: once the first card is reached, the cards go by one at a time, like Reels.
-   Each card has a page as tall as the screen, centred in it (clear of the bottom menu), and the scroll
-   stops on each page (it can't skip one). The top of the page and the pages bar at the end are
-   stops too, so the header and the next page stay reachable. (scopri.js sets html.scopri-snap.) */
+/* Scopri on phones: once the first card is reached, the cards go by one at a time, like Reels: the
+   scroll stops with a card in the middle of the screen (the one before and after peeking in, at the
+   usual spacing) and can't skip one. The top of the page and the pages bar at the end are stops
+   too, so the header and the next page stay reachable. (scopri.js sets html.scopri-snap.) */
 @media (max-width: 720px) {
   html.scopri-snap { scroll-snap-type: y mandatory; }
   html.scopri-snap [data-sc-name="App Nav"] { scroll-snap-align: start; }
-  html.scopri-snap .scopri-cards { gap: 0; }
-  html.scopri-snap .scopri-cards > * { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; scroll-snap-stop: always; }
-  html.scopri-snap .scopri-cards > * > article { height: auto !important; } /* its own size, not the page's */
+  html.scopri-snap .scopri-cards > * { scroll-snap-align: center; scroll-snap-stop: always; }
   html.scopri-snap [data-sc-name="App Pager"] { scroll-snap-align: end; }
 }
 
