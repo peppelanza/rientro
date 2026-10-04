@@ -7,9 +7,12 @@ import { EMOJI } from '../emoji.js';
 import { shrinkImage } from '../image-shrink.js';
 import { api, go, setMe, timeAgo, toast, toastError, upload } from '../lib.js';
 import { nsfwCheck, warmUpNsfwCheck } from '../nsfw.js';
+import { photoViewer } from '../photo-viewer.js';
 import { report } from '../social.js';
 import { stickSide } from '../sticky-side.js';
 import { homeFor, Page, peekMe } from './_base.js';
+
+photoViewer('.group-images'); // the photos in posts open in the viewer
 
 export const title = 'Gruppi';
 export const tabbar = true;
@@ -27,7 +30,8 @@ export default class extends Page {
     Object.assign(this.state, { me, member, id, draft: '', images: [], emojiOpen: false, drafts: {}, open: {}, menuFor: null, page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1) });
     if (member) this.state.groups = (await api('GET', '/api/groups')).groups;
     if (id) await this.fetchAll();
-    addEventListener('popstate', () => location.reload());
+    // (not the back step that closes the photo viewer: photo-viewer.js)
+    addEventListener('popstate', () => { if (!document.documentElement.classList.contains('pv-open')) location.reload(); });
   }
 
   // Another group from the menu, in place (the address follows)
