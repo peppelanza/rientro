@@ -1,6 +1,7 @@
-// Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28a ricerca, 28b nessun risultato).
-// Filters live in the URL so a filtered view can be bookmarked and survives reloads.
-import { api, getCatalog, getMe, go, SCOPRI_BACK_KEY, timeAgo } from '../lib.js';
+// Discover (design 03 · 26a filtri, 26b mobile, 27a comuni, 28b nessun risultato): browsing people
+// with filters. Filters live in the URL so a filtered view can be bookmarked and survives reloads.
+// Searching by words is its own page (cerca.js).
+import { api, getCatalog, getMe, go, SCOPRI_BACK_KEY } from '../lib.js';
 import { stickSide } from '../sticky-side.js';
 import { connect } from '../social.js';
 import { Page } from './_base.js';
@@ -14,7 +15,7 @@ const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insie
 
 function readFilters() {
   const q = new URLSearchParams(location.search);
-  const f = { lives: q.get('lives') || '', time: q.get('time') || '', age: q.get('age') || '', include_unknown: q.get('include_unknown') === '1', q: q.get('q') || '' };
+  const f = { lives: q.get('lives') || '', time: q.get('time') || '', age: q.get('age') || '', include_unknown: q.get('include_unknown') === '1' };
   for (const k of LIST_KEYS) f[k] = q.get(k) ? q.get(k).split(',').filter(Boolean) : [];
   return f;
 }
@@ -29,7 +30,6 @@ function toQuery(f) {
   if (f.time) q.set('time', f.time);
   if (f.age) q.set('age', f.age);
   if (f.include_unknown && f.desired.length) q.set('include_unknown', '1');
-  if (f.q) q.set('q', f.q);
   return q;
 }
 
@@ -40,7 +40,6 @@ function apiQuery(f) {
   return q.toString();
 }
 
-// Splits text around the first case-insensitive match (28a highlights).
 // "Più affini" by default; once the member picks an order it stays (this browser only)
 const SORT_KEY = 'rientro.scopri.sort';
 function readSort() {
@@ -58,15 +57,11 @@ function saveMore(open) {
   try { sessionStorage.setItem(MORE_KEY, open ? '1' : ''); } catch {}
 }
 
-function mark(text, needle) {
-  const t = text || '';
-  const i = needle ? t.toLowerCase().indexOf(needle.toLowerCase()) : -1;
-  return i < 0 ? { a: t, m: '', b: '' } : { a: t.slice(0, i), m: t.slice(i, i + needle.length), b: t.slice(i + needle.length) };
-}
-
-
 export default class extends Page {
   async load() {
+    // an old search address (/scopri?q=): the search is its own page now
+    const words = new URLSearchParams(location.search).get('q');
+    if (words) return location.replace(`/cerca?${new URLSearchParams({ q: words })}`);
     const [me, cat] = await Promise.all([getMe(), getCatalog()]);
     if (me.user.status !== 'approved') return go('/onboarding');
     if (!me.launched && me.user.role !== 'admin') return go('/benvenuto');
@@ -77,8 +72,6 @@ export default class extends Page {
     const [res, comuneCounts] = await Promise.all([api('GET', `/api/profiles?${this.listQuery()}`), api('GET', '/api/comuni/counts')]);
     this.state.res = res;
     this.state.comuneCounts = comuneCounts;
-    this.state.tab = new URLSearchParams(location.search).get('tab') === 'gruppi' ? 'gruppi' : 'persone';
-    await this.loadGroupHits();
     await this.suggestRelax();
   }
 
@@ -93,7 +86,6 @@ export default class extends Page {
     for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
     if (f.time) out.push({ label: cat.time.find(t => t[0] === f.time)?.[1], without: g => ({ ...g, time: '' }) });
     if (f.age) out.push({ label: AGES.find(a => a[0] === f.age)?.[1], without: g => ({ ...g, age: '' }) });
-    if (f.q) out.push({ label: `“${f.q}”`, without: g => ({ ...g, q: '' }) });
     return out;
   }
 
@@ -119,30 +111,11 @@ export default class extends Page {
       this.state.page = page;
       const q = toQuery(f);
       if (page > 1) q.set('page', String(page));
-      if (f.q && this.state.tab === 'gruppi') q.set('tab', 'gruppi');
       history.replaceState(null, '', `/scopri${q.toString() ? `?${q}` : ''}`);
       this.state.res = await api('GET', `/api/profiles?${this.listQuery(f)}`);
-      await this.loadGroupHits();
       this.state.page = this.state.res.page;
       await this.suggestRelax();
       if (scroll) scrollTo({ top: 0, behavior: 'smooth' });
-    })();
-  }
-
-  // A search has two tabs: Persone (the profiles) and Gruppi (what's written in the groups' posts
-  // and comments: src/groups.js searchGroups); the latter is fetched only while it's the one open
-  async loadGroupHits() {
-    const s = this.state;
-    s.groupHits = s.f.q.trim() && s.tab === 'gruppi' ? (await api('GET', `/api/groups/search?q=${encodeURIComponent(s.f.q.trim())}`)).items : null;
-  }
-
-  setTab(tab) {
-    return this.act(async () => {
-      this.state.tab = tab;
-      const q = new URLSearchParams(location.search);
-      if (tab === 'gruppi') q.set('tab', 'gruppi'); else q.delete('tab');
-      history.replaceState(null, '', `/scopri?${q}`);
-      await this.loadGroupHits();
     })();
   }
 
@@ -191,31 +164,14 @@ export default class extends Page {
     const bgList = cat.areas.map(a => ({ l: a, count: counts.backgrounds[a] ?? 0, on: f.backgrounds.includes(a), fn: () => this.toggle('backgrounds', a) }));
     const secList = cat.sectors.map(l => ({ l, tone: f.sectors.includes(l) ? 'tint' : 'default', aria: f.sectors.includes(l) ? 'true' : 'false', fn: () => this.toggle('sectors', l) }));
     const shownSectors = s.moreSectors ? secList : secList.filter((x, i) => i < 4 || f.sectors.includes(x.l));
-    const qn = f.q.trim();
-    const groupsTab = !!qn && s.tab === 'gruppi';
     return {
-      loading: false, me: s.me, f, showFilters: s.showFilters,
+      loading: false, loaded: true, me: s.me, f, showFilters: s.showFilters,
       // computer: only "Dove vuole vivere" and "Dove vive" show; the others open below them (on a phone the whole
       // panel is behind "Filtri" already, all of it)
       moreCls: `filters-more${s.moreFilters ? ' open' : ''}${this.animateMore ? ' opening' : ''}`, moreOpen: s.moreFilters ? 'true' : 'false', moreClosed: !s.moreFilters, moreOpenFlag: s.moreFilters, // closed: under "Dove vive"; open: at the bottom
       moreLabel: s.moreFilters ? 'Meno filtri' : hiddenFilters(f) ? `Tutti i filtri · ${hiddenFilters(f)}` : 'Tutti i filtri',
       toggleMore: () => { this.animateMore = !s.moreFilters; saveMore(!s.moreFilters); this.setState({ moreFilters: !s.moreFilters }); this.animateMore = false; },
-      total: res.total,
-      totalLabel: groupsTab ? (s.groupHits ? `${s.groupHits.length} post nei gruppi` : '') : `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
-      // the two tabs of a search
-      hasQuery: !!qn,
-      tabs: [['persone', 'Persone'], ['gruppi', 'Gruppi']].map(([v, l]) => ({ l, cls: `search-tab${s.tab === v ? ' on' : ''}`, sel: s.tab === v ? 'true' : 'false', pick: () => this.setTab(v) })),
-      groupsTab, peopleTab: !groupsTab,
-      groupHits: (s.groupHits || []).map(h => {
-        const text = h.text.length > 240 ? `${h.text.slice(0, 239)}…` : h.text;
-        const m = mark(text, qn.split(/\s+/)[0]);
-        return {
-          href: `/gruppi/${h.group.id}#post-${h.post_id}`, group: h.group.name, name: h.author.name, photo: h.author.photo_url,
-          ini: h.author.name.split(' ').map(w => w[0]).join('').slice(0, 2), when: timeAgo(h.created_at),
-          where: h.in_comment ? 'in un commento' : '', a: m.a, m: m.m, b: m.b, hasM: !!m.m,
-        };
-      }),
-      noGroupHits: groupsTab && !!s.groupHits && !s.groupHits.length,
+      total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
       hasActive: act.length > 0, activeLabel: `${act.length} ${act.length === 1 ? 'filtro attivo' : 'filtri attivi'}`,
       activeChips: act.map(a => ({ l: a.label, aria: `Rimuovi ${a.label}`, remove: () => this.apply(a.without(f)) })),
       offChips: act.map(a => ({ l: a.label })),
@@ -238,18 +194,11 @@ export default class extends Page {
       // results
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
       toggleSort: () => { const sort = s.sort === 'match' ? 'recent' : 'match'; saveSort(sort); s.sort = sort; this.apply(f); },
-      // pages and search
+      // pages
       page: res.page, pages: res.pages, perPage: res.per_page, total2: res.total,
       pagerProps: { onPage: n => this.apply(f, { page: n, scroll: true }) },
-      isSearch: !!qn && !groupsTab && res.total > 0, isGrid: !qn && res.total > 0, isEmpty: !groupsTab && res.total === 0, showPager: !groupsTab,
-      heading: qn ? `Risultati per “${qn}”` : 'Scopri chi torna',
+      isGrid: res.total > 0, isEmpty: res.total === 0,
       people, cardProps: { onConnect: p => this.connectTo(p) },
-      rows: people.map(p => {
-        const one = mark(p.role, qn); const two = mark([p.from, p.to].filter(Boolean).join(' → '), qn);
-        return { name: p.name, photo: p.photo_url, ini: p.name.split(' ').map(w => w[0]).join('').slice(0, 2), a: one.a, m1: one.m, b: one.b, c: two.a, m2: two.m, d: two.b, has1: !!one.m, has2: !!two.m, href: `/persone/${p.id}`,
-          // found elsewhere in the profile: where (src/profiles.js matchIn)
-          cites: p.match_in ? `Cita “${qn}” in ${p.match_in}` : '' };
-      }),
       relax: s.relax, relaxText: s.relax ? `Senza “${s.relax.label}” ci ${s.relax.total === 1 ? 'è 1 persona' : `sono ${s.relax.total} persone`}.` : '',
       relaxLabel: s.relax ? `Togli solo “${s.relax.label}”` : '', applyRelax: () => this.apply(s.relax.f),
     };
@@ -257,5 +206,5 @@ export default class extends Page {
 }
 
 function readFiltersEmpty() {
-  return { lives: '', time: '', age: '', include_unknown: false, q: '', intent: [], backgrounds: [], sectors: [], desired: [] };
+  return { lives: '', time: '', age: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] };
 }

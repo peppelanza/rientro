@@ -246,7 +246,7 @@ function streamFile(req, res, f) {
 // --- pages ---------------------------------------------------------------------------------
 
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
-const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
+const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/cerca$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|analytics|esportazioni|registro))?$/];
 

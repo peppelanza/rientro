@@ -34,7 +34,7 @@ function open(input) {
         return open(field);
       }
       const go = e.target.closest('[data-q]');
-      if (go) { remember(go.dataset.q); location.href = `/scopri?q=${encodeURIComponent(go.dataset.q)}`; }
+      if (go) { remember(go.dataset.q); location.href = searchUrl(go.dataset.q); }
     });
     document.body.append(panel);
   }
@@ -56,7 +56,16 @@ function open(input) {
   panel.style.width = `${r.width}px`;
 }
 
-function remember(q) {
+// Where a search goes: its own page (cerca.js). From there a new search keeps the tab (Persone or
+// Gruppi) and the group picked; the list starts from page 1.
+export function searchUrl(q) {
+  const here = location.pathname === '/cerca' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const p = new URLSearchParams({ q: q.trim() });
+  for (const k of ['tab', 'gruppo']) if (here.get(k)) p.set(k, here.get(k));
+  return `/cerca?${p}`;
+}
+
+export function remember(q) {
   q = q.trim();
   if (q) write([q, ...read().filter(x => x.toLowerCase() !== q.toLowerCase())]);
 }
@@ -74,7 +83,7 @@ export function searchHistory() {
 
 // Phones: the search over the whole screen, the field ready to type (the keyboard comes up: it's
 // called inside the tap) and the recent searches under it; Invio opens the results in Scopri, with
-// its Persone and Gruppi tabs. The phone's back button closes it.
+// its Persone and Gruppi tabs (cerca.js). The phone's back button closes it.
 export function openSearchSheet() {
   const sheet = document.createElement('div');
   sheet.className = 'search-sheet';
@@ -86,7 +95,7 @@ export function openSearchSheet() {
 </form><div class="search-sheet-list"></div>`;
   const input = sheet.querySelector('input');
   const list = sheet.querySelector('.search-sheet-list');
-  const go = q => { q = q.trim(); if (!q) return; remember(q); location.href = `/scopri?q=${encodeURIComponent(q)}`; };
+  const go = q => { q = q.trim(); if (!q) return; remember(q); location.href = searchUrl(q); };
   const draw = () => {
     const recent = read();
     list.replaceChildren();

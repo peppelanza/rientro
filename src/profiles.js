@@ -473,7 +473,7 @@ export function discover(db, viewer, filters) {
     p => ({ ...card(db, viewer, p, viewerP), ...(filters.q ? { match_in: p.match_in } : {}) }));
   return {
     total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
-    people: pg.items,
+    people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
       backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),

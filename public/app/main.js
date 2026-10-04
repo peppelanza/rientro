@@ -20,6 +20,7 @@ const ROUTES = [
   [/^\/legal\/(?<doc>privacy|termini|cookie)$/, 'legal'],
   [/^\/onboarding$/, 'onboarding'],
   [/^\/scopri$/, 'scopri'],
+  [/^\/cerca$/, 'cerca'],
   [/^\/persone\/(?<id>[^/]+)$/, 'persona'],
   [/^\/gruppi(\/(?<id>[^/]+))?$/, 'gruppo'],
   [/^\/connessioni$/, 'connessioni'],

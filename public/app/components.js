@@ -4,7 +4,7 @@
 import { DCLogic, register } from '../dc/runtime.js';
 import { api, getCatalog, INTENT_BADGE, timeAgo } from './lib.js';
 import { describeNotification, notificationInitials } from './notifications.js';
-import { openSearchSheet } from './search-history.js';
+import { openSearchSheet, searchUrl } from './search-history.js';
 
 const def = (name, template, Component) => register({ name, template, propsMeta: {}, Component });
 const b = v => v === true || v === 'true';
@@ -183,7 +183,7 @@ def('App Nav', String.raw`
       }),
       // More unread than the 5 shown: "+ N notifiche"; otherwise "Vedi tutte"
       bellMore: this.state.bellUnread > 5 ? `+ ${this.state.bellUnread - 5} notifiche` : 'Vedi tutte',
-      search: e => { e.preventDefault(); const q = new FormData(e.target).get('q'); location.href = `/scopri?q=${encodeURIComponent(q)}`; },
+      search: e => { e.preventDefault(); location.href = searchUrl(String(new FormData(e.target).get('q') || '')); },
       logout: async () => { await fetch('/api/auth/logout', { method: 'POST', headers: { 'x-requested-with': 'rientro' } }); location.href = '/'; },
     };
   }

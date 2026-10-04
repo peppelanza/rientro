@@ -4,8 +4,9 @@
 //   - Accents and capitals don't matter ("citta" finds "Città"), punctuation splits words.
 //   - Every word typed must be there, in any order, each as the start of a word: "svilup" finds
 //     "sviluppatore", but "ma" doesn't find "Roma".
-//   - Nothing at all? A second pass forgives one wrong, missing or extra letter in words of 4+
-//     letters ("sviluppatroe", "Milno").
+//   - Nothing at all? A second pass forgives a missing, extra or swapped letter in words of 4+
+//     letters ("Milno", "sviluppatroe"), and a wrong one only from 6 letters up (else "marco" would
+//     find "mario"). Those results say they're only similar (results.fuzzy).
 //   - Texts that never change (messages, posts, comments) are split into words once and kept.
 
 export const norm = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
@@ -30,15 +31,15 @@ export function fixedWords(key, text) {
   return w;
 }
 
-// a and b differ by at most one letter changed, added, removed or two swapped
-function near(a, b) {
+// a and b differ by at most one letter added, removed, two swapped or (with changed) one changed
+function near(a, b, changed) {
   if (a === b) return true;
   const la = a.length, lb = b.length;
   if (Math.abs(la - lb) > 1) return false;
   let i = 0;
   while (i < la && i < lb && a[i] === b[i]) i++;
   if (la === lb) {
-    if (a.slice(i + 1) === b.slice(i + 1)) return true; // one changed
+    if (changed && a.slice(i + 1) === b.slice(i + 1)) return true; // one changed
     return a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2); // two swapped
   }
   return la > lb ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1); // one more or less
@@ -50,7 +51,7 @@ export function hit(term, words, fuzzy = false) {
     if (w.startsWith(term)) return true;
     if (fuzzy && term.length >= 4) {
       // compared with the word's start of about the same length, so "svilupat" ≈ "sviluppatore"
-      for (const n of [term.length, term.length - 1, term.length + 1]) if (near(term, w.slice(0, n))) return true;
+      for (const n of [term.length, term.length - 1, term.length + 1]) if (near(term, w.slice(0, n), term.length >= 6)) return true;
     }
   }
   return false;
@@ -59,8 +60,10 @@ export function hit(term, words, fuzzy = false) {
 // Every term in these words
 export const hitsAll = (ts, words, fuzzy) => ts.every(t => hit(t, words, fuzzy));
 
-// Runs a search exactly, and once more forgiving when it found nothing: run(fuzzy) → results[]
+// Runs a search exactly, and once more forgiving when it found nothing: run(fuzzy) → results[];
+// forgiven results carry .fuzzy = true (shown as "similar", not as matches)
 export function forgiving(run) {
   const exact = run(false);
-  return exact.length ? exact : run(true);
+  if (exact.length) return exact;
+  return Object.assign(run(true), { fuzzy: true });
 }

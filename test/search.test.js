@@ -13,5 +13,8 @@ test('search: accents and capitals ignored, words start a word, all words needed
   assert.ok(hit('svilupaptore', w, true) && hit('castelo', w, true) && hit('casetllo', w, true), 'forgiving: one letter missing, extra, changed or two swapped');
   assert.ok(!hit('cas', w.filter(x => x !== 'castello'), true), 'short words are never fuzzy');
   assert.deepEqual(forgiving(fuzzy => (fuzzy ? ['b'] : ['a'])), ['a']);
-  assert.deepEqual(forgiving(fuzzy => (fuzzy ? ['b'] : [])), ['b']);
+  const similar = forgiving(fuzzy => (fuzzy ? ['b'] : []));
+  assert.deepEqual([...similar], ['b']);
+  assert.equal(similar.fuzzy, true, 'forgiven results say so');
+  assert.ok(!hit('marco', wordsOf('mario'), true), 'a wrong letter only from 6 letters up');
 });

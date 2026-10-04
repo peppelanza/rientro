@@ -191,7 +191,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
       time: last?.created_at ?? c.since, unread: unread > 0, found_in_messages: !!said,
     };
   }).sort((a, b) => (b.time || '').localeCompare(a.time || ''));
-  return paginate(threads, pp);
+  return { ...paginate(threads, pp), fuzzy: !!found.fuzzy };
 }
 
 // Opening a chat: the latest 50 messages, and older ones 50 at a time (?before=<id>);

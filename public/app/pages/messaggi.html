@@ -20,6 +20,7 @@
 <span style="font-size:12px;color:#8C84AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.route }}</span>
 <div style="display:flex;gap:8px;align-items:center"><span style="font-size:13px;color:{{ t.c }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">{{ t.last }}</span><sc-if value="{{ t.unread }}"><span aria-label="Non letto" style="width:9px;height:9px;border-radius:50%;background:#6C4DF5;flex:none"></span></sc-if></div>
 </div></div></a></sc-for>
+<sc-if value="{{ similarOnly }}"><span style="padding:4px 12px 8px;font-size:13px;color:#8C84AE">Nessun risultato esatto: conversazioni simili.</span></sc-if>
 <sc-if value="{{ noMatch }}"><span style="padding:12px;font-size:13px;color:#8C84AE">Nessuna conversazione trovata.</span></sc-if>
 <div style="padding:0 6px"><dc-import name="App Pager" page="{{ page }}" pages="{{ pages }}" total="{{ total }}" perpage="{{ perPage }}" dc-props="{{ pagerProps }}"></dc-import></div>
 </nav>

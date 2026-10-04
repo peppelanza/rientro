@@ -398,6 +398,7 @@ export default class extends Page {
       loading: false, me: s.me,
       noThreads: !s.anyThreads, hasThreads: !!s.anyThreads,
       threads, noMatch: !!q && !threads.length, query: s.query,
+      similarOnly: !!q && !!s.list?.fuzzy && threads.length > 0, // a typo forgiven (src/search.js)
       searchProps: { onInput: v => this.searchTyped(v) },
       page: s.list.page, pages: s.list.pages, total: s.list.total, perPage: s.list.per_page,
       pagerProps: { onPage: n => this.listChange({ page: n }) },

@@ -57,9 +57,11 @@ export async function getCatalog() {
 
 export const qs = () => new URLSearchParams(location.search);
 export const go = href => { location.href = href; };
-// Scopri remembers the view you're on (filters, search, page: all in its address) for the way back
+// Scopri remembers the view you're on (filters, page: all in its address) for the way back
 // from a profile (persona.js)
 export const SCOPRI_BACK_KEY = 'rientro.scopri.back';
+// The same for the search's results (cerca.js), the way back being "Torna ai risultati"
+export const CERCA_BACK_KEY = 'rientro.cerca.back';
 
 // A short, light vibration (a long press that opened something). Android: the Vibration API. iPhone
 // Safari has none, but toggling a native switch (<input type="checkbox" switch>, iOS 18+) plays the

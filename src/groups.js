@@ -122,13 +122,17 @@ export function listPosts(db, viewer, id, query = new URLSearchParams()) {
 }
 
 // Search in the groups (Scopri's "Gruppi" tab: src/search.js): posts and comments by what they say,
-// across every group, newest first, at most 50. A post found by a comment shows that comment.
+// across every group (or one: ?group=), newest first, at most 50. A post found by a comment shows that
+// comment.
 export function searchGroups(db, viewer, query = new URLSearchParams()) {
   requireMemberArea(viewer);
   const ts = terms(query.get('q') || '');
   if (!ts.length) return { items: [] };
   const v = { $viewer: viewer.id };
-  const posts = db.prepare(`SELECT * FROM group_posts WHERE author_id NOT IN ${HIDDEN} ORDER BY id DESC`).all(v);
+  // ?group=: only in that one (the "Gruppo" filter)
+  const only = query.get('group') && groupOr404(db, query.get('group')).id;
+  const posts = db.prepare(`SELECT * FROM group_posts WHERE author_id NOT IN ${HIDDEN} ${only ? 'AND group_id = $group' : ''} ORDER BY id DESC`)
+    .all(only ? { ...v, $group: only } : v);
   const comments = db.prepare(`SELECT * FROM group_comments WHERE author_id NOT IN ${HIDDEN} ORDER BY id DESC`).all(v);
   const names = new Map(db.prepare('SELECT id, name FROM groups').all().map(g => [g.id, g.name]));
   const items = forgiving(fuzzy => {
@@ -143,7 +147,7 @@ export function searchGroups(db, viewer, query = new URLSearchParams()) {
       };
     });
   });
-  return { items };
+  return { items, fuzzy: !!items.fuzzy };
 }
 
 export function createPost(db, viewer, id, body) {

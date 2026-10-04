@@ -1,5 +1,5 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, timeAgo, toast } from '../lib.js';
+import { api, CERCA_BACK_KEY, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, timeAgo, toast } from '../lib.js';
 import { block, connect, report } from '../social.js';
 import { Page } from './_base.js';
 
@@ -12,25 +12,29 @@ const from = () => {
   const da = new URLSearchParams(location.search).get('da');
   // Opened from a chat: back to that chat
   if (da === 'messaggi') return { section: 'messaggi', backHref: `/messaggi/${location.pathname.split('/').pop()}`, backLabel: 'Messaggi' };
+  // Opened from the search: back to the same results (tab, group, page: cerca.js remembers them)
+  if (da === 'cerca') return { section: 'cerca', backHref: `/cerca${remembered(CERCA_BACK_KEY)}`, backLabel: 'Torna ai risultati' };
   return ['connessioni', 'ricevute', 'inviate'].includes(da)
     ? { section: 'connessioni', backHref: `/connessioni?tab=${da}`, backLabel: 'Connessioni' }
     : { section: 'scopri', backHref: `/scopri${lastScopriSearch()}`, backLabel: 'Scopri chi torna' };
 };
-// Back to Scopri with the filters, search and page you left it with (scopri.js remembers them)
-const lastScopriSearch = () => {
-  try { return sessionStorage.getItem(SCOPRI_BACK_KEY) || ''; } catch { return ''; }
+// The address of the list you came from (scopri.js, cerca.js remember theirs)
+const remembered = key => {
+  try { return sessionStorage.getItem(key) || ''; } catch { return ''; }
 };
+// Back to Scopri with the filters and page you left it with
+const lastScopriSearch = () => remembered(SCOPRI_BACK_KEY);
 
-// Scrolling turns the 4:5 photo into a square, cropped at the centre (object-fit: cover), one pixel
-// of height per pixel scrolled; scrolling back brings it back. On a computer it starts once the left
-// column sticks; on a phone (one column, nothing sticks) right from the top.
+// Computers: scrolling turns the 4:5 photo into a square, cropped at the centre (object-fit: cover),
+// one pixel of height per pixel scrolled, once the left column sticks; scrolling back brings it back.
+// Phones (one column): the photo stays as it is.
 function shrinkPhoto() {
   const aside = document.querySelector('.persona-aside');
   const wrap = aside?.querySelector('.persona-photo');
   if (!wrap) return;
+  if (innerWidth <= 720) { wrap.style.removeProperty('--pr'); return; }
   const grid = aside.parentElement;
-  const stuckAt = innerWidth <= 720 ? 0
-    : grid.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(grid).paddingTop) - (parseFloat(getComputedStyle(aside).top) || 0);
+  const stuckAt = grid.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(grid).paddingTop) - (parseFloat(getComputedStyle(aside).top) || 0);
   const w = wrap.offsetWidth;
   const range = w * 5 / 4 - w;
   const t = Math.min(1, Math.max(0, (scrollY - stuckAt) / range));

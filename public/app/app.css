@@ -55,6 +55,9 @@ input:focus::placeholder, textarea:focus::placeholder { opacity: 0; }
 
 /* No selection outline around anything focused or clicked (the owner's choice) */
 :focus, :focus-visible { outline: none; }
+/* A chip that does nothing (no role: no on-click), like the interests on a profile, is a plain label:
+   no hand (the design sets cursor:pointer on every chip) */
+[data-sc-name="UI Chip"]:not([role]) > div { cursor: default !important; }
 /* Everything clickable shows the hand, whether or not its template says so; disabled controls
    show not-allowed, including their children (design components set cursor:pointer inline). */
 button, summary, select, label[for], label:has(input[type="checkbox"], input[type="radio"], input[type="file"]),
@@ -752,7 +755,9 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 .group-menu button:hover { background: #F1EFF8; }
 
 /* A group page as the server writes it (search engines, first paint), until the app takes over */
-.ssr-group { max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
+/* (written for search engines and link previews; on screen the page draws itself over it, so it
+   never shows: a flash of plain text otherwise) */
+.ssr-group { visibility: hidden; max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
 .ssr-group h1 { font-family: 'Unbounded', sans-serif; }
 .ssr-group .ssr-body { white-space: pre-wrap; }
 .ssr-group img { max-width: 100%; }
@@ -802,6 +807,7 @@ html.pv-open { overflow: hidden; }
 .group-hit-top b { font-weight: 600; color: #1A1726; }
 .group-hit-text { font-size: 15px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 .group-hit-text mark { background: #EFEBFF; color: #3E2BA8; padding: 0 3px; border-radius: 4px; }
+.group-filter { display: flex; gap: 6px; flex-wrap: wrap; }
 .group-hits-empty { margin: 24px 0; text-align: center; color: #6B6680; font-size: 15px; }
 
 .scopri-end { height: 1px; margin-top: -23px; } /* right after the last card (scopri.js); takes no room: cancels the column's gap */
@@ -838,4 +844,8 @@ html.search-sheet-open { overflow: hidden; }
 .search-sheet-field input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .search-sheet-list { flex: 1; overflow-y: auto; padding: 10px 12px; font-size: 16px; }
 .search-sheet-list .recent-q { padding: 12px 10px; }
+
+/* The search page (cerca.js) */
+.search-page { max-width: 880px; margin: 0 auto; padding: 28px var(--gutter) 0; display: flex; flex-direction: column; gap: 22px; }
+.search-hint { max-width: 880px; margin: 60px auto 0; padding: 0 var(--gutter); text-align: center; color: #6B6680; font-size: 15px; }
 
