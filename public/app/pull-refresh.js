@@ -14,7 +14,7 @@ export function pullToRefresh(page) {
   const spinner = Object.assign(document.createElement('div'), { className: 'pull-spinner' });
   spinner.setAttribute('aria-hidden', 'true');
   spinner.innerHTML = `<b class="pull-wheel"><i><svg viewBox="0 0 24 24" width="26" height="26">${Array.from({ length: SPOKES }, (_, i) =>
-    `<rect x="11" y="2" width="2" height="6" rx="1" fill="currentColor" transform="rotate(${i * 360 / SPOKES} 12 12)" style="opacity:${(0.25 + 0.75 * (SPOKES - i) / SPOKES).toFixed(2)}"/>`).join('')}</svg></i></b><span>Lascia per aggiornare</span>`;
+    `<rect x="11" y="2" width="2" height="6" rx="1" fill="currentColor" fill-opacity="${(0.25 + 0.75 * (SPOKES - i) / SPOKES).toFixed(2)}" transform="rotate(${i * 360 / SPOKES} 12 12)"/>`).join('')}</svg></i></b><span>Lascia per aggiornare</span>`;
   document.body.append(spinner);
   let startY = null, pull = 0, busy = false;
   // The page (everything but the fixed bottom menu, app.css) and the spinner follow the pull

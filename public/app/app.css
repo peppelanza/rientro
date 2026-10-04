@@ -39,6 +39,15 @@ html { -webkit-tap-highlight-color: transparent; }
   :is(a[href], button, [role="button"], summary) { transition: opacity .18s ease; }
   :is(a[href], button, [role="button"], summary).tapped { opacity: .55; transition: none; }
 }
+/* Computers: a hover on everything clickable (hover-feedback.js tags each control the first time the
+   mouse reaches it). Surfaces get a faint veil in their own text colour; text links turn purple. */
+@media (hover: hover) and (pointer: fine) {
+  :where(.hov-rel) { position: relative; }
+  .hov-fill::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: currentColor; opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+  .hov-fill:hover::after { opacity: .08; }
+  .hov-text { transition: color .15s ease; }
+  .hov-text:hover { color: #6C4DF5 !important; }
+}
 
 /* Real inputs rendered inside UI Input-styled boxes */
 .bare-input { border: none; background: transparent; outline: none; font: inherit; color: inherit; flex: 1; min-width: 0; width: 100%; padding: 0; border-radius: 0; caret-color: #6C4DF5; }
@@ -678,8 +687,8 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
 
 /* Pull to refresh on phones (pull-refresh.js): the page slides down by --pull (the fixed bottom menu
    stays), an iOS-style spinner in the gap above */
-body.pull-active #app > div > :not([data-sc-name="App TabBar"]) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
-body.pull-dragging #app > div > :not([data-sc-name="App TabBar"]) { transition: none; }
+body.pull-active #app > div > :not([data-sc-name="App TabBar"], .scopri-top-guard) { transform: translateY(var(--pull, 0px)); transition: transform .25s ease; }
+body.pull-dragging #app > div > :not([data-sc-name="App TabBar"], .scopri-top-guard) { transition: none; }
 .pull-spinner { position: fixed; left: 50%; top: calc(var(--lb, 0px) + var(--pull, 0px) / 2 - 13px); z-index: 60; width: 26px; height: 26px; margin-left: -13px; color: #6B6680; font: 500 14px 'Geist', sans-serif; white-space: nowrap; opacity: 0; pointer-events: none; transition: top .25s ease, opacity .25s ease; }
 /* the wheel and "Lascia per aggiornare" (once far enough) in the same spot, crossfading */
 .pull-wheel, .pull-spinner span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity .2s ease; }
