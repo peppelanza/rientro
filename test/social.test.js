@@ -227,7 +227,10 @@ test('paging and search: discover sorts all results before paging, connections a
     assert.deepEqual([all.counts.connected, all.total, all.tab], [3, 3, 'connected']);
     const found = (await me.get('/api/connections?q=persona1')).body;
     assert.deepEqual(found.items.map(c => c.id), [others[1].id]);
+    assert.equal((await me.get('/api/threads?q=persona2')).body.total, 0, 'a connection nobody wrote in is not a conversation');
+    await me.post(`/api/threads/${others[2].id}`, { body: 'Ciao!' });
     assert.equal((await me.get('/api/threads?q=persona2')).body.items[0].id, others[2].id);
+    assert.equal((await me.get('/api/threads')).body.total, 1, 'only conversations with messages');
 
     await me.post(`/api/blocks/${others[5].id}`);
     assert.equal((await me.get('/api/me/blocks?q=persona5')).body.total, 1);

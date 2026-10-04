@@ -299,6 +299,7 @@ export default class extends Page {
     this.smooth = true;
     const t = s.threads.find(x => x.id === s.active);
     if (t) { t.last = `Tu: ${body}`; t.time = m.created_at; }
+    else { await this.fetchList(); s.anyThreads = true; } // the first message: the conversation joins the list
     this.scrollDown = true;
     requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
   });
@@ -403,7 +404,8 @@ export default class extends Page {
     const person = p && { id: p.id, name, first_name: p.first_name };
     return {
       loading: false, me: s.me,
-      noThreads: !s.anyThreads, hasThreads: !!s.anyThreads,
+      // (a chat opened before its first message, from a profile or Connessioni, shows even with no conversation yet)
+      noThreads: !s.anyThreads && !s.active, hasThreads: !!s.anyThreads || !!s.active,
       threads, noMatch: !!q && !threads.length, query: s.query,
       similarOnly: !!q && !!s.list?.fuzzy && threads.length > 0, // a typo forgiven (src/search.js)
       searchProps: { onInput: v => this.searchTyped(v) },
