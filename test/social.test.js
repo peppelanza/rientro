@@ -467,3 +467,19 @@ test('discover: a region in "Dove vuole vivere" finds anyone who chose a comune 
     assert.equal(counts['Sicilia (regione)'], 1);
   } finally { t.close(); }
 });
+
+test('age stays private: other members never get it (profile, cards, filters), you and the admins do', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('age-a@example.com');
+    const b = await t.approved('age-b@example.com');
+    const admin = await t.asAdmin();
+    assert.equal((await b.get(`/api/profiles/${a.id}`)).body.age_band, null, 'not to another member');
+    assert.equal((await a.get(`/api/profiles/${a.id}?anteprima=1`)).body.age_band, null, 'not in your preview as others see you');
+    assert.ok((await admin.get(`/api/admin/users/${a.id}`)).body.labels.age, 'the admins see it (admin panel)');
+    assert.ok((await a.get(`/api/profiles/${a.id}`)).body.age_band, 'you see your own');
+    const card = (await b.get('/api/profiles')).body.people.find(p => p.id === a.id);
+    assert.ok(card && !('age' in card), 'no age on cards');
+    assert.equal((await b.get('/api/profiles?age=30-34,35-39')).body.total, (await b.get('/api/profiles')).body.total, 'no filtering by age');
+  } finally { await t.close(); }
+});

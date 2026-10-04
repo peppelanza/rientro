@@ -21,7 +21,7 @@ function saveSort(sort) {
 
 // Loading: the page as it will be (pages/_base.js skeleton()), with one placeholder person
 const FAKE_PERSON = i => ({
-  id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', age: '30–34', role: 'Ruolo · Azienda', from: 'Città', to: 'Città o Città',
+  id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città o Città',
   seeks: 'Prodotto, Engineering', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', photo_url: null, connection: null,
 });
 const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], time: [], comuni: [], regions: [] };

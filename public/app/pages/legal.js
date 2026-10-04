@@ -1,5 +1,5 @@
 // Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
-// Cookie Policy: Privacy and Termini of 3 October 2026 (public groups), Cookie of 1 October 2026.
+// Cookie Policy: Privacy of 4 October 2026 (the age stays private), Termini of 3 October 2026 (public groups), Cookie of 1 October 2026.
 // Changing one: bump its LEGAL_VERSIONS entry (before launch, as for the groups, not needed: nobody to ask).
 // No cookie banner (43c): only technical cookies; visit statistics without cookies (Cloudflare Web Analytics).
 import { Page } from './_base.js';
@@ -8,7 +8,7 @@ export const title = 'Informazioni legali';
 
 const DOCS = {
   privacy: {
-    title: 'Privacy Policy', updated: 'AGGIORNATA IL 3 OTTOBRE 2026',
+    title: 'Privacy Policy', updated: 'AGGIORNATA IL 4 OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
       ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
@@ -28,7 +28,7 @@ const DOCS = {
       ['Quali dati trattiamo', [
         'Dati che ci dai tu quando ti iscrivi e compili il profilo:',
         '• Account: indirizzo email.',
-        '• Profilo: nome e cognome, foto, video di presentazione (facoltativo), anno di nascita (agli altri utenti mostriamo solo la fascia d’età che ne deriva), paese e città in cui vivi, da dove sei rientrato e in quale periodo, comuni in cui vorresti vivere, obiettivo (per esempio avviare un progetto o fare rete) e l’eventuale idea che vuoi sviluppare, area professionale, ruolo e azienda attuali, anni di esperienza, formazione ed esperienze lavorative, un risultato di cui vai fiero, settori di interesse, le persone e le competenze che cerchi, tempo che puoi dedicare e quando vuoi iniziare, cosa ti manca dell’Italia, link facoltativi (LinkedIn, sito, Instagram, X, calendario) e come hai conosciuto Rientro.',
+        '• Profilo: nome e cognome, foto, video di presentazione (facoltativo), anno di nascita (non lo mostriamo agli altri utenti), paese e città in cui vivi, da dove sei rientrato e in quale periodo, comuni in cui vorresti vivere, obiettivo (per esempio avviare un progetto o fare rete) e l’eventuale idea che vuoi sviluppare, area professionale, ruolo e azienda attuali, anni di esperienza, formazione ed esperienze lavorative, un risultato di cui vai fiero, settori di interesse, le persone e le competenze che cerchi, tempo che puoi dedicare e quando vuoi iniziare, cosa ti manca dell’Italia, link facoltativi (LinkedIn, sito, Instagram, X, calendario) e come hai conosciuto Rientro.',
         '• Comunicazioni: le note che accompagnano le richieste di connessione, i messaggi che scambi con le tue connessioni, i post (testi e foto) e i commenti che pubblichi nei gruppi, le segnalazioni che invii e il motivo, facoltativo, per cui cancelli l’account.',
         '• Preferenze: le tue scelte su newsletter e notifiche, e le conferme di presa visione dei nostri documenti legali.',
         'Dati che riceviamo se accedi con LinkedIn o Google: se scegli di accedere tramite uno di questi servizi, riceviamo da loro soltanto i dati che autorizzi nella schermata del fornitore, di norma nome, cognome, indirizzo email e foto del profilo. Non riceviamo mai la tua password e non pubblichiamo nulla sui tuoi account. Se non hai ancora una foto su Rientro, usiamo la foto del tuo account come foto profilo iniziale solo se mostra un volto; puoi cambiarla quando vuoi.',

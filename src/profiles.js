@@ -315,7 +315,8 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
   return {
     id: targetId,
     first_name: p.first_name, last_name: p.last_name,
-    age_band: label(AGE_BANDS, p.age_band),
+    // the age stays private: only you (not in the preview of how others see you) and the admins
+    age_band: (self && !preview) || viewer.role === 'admin' ? label(AGE_BANDS, p.age_band) : null,
     lives_in_city: p.lives_in_city, lives_in_country: p.lives_in_country,
     arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
     desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p),
@@ -348,7 +349,6 @@ export function card(db, viewer, p, viewerP) {
     id: p.user_id,
     name: [p.first_name, p.last_name].filter(Boolean).join(' '),
     first_name: p.first_name,
-    age: label(AGE_BANDS, p.age_band) ?? '',
     role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
     from: p.lives_in_city ?? '',
     // already back in Italy: where from (shown "Rientrato da X → Y" instead of where they'd like to go)
@@ -386,7 +386,6 @@ const FACETS = {
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   time: (p, v) => !v || p.time_commitment === v,
-  age: (p, v) => !v.length || v.includes(p.age_band),
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
 };
 
@@ -433,7 +432,6 @@ export function parseDiscoverQuery(q) {
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',
     time: ['full_time', 'part_time'].includes(q.get('time')) ? q.get('time') : '',
-    age: arr('age').filter(x => values(AGE_BANDS).includes(x)),
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
     // "Più affini" (default) or "Più recenti", over all the results, then 24 per page
     sort: q.get('sort') === 'recent' ? 'recent' : 'match',

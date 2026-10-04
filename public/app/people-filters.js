@@ -3,18 +3,17 @@
 // panel (App People Filters, components.js) and of the phone's "Filtri" row above the results.
 
 export const LIST_KEYS = ['intent', 'backgrounds', 'sectors', 'desired'];
-export const AGES = [['18-24', '18–24', ['18-24']], ['25-29', '25–29', ['25-29']], ['30-34', '30–34', ['30-34']], ['35-39', '35–39', ['35-39']], ['40+', '40+', ['40-44', '45-50+']]];
 export const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insieme", networking: 'Networking' };
 
 export function readFilters(params = new URLSearchParams(location.search)) {
-  const f = { lives: params.get('lives') || '', time: params.get('time') || '', age: params.get('age') || '', include_unknown: params.get('include_unknown') === '1' };
+  const f = { lives: params.get('lives') || '', time: params.get('time') || '', include_unknown: params.get('include_unknown') === '1' };
   for (const k of LIST_KEYS) f[k] = params.get(k) ? params.get(k).split(',').filter(Boolean) : [];
   return f;
 }
-export const emptyFilters = () => ({ lives: '', time: '', age: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] });
+export const emptyFilters = () => ({ lives: '', time: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] });
 
 // The filters behind "Tutti i filtri" (computer): everything but where they live and want to live
-export const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length + (f.time ? 1 : 0) + (f.age ? 1 : 0);
+export const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length + (f.time ? 1 : 0);
 
 // For the address
 export function toQuery(f) {
@@ -22,17 +21,12 @@ export function toQuery(f) {
   for (const k of LIST_KEYS) if (f[k].length) q.set(k, f[k].join(','));
   if (f.lives) q.set('lives', f.lives);
   if (f.time) q.set('time', f.time);
-  if (f.age) q.set('age', f.age);
   if (f.include_unknown && f.desired.length) q.set('include_unknown', '1');
   return q;
 }
 
-// For the API, which takes age bands ("40+" covers two of them)
-export function apiQuery(f) {
-  const q = toQuery(f);
-  if (f.age) q.set('age', AGES.find(a => a[0] === f.age)?.[2].join(',') ?? '');
-  return q.toString();
-}
+// For the API
+export const apiQuery = f => toQuery(f).toString();
 
 // "Tutti i filtri" open or closed, for this visit; open by itself when one of them is in use
 const MORE_KEY = 'rientro.scopri.more';
@@ -52,7 +46,6 @@ export function activeFilters(f, cat) {
   for (const b of f.backgrounds) out.push({ label: b.split(' /')[0], without: g => ({ ...g, backgrounds: g.backgrounds.filter(x => x !== b) }) });
   for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
   if (f.time) out.push({ label: cat.time.find(t => t[0] === f.time)?.[1], without: g => ({ ...g, time: '' }) });
-  if (f.age) out.push({ label: AGES.find(a => a[0] === f.age)?.[1], without: g => ({ ...g, age: '' }) });
   return out;
 }
 
@@ -106,6 +99,5 @@ export function filterPanel(page, counts = { intent: {}, backgrounds: {} }) {
     sectors: shownSectors, moreSectorsLabel: s.moreSectors ? 'Meno' : `+ ${cat.sectors.length - shownSectors.length}`, hasMoreSectors: s.moreSectors || shownSectors.length < cat.sectors.length,
     toggleMoreSectors: () => page.setState({ moreSectors: !s.moreSectors }),
     timeOpts: [{ v: 'full_time', l: 'Full-time' }, { v: 'part_time', l: 'Part-time' }], time: f.time, timeProps: { onSelect: v => set({ time: v }) },
-    ageOpts: AGES.map(([v, l]) => ({ v, l })), age: f.age, ageProps: { onSelect: v => set({ age: v }) },
   };
 }

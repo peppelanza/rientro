@@ -43,7 +43,7 @@ function shrinkPhoto() {
 
 // Loading: the profile as it will be (pages/_base.js skeleton()), from a placeholder person
 const FAKE_PROFILE = {
-  id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null, video_locked: false, age_band: '30–34',
+  id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null, video_locked: false, age_band: null,
   lives_in_city: 'Città', lives_in_country: 'Paese', arrived: null, desired_comuni: ['Città'], desired_unknown: 0, places: 'Città o Città',
   primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore'],
   idea: { title: 'Il titolo di un’idea da costruire', description: 'Qualche riga che racconta l’idea, cosa risolve e per chi, abbastanza lunga da andare a capo almeno una volta.', stage: null },

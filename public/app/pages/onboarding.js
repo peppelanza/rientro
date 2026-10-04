@@ -3,7 +3,7 @@
 // come back.
 import { api, fmtMonth, fmtTime, getCatalog, getMe, go, orList, setMe, toast, upload } from '../lib.js';
 import { flagBurst } from '../flags.js';
-import { ageBandLabel, ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
+import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { canTakePhoto, takePhoto } from '../camera.js';
 import { preparePhoto, warmUpFaceCheck } from '../face.js';
@@ -289,7 +289,7 @@ export default class extends Page {
 
     // Preview (23a)
     const pvFacts = [
-      ['Età', ageBandLabel(p.birth_year) ?? cat.ageBands.find(a => a[0] === p.age_band)?.[1]], ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
+      ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
       ['Rientro', p.lives_in !== 'italy' ? null : p.always_in_italy ? 'Ha sempre vissuto in Italia' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', orList(p.desired_comuni) || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));

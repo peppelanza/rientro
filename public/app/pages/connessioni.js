@@ -11,7 +11,7 @@ const API_TAB = { connessioni: 'connected', ricevute: 'received', inviate: 'sent
 // Loading: the page as it will be (pages/_base.js skeleton()), one placeholder person in the open tab
 const FAKE = i => ({
   id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', since: new Date().toISOString(),
-  created_at: new Date().toISOString(), note: 'Una breve nota per presentarsi.', photo_url: null, age: '30–34',
+  created_at: new Date().toISOString(), note: 'Una breve nota per presentarsi.', photo_url: null,
   seeks: 'Prodotto', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', connection: null,
 });
 const skeletonState = s => {
