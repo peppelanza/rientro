@@ -455,7 +455,7 @@ body { padding-top: var(--lb, 0px); }
 .ts-box { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1000; }
 .ts-box:empty { display: none; }
 
-/* "Scatta una foto" (camera.js): square stage with a guide for the face */
+/* "Scatta foto" (camera.js): square stage with a guide for the face */
 .cam-stage { aspect-ratio: 1 / 1; max-height: 60vh; margin: 0 auto; width: 100%; }
 .cam-still { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cam-still[hidden] { display: none; }

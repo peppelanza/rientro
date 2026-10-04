@@ -1,4 +1,4 @@
-// "Scatta una foto": the camera in a dialog (same look as the video recorder in video.js). Resolves
+// "Scatta foto": the camera in a dialog (same look as the video recorder in video.js). Resolves
 // with a JPEG File once the member keeps a shot, or null. The shot then goes through the same checks
 // and framing as an uploaded photo (face.js).
 export const canTakePhoto = () => !!navigator.mediaDevices?.getUserMedia;
@@ -13,7 +13,7 @@ export function takePhoto() {
     dialog.setAttribute('role', 'dialog');
     dialog.setAttribute('aria-modal', 'true');
     dialog.setAttribute('aria-labelledby', 'cam-title');
-    const title = el('h2', 'rec-title', 'Scatta una foto');
+    const title = el('h2', 'rec-title', 'Scatta foto');
     title.id = 'cam-title';
     const hint = el('p', 'rec-hint', 'Guarda in camera, con il viso ben illuminato e in primo piano.');
     const stage = el('div', 'rec-stage cam-stage');

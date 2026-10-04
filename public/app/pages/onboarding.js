@@ -391,7 +391,7 @@ export default class extends Page {
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
       // A check that didn't pass (face.js): just a suggestion, the admin looks at it later
       photoHint: !!p.photo_url && !!p.photo_check && p.photo_check !== 'unchecked',
-      photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? 'Cambia foto' : 'Obbligatoria · si deve vedere il tuo volto',
+      photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? '' : 'Obbligatoria · si deve vedere il tuo volto', // (to change it: "Carica foto" / "Scatta foto")
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       firstName: p.first_name ?? '', lastName: p.last_name ?? '', bio: p.bio ?? '',
