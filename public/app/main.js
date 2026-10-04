@@ -2,14 +2,14 @@
 // Each page is pages/<name>.js (Logic) + pages/<name>.html (template copied from design/).
 import '../dc/gen/components.js';
 import './components.js';
-import { DCLogic, mountPage } from '../dc/runtime.js';
+import { mountPage } from '../dc/runtime.js';
 import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
 import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
 import { searchHistory } from './search-history.js';
 import { tapFeedback } from './tap-feedback.js';
-import { api, getMe, openModal, showFlash, template } from './lib.js';
+import { showFlash, template } from './lib.js';
 
 const ROUTES = [
   [/^\/$/, 'home'],
@@ -63,32 +63,8 @@ async function boot() {
   const logic = mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
   if (mod.tabbar) pullToRefresh(logic);
   showFlash();
-  if (!NO_LEGAL_PROMPT.has(page)) askLegalUpdate();
 }
 
-// Terms or Privacy updated since the member last confirmed them: a one-time dialog on the app pages.
-// Not on public pages, sign-in, legal pages or onboarding (it's asked once the profile has been sent).
-const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding']);
-async function askLegalUpdate() {
-  // the session without redirecting: public pages (a group) are open to visitors too
-  const me = await fetch('/api/session').then(r => (r.ok ? r.json() : null)).catch(() => null);
-  if (!me?.legal?.needs?.length || me.user.status === 'onboarding' || me.impersonated) return;
-  const tpl = `<div class="legal-update"><h2>Abbiamo aggiornato i nostri documenti</h2>
-<p>Dal 30 settembre 2026 sono in vigore i nuovi <a href="/legal/termini" target="_blank">Termini</a> e la nuova <a href="/legal/privacy" target="_blank">Privacy Policy</a>: tra le novità, 30 giorni per ripensarci quando cancelli l’account. Per continuare a usare Rientro, confermali.</p>
-<sc-if value="{{ error }}"><p role="alert" class="legal-update-err">{{ error }}</p></sc-if>
-<dc-import name="UI Button" label="Ho letto e accetto" variant="accent" size="lg" full="{{ true }}" on-click="{{ accept }}"></dc-import></div>`;
-  await openModal({ template: tpl, Logic: class extends DCLogic {
-    state = { error: null };
-    renderVals() {
-      return { error: this.state.error, accept: async () => {
-        try { await api('POST', '/api/me/legal', { accept: true }); await getMe(true); this.close(true); } catch (err) { this.setState({ error: err.message }); }
-      } };
-    }
-  } });
-}
-
-tapFeedback();
-searchHistory();
 launchBar();
 impersonationFrame();
 tabbarOnScroll();

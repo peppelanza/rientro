@@ -400,16 +400,14 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // Updated Terms/Privacy must be acknowledged before changing the profile, except during onboarding:
   // updated documents are asked for once the profile has been sent (the prompt on the member pages).
-  const legal = user => { if (user.status !== 'onboarding') auth.requireLegal(db, user.id); };
-  route('PATCH', '/api/me/profile', async ({ user, req }) => { legal(user); return profiles.updateProfile(db, user, await readJson(req)); });
-  route('POST', '/api/me/education', async ({ user, req }) => { legal(user); return profiles.saveEducation(db, user.id, await readJson(req)); });
+  route('PATCH', '/api/me/profile', async ({ user, req }) => { return profiles.updateProfile(db, user, await readJson(req)); });
+  route('POST', '/api/me/education', async ({ user, req }) => { return profiles.saveEducation(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/education/:id', async ({ user, req, params }) => profiles.saveEducation(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/education/:id', ({ user, params }) => profiles.deleteRow(db, 'education', user.id, params.id));
-  route('POST', '/api/me/experiences', async ({ user, req }) => { legal(user); return profiles.saveExperience(db, user.id, await readJson(req)); });
+  route('POST', '/api/me/experiences', async ({ user, req }) => { return profiles.saveExperience(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/experiences/:id', async ({ user, req, params }) => profiles.saveExperience(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/experiences/:id', ({ user, params }) => profiles.deleteRow(db, 'experiences', user.id, params.id));
   route('POST', '/api/me/photo', async ({ user, req }) => {
-    legal(user);
     const out = attachUpload(db, user, 'profile_photo', await receiveUpload(req, 'profile_photo'));
     // The browser's check (face.js) never blocks: a photo that didn't pass goes to "Foto da controllare"
     const check = ['no_face', 'small_face', 'multiple_faces', 'low_res', 'unchecked'].includes(req.headers['x-photo-check']) ? req.headers['x-photo-check'] : null;
@@ -441,20 +439,18 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return { ok: true };
   });
   route('POST', '/api/me/video', async ({ user, req }) => {
-    legal(user);
     return attachUpload(db, user, 'profile_video', await checkVideo(await receiveUpload(req, 'profile_video')));
   });
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user, cookies }) => { legal(user); profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id), cookies); });
+  route('POST', '/api/me/submit', ({ user, cookies }) => { profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id), cookies); });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
-    legal(user);
     const source = url.searchParams.get('source') === 'onboarding' ? 'onboarding' : 'settings';
     return prefs.setJobSeeking(db, user.id, await readJson(req), source);
   });
-  route('PATCH', '/api/me/job-preferences', async ({ user, req }) => { legal(user); return prefs.updateJobDetails(db, user.id, await readJson(req)); });
+  route('PATCH', '/api/me/job-preferences', async ({ user, req }) => { return prefs.updateJobDetails(db, user.id, await readJson(req)); });
   route('PUT', '/api/me/communication', async ({ user, req, url }) => {
     const source = url.searchParams.get('source') === 'onboarding' ? 'onboarding' : 'settings';
     return prefs.setCommunicationPreference(db, user.id, await readJson(req), source);
@@ -512,7 +508,6 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { ...pub, raw: true });
   // A picture for a post, before publishing it (the browser has resized and checked it)
   route('POST', '/api/groups/images', async ({ user, req }) => {
-    legal(user);
     groups.requireMemberArea(user);
     return storeGroupImage(db, user, await receiveUpload(req, 'group_image'));
   });

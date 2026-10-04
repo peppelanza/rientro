@@ -164,6 +164,3 @@ export function acknowledgeLegal(db, userId, body) {
   return legalStatus(db, userId);
 }
 
-export function requireLegal(db, userId) {
-  if (legalStatus(db, userId).needs.length) throw new HttpError(409, 'legal_required', 'Accetta prima i Termini aggiornati.');
-}
