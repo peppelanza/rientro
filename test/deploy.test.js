@@ -193,3 +193,14 @@ test('visit statistics: the exact page people came from, without our own pages',
     assert.equal(e.visits, 1);
   } finally { Object.assign(config, { cfAnalyticsToken: '', cfAccountId: '', cfApiToken: '', cfAnalyticsSiteTag: '' }); }
 });
+
+test('a file whose upload is gone from disk is a 404, and the server keeps going', async () => {
+  const fs = await import('node:fs');
+  const { fileOnDisk } = await import('../src/files.js');
+  const u = await t.approved('lost-file@x.it');
+  const id = (await u.get('/api/me')).body.profile.photo_file_id;
+  assert.ok(id, 'a photo to lose');
+  fs.rmSync(fileOnDisk(t.app.db, id).path, { force: true });
+  assert.equal((await u.raw('GET', `/api/files/${id}`)).status, 404);
+  assert.equal((await u.get('/api/me')).status, 200, 'still serving');
+});

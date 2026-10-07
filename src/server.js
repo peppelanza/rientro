@@ -230,7 +230,11 @@ function serveStatic(res, pathname) {
 }
 
 // Stream a stored file, with Range support so videos can be scrubbed (Safari requires it).
+// An uploaded file, whole or a range. Its record may outlive the file on disk (a lost or cleaned-up
+// upload): then a 404, never an unhandled error that would take the server down.
 function streamFile(req, res, f) {
+  if (!fs.existsSync(f.path)) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('Not found'); return; }
+  const pipe = stream => stream.on('error', err => { console.error('[file]', err.code || err.message); res.destroy(); }).pipe(res);
   const headers = { 'Content-Type': f.mime, 'Cache-Control': 'private, max-age=300', 'Content-Disposition': 'inline', 'Accept-Ranges': 'bytes' };
   const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
   if (range) {
@@ -238,11 +242,11 @@ function streamFile(req, res, f) {
     const end = range[1] && range[2] ? Math.min(Number(range[2]), f.size - 1) : f.size - 1;
     if (start > end || start >= f.size) { res.writeHead(416, { 'Content-Range': `bytes */${f.size}` }); res.end(); return; }
     res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${f.size}`, 'Content-Length': end - start + 1 });
-    fs.createReadStream(f.path, { start, end }).pipe(res);
+    pipe(fs.createReadStream(f.path, { start, end }));
     return;
   }
   res.writeHead(200, { ...headers, 'Content-Length': f.size });
-  fs.createReadStream(f.path).pipe(res);
+  pipe(fs.createReadStream(f.path));
 }
 
 // --- pages ---------------------------------------------------------------------------------

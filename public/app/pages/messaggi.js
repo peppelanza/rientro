@@ -315,7 +315,9 @@ export default class extends Page {
   // page is redrawn anew meanwhile (new elements), so each redraw carries on from where it was
   // (sideDelay: a negative delay) instead of starting it again
   sideClass(side) {
-    if (this.side !== undefined && this.side !== side) this.sideAnim = { cls: side ? ' side-in' : ' side-out', at: performance.now() };
+    // only a change you make (a chat ↔ no chat or a new message); not the page arriving with a chat
+    // open, nor going from one chat to another (the column stays)
+    if (this.sideReady && this.side !== undefined && this.side !== side) this.sideAnim = { cls: side ? ' side-in' : ' side-out', at: performance.now() };
     this.side = side;
     const t = this.sideAnim ? performance.now() - this.sideAnim.at : Infinity;
     if (t > SIDE_MS) this.sideAnim = null;
@@ -350,6 +352,8 @@ export default class extends Page {
   }
 
   didRender(el) {
+    // the page's first full drawing is where it starts: from here the right column fades in and out
+    if (this.state.ready) this.sideReady = true;
     // Phone: an open chat takes the whole screen (no top bar, no bottom menu); app.css
     document.body.classList.toggle('chat-open', (!!this.state.active && !this.state.closed) || !!this.state.composing);
     fitViewport();
