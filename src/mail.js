@@ -56,8 +56,8 @@ export function welcomeEmail({ launched = isLaunched() } = {}) {
     ['Connettiti con una nota', 'Invii una richiesta con due righe su di te. Se accetta, potete scrivervi e si sbloccano Instagram, X e il calendario.'],
   ];
   const intro = launched
-    ? 'Rientro è la community di chi vuole tornare in Italia per costruire qualcosa. Ecco come funziona.'
-    : `Rientro è la community di chi vuole tornare in Italia per costruire qualcosa. Apriamo il ${date}: intanto prepara il tuo profilo, così il giorno del lancio sarai tra i primi.`;
+    ? 'Rientro è la community di chi vuole tornare in Italia o al Sud per costruire qualcosa. Ecco come funziona.'
+    : `Rientro è la community di chi vuole tornare in Italia o al Sud per costruire qualcosa. Apriamo il ${date}: intanto prepara il tuo profilo, così il giorno del lancio sarai tra i primi.`;
   const cta = launched ? ['Completa il profilo', url('/onboarding')] : ['Prepara il tuo profilo', url('/onboarding')];
   return {
     subject: launched ? 'Benvenuto su Rientro' : `Benvenuto su Rientro: apriamo il ${date}`,

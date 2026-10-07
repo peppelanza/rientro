@@ -43,7 +43,7 @@ export function layout({ preheader = '', body, footer = '' }) {
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:560px">
 <tr><td style="padding:0 8px 18px"><a href="${url('/')}" style="text-decoration:none;font-family:${SERIF};font-style:italic;font-size:30px;line-height:1;color:${C.ink}">Rientro<span style="color:${C.accent};font-style:normal">.</span></a></td></tr>
 <tr><td style="background:${C.card};border-radius:28px;padding:36px 32px">${body}</td></tr>
-<tr><td style="padding:20px 8px 0;font-family:${BODY};font-size:12px;line-height:1.6;color:${C.muted}">${footer ? `${footer}<br>` : ''}Rientro · la community di chi torna in Italia per costruire qualcosa · <a href="${url('/')}" style="color:${C.muted}">rientro.it</a></td></tr>
+<tr><td style="padding:20px 8px 0;font-family:${BODY};font-size:12px;line-height:1.6;color:${C.muted}">${footer ? `${footer}<br>` : ''}Rientro · la community di chi torna in Italia o al Sud per costruire qualcosa · <a href="${url('/')}" style="color:${C.muted}">rientro.it</a></td></tr>
 </table></td></tr></table></body></html>`;
 }
 
