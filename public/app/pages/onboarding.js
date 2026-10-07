@@ -45,6 +45,8 @@ const FREQUENT = ['Roma', 'Torino', 'Napoli', 'Firenze'];
 const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k] ?? null]));
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
+// Already back in Italy: where they live is where they wanted to be (profiles.js isBack)
+const isBack = p => p?.lives_in === 'italy' && !p.always_in_italy;
 
 export default class extends Page {
   async load() {
@@ -90,10 +92,11 @@ export default class extends Page {
     this.next();
   };
 
-  // "Da dove sei arrivato" only for who already came back; the idea step only for who has one
+  // "Da dove sei arrivato" only for who lives in Italy, "Dove vorresti vivere" not for who already
+  // came back (it's where they live); the idea step only for who has one
   get steps() {
     const p = this.state.p;
-    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'idea' || p?.primary_intent === 'has_idea'));
+    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'dove' || !isBack(p)) && (k !== 'idea' || p?.primary_intent === 'has_idea'));
   }
 
   goTo(step) {
@@ -291,7 +294,7 @@ export default class extends Page {
     const pvFacts = [
       ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
       ['Rientro', p.lives_in !== 'italy' ? null : p.always_in_italy ? 'Ha sempre vissuto in Italia' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
-      ['Vuole vivere a', orList(p.desired_comuni) || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
+      ['Vuole vivere a', isBack(p) ? '' : orList(p.desired_comuni) || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const timeLabel = [cat.time.find(t => t[0] === p.time_commitment)?.[1], cat.start.find(t => t[0] === p.start_when)?.[1]?.toLowerCase()].filter(Boolean).join(' · ');
 
@@ -391,7 +394,6 @@ export default class extends Page {
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
       // A check that didn't pass (face.js): just a suggestion, the admin looks at it later
       photoHint: !!p.photo_url && !!p.photo_check && p.photo_check !== 'unchecked',
-      photoNoteColor: p.photo_url ? '#6B6680' : '#B42318', photoNote: p.photo_url ? '' : 'Obbligatoria · si deve vedere il tuo volto', // (to change it: "Carica foto" / "Scatta foto")
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       firstName: p.first_name ?? '', lastName: p.last_name ?? '', bio: p.bio ?? '',
@@ -478,7 +480,7 @@ export default class extends Page {
       pvSeeks: p.seeking_backgrounds.join(', ') || '—', pvTime: timeLabel || '—',
       pvNoVideo: !p.video_url,
       pvMissing: [
-        !p.lives_in_city && 'Dove vivi', !p.desired_comuni.length && !p.desired_unknown && 'Dove vorresti vivere', !p.primary_intent && 'Obiettivo',
+        !p.lives_in_city && 'Dove vivi', !isBack(p) && !p.desired_comuni.length && !p.desired_unknown && 'Dove vorresti vivere', !p.primary_intent && 'Obiettivo',
         !p.photo_url && 'Foto', (!p.first_name || !p.last_name) && 'Nome e cognome', !p.background_area && 'Background',
         !p.seeking_backgrounds.length && 'Chi stai cercando', !p.time_commitment && 'Tempo',
       ].filter(Boolean).join(', '),

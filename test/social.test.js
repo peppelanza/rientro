@@ -19,6 +19,25 @@ test('onboarding: submit requires the essentials, then the profile is online', a
   assert.equal(s.body.user.status, 'approved');
 });
 
+test('who is already back in Italy wants to live where they live; abroad or always in Italy they choose', async () => {
+  const a = await t.approved('tornato@x.it', { lives_in: 'italy', lives_in_city: 'Lecce', desired_comuni: ['Roma'] });
+  let r = await a.patch('/api/me/profile', { lives_in: 'italy', lives_in_city: 'Bari' });
+  assert.deepEqual(r.body.desired_comuni, ['Bari']);
+  assert.equal(r.body.desired_unknown, false);
+  const viewer = await t.approved('vede@x.it');
+  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.back, true);
+  // "Ho sempre vissuto in Italia": where they'd like to live is theirs to say
+  r = await a.patch('/api/me/profile', { always_in_italy: true, desired_comuni: ['Palermo'] });
+  assert.deepEqual(r.body.desired_comuni, ['Palermo']);
+  r = await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Germania', lives_in_city: 'Berlino', always_in_italy: false, desired_comuni: ['Napoli'] });
+  assert.deepEqual(r.body.desired_comuni, ['Napoli']);
+  // Earlier answers are brought in line when the server starts
+  t.app.db.prepare("UPDATE profiles SET lives_in = 'italy', lives_in_city = 'Bari', desired_comuni = '[\"Roma\"]' WHERE user_id = ?").run(a.id);
+  const { desiredFollowsHome } = await import('../src/db.js');
+  desiredFollowsHome(t.app.db);
+  assert.equal(t.app.db.prepare('SELECT desired_comuni FROM profiles WHERE user_id = ?').get(a.id).desired_comuni, '["Bari"]');
+});
+
 test('who lives in Italy says where from and when; "ho sempre vissuto in Italia" overrides it', async () => {
   const a = await t.approved('arrivo@x.it', { lives_in: 'italy', lives_in_city: 'Bari' });
   let r = await a.patch('/api/me/profile', { arrived_from_country: 'Regno Unito', arrived_from_city: 'Londra', arrived_when: '3_12m' });
@@ -482,4 +501,27 @@ test('age stays private: other members never get it (profile, cards, filters), y
     assert.ok(card && !('age' in card), 'no age on cards');
     assert.equal((await b.get('/api/profiles?age=30-34,35-39')).body.total, (await b.get('/api/profiles')).body.total, 'no filtering by age');
   } finally { await t.close(); }
+});
+
+test('"Mostralo solo alle mie connessioni": the video and its file only for connections', async () => {
+  const owner = await t.approved('video-owner@x.it');
+  const friend = await t.approved('video-friend@x.it');
+  const stranger = await t.approved('video-stranger@x.it');
+  await t.connect(owner, friend);
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { config } = await import('../src/config.js');
+  fs.mkdirSync(config.uploadDir, { recursive: true });
+  fs.writeFileSync(path.join(config.uploadDir, 'v-test.mp4'), 'video');
+  t.app.db.prepare("INSERT INTO files (id, owner_id, kind, storage_key, mime_type, size_bytes, sha256, created_at) VALUES ('vid-1', ?, 'profile_video', 'v-test.mp4', 'video/mp4', 5, 'x', '2026-10-07')").run(owner.id);
+  t.app.db.prepare("UPDATE profiles SET video_file_id = 'vid-1' WHERE user_id = ?").run(owner.id);
+  const sees = async who => {
+    const p = (await who.get(`/api/profiles/${owner.id}`)).body;
+    const file = await who.get('/api/files/vid-1');
+    return [!!p.video_url, p.video_locked, file.status];
+  };
+  assert.deepEqual(await sees(stranger), [true, false, 200], 'by default every member sees it');
+  assert.equal((await owner.patch('/api/me/profile', { video_connections_only: true })).body.video_connections_only, true);
+  assert.deepEqual(await sees(stranger), [false, true, 404], 'not connected: locked, and the file is refused too');
+  assert.deepEqual(await sees(friend), [true, false, 200], 'a connection still sees it');
 });

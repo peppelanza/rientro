@@ -36,6 +36,7 @@ export function openDb(file = config.dbPath) {
   migrateIdeaStages(db);
   migrateChecks(db);
   migrateNoReview(db);
+  desiredFollowsHome(db);
   migrateNoRequestExpiry(db);
   settleDuplicateConnections(db);
   collapseMessageNotifications(db);
@@ -98,6 +99,13 @@ export function addProfileColumns(db) {
     db.exec(`UPDATE profiles SET arrived_after = NULL, arrived_before = strftime('%Y-%m', 'now', '-24 months') WHERE in_italy_long_time = 1`);
     db.exec('ALTER TABLE profiles DROP COLUMN in_italy_long_time');
   }
+}
+
+// Who is already back in Italy isn't asked where they'd like to live: it's the city they live in
+// (profiles.js isBack; updateProfile keeps it so). Brings earlier answers in line (idempotent)
+export function desiredFollowsHome(db) {
+  db.exec(`UPDATE profiles SET desired_comuni = json_array(lives_in_city), desired_unknown = 0
+    WHERE lives_in = 'italy' AND always_in_italy = 0 AND lives_in_city IS NOT NULL AND desired_comuni IS NOT json_array(lives_in_city)`);
 }
 
 // Idea stages went from five to three; move stored and pending values over (idempotent)

@@ -461,7 +461,7 @@ body { padding-top: var(--lb, 0px); }
 .cam-still[hidden] { display: none; }
 .cam-guide { position: absolute; left: 50%; top: 45%; width: 46%; aspect-ratio: 3 / 4; transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,.7); border-radius: 50%; pointer-events: none; }
 .cam-still:not([hidden]) ~ .cam-guide { display: none; }
-.cam-btn { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid #DCD7EC; background: #FFFFFF; color: #1A1726; font: 500 13px 'Geist', sans-serif; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.cam-btn { height: 34px; min-width: 132px; justify-content: center; box-sizing: border-box; padding: 0 14px; border-radius: 999px; border: 1px solid #DCD7EC; background: #FFFFFF; color: #1A1726; font: 500 13px 'Geist', sans-serif; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
 .cam-btn:hover { border-color: #6C4DF5; color: #3E2BA8; }
 
 /* Notifications bell in the top bar (App Nav) */

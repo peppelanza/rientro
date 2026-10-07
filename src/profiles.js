@@ -45,6 +45,10 @@ export function arrivedText(p) {
   return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
 }
 
+// Already back in Italy (not "always lived here"): where they live is where they wanted to be, so
+// "Dove vorresti vivere" isn't asked and follows the city they live in (updateProfile, db.js)
+export const isBack = p => p.lives_in === 'italy' && !p.always_in_italy;
+
 const EDITABLE = {
   lives_in: v => oneOf(v, ['italy', 'abroad'], 'Dove vivi'),
   lives_in_country: v => text(v, 'Paese', { max: 60 }),
@@ -155,6 +159,8 @@ export function updateProfile(db, user, body) {
   }
   // "Vivo fuori" includes the North, and the city before coming back may be Italian too
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
+  const after = { ...current, ...live };
+  if (isBack(after) && after.lives_in_city) Object.assign(live, { desired_comuni: JSON.stringify([after.lives_in_city]), desired_unknown: 0 });
   if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
     throw bad('invalid_field', 'Cerca competenze diverse dal tuo background.');
   }
@@ -319,7 +325,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     age_band: (self && !preview) || viewer.role === 'admin' ? label(AGE_BANDS, p.age_band) : null,
     lives_in_city: p.lives_in_city, lives_in_country: p.lives_in_country,
     arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
-    desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p),
+    desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p), back: isBack(p),
     primary_intent: p.primary_intent,
     idea: p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,
     background_area: p.background_area, current_role: p.current_role, current_company: p.current_company,
