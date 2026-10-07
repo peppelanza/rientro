@@ -12,7 +12,7 @@ export default class extends Page {
     if (['#notifiche', '#sicurezza'].includes(location.hash)) return go(`/impostazioni/${location.hash.slice(1)}`);
     if (location.hash === '#elimina' && location.pathname === '/impostazioni') return go('/impostazioni/account#elimina');
     const [me, launch] = await Promise.all([getMe(true), api('GET', '/api/public/launch').catch(() => null)]);
-    Object.assign(this.state, { me, linkedin: !!launch?.linkedin });
+    Object.assign(this.state, { me, linkedin: !!launch?.linkedin, google: !!launch?.google });
     if (location.hash) requestAnimationFrame(() => document.querySelector(location.hash)?.scrollIntoView());
   }
 
@@ -28,8 +28,8 @@ export default class extends Page {
     if (!s.me) return { loading: true, me: {}, menu: settingsMenu, ...nav };
     return {
       ...nav,
-      // Email and LinkedIn both sign in with the account's email: either opens the same account
-      hasLinkedin: !!s.linkedin,
+      // Email, LinkedIn and Google all sign in with the account's email: any of them opens the same account
+      hasLinkedin: !!s.linkedin, hasGoogle: !!s.google,
       loading: false, me: s.me, menu: settingsMenu, email: s.me.user.email,
       logout: this.logout,
       startDelete: () => openDeleteAccount({ onExport: () => go('/impostazioni/dati') }),

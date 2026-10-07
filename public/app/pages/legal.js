@@ -1,5 +1,5 @@
 // Legal pages (design 05 · 43b "riassunto prima del testo"): Privacy Policy, Termini e condizioni and
-// Cookie Policy: Privacy of 4 October 2026 (the age stays private; no review before publishing), Termini of 4 October 2026 (no review before publishing), Cookie of 1 October 2026.
+// Cookie Policy: Privacy of 4 October 2026 (the age stays private; no review before publishing), Termini of 4 October 2026 (no review before publishing), Cookie of 7 October 2026 (the Google sign-in cookie).
 // Changing one: bump its LEGAL_VERSIONS entry (before launch, as for the groups, not needed: nobody to ask).
 // No cookie banner (43c): only technical cookies; visit statistics without cookies (Cloudflare Web Analytics).
 import { Page } from './_base.js';
@@ -196,7 +196,7 @@ const DOCS = {
     ],
   },
   cookie: {
-    title: 'Cookie Policy', updated: 'AGGIORNATA IL 1° OTTOBRE 2026',
+    title: 'Cookie Policy', updated: 'AGGIORNATA IL 7 OTTOBRE 2026',
     summary: [
       ['Solo cookie tecnici', 'Usiamo solo i cookie necessari a tenerti connesso e a far funzionare l’accesso.'],
       ['Nessun tracciamento', 'Niente cookie di analisi, profilazione o pubblicità. Contiamo le visite con uno strumento che non usa cookie. Per questo non ti mostriamo un banner.'],
@@ -206,6 +206,7 @@ const DOCS = {
       ['Cookie che usiamo', [
         '• Nome: __Secure-rientro_session. Tipo: tecnico, di prima parte (valido su rientro.it e sui suoi sottodomini). Finalità: mantenere la sessione dopo l’accesso. Durata: 30 giorni, oppure fino a quando esci da Rientro. Il cookie è protetto (HttpOnly, Secure, SameSite=Lax) e contiene solo un codice casuale: non contiene dati personali leggibili.',
         '• Nome: rientro_li_state. Tipo: tecnico, di prima parte. Finalità: proteggere l’accesso con LinkedIn da richieste contraffatte. Durata: 10 minuti, solo durante l’accesso con LinkedIn.',
+        '• Nome: rientro_g_state. Tipo: tecnico, di prima parte. Finalità: proteggere l’accesso con Google da richieste contraffatte. Durata: 10 minuti, solo durante l’accesso con Google.',
         '• Nome: rientro_flash. Tipo: tecnico, di prima parte. Finalità: mostrarti una sola volta un messaggio dopo l’accesso (per esempio quando un account viene ripristinato). Durata: 2 minuti.',
         'Essendo strettamente necessari, questi cookie non richiedono il tuo consenso. Se li blocchi dalle impostazioni del browser non potrai accedere all’area riservata.',
       ]],

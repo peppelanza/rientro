@@ -16,6 +16,9 @@ export const config = {
   // URL registered on LinkedIn must be <BASE_URL>/api/auth/linkedin/callback.
   linkedinClientId: process.env.LINKEDIN_CLIENT_ID || '',
   linkedinClientSecret: process.env.LINKEDIN_CLIENT_SECRET || '',
+  // Sign in with Google, the same way (oauth.js): redirect URI <BASE_URL>/api/auth/google/callback.
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
   // Cloudflare Turnstile (bot check on sign-in): both set = on. See turnstile.js.
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || '',
   turnstileSecret: process.env.TURNSTILE_SECRET_KEY || '',
@@ -74,7 +77,7 @@ export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).pro
 export const LEGAL_VERSIONS = {
   privacy: '2026-10-04',
   terms: '2026-10-04',
-  cookies: '2026-10-01',
+  cookies: '2026-10-07',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
 };

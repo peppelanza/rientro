@@ -2,12 +2,17 @@ import { api, flash, qs } from '../lib.js';
 import { turnstileToken, warmUpTurnstile } from '../turnstile.js';
 import { Page } from './_base.js';
 
-const LINKEDIN_ERRORS = {
-  linkedin_annullato: 'Accesso con LinkedIn annullato. Puoi riprovare o continuare con email.',
-  linkedin_scaduto: 'La richiesta a LinkedIn è scaduta. Riprova.',
-  linkedin_errore: 'LinkedIn non ha risposto come previsto. Riprova tra poco o continua con email.',
-  linkedin_email: 'Il tuo account LinkedIn non ha un’email verificata. Verificala su LinkedIn oppure continua con email.',
-  linkedin_non_attivo: 'L’accesso con LinkedIn non è ancora attivo. Per ora continua con email: ci vuole un minuto.',
+// Coming back from LinkedIn or Google with a problem (see /api/auth/<provider>/callback)
+const providerErrors = (p, name) => ({
+  [`${p}_annullato`]: `Accesso con ${name} annullato. Puoi riprovare o continuare con email.`,
+  [`${p}_scaduto`]: `La richiesta a ${name} è scaduta. Riprova.`,
+  [`${p}_errore`]: `${name} non ha risposto come previsto. Riprova tra poco o continua con email.`,
+  [`${p}_email`]: `Il tuo account ${name} non ha un’email verificata. Verificala su ${name} oppure continua con email.`,
+  [`${p}_non_attivo`]: `L’accesso con ${name} non è ancora attivo. Per ora continua con email: ci vuole un minuto.`,
+});
+const OAUTH_ERRORS = {
+  ...providerErrors('linkedin', 'LinkedIn'),
+  ...providerErrors('google', 'Google'),
   sospeso: 'Questo account è sospeso. Scrivici se pensi sia un errore.',
   contenuto_bloccato: 'Account bloccato. Il nostro team sta verificando la tua iscrizione.',
 };
@@ -34,8 +39,7 @@ export default class extends Page {
       const t = await fetch(`/api/public/territory/${encodeURIComponent(city)}`).then(r => (r.ok ? r.json() : null)).catch(() => null);
       if (t?.kind === 'city' && t.photo && t.cities.includes(t.name)) this.state.postcard = { src: t.photo, name: t.name };
     }
-    // Coming back from LinkedIn with a problem (see /api/auth/linkedin/callback)
-    const err = LINKEDIN_ERRORS[qs().get('errore')];
+    const err = OAUTH_ERRORS[qs().get('errore')];
     if (err) this.state.oauthNote = err;
   }
 
@@ -85,10 +89,10 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
-    const oauth = provider => () => {
-      if (provider === 'LinkedIn' && this.state.launch?.linkedin) {
+    const oauth = (p, provider) => () => {
+      if (this.state.launch?.[p]) {
         const next = qs().get('next');
-        location.href = `/api/auth/linkedin/start${next ? `?next=${encodeURIComponent(next)}` : ''}`;
+        location.href = `/api/auth/${p}/start${next ? `?next=${encodeURIComponent(next)}` : ''}`;
         return;
       }
       this.state.oauthNote = `L’accesso con ${provider} non è ancora attivo. Per ora continua con email: ci vuole un minuto.`;
@@ -108,7 +112,7 @@ export default class extends Page {
       postcard: s.postcard?.src ?? null,
       postcardAlt: s.postcard ? `Cartolina da ${s.postcard.name}` : '',
       expired: !!qs().get('next'),
-      linkedin: oauth('LinkedIn'), google: oauth('Google'), oauthNote: s.oauthNote,
+      linkedin: oauth('linkedin', 'LinkedIn'), google: oauth('google', 'Google'), oauthNote: s.oauthNote,
       toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; warmUpTurnstile(this.state.launch?.turnstile); this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
       toChoose: () => { this.state.step = 'choose'; this.__rerender(); },
       email: s.email, emailError: s.emailError,

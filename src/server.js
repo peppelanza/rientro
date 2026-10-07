@@ -21,7 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { runRetention } from './retention.js';
-import { checkLinkedinState, linkedinEnabled, linkedinProfile, startLinkedin, STATE_COOKIE } from './linkedin.js';
+import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
 import * as profiles from './profiles.js';
 import { territory } from './public.js';
 import * as social from './social.js';
@@ -258,7 +258,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|su
 
 // --- app -----------------------------------------------------------------------------------
 
-export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, sendWelcome = defaultSendWelcome, loginLimits = { ip: 20, email: 5 }, linkedinFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
+export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, sendWelcome = defaultSendWelcome, loginLimits = { ip: 20, email: 5 }, oauthFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
   groups.seedGroups(db);
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
@@ -296,41 +296,45 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     send(res, 200, { ok: true, next, restored }, { 'Set-Cookie': sessionCookie(sessionToken, config.sessionTtlDays * 86400) });
   }, { ...pub, raw: true });
 
-  // Sign In with LinkedIn (see linkedin.js). Failures go back to /accedi with ?errore=… explained there.
-  const back = (res, errore, extra = []) => { res.writeHead(302, { Location: `/accedi?errore=${errore}`, 'Set-Cookie': [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), ...extra] }); res.end(); };
-  route('GET', '/api/auth/linkedin/start', ({ req, res, url }) => {
-    limitIp(clientIp(req));
-    if (!linkedinEnabled()) return back(res, 'linkedin_non_attivo');
-    const { url: to, cookieValue, maxAge } = startLinkedin(safeNext(url.searchParams.get('next')));
-    res.writeHead(302, { Location: to, 'Set-Cookie': cookie(STATE_COOKIE, cookieValue, maxAge, { path: '/api/auth/linkedin' }) });
-    res.end();
-  }, { ...pub, raw: true });
-  route('GET', '/api/auth/linkedin/callback', async ({ req, res, url, cookies }) => {
-    limitVerify(`v:${clientIp(req)}`);
-    if (url.searchParams.get('error')) return back(res, 'linkedin_annullato'); // e.g. the member pressed "Annulla"
-    const state = checkLinkedinState(cookies[STATE_COOKIE], url.searchParams.get('state'));
-    const code = url.searchParams.get('code');
-    if (!state || !code) return back(res, 'linkedin_scaduto');
-    let profile;
-    try { profile = await linkedinProfile(code, linkedinFetch); } catch (err) { console.error('[linkedin]', err?.message ?? err); return back(res, 'linkedin_errore'); }
-    let email;
-    try { email = auth.normaliseEmail(profile.email); } catch { return back(res, 'linkedin_email'); }
-    if (!profile.emailVerified) return back(res, 'linkedin_email');
-    const { sessionToken, user, restored, isNew } = tx(db, () => {
-      const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
-      // Fill in the name from LinkedIn only where the profile has none yet
-      db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
-      // The LinkedIn photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)
-      if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
-      return out;
-    });
-    if (isNew) sendWelcome(user.email);
-    if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
-    const set = [cookie(STATE_COOKIE, '', 0, { path: '/api/auth/linkedin' }), ...sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
-    if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
-    res.writeHead(302, { Location: safeNext(state.next) ?? homeFor(user), 'Set-Cookie': set });
-    res.end();
-  }, { ...pub, raw: true });
+  // Sign in with LinkedIn or Google (see oauth.js). Failures go back to /accedi with ?errore=<provider>_… explained there.
+  for (const p of Object.keys(PROVIDERS)) {
+    const { cookie: STATE_COOKIE } = PROVIDERS[p];
+    const statePath = { path: `/api/auth/${p}` };
+    const back = (res, errore, extra = []) => { res.writeHead(302, { Location: `/accedi?errore=${errore}`, 'Set-Cookie': [cookie(STATE_COOKIE, '', 0, statePath), ...extra] }); res.end(); };
+    route('GET', `/api/auth/${p}/start`, ({ req, res, url }) => {
+      limitIp(clientIp(req));
+      if (!oauthEnabled(p)) return back(res, `${p}_non_attivo`);
+      const { url: to, cookieValue, maxAge } = startOauth(p, safeNext(url.searchParams.get('next')));
+      res.writeHead(302, { Location: to, 'Set-Cookie': cookie(STATE_COOKIE, cookieValue, maxAge, statePath) });
+      res.end();
+    }, { ...pub, raw: true });
+    route('GET', `/api/auth/${p}/callback`, async ({ req, res, url, cookies }) => {
+      limitVerify(`v:${clientIp(req)}`);
+      if (url.searchParams.get('error')) return back(res, `${p}_annullato`); // e.g. the member pressed "Annulla"
+      const state = checkOauthState(p, cookies[STATE_COOKIE], url.searchParams.get('state'));
+      const code = url.searchParams.get('code');
+      if (!state || !code) return back(res, `${p}_scaduto`);
+      let profile;
+      try { profile = await oauthProfile(p, code, oauthFetch); } catch (err) { console.error(`[${p}]`, err?.message ?? err); return back(res, `${p}_errore`); }
+      let email;
+      try { email = auth.normaliseEmail(profile.email); } catch { return back(res, `${p}_email`); }
+      if (!profile.emailVerified) return back(res, `${p}_email`);
+      const { sessionToken, user, restored, isNew } = tx(db, () => {
+        const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
+        // Fill in the name from the provider only where the profile has none yet
+        db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
+        // The account's photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)
+        if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
+        return out;
+      });
+      if (isNew) sendWelcome(user.email);
+      if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
+      const set = [cookie(STATE_COOKIE, '', 0, statePath), ...sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
+      if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
+      res.writeHead(302, { Location: safeNext(state.next) ?? homeFor(user), 'Set-Cookie': set });
+      res.end();
+    }, { ...pub, raw: true });
+  }
 
   // Leaving "Accedi come": the test person's session goes and the admin gets their own one back
   // (only if it's still valid and belongs to the admin who started it), on the user's admin page
@@ -369,7 +373,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
   }), pub);
-  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: linkedinEnabled(), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
+  route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: oauthEnabled('linkedin'), google: oauthEnabled('google'), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
     if (!t) throw new HttpError(404, 'not_found');
@@ -431,7 +435,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     const host = src && new URL(src).hostname;
     if (!host || !(host === 'media.licdn.com' || host.endsWith('.licdn.com') || host.endsWith('.googleusercontent.com'))) throw new HttpError(404, 'not_found');
     let r;
-    try { r = await linkedinFetch(src, { signal: AbortSignal.timeout(10_000), redirect: 'error' }); } catch { throw new HttpError(404, 'not_found'); }
+    try { r = await oauthFetch(src, { signal: AbortSignal.timeout(10_000), redirect: 'error' }); } catch { throw new HttpError(404, 'not_found'); }
     const type = r.headers.get('content-type') || '';
     if (!r.ok || !/^image\/(jpeg|png|webp)$/.test(type.split(';')[0])) throw new HttpError(404, 'not_found');
     const buf = Buffer.from(await r.arrayBuffer());

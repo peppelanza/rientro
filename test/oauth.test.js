@@ -1,4 +1,4 @@
-// Sign In with LinkedIn: state check, verified email only, same account as email sign-in.
+// Sign in with LinkedIn and Google: state check, verified email only, same account as email sign-in.
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { PNG, startApp } from './helpers.js';
@@ -6,40 +6,49 @@ import { PNG, startApp } from './helpers.js';
 const { config } = await import('../src/config.js');
 config.linkedinClientId = 'client-id';
 config.linkedinClientSecret = 'client-secret';
+config.googleClientId = 'g-client-id';
+config.googleClientSecret = 'g-client-secret';
 
-// A fake LinkedIn: the code decides who comes back
+// A fake LinkedIn and Google: the code decides who comes back
 const people = {
   'code-anna': { email: 'Anna@Esempio.it', email_verified: true, given_name: 'Anna', family_name: 'Verdi' },
   'code-foto': { email: 'foto@esempio.it', email_verified: true, given_name: 'Foto', family_name: 'Grafa', picture: 'https://media.licdn.com/dms/image/foto.jpg' },
   'code-unverified': { email: 'nove@esempio.it', email_verified: false, given_name: 'Nove', family_name: 'Rificata' },
+  'g-code-anna': { email: 'anna@esempio.it', email_verified: true, given_name: 'Anna', family_name: 'Verdi', picture: 'https://lh3.googleusercontent.com/a/anna=s96-c' },
+  'g-code-luca': { email: 'Luca@Gmail.com', email_verified: true, given_name: 'Luca', family_name: 'Bianchi', picture: 'https://lh3.googleusercontent.com/a/luca=s96-c' },
+  'g-code-unverified': { email: 'otto@esempio.it', email_verified: false, given_name: 'Otto' },
 };
 const calls = [];
-async function linkedinFetch(url, opts = {}) {
+async function oauthFetch(url, opts = {}) {
   calls.push(String(url));
-  if (String(url).includes('/oauth/v2/accessToken')) {
+  if (String(url).includes('/oauth/v2/accessToken') || String(url) === 'https://oauth2.googleapis.com/token') {
+    const body = new URLSearchParams(opts.body);
+    const google = String(url).includes('googleapis');
+    if (body.get('client_secret') !== (google ? 'g-client-secret' : 'client-secret') || google !== body.get('code').startsWith('g-')) return new Response('{"error":"invalid_client"}', { status: 401 });
     const code = new URLSearchParams(opts.body).get('code');
     if (!people[code]) return new Response('{"error":"invalid_grant"}', { status: 400 });
     return Response.json({ access_token: `tok-${code}` });
   }
-  if (String(url).includes('/v2/userinfo')) {
+  if (String(url).includes('/v2/userinfo') || String(url) === 'https://openidconnect.googleapis.com/v1/userinfo') {
     const code = opts.headers.authorization.replace('Bearer tok-', '');
     return Response.json({ sub: code, ...people[code] });
   }
-  if (String(url) === 'https://media.licdn.com/dms/image/foto.jpg') return new Response(PNG, { headers: { 'content-type': 'image/png' } });
+  if (String(url) === 'https://media.licdn.com/dms/image/foto.jpg' || String(url) === 'https://lh3.googleusercontent.com/a/luca=s512-c') return new Response(PNG, { headers: { 'content-type': 'image/png' } });
   throw new Error('unexpected ' + url);
 }
 
-const t = await startApp({ linkedinFetch });
-after(() => { config.linkedinClientId = ''; config.linkedinClientSecret = ''; t.close(); });
+const t = await startApp({ oauthFetch });
+after(() => { Object.assign(config, { linkedinClientId: '', linkedinClientSecret: '', googleClientId: '', googleClientSecret: '' }); t.close(); });
 const get = (p, cookie) => fetch(`${t.base}${p}`, { redirect: 'manual', headers: cookie ? { cookie } : {} });
 const cookieOf = (res, name) => res.headers.getSetCookie().find(c => c.startsWith(`${name}=`))?.split(';')[0];
 
-async function start(next) {
-  const r = await get(`/api/auth/linkedin/start${next ? `?next=${encodeURIComponent(next)}` : ''}`);
+async function start(next, p = 'linkedin') {
+  const r = await get(`/api/auth/${p}/start${next ? `?next=${encodeURIComponent(next)}` : ''}`);
   assert.equal(r.status, 302);
   const to = new URL(r.headers.get('location'));
-  return { to, state: to.searchParams.get('state'), cookie: cookieOf(r, 'rientro_li_state') };
+  return { to, state: to.searchParams.get('state'), cookie: cookieOf(r, p === 'google' ? 'rientro_g_state' : 'rientro_li_state') };
 }
+const sessionOf = r => r.headers.getSetCookie().find(c => /^rientro_session=[^;]+/.test(c) && !c.startsWith('rientro_session=;'))?.split(';')[0];
 
 test('start sends the browser to LinkedIn with the right parameters', async () => {
   const { to, state, cookie } = await start();
@@ -117,4 +126,64 @@ test('the LinkedIn photo is offered once, through our server, for the browser fa
   // Only from the providers' image hosts
   t.app.db.prepare("UPDATE profiles SET suggested_photo_url = 'https://evil.example/x.jpg' WHERE suggested_photo_url IS NULL").run();
   assert.equal((await fetch(`${t.base}/api/me/suggested-photo`, { headers: h })).status, 404);
+});
+
+// ---- Google
+
+test('Google: start sends the browser to Google, letting the member pick the account', async () => {
+  const { to, state, cookie } = await start(null, 'google');
+  assert.equal(to.origin + to.pathname, 'https://accounts.google.com/o/oauth2/v2/auth');
+  assert.equal(to.searchParams.get('client_id'), 'g-client-id');
+  assert.equal(to.searchParams.get('scope'), 'openid profile email');
+  assert.equal(to.searchParams.get('response_type'), 'code');
+  assert.equal(to.searchParams.get('prompt'), 'select_account');
+  assert.match(to.searchParams.get('redirect_uri'), /\/api\/auth\/google\/callback$/);
+  assert.ok(state && cookie);
+  assert.equal((await (await get('/api/public/launch')).json()).google, true);
+});
+
+test('Google: callback signs in a new member with the Google name and photo (large), to onboarding', async () => {
+  const { state, cookie } = await start(null, 'google');
+  const r = await get(`/api/auth/google/callback?code=g-code-luca&state=${state}`, cookie);
+  assert.equal(r.status, 302);
+  assert.equal(r.headers.get('location'), '/onboarding');
+  const h = { cookie: sessionOf(r), 'x-requested-with': 'rientro' };
+  const me = await (await fetch(`${t.base}/api/me`, { headers: h })).json();
+  assert.equal(me.user.email, 'luca@gmail.com');
+  assert.equal(me.profile.first_name, 'Luca');
+  assert.equal(me.profile.last_name, 'Bianchi');
+  const photo = await fetch(`${t.base}/api/me/suggested-photo`, { headers: h });
+  assert.equal(photo.status, 200, 'the 512px version of the Google picture, fetched through our server');
+});
+
+test('Google and LinkedIn with the same email open the same account', async () => {
+  const li = await start();
+  await get(`/api/auth/linkedin/callback?code=code-anna&state=${li.state}`, li.cookie);
+  const g = await start(null, 'google');
+  await get(`/api/auth/google/callback?code=g-code-anna&state=${g.state}`, g.cookie);
+  assert.equal(t.app.db.prepare("SELECT COUNT(*) AS n FROM users WHERE email = 'anna@esempio.it'").get().n, 1);
+});
+
+test('Google: refused states, cancelled consent, unverified email; a LinkedIn state is no good for Google', async () => {
+  const loc = async r => (await r).headers.get('location');
+  const { state, cookie } = await start(null, 'google');
+  assert.equal(await loc(get(`/api/auth/google/callback?code=g-code-anna&state=altro`, cookie)), '/accedi?errore=google_scaduto');
+  assert.equal(await loc(get('/api/auth/google/callback?error=access_denied', cookie)), '/accedi?errore=google_annullato');
+  const li = await start();
+  const forged = li.cookie.replace('rientro_li_state=', 'rientro_g_state=');
+  assert.equal(await loc(get(`/api/auth/google/callback?code=g-code-anna&state=${li.state}`, forged)), '/accedi?errore=google_scaduto');
+  const s2 = await start(null, 'google');
+  assert.equal(await loc(get(`/api/auth/google/callback?code=g-code-unverified&state=${s2.state}`, s2.cookie)), '/accedi?errore=google_email');
+  assert.equal(t.app.db.prepare("SELECT COUNT(*) AS n FROM users WHERE email = 'otto@esempio.it'").get().n, 0);
+  const s3 = await start(null, 'google');
+  assert.equal(await loc(get(`/api/auth/google/callback?code=g-code-falso&state=${s3.state}`, s3.cookie)), '/accedi?errore=google_errore');
+});
+
+test('Google: without credentials the button explains it is not active yet', async () => {
+  const id = config.googleClientId;
+  config.googleClientId = '';
+  try {
+    assert.equal((await get('/api/auth/google/start')).headers.get('location'), '/accedi?errore=google_non_attivo');
+    assert.equal((await (await get('/api/public/launch')).json()).google, false);
+  } finally { config.googleClientId = id; }
 });
