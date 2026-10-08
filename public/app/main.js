@@ -9,6 +9,7 @@ import { pullToRefresh } from './pull-refresh.js';
 import { tabbarOnScroll } from './tabbar-scroll.js';
 import { searchHistory } from './search-history.js';
 import { tapFeedback } from './tap-feedback.js';
+import { anchorOffset } from './anchor-offset.js';
 import { showFlash, template } from './lib.js';
 
 const ROUTES = [
@@ -67,6 +68,7 @@ async function boot() {
 
 launchBar();
 impersonationFrame();
+anchorOffset();
 tabbarOnScroll();
 boot().catch(err => {
   console.error(err);

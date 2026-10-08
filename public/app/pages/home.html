@@ -90,7 +90,7 @@
 </svg></sc-if></div><div class="who-text"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-size:18px;font-weight:600;letter-spacing:-.03em">{{ f.t }}</h3><span style="font-size:15px;line-height:1.55;color:#4A4560;text-wrap:pretty">{{ f.d }}</span></div></div>
 </sc-for>
 </section>
-<section id="domande" class="r-grid-1" style="padding:0 var(--gutter) var(--section-gap);display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;scroll-margin-top:24px">
+<section id="domande" class="r-grid-1" style="padding:0 var(--gutter) var(--section-gap);display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.04em">Domande e risposte</h2>
 <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ faq }}" as="q"><details class="faq-item"><summary>{{ q.q }}</summary><p>{{ q.a }}</p></details></sc-for></div>
 </section>
