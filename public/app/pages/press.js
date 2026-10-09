@@ -1,5 +1,5 @@
 // Press (/press, linked from the public footers): the materials for journalists, laid out like a
-// desktop with folders. Brand (the logo and the icon of the favicon, in SVG, PNG and JPG), Ufficio
+// desktop with folders. Brand (the logo and the icon of the favicon, each also inverted, in SVG, PNG and JPG), Ufficio
 // stampa (the press release) and, on its own, the press kit. The files are in public/press/.
 // As on a computer: a click selects, a double click (a tap on phones, Enter on the keyboard) opens
 // a folder or downloads a file; Esc closes the folder.
@@ -23,6 +23,9 @@ const FILES = {
     { kind: 'image', name: 'Icona.svg', href: '/press/brand/rientro-icona.svg', size: 1054, square: true },
     { kind: 'image', name: 'Icona.png', href: '/press/brand/rientro-icona.png', size: 34989, dims: '1024 × 1024', square: true },
     { kind: 'image', name: 'Icona.jpg', href: '/press/brand/rientro-icona.jpg', size: 48751, dims: '1024 × 1024', square: true },
+    { kind: 'image', name: 'Icona bianca.svg', href: '/press/brand/rientro-icona-bianca.svg', size: 1054, square: true, dark: true },
+    { kind: 'image', name: 'Icona bianca.png', href: '/press/brand/rientro-icona-bianca.png', size: 32043, dims: '1024 × 1024', square: true, dark: true },
+    { kind: 'image', name: 'Icona bianca.jpg', href: '/press/brand/rientro-icona-bianca.jpg', size: 49417, dims: '1024 × 1024', square: true, dark: true },
   ],
   stampa: [
     { kind: 'pdf', name: 'Comunicato stampa.pdf', href: '/press/ufficio-stampa/rientro-comunicato-stampa.pdf', size: 49047 },
