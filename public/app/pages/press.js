@@ -52,11 +52,14 @@ export default class extends Page {
   // makes new nodes, which would play it again)
   didRender(el) {
     this.opening = false;
+    // a redraw makes a new file list: it stays scrolled where it was (selecting a file redraws)
+    const files = el.querySelector('.press-files');
+    if (files && this.filesTop) files.scrollTop = this.filesTop;
     if (this.focusKey) { el.querySelector(`[data-key="${this.focusKey}"]`)?.focus({ preventScroll: true }); this.focusKey = null; }
   }
 
-  select(key) { this.state.sel = key; this.__rerender(); }
-  openFolder(id) { Object.assign(this.state, { open: id, sel: null }); this.opening = true; this.focusKey = 'press-close'; this.__rerender(); }
+  select(key) { this.filesTop = document.querySelector('.press-files')?.scrollTop ?? 0; this.state.sel = key; this.__rerender(); }
+  openFolder(id) { Object.assign(this.state, { open: id, sel: null }); this.filesTop = 0; this.opening = true; this.focusKey = 'press-close'; this.__rerender(); }
   close() { const back = this.state.open; Object.assign(this.state, { open: null, sel: `f-${back}` }); this.focusKey = `f-${back}`; this.__rerender(); }
   download(f) {
     const a = document.createElement('a');
