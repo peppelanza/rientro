@@ -10,8 +10,9 @@ export const forWho = [
   { pensa: true, t: 'Chi ci sta pensando', d: 'Non hai ancora deciso. Conoscere le persone giuste può essere il motivo per farlo.' },
   { tornato: true, t: 'Chi è già tornato', d: 'Sei rientrato da poco e cerchi persone con un percorso come il tuo con cui costruire qualcosa nella tua città.' },
 ];
-// Homepage questions and answers (#domande), collapsed by default
-const faq = [
+// Homepage questions and answers (#domande), collapsed by default; the server also writes them
+// into the page and its FAQ data for search engines (src/seo.js)
+export const faq = [
   ['Perché Rientro?', 'Perché tornare è più facile se non lo fai da solo. Su Rientro conosci persone che stanno facendo il tuo stesso percorso e con cui fondare un’azienda o un progetto, in Italia o al Sud.'],
   ['Quanto costa?', 'Niente. Rientro è gratuito.'],
   ['A chi è rivolto?', 'A chi sta tornando, a chi ci sta pensando e a chi è già tornato. Anche a chi non è italiano ma ha scelto l’Italia.'],
@@ -20,7 +21,7 @@ const faq = [
   ['Come funzionano i messaggi?', 'Invii una richiesta di connessione con una nota. La chat si apre solo se l’altra persona accetta.'],
   ['Chi può vedere il mio profilo?', 'Solo i membri di Rientro. Instagram, X e il link al calendario si vedono solo dopo che vi siete connessi.'],
 ].map(([q, a]) => ({ q, a }));
-const steps = [
+export const steps = [
   { n: '01', t: 'Crea il tuo profilo', d: 'Percorso, idea, dove vivi e dove vuoi vivere. Raccontaci di te.' },
   { n: '02', t: 'Scopri chi torna', d: 'Filtra per città, settori, competenze e tempo. Nessun punteggio, solo persone.' },
   { n: '03', t: 'Connettiti e fai due chiacchiere', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },

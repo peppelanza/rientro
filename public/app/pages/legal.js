@@ -6,7 +6,8 @@ import { Page } from './_base.js';
 
 export const title = 'Informazioni legali';
 
-const DOCS = {
+// Also read by the server (src/seo.js): the text written into the page for search engines
+export const DOCS = {
   privacy: {
     title: 'Privacy Policy', updated: 'AGGIORNATA IL 4 OTTOBRE 2026',
     summary: [

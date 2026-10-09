@@ -763,6 +763,8 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 /* A group page as the server writes it (search engines, first paint), until the app takes over */
 /* (written for search engines and link previews; on screen the page draws itself over it, so it
    never shows: a flash of plain text otherwise) */
+/* A public page's text written by the server for search engines (seo.js): the app draws over it */
+.ssr-page { visibility: hidden; max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
 .ssr-group { visibility: hidden; max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
 .ssr-group h1 { font-family: 'Unbounded', sans-serif; }
 .ssr-group .ssr-body { white-space: pre-wrap; }
