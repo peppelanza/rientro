@@ -995,10 +995,9 @@ html.search-sheet-open { overflow: hidden; }
 .press-tag { font: 500 11px 'Geist Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: #6C4DF5; padding: 5px 10px; border-radius: 999px; background: #EFEBFF; }
 .press-desk { position: relative; box-sizing: border-box; min-height: calc(100vh - var(--lb, 0px) - 18px - 66px - 18px - 18px); padding: 28px; border-radius: 32px; overflow: hidden; border: 1px solid #FFFFFF; box-shadow: 0 14px 40px rgba(80,60,160,.12), inset 0 1px 0 rgba(255,255,255,.9);
   background:
-    radial-gradient(70% 60% at 88% 8%, rgba(201,192,240,.95), transparent 60%),
-    radial-gradient(60% 55% at 8% 100%, rgba(142,127,224,.75), transparent 65%),
-    radial-gradient(40% 35% at 55% 62%, rgba(255,255,255,.85), transparent 70%),
-    linear-gradient(140deg, #F6F4FC 0%, #DCD5F3 30%, #FFFFFF 46%, #C4B9EC 64%, #EDE9FA 80%, #A898E6 100%); }
+    radial-gradient(70% 60% at 88% 8%, rgba(201,192,240,.35), transparent 60%),
+    radial-gradient(60% 55% at 8% 100%, rgba(142,127,224,.18), transparent 65%),
+    linear-gradient(140deg, #FAF9FE 0%, #F1EEFB 30%, #FFFFFF 46%, #EDE9FA 64%, #F7F5FD 80%, #E8E3F8 100%); }
 .press-icons { display: grid; grid-template-columns: repeat(auto-fill, 112px); gap: 6px; align-content: start; justify-content: start; }
 .press-icon, .press-file { appearance: none; border: 1px solid transparent; background: transparent; border-radius: 18px; padding: 12px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: default; font: inherit; color: inherit; user-select: none; -webkit-user-select: none; transition: background .15s ease, border-color .15s ease; }
 .press-icon:hover, .press-file:hover { background: rgba(255,255,255,.32); }
