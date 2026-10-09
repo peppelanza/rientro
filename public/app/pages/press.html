@@ -1,0 +1,35 @@
+<!-- Press: a desktop with folders, in the liquid chrome of the brand (press.js, app.css .press-*) -->
+<div class="press-page">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<linearGradient id="pc-front" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".38" stop-color="#E7E2F7"/><stop offset=".52" stop-color="#B7ABE8"/><stop offset=".66" stop-color="#EEEAFB"/><stop offset="1" stop-color="#C9BFF1"/></linearGradient>
+<linearGradient id="pc-back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A396E3"/><stop offset="1" stop-color="#6C4DF5"/></linearGradient>
+<linearGradient id="pc-page" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#ECE8F8"/><stop offset=".7" stop-color="#D3CBF0"/><stop offset="1" stop-color="#F8F6FD"/></linearGradient>
+</defs></svg>
+<header style="padding:18px var(--gutter) 0"><div class="press-bar">
+<a href="/" aria-label="Rientro, home" style="text-decoration:none;display:flex"><dc-import name="UI Logo" size="28"></dc-import></a>
+<span class="press-tag">Press</span><div style="flex:1"></div>
+<a href="/" class="enter-btn" style="text-decoration:none">Homepage</a>
+</div></header>
+<main style="padding:18px var(--gutter)">
+<h1 class="sr-only">Press · materiali per la stampa</h1>
+<section class="press-desk" aria-label="Materiali per la stampa" onClick="{{ deselect }}">
+<div class="press-icons" role="listbox" aria-label="Cartelle e file" onClick="{{ deselect }}">
+<sc-for list="{{ desk }}" as="f"><button type="button" class="press-icon" role="option" data-key="{{ f.key }}" aria-selected="{{ f.sel }}" onClick="{{ f.click }}" onDoubleClick="{{ f.dbl }}" onKeyDown="{{ f.key_ }}">
+<sc-if value="{{ f.isFolder }}"><svg class="press-glyph" viewBox="0 0 72 58" aria-hidden="true"><path d="M4 12a6 6 0 0 1 6-6h17l6 6h29a6 6 0 0 1 6 6v6H4z" fill="url(#pc-back)"/><rect x="2" y="17" width="68" height="39" rx="7" fill="url(#pc-front)" stroke="#FFFFFF" stroke-width="1"/><path d="M9 21h54" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity=".9"/></svg></sc-if>
+<sc-if value="{{ f.isPdf }}"><svg class="press-glyph" viewBox="0 0 72 58" aria-hidden="true"><path d="M22 2h21l13 13v39a3 3 0 0 1-3 3H22a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" fill="url(#pc-page)" stroke="#CFC8E8"/><path d="M43 2v10a3 3 0 0 0 3 3h10" fill="#FFFFFF" stroke="#CFC8E8"/><rect x="14" y="33" width="30" height="14" rx="5" fill="#6C4DF5"/><text x="29" y="43.5" text-anchor="middle" font-family="Geist, sans-serif" font-size="9" font-weight="600" fill="#FFFFFF">PDF</text></svg></sc-if>
+<span class="press-name">{{ f.name }}</span></button></sc-for>
+</div>
+<span class="press-contact">Contatti stampa · <a href="mailto:ciao@rientro.it">ciao@rientro.it</a></span>
+
+<sc-if value="{{ open }}"><div class="{{ winCls }}" role="dialog" aria-label="{{ title }}">
+<div class="press-win-bar"><svg viewBox="0 0 72 58" width="22" height="18" aria-hidden="true"><path d="M4 12a6 6 0 0 1 6-6h17l6 6h29a6 6 0 0 1 6 6v6H4z" fill="url(#pc-back)"/><rect x="2" y="17" width="68" height="39" rx="7" fill="url(#pc-front)"/></svg><span class="press-win-path"><span>Press</span> › <b>{{ title }}</b></span><button type="button" class="press-close" data-key="press-close" aria-label="Chiudi la cartella" onClick="{{ close }}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<div class="press-files" role="listbox" aria-label="{{ title }}" onClick="{{ deselect }}">
+<sc-for list="{{ files }}" as="f"><button type="button" class="press-file" role="option" data-key="{{ f.key }}" aria-selected="{{ f.sel }}" onClick="{{ f.click }}" onDoubleClick="{{ f.dbl }}" onKeyDown="{{ f.key_ }}">
+<span class="{{ f.thumbCls }}"><sc-if value="{{ f.isImage }}"><img src="{{ f.href }}" alt="" loading="lazy"></sc-if><sc-if value="{{ f.isPdf }}"><svg class="press-glyph" viewBox="0 0 72 58" aria-hidden="true"><path d="M22 2h21l13 13v39a3 3 0 0 1-3 3H22a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" fill="url(#pc-page)" stroke="#CFC8E8"/><path d="M43 2v10a3 3 0 0 0 3 3h10" fill="#FFFFFF" stroke="#CFC8E8"/><rect x="14" y="33" width="30" height="14" rx="5" fill="#6C4DF5"/><text x="29" y="43.5" text-anchor="middle" font-family="Geist, sans-serif" font-size="9" font-weight="600" fill="#FFFFFF">PDF</text></svg></sc-if></span>
+<span class="press-name">{{ f.name }}</span></button></sc-for>
+</div>
+<div class="press-status"><span>{{ status }}</span><sc-if value="{{ hasPicked }}"><button type="button" class="press-get" onClick="{{ getPicked }}">Scarica</button></sc-if></div>
+</div></sc-if>
+</section>
+</main>
+</div>

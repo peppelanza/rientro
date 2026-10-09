@@ -87,7 +87,7 @@ function previewAllowed(req) {
 // static files and the public, read-only APIs. Sign-in, the member area, admin and every
 // other API still ask for the password, since without an email provider the sign-in code is
 // shown on the page and anyone could otherwise sign in as anyone.
-const OPEN_PAGES = [/^\/$/, /^\/prelancio$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/legal\/(privacy|termini|cookie)$/];
+const OPEN_PAGES = [/^\/$/, /^\/prelancio$/, /^\/press$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/legal\/(privacy|termini|cookie)$/];
 const OPEN_APIS = [/^\/api\/public\//, /^\/api\/catalog$/, /^\/api\/session$/];
 const PAGE_ROUTES = () => [...PUBLIC_PAGES, ...MEMBER_PAGES, ...ADMIN_PAGES];
 function openDuringPreview(p) {
@@ -164,7 +164,7 @@ function rateLimiter(max, windowMs) {
   };
 }
 
-const MIME = { '.wasm': 'application/wasm', '.mjs': 'text/javascript; charset=utf-8', '.tflite': 'application/octet-stream', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif' };
+const MIME = { '.wasm': 'application/wasm', '.mjs': 'text/javascript; charset=utf-8', '.tflite': 'application/octet-stream', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif', '.pdf': 'application/pdf' };
 
 function serveFile(res, file) {
   // Font files never change (new versions get new names); place lists and images change only with
@@ -251,7 +251,7 @@ function streamFile(req, res, f) {
 
 // --- pages ---------------------------------------------------------------------------------
 
-const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
+const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/press$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/cerca$/, /^\/supporto(\/[^/]+)?$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
 const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|supporto(\/\d+)?|analytics|esportazioni|registro))?$/];
@@ -678,7 +678,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         // Search engines: group pages are public and listed here (not linked from the public site)
         if (p === '/robots.txt') return reply(res, 200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' }, Buffer.from(`User-agent: *\nAllow: /\nSitemap: ${config.baseUrl}/sitemap.xml\n`));
         if (p === '/sitemap.xml') {
-          const urls = ['/', ...groups.groupIds(db).map(id => `/gruppi/${id}`)];
+          const urls = ['/', '/press', ...groups.groupIds(db).map(id => `/gruppi/${id}`)];
           return reply(res, 200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'no-cache' },
             Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${config.baseUrl}${u}</loc></url>`).join('\n')}\n</urlset>\n`));
         }

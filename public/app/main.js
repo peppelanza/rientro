@@ -19,6 +19,7 @@ const ROUTES = [
   [/^\/territori\/(?<luogo>[^/]+)$/, 'territori'],
   [/^\/accedi$/, 'accedi'],
   [/^\/legal\/(?<doc>privacy|termini|cookie)$/, 'legal'],
+  [/^\/press$/, 'press'],
   [/^\/onboarding$/, 'onboarding'],
   [/^\/scopri$/, 'scopri'],
   [/^\/cerca$/, 'cerca'],
