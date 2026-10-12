@@ -11,7 +11,7 @@ export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement', 'video_connections_only']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -174,14 +174,13 @@ export default class extends Page {
       cittaFrom: s.cittaFrom.map(n => [n]), fromCitySel: p.arrived_from_city ? [p.arrived_from_city] : [],
       fromCityProps: { onChange: l => this.set({ arrived_from_city: l[0] ?? null }) },
       periodOpts: ARRIVED_WHEN, period: p.arrived_when ?? '', periodProps: { onSelect: v => this.set({ arrived_when: v || null }) },
-      alwaysItaly: !!p.always_in_italy, notAlwaysItaly: !p.always_in_italy, toggleAlwaysItaly: () => this.set({ always_in_italy: !p.always_in_italy }),
       countryPickerProps: { onChange: l => { this.set({ lives_in_country: l[0] ?? '', lives_in_city: null }); this.loadCities(); } },
       citta: s.citta.map(n => [n]), citySel: p.lives_in === 'abroad' && p.lives_in_city ? [p.lives_in_city] : [],
       cityPlaceholder: p.lives_in_country ? 'Cerca la città' : 'Prima scegli il paese',
       cityAbroadProps: { onChange: l => this.set({ lives_in_city: l[0] ?? null }) },
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [], cityProps: { onChange: l => this.set({ lives_in_city: l.at(-1) ?? null }) },
       // already back in Italy: not asked, it follows where they live (profiles.js isBack)
-      askDesired: !(p.lives_in === 'italy' && !p.always_in_italy),
+      askDesired: p.lives_in !== 'italy',
       desired: p.desired_comuni, desiredProps: { onChange: l => this.set({ desired_comuni: l, desired_unknown: l.length ? false : p.desired_unknown }) },
       unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: p.desired_unknown ? p.desired_comuni : [] }),
       // su di me
@@ -224,7 +223,7 @@ export default class extends Page {
       startOpts: opts(cat.start), startWhen: p.start_when, startProps: { onSelect: v => this.set({ start_when: v || null }) },
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
-      pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && !(p.lives_in === 'italy' && !p.always_in_italy),
+      pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',
       previewHref: status === 'approved' ? `/persone/${me.user.id}?anteprima=1` : '/onboarding?passo=anteprima',
     };
   }

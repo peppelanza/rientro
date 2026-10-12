@@ -815,7 +815,7 @@ def('App Site Header', String.raw`
 });
 
 // App Checkbox — UI Checkbox in a larger size, for a checkbox that stands alone as an answer
-// ("Non lo so ancora", "Ho sempre vissuto in Italia"). Props: label, checked. Clicks go on the
+// ("Non lo so ancora"). Props: label, checked. Clicks go on the
 // dc-import (on-click), like UI Checkbox.
 
 def('App Checkbox', String.raw`

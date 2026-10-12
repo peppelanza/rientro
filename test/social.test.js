@@ -19,17 +19,14 @@ test('onboarding: submit requires the essentials, then the profile is online', a
   assert.equal(s.body.user.status, 'approved');
 });
 
-test('who is already back in Italy wants to live where they live; abroad or always in Italy they choose', async () => {
+test('who is already back in Italy wants to live where they live; from abroad they choose', async () => {
   const a = await t.approved('tornato@x.it', { lives_in: 'italy', lives_in_city: 'Lecce', desired_comuni: ['Roma'] });
   let r = await a.patch('/api/me/profile', { lives_in: 'italy', lives_in_city: 'Bari' });
   assert.deepEqual(r.body.desired_comuni, ['Bari']);
   assert.equal(r.body.desired_unknown, false);
   const viewer = await t.approved('vede@x.it');
   assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.back, true);
-  // "Ho sempre vissuto in Italia": where they'd like to live is theirs to say
-  r = await a.patch('/api/me/profile', { always_in_italy: true, desired_comuni: ['Palermo'] });
-  assert.deepEqual(r.body.desired_comuni, ['Palermo']);
-  r = await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Germania', lives_in_city: 'Berlino', always_in_italy: false, desired_comuni: ['Napoli'] });
+  r = await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Germania', lives_in_city: 'Berlino', desired_comuni: ['Napoli'] });
   assert.deepEqual(r.body.desired_comuni, ['Napoli']);
   // Earlier answers are brought in line when the server starts
   t.app.db.prepare("UPDATE profiles SET lives_in = 'italy', lives_in_city = 'Bari', desired_comuni = '[\"Roma\"]' WHERE user_id = ?").run(a.id);
@@ -38,7 +35,7 @@ test('who is already back in Italy wants to live where they live; abroad or alwa
   assert.equal(t.app.db.prepare('SELECT desired_comuni FROM profiles WHERE user_id = ?').get(a.id).desired_comuni, '["Bari"]');
 });
 
-test('who lives in Italy says where from and when; "ho sempre vissuto in Italia" overrides it', async () => {
+test('who lives in Italy says where from and when; "ho sempre vissuto in Italia" is gone', async () => {
   const a = await t.approved('arrivo@x.it', { lives_in: 'italy', lives_in_city: 'Bari' });
   let r = await a.patch('/api/me/profile', { arrived_from_country: 'Regno Unito', arrived_from_city: 'Londra', arrived_when: '3_12m' });
   assert.equal(r.status, 200);
@@ -60,11 +57,15 @@ test('who lives in Italy says where from and when; "ho sempre vissuto in Italia"
   // Coming back from elsewhere in Italy is fine
   assert.equal((await a.patch('/api/me/profile', { arrived_from_country: 'Italia', arrived_from_city: 'Torino' })).status, 200);
 
-  r = await a.patch('/api/me/profile', { always_in_italy: true });
-  assert.equal(r.body.always_in_italy, true);
-  assert.equal(r.body.arrived_from_city, null);
-  assert.equal(r.body.arrived_when, null);
-  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'Ha sempre vissuto in Italia');
+  assert.equal((await a.patch('/api/me/profile', { always_in_italy: true })).status, 400, 'no longer a field');
+  assert.ok(!('always_in_italy' in (await a.get('/api/me')).body.profile));
+  // and an older database loses the column
+  const { DatabaseSync: Db } = await import('node:sqlite');
+  const { addProfileColumns } = await import('../src/db.js');
+  const old = new Db(':memory:');
+  old.exec('CREATE TABLE profiles (user_id TEXT PRIMARY KEY, always_in_italy INTEGER NOT NULL DEFAULT 0)');
+  addProfileColumns(old);
+  assert.ok(!old.prepare('PRAGMA table_info(profiles)').all().some(c => c.name === 'always_in_italy'));
 });
 
 test('the first arrival columns are migrated to the date range', () => {

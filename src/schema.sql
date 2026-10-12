@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS profiles (
   arrived_from_city      TEXT,
   arrived_after          TEXT,              -- month range of the return, 'YYYY-MM'; after is NULL for "more than 2 years ago"
   arrived_before         TEXT,
-  always_in_italy        INTEGER NOT NULL DEFAULT 0,
   -- 2 Dove vorresti vivere
   desired_comuni         TEXT NOT NULL DEFAULT '[]',
   desired_unknown        INTEGER NOT NULL DEFAULT 0,

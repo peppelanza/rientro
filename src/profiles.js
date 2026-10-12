@@ -37,17 +37,16 @@ export function arrivedWhen(p, now = thisMonth()) {
   return (ARRIVED_WHEN.find(x => x[3] !== null && ago < x[3]) ?? ARRIVED_WHEN.at(-1))[0];
 }
 
-// "Da Londra, Regno Unito · 3–12 mesi fa", "Ha sempre vissuto in Italia", or null
+// "Da Londra, Regno Unito · 3–12 mesi fa", or null
 export function arrivedText(p) {
-  if (p.always_in_italy) return 'Ha sempre vissuto in Italia';
   const where = [p.arrived_from_city, p.arrived_from_country].filter(Boolean).join(', ');
   const when = ARRIVED_WHEN.find(x => x[0] === arrivedWhen(p))?.[1].toLowerCase();
   return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
 }
 
-// Already back in Italy (not "always lived here"): where they live is where they wanted to be, so
+// Already back in Italy: where they live is where they wanted to be, so
 // "Dove vorresti vivere" isn't asked and follows the city they live in (updateProfile, db.js)
-export const isBack = p => p.lives_in === 'italy' && !p.always_in_italy;
+export const isBack = p => p.lives_in === 'italy';
 
 const EDITABLE = {
   lives_in: v => oneOf(v, ['italy', 'abroad'], 'Dove vivi'),
@@ -56,7 +55,6 @@ const EDITABLE = {
   arrived_from_country: v => text(v, 'Paese di provenienza', { max: 60 }),
   arrived_from_city: v => text(v, 'Città di provenienza', { max: 80 }),
   arrived_when: v => oneOf(v, ARRIVED_WHEN.map(x => x[0]), 'Quando è stato il rientro'),
-  always_in_italy: v => bool(v, 'Ho sempre vissuto in Italia'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, INTENTS, 'Obiettivo'),
@@ -118,7 +116,6 @@ export function getOwnProfile(db, userId) {
   return {
     ...rest,
     desired_unknown: p.desired_unknown === 1,
-    always_in_italy: p.always_in_italy === 1,
     arrived_when: arrivedWhen(p),
     video_connections_only: p.video_connections_only === 1,
     visible: p.visible === 1,
@@ -150,8 +147,6 @@ export function updateProfile(db, user, body) {
     if (when === null) Object.assign(live, { arrived_after: null, arrived_before: null });
     else if (when !== arrivedWhen(current)) Object.assign(live, arrivedRange(when));
   }
-  // "Ho sempre vissuto in Italia" overrides where from and when
-  if (live.always_in_italy === 1) Object.assign(live, { arrived_from_country: null, arrived_from_city: null, arrived_after: null, arrived_before: null });
   // The birth year stays private: others see the age band, kept in step here and every day after
   if ('birth_year' in live) {
     if (live.birth_year === null && user.status !== 'onboarding') throw bad('invalid_field', 'Indica il tuo anno di nascita.');
@@ -357,7 +352,7 @@ export function card(db, viewer, p, viewerP) {
     role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
     from: p.lives_in_city ?? '',
     // already back in Italy: where from (shown "Rientrato da X → Y" instead of where they'd like to go)
-    back_from: p.lives_in === 'italy' && !p.always_in_italy ? (p.arrived_from_city || p.arrived_from_country || '') : '',
+    back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
     to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
     intent: p.primary_intent,

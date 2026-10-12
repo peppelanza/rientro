@@ -23,7 +23,7 @@ const STEPS = [
 const FIELDS = {
   luogo: ['lives_in', 'lives_in_country', 'lives_in_city'],
   residenza: ['lives_in', 'lives_in_country', 'lives_in_city'],
-  arrivo: ['arrived_from_country', 'arrived_from_city', 'arrived_when', 'always_in_italy'],
+  arrivo: ['arrived_from_country', 'arrived_from_city', 'arrived_when'],
   dove: ['desired_comuni', 'desired_unknown'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
@@ -46,7 +46,7 @@ const pick = (obj, keys) => Object.fromEntries(keys.map(k => [k, obj[k] ?? null]
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 // Already back in Italy: where they live is where they wanted to be (profiles.js isBack)
-const isBack = p => p?.lives_in === 'italy' && !p.always_in_italy;
+const isBack = p => p?.lives_in === 'italy';
 
 export default class extends Page {
   async load() {
@@ -118,7 +118,7 @@ export default class extends Page {
     switch (step) {
       case 'luogo': return p.lives_in ? null : 'Scegli dove vivi';
       case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
-      case 'arrivo': return p.always_in_italy ? null : !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
+      case 'arrivo': return !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
@@ -293,7 +293,7 @@ export default class extends Page {
     // Preview (23a)
     const pvFacts = [
       ['Vive a', [p.lives_in_city, p.lives_in === 'abroad' ? p.lives_in_country : null].filter(Boolean).join(', ')],
-      ['Rientro', p.lives_in !== 'italy' ? null : p.always_in_italy ? 'Ha sempre vissuto in Italia' : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
+      ['Rientro', p.lives_in !== 'italy' ? null : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', isBack(p) ? '' : orList(p.desired_comuni) || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const timeLabel = [cat.time.find(t => t[0] === p.time_commitment)?.[1], cat.start.find(t => t[0] === p.start_when)?.[1]?.toLowerCase()].filter(Boolean).join(' · ');
@@ -327,9 +327,9 @@ export default class extends Page {
       start: () => this.goTo(steps[0][0]),
 
       // 7a
-      // Choosing where you live moves straight on to the country/city step
-      livesItaly: card(p.lives_in === 'italy', () => { this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null }); this.next(); }),
-      livesAbroad: card(p.lives_in === 'abroad', () => { this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null }); this.next(); }),
+      // Choosing where you live selects it; Continua moves on to the country/city step
+      livesItaly: card(p.lives_in === 'italy', () => { this.set({ lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: p.lives_in === 'italy' ? p.lives_in_city : null }); }),
+      livesAbroad: card(p.lives_in === 'abroad', () => { this.set({ lives_in: 'abroad', lives_in_country: p.lives_in === 'abroad' ? p.lives_in_country : '', lives_in_city: p.lives_in === 'abroad' ? p.lives_in_city : null }); }),
       isAbroad: p.lives_in === 'abroad', isItaly: p.lives_in === 'italy', noLives: !p.lives_in,
       abroadClass: `place-card place-abroad${p.lives_in === 'abroad' ? ' is-on' : ''}`, italyClass: `place-card place-italy${p.lives_in === 'italy' ? ' is-on' : ''}`,
       placeKey: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } },
@@ -362,8 +362,6 @@ export default class extends Page {
       fromCityProps: { onChange: l => this.set({ arrived_from_city: l[0] ?? null }) },
       periodOpts: ARRIVED_WHEN, period: p.arrived_when ?? '',
       periodProps: { onSelect: v => this.set({ arrived_when: v || null }) },
-      alwaysItaly: !!p.always_in_italy, notAlwaysItaly: !p.always_in_italy,
-      toggleAlwaysItaly: () => this.set({ always_in_italy: !p.always_in_italy }),
       cityComune: p.lives_in === 'italy' && p.lives_in_city ? [p.lives_in_city] : [],
 
       // 8a
@@ -373,10 +371,10 @@ export default class extends Page {
       unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
 
       // 9a / 10a
-      // One click: choosing moves on (to the idea step for A, straight to "Presentati" for B and C)
-      intentA: card(p.primary_intent === 'has_idea', () => { this.set({ primary_intent: 'has_idea' }); this.next(); }),
-      intentB: card(p.primary_intent === 'seeking_idea', () => { this.set({ primary_intent: 'seeking_idea' }); this.next(); }),
-      intentC: card(p.primary_intent === 'networking', () => { this.set({ primary_intent: 'networking' }); this.next(); }),
+      // Choosing selects it; Continua moves on (to the idea step for A, straight to "Presentati" for B and C)
+      intentA: card(p.primary_intent === 'has_idea', () => { this.set({ primary_intent: 'has_idea' }); }),
+      intentB: card(p.primary_intent === 'seeking_idea', () => { this.set({ primary_intent: 'seeking_idea' }); }),
+      intentC: card(p.primary_intent === 'networking', () => { this.set({ primary_intent: 'networking' }); }),
 
       cat,
 

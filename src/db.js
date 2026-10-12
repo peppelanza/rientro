@@ -80,7 +80,7 @@ function collapseMessageNotifications(db) {
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
-  always_in_italy: 'INTEGER NOT NULL DEFAULT 0', birth_year: 'INTEGER', suggested_photo_url: 'TEXT', photo_check: 'TEXT',
+  birth_year: 'INTEGER', suggested_photo_url: 'TEXT', photo_check: 'TEXT',
 };
 export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));
@@ -95,6 +95,8 @@ export function addProfileColumns(db) {
       WHERE arrived_period GLOB '[0-9][0-9][0-9][0-9]-H[12]'`);
     db.exec('ALTER TABLE profiles DROP COLUMN arrived_period');
   }
+  // "Ho sempre vissuto in Italia" is gone: whoever lives in Italy came back from somewhere
+  if (have.has('always_in_italy')) db.exec('ALTER TABLE profiles DROP COLUMN always_in_italy');
   if (have.has('in_italy_long_time')) {
     db.exec(`UPDATE profiles SET arrived_after = NULL, arrived_before = strftime('%Y-%m', 'now', '-24 months') WHERE in_italy_long_time = 1`);
     db.exec('ALTER TABLE profiles DROP COLUMN in_italy_long_time');
@@ -105,7 +107,7 @@ export function addProfileColumns(db) {
 // (profiles.js isBack; updateProfile keeps it so). Brings earlier answers in line (idempotent)
 export function desiredFollowsHome(db) {
   db.exec(`UPDATE profiles SET desired_comuni = json_array(lives_in_city), desired_unknown = 0
-    WHERE lives_in = 'italy' AND always_in_italy = 0 AND lives_in_city IS NOT NULL AND desired_comuni IS NOT json_array(lives_in_city)`);
+    WHERE lives_in = 'italy' AND lives_in_city IS NOT NULL AND desired_comuni IS NOT json_array(lives_in_city)`);
 }
 
 // Idea stages went from five to three; move stored and pending values over (idempotent)
