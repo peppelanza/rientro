@@ -408,8 +408,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return auth.acknowledgeLegal(db, user.id, await readJson(req));
   });
 
-  // Updated Terms/Privacy must be acknowledged before changing the profile, except during onboarding:
-  // updated documents are asked for once the profile has been sent (the prompt on the member pages).
+  // Updated Terms/Privacy never block anything here: the member pages ask for them in a dialog
+  // (main.js askLegalUpdate), so a bug there can't stop anyone from using Rientro.
   route('PATCH', '/api/me/profile', async ({ user, req }) => { return profiles.updateProfile(db, user, await readJson(req)); });
   route('POST', '/api/me/education', async ({ user, req }) => { return profiles.saveEducation(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/education/:id', async ({ user, req, params }) => profiles.saveEducation(db, user.id, await readJson(req), params.id));

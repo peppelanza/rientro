@@ -2,7 +2,7 @@
 // Each page is pages/<name>.js (Logic) + pages/<name>.html (template copied from design/).
 import '../dc/gen/components.js';
 import './components.js';
-import { mountPage } from '../dc/runtime.js';
+import { DCLogic, mountPage } from '../dc/runtime.js';
 import { impersonationFrame } from './impersonation.js';
 import { launchBar } from './launchbar.js';
 import { pullToRefresh } from './pull-refresh.js';
@@ -10,7 +10,7 @@ import { tabbarOnScroll } from './tabbar-scroll.js';
 import { searchHistory } from './search-history.js';
 import { tapFeedback } from './tap-feedback.js';
 import { anchorOffset } from './anchor-offset.js';
-import { showFlash, template } from './lib.js';
+import { api, getMe, openModal, showFlash, template } from './lib.js';
 
 const ROUTES = [
   [/^\/$/, 'home'],
@@ -65,6 +65,34 @@ async function boot() {
   const logic = mountPage(root, { template: tpl, Logic: mod.default, props: { params: m.groups || {} } });
   if (mod.tabbar) pullToRefresh(logic);
   showFlash();
+  if (!NO_LEGAL_PROMPT.has(page)) askLegalUpdate().catch(() => {});
+}
+
+// Terms or Privacy updated since the member last accepted them: a dialog on the member pages, until
+// they accept. It never blocks anything (the server doesn't either): closed, it comes back on the
+// next page. Not on public pages, sign-in, the legal pages themselves or during onboarding.
+const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding', 'press']);
+const DOC_NAMES = { terms: ['i nuovi', 'Termini', '/legal/termini'], privacy: ['la nuova', 'Privacy Policy', '/legal/privacy'] };
+const day = v => new Date(`${v}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1° ');
+async function askLegalUpdate() {
+  // the session without redirecting: public pages (a group) are open to visitors too
+  const me = await fetch('/api/session').then(r => (r.ok ? r.json() : null)).catch(() => null);
+  const needs = me?.legal?.needs ?? [];
+  if (!needs.length || me.user.status === 'onboarding' || me.impersonated) return;
+  const since = day(needs.map(d => me.legal.versions[d]).sort().at(-1));
+  const docs = needs.map(d => `${DOC_NAMES[d][0]} <a href="${DOC_NAMES[d][2]}" target="_blank">${DOC_NAMES[d][1]}</a>`).join(' e ');
+  const tpl = `<div class="legal-update"><h2>Abbiamo aggiornato i nostri documenti</h2>
+<p>Dal ${since} sono in vigore ${docs}. Leggili e, se sei d’accordo, confermali.</p>
+<sc-if value="{{ error }}"><p role="alert" class="legal-update-err">{{ error }}</p></sc-if>
+<dc-import name="UI Button" label="Ho letto e accetto" variant="accent" size="lg" full="{{ true }}" on-click="{{ accept }}"></dc-import></div>`;
+  await openModal({ template: tpl, Logic: class extends DCLogic {
+    state = { error: null };
+    renderVals() {
+      return { error: this.state.error, accept: async () => {
+        try { await api('POST', '/api/me/legal', { accept: true }); await getMe(true); this.close(true); } catch (err) { this.setState({ error: err.message }); }
+      } };
+    }
+  } });
 }
 
 tapFeedback();
