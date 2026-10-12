@@ -1042,3 +1042,12 @@ html.search-sheet-open { overflow: hidden; }
 .cd-cell b { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .cd-cell > span { font: 500 11px 'Geist Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); }
 @media (max-width: 720px) { .countdown { gap: 8px; } .cd-cell { min-width: 0; flex: 1; padding: 12px 6px 10px; } }
+
+/* The bell dropdown while its notifications load (components.js, App Nav): placeholder rows as
+   shining bars, as the page skeletons */
+.bell-loading { --sk: linear-gradient(100deg, #ECE9F6 30%, #F6F4FC 50%, #ECE9F6 70%) 0 0 / 200vw 100% fixed; }
+.bell-loading .bell-item { pointer-events: none; }
+.bell-loading .bell-item :not(:has(*)):not(:empty) { color: transparent !important; background: var(--sk); border-radius: 6px; animation: sk-shine 1.4s linear infinite; }
+.bell-loading .bell-item [data-sc-name="App Photo"] > div { background: var(--sk) !important; animation: sk-shine 1.4s linear infinite; }
+.bell-loading .bell-item [data-sc-name="App Photo"] > div > * { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .bell-loading .bell-item *, .bell-loading .bell-item [data-sc-name="App Photo"] > div { animation: none !important; } }

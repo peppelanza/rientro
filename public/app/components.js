@@ -16,6 +16,9 @@ const b = v => v === true || v === 'true';
 // nav talks to the one drawn last
 let currentNav = null;
 const BELL_OUT_MS = 120; // app.css .bell-out
+const BELL_IN_MS = 160; // app.css .bell-in
+// While the bell's notifications load: three rows of the same shape, shown as shining bars
+const BELL_PLACEHOLDER = [1, 2, 3].map(i => ({ id: `sk${i}`, kind: 'connection_request', actor: { name: 'Nome Cognome' }, created_at: new Date().toISOString(), read: true }));
 
 // A click outside or Escape closes the bell dropdown and the account menu
 for (const type of ['click', 'keydown']) document.addEventListener(type, e => currentNav?.closeOnOutside(e));
@@ -62,10 +65,10 @@ def('App Nav', String.raw`
 <sc-if value="{{ bell }}"><button type="button" onClick="{{ toggleBell }}" aria-label="{{ bell.aria }}" aria-haspopup="dialog" aria-expanded="{{ bellExpanded }}" class="nav-bell" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:{{ bell.bg }};color:{{ bell.fg }};display:flex;align-items:center;justify-content:center;position:relative;flex:none;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><sc-if value="{{ bell.count }}"><span style="position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E5484D;color:#FFFFFF;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #FFFFFF">{{ bell.count }}</span></sc-if></button></sc-if>
 <button type="button" onClick="{{ toggleMenu }}" aria-haspopup="menu" aria-expanded="{{ menuOpen }}" aria-label="Il tuo account" style="width:44px;height:44px;margin-left:8px;border:none;padding:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9C0F0 45%,#8E7FE0);display:flex;align-items:center;justify-content:center;font:600 12px 'Geist',sans-serif;color:#1A1726;cursor:pointer;overflow:hidden;flex:none"><sc-if value="{{ photo }}"><img src="{{ photo }}" alt="" style="width:100%;height:100%;object-fit:cover"></sc-if><sc-if value="{{ noPhoto }}">{{ initials }}</sc-if></button>
 </div>
-<sc-if value="{{ bellOpen }}"><div role="dialog" aria-label="Notifiche" class="bell-panel {{ bellAnim }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:24px;padding:8px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;box-sizing:border-box">
+<sc-if value="{{ bellOpen }}"><div role="dialog" aria-label="Notifiche" class="bell-panel {{ bellAnim }} {{ bellLoading }}" style="position:absolute;right:var(--gutter);top:88px;background:#FFFFFF;border-radius:24px;padding:8px;box-shadow:0 16px 36px rgba(40,30,90,.16);display:flex;flex-direction:column;font-size:14px;box-sizing:border-box">
 <div style="padding:10px 12px 6px;font-family:'Unbounded',sans-serif;font-size:17px;font-weight:600;letter-spacing:-.03em;color:#1A1726">Notifiche</div>
 <sc-if value="{{ bellEmpty }}"><span style="padding:14px 12px;color:#6B6680">Nessuna notifica, per ora.</span></sc-if>
-<sc-for list="{{ bellItems }}" as="n"><a href="{{ n.href }}" style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:18px;background:{{ n.bg }};margin-top:2px;color:{{ n.fg }};text-decoration:none">
+<sc-for list="{{ bellItems }}" as="n"><a href="{{ n.href }}" class="bell-item" style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:18px;background:{{ n.bg }};margin-top:2px;color:{{ n.fg }};text-decoration:none">
 <sc-if value="{{ n.isPerson }}"><div style="flex:none"><dc-import name="App Photo" size="40" src="{{ n.photo }}" initials="{{ n.ini }}"></dc-import></div></sc-if>
 <sc-if value="{{ n.isIcon }}"><div aria-hidden="true" style="width:40px;height:40px;border-radius:50%;flex:none;background:{{ n.ibg }};color:{{ n.ifg }};font-weight:600;display:flex;align-items:center;justify-content:center">{{ n.icon }}</div></sc-if>
 <div style="display:flex;flex-direction:column;gap:4px;line-height:1.4;flex:1;min-width:0"><span><sc-if value="{{ n.hasWho }}"><b style="font-weight:600">{{ n.who }}</b>{{ n.rest }}</sc-if><sc-if value="{{ n.hasText }}">{{ n.text }}</sc-if></span><span style="font-size:12px;color:{{ n.whenFg }};font-weight:{{ n.whenFw }}">{{ n.when }}</span></div>
@@ -92,18 +95,24 @@ def('App Nav', String.raw`
   }
 
   // Like Facebook: the latest 5, read or not; opening it clears the badge, the unread ones keep
-  // their colour and dot until next time. It opens (a short fade, app.css) once they're loaded,
-  // so nothing redraws it mid-animation.
+  // their colour and dot until next time. It opens at once (a short fade, app.css) with placeholder
+  // rows shining while they load; they're filled in once the fade is over, so nothing redraws it
+  // mid-animation.
   async openBell() {
     if (this.opening) return;
     this.opening = true;
     const c = this.props.me?.counts || {};
+    this.animateBell = true;
+    this.setState({ bellOpen: true, menuOpen: false, bellItems: null });
+    this.animateBell = false; // only this first drawing animates
+    const started = performance.now();
     let r = null;
     try { r = await api('GET', '/api/notifications?per_page=5'); } catch {}
+    const wait = BELL_IN_MS - (performance.now() - started);
+    if (wait > 0) await new Promise(res => setTimeout(res, wait));
     this.opening = false;
-    this.animateBell = true;
-    this.setState({ bellOpen: true, menuOpen: false, bellItems: r?.items || [], bellUnread: r?.unread ?? (c.notifications || 0) });
-    this.animateBell = false; // only this first drawing animates
+    if (!this.state.bellOpen) return; // closed while loading
+    this.setState({ bellItems: r?.items || [], bellUnread: r?.unread ?? (c.notifications || 0) });
     if (r?.items.some(n => !n.read)) {
       await api('POST', '/api/notifications/read').catch(() => {});
       c.notifications = 0;
@@ -172,9 +181,10 @@ def('App Nav', String.raw`
       bellExpanded: this.state.bellOpen ? 'true' : 'false',
       toggleBell: () => (this.state.bellOpen ? this.closeBell() : this.openBell()),
       bellAnim: this.animateBell ? 'bell-in' : '',
+      bellLoading: this.state.bellOpen && !this.state.bellItems ? 'bell-loading' : '',
       bellEmpty: !!this.state.bellItems && !this.state.bellItems.length,
       bellReady: !!this.state.bellItems?.length,
-      bellItems: (this.state.bellItems || []).map(n => {
+      bellItems: (this.state.bellItems || (this.state.bellOpen ? BELL_PLACEHOLDER : [])).map(n => {
         const d = describeNotification(n);
         return {
           ...d, href: d.href || '/notifiche', hasWho: !!d.who, hasText: !!d.text, isPerson: !!n.actor && !d.icon, isIcon: !!d.icon,
