@@ -12,7 +12,7 @@ export const tabbar = true;
 
 const SECTIONS = [
   ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown']],
-  ['su-di-me', 'Su di me e video', ['bio', 'achievement', 'video_connections_only']],
+  ['su-di-me', 'Su di me e video', ['bio', 'achievement']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
@@ -188,7 +188,6 @@ export default class extends Page {
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
       canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); }, cancelUpload: () => upload.abort?.(),
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); s.me.profile.video_url = null; p.video_url = null; setPreview(s, null); s.newVideo = false; toast('Video rimosso.'); }),
-      videoOnly: p.video_connections_only, toggleVideoOnly: () => this.set({ video_connections_only: !p.video_connections_only }),
       // obiettivo
       intentA: card(p.primary_intent === 'has_idea', () => this.set({ primary_intent: 'has_idea' })),
       intentB: card(p.primary_intent === 'seeking_idea', () => this.set({ primary_intent: 'seeking_idea' })),

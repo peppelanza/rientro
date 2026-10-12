@@ -30,7 +30,6 @@ const FIELDS = {
   presentati: ['first_name', 'last_name', 'birth_year', 'bio'],
   background: ['background_area', 'current_role', 'current_company', 'years_experience'],
   risultato: ['achievement'],
-  video: ['video_connections_only'],
   settori: ['sectors'],
   chi: ['seeking_backgrounds', 'seeking_description', 'seeking_location'],
   tempo: ['time_commitment', 'start_when'],
@@ -437,8 +436,6 @@ export default class extends Page {
       pickVideo: e => { this.uploadFile('video', e.target.files[0]); e.target.value = ''; },
       canRecord: canRecord(), recordVideo: async () => { const f = await recordVideo(); if (f) this.uploadFile('video', f, { recorded: true }); },
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; setPreview(s, null); }),
-      videoPrivate: p.video_connections_only, videoPrivBg: p.video_connections_only ? '#6C4DF5' : '#FFFFFF', videoPrivBd: p.video_connections_only ? 'none' : '1.5px solid #CFC8E8', videoPrivMark: p.video_connections_only ? '✓' : '',
-      toggleVideoPrivate: e => this.set({ video_connections_only: e.target.checked }),
 
       // 17a
       sectorCount: `${p.sectors.length} / 5`, sectorQuery: s.sectorQuery,
