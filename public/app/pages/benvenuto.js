@@ -1,10 +1,24 @@
 // Before launch: where a member lands once their profile is online. A big "your profile is ready"
-// box with the launch date, and a small preview of their profile that opens the editor (/profilo).
+// box with a countdown to launch, and a small preview of their profile that opens the editor (/profilo).
 import { api, getMe, go, orList } from '../lib.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Il tuo profilo è pronto';
 export const tabbar = true;
+
+// Time to launch as days, hours, minutes, seconds (null once it's there)
+function parts(at) {
+  const ms = at - Date.now();
+  if (!(ms > 0)) return null;
+  const s = Math.floor(ms / 1000);
+  const two = n => String(n).padStart(2, '0');
+  return [
+    { k: 'd', v: String(Math.floor(s / 86400)), l: Math.floor(s / 86400) === 1 ? 'giorno' : 'giorni' },
+    { k: 'h', v: two(Math.floor(s / 3600) % 24), l: 'ore' },
+    { k: 'm', v: two(Math.floor(s / 60) % 60), l: 'minuti' },
+    { k: 's', v: two(s % 60), l: 'secondi' },
+  ];
+}
 
 const ini = (a, b) => `${(a || '?')[0]}${(b || '')[0] || ''}`.toUpperCase();
 
@@ -14,9 +28,19 @@ export default class extends Page {
     // After launch, or still filling the profile in: the usual home
     if (me.launched || me.user.status !== 'approved') return go(homeFor(me));
     const launch = await api('GET', '/api/public/launch').catch(() => null);
-    const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ');
-    Object.assign(this.state, { me, date });
+    const at = launch ? Date.parse(launch.launch_at) : NaN;
+    const date = launch && new Date(at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1° ');
+    Object.assign(this.state, { me, date, at });
+    // The countdown ticks by writing its numbers, not by redrawing the page; at zero, the launch
+    clearInterval(this.tick);
+    this.tick = setInterval(() => {
+      const left = parts(this.state.at);
+      if (!left) { clearInterval(this.tick); location.reload(); return; }
+      for (const c of left) { const b = document.querySelector(`[data-cd="${c.k}"]`); if (b && b.textContent !== c.v) b.textContent = c.v; }
+    }, 1000);
   }
+
+  componentWillUnmount() { clearInterval(this.tick); }
 
   renderVals() {
     const s = this.state;
@@ -25,7 +49,7 @@ export default class extends Page {
     const places = p.desired_unknown ? 'Non lo so ancora' : orList(p.desired_comuni || [], 3);
     return {
       loading: false, me: s.me,
-      text: `Ti invieremo una mail il giorno del lancio di Rientro, ${s.date ? `il ${s.date}` : 'appena apriamo'}.`,
+      cd: parts(s.at) ?? [], hasCountdown: !!parts(s.at), cdLabel: s.date ? `Mancano al lancio di Rientro, il ${s.date}` : 'Mancano al lancio di Rientro',
       name: [p.first_name, p.last_name].filter(Boolean).join(' '), photo: p.photo_url, ini: ini(p.first_name, p.last_name),
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city || p.lives_in_country || '', to: places, hasRoute: !!((p.lives_in_city || p.lives_in_country) && places),

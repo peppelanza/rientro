@@ -6,7 +6,8 @@
 <section class="welcome-hero">
 <span aria-hidden="true" class="welcome-emoji">🎉</span>
 <h1 class="welcome-title">Il tuo profilo è pronto!</h1>
-<p class="welcome-text">{{ text }}</p>
+<p class="welcome-text">Ti invieremo una mail il giorno del lancio di Rientro.</p>
+<sc-if value="{{ hasCountdown }}"><div class="countdown" role="timer" aria-label="{{ cdLabel }}"><sc-for list="{{ cd }}" as="c"><div class="cd-cell"><b data-cd="{{ c.k }}">{{ c.v }}</b><span>{{ c.l }}</span></div></sc-for></div></sc-if>
 </section>
 <section class="r-wrap" style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.10);padding:18px 18px 18px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
 <dc-import name="App Photo" size="72" src="{{ photo }}" initials="{{ ini }}" alt="{{ name }}"></dc-import>
