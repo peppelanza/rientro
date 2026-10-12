@@ -67,6 +67,8 @@ async function boot() {
   showFlash();
 }
 
+tapFeedback();
+searchHistory();
 launchBar();
 impersonationFrame();
 anchorOffset();
