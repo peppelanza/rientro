@@ -1056,3 +1056,8 @@ html.search-sheet-open { overflow: hidden; }
 .photo-wrap { position: relative; display: inline-flex; flex: none; }
 .photo-busy { position: absolute; inset: 0; border-radius: 50%; background: rgba(26,23,38,.45); display: flex; align-items: center; justify-content: center; }
 .ios-spinner.light { filter: brightness(0) invert(1); }
+
+/* The profile preview's bar (persona.html): "Torna all'editor" as a button, clear of the bar's edge */
+.preview-back { flex: none; height: 36px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,.12); color: #FFFFFF; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; }
+.preview-back:hover { background: rgba(255,255,255,.2); }
+@media (max-width: 720px) { .preview-back { align-self: flex-start; } }

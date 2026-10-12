@@ -5,7 +5,7 @@
 <sc-if value="{{ ready }}">
 <div class="r-page">
 <sc-if value="{{ notSelf }}"><div style="padding:28px var(--gutter) 0;font-size:14px"><a href="{{ backHref }}" style="color:#6B6680;text-decoration:none">← {{ backLabel }}</a></div></sc-if>
-<sc-if value="{{ self }}"><div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 10px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedono gli altri membri.</span><div style="flex:1"></div><a href="/profilo" style="color:#C9C0F0">Torna all’editor</a></div></sc-if>
+<sc-if value="{{ self }}"><div class="r-stack" style="margin:18px var(--gutter) 0;border-radius:28px;background:#1A1726;color:#FFFFFF;padding:10px 12px 10px 24px;display:flex;align-items:center;gap:16px;font-size:14px"><dc-import name="UI Eyebrow" text="Anteprima" tone="light"></dc-import><span>Così ti vedono gli altri membri.</span><div style="flex:1"></div><a href="/profilo" class="preview-back">Torna all’editor</a></div></sc-if>
 <sc-if value="{{ isReceived }}"><section aria-label="Richiesta di connessione" class="r-stack" style="margin:18px var(--gutter) 0;border-radius:32px;background:linear-gradient(135deg,#6C4DF5,#3E2BA8);color:#FFFFFF;padding:22px 22px 22px 28px;display:flex;align-items:center;gap:24px;box-shadow:0 18px 44px rgba(62,43,168,.25)">
 <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0">
 <dc-import name="UI Eyebrow" text="{{ requestEyebrow }}" tone="light"></dc-import>
