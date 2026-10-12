@@ -2,7 +2,7 @@
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
 import { waitingCount } from './support.js';
-import { AGE_BANDS, label, orList, SOURCES, START, TIME } from './catalog.js';
+import { label, orList, SOURCES, START, TIME } from './catalog.js';
 import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
@@ -139,7 +139,7 @@ export function getUser(db, admin, userId) {
     ).all(userId),
     reports: db.prepare('SELECT id, reason, details, status, created_at FROM reports WHERE reported_id = ? ORDER BY created_at DESC').all(userId),
     labels: {
-      age: label(AGE_BANDS, p.age_band), time: label(TIME, p.time_commitment), start: label(START, p.start_when), intent: INTENT[p.primary_intent] ?? null,
+      time: label(TIME, p.time_commitment), start: label(START, p.start_when), intent: INTENT[p.primary_intent] ?? null,
     },
   };
 }

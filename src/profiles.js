@@ -1,4 +1,4 @@
-import { AGE_BANDS, AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
+import { AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { forgiving, hit, terms, wordsOf } from './search.js';
@@ -321,8 +321,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
   return {
     id: targetId,
     first_name: p.first_name, last_name: p.last_name,
-    // the age stays private: only you (not in the preview of how others see you) and the admins
-    age_band: (self && !preview) || viewer.role === 'admin' ? label(AGE_BANDS, p.age_band) : null,
+    // the age is never shown, to anyone (not even you or the admins): only kept, from the birth year
     lives_in_city: p.lives_in_city, lives_in_country: p.lives_in_country,
     arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
     desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p), back: isBack(p),

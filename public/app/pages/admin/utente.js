@@ -48,7 +48,7 @@ export default class extends AdminPage {
       ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')],
       ['Intento', d.labels.intent], ['Idea', p.idea_title],
       ['Background', [p.background_area, lab(cat.years, p.years_experience) && `${lab(cat.years, p.years_experience)} anni`].filter(Boolean).join(' · ')],
-      ['Ruolo', [p.current_role, p.current_company].filter(Boolean).join(' · ')], ['Età', d.labels.age],
+      ['Ruolo', [p.current_role, p.current_company].filter(Boolean).join(' · ')],
       ['Cerca', p.seeking_backgrounds.join(', ')], ['Settori', p.sectors.join(', ')],
       ['Tempo', [d.labels.time, d.labels.start?.toLowerCase()].filter(Boolean).join(' · ')], ['Fonte', p.source],
       ['LinkedIn', p.linkedin_url], ['Su di me', p.bio],

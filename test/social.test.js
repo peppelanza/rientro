@@ -487,16 +487,16 @@ test('discover: a region in "Dove vuole vivere" finds anyone who chose a comune 
   } finally { t.close(); }
 });
 
-test('age stays private: other members never get it (profile, cards, filters), you and the admins do', async () => {
+test('the age is never shown: not to other members (profile, cards, filters), not to you, not to the admins', async () => {
   const t = await startApp();
   try {
     const a = await t.approved('age-a@example.com');
     const b = await t.approved('age-b@example.com');
     const admin = await t.asAdmin();
-    assert.equal((await b.get(`/api/profiles/${a.id}`)).body.age_band, null, 'not to another member');
-    assert.equal((await a.get(`/api/profiles/${a.id}?anteprima=1`)).body.age_band, null, 'not in your preview as others see you');
-    assert.ok((await admin.get(`/api/admin/users/${a.id}`)).body.labels.age, 'the admins see it (admin panel)');
-    assert.ok((await a.get(`/api/profiles/${a.id}`)).body.age_band, 'you see your own');
+    assert.ok(!('age_band' in (await b.get(`/api/profiles/${a.id}`)).body), 'not to another member');
+    assert.ok(!('age_band' in (await a.get(`/api/profiles/${a.id}?anteprima=1`)).body), 'not in your preview as others see you');
+    assert.ok(!('age' in (await admin.get(`/api/admin/users/${a.id}`)).body.labels), 'not in the admin panel');
+    assert.ok(!('age_band' in (await a.get(`/api/profiles/${a.id}`)).body), 'not on your own profile page');
     const card = (await b.get('/api/profiles')).body.people.find(p => p.id === a.id);
     assert.ok(card && !('age' in card), 'no age on cards');
     assert.equal((await b.get('/api/profiles?age=30-34,35-39')).body.total, (await b.get('/api/profiles')).body.total, 'no filtering by age');
