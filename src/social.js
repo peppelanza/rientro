@@ -119,6 +119,16 @@ export function respondConnection(db, viewer, id, action) {
   return { status: 'none' };
 }
 
+// Removing a connection (either of the two, from the other's profile): silent, like declining. It
+// ends as 'withdrawn' (the table's statuses): you're no longer connected, links and chat close, and
+// either can ask again later. Past messages stay.
+export function removeConnection(db, viewer, id) {
+  const c = db.prepare('SELECT * FROM connections WHERE id = ?').get(id);
+  if (!c || c.status !== 'accepted' || (c.requester_id !== viewer.id && c.addressee_id !== viewer.id)) throw new HttpError(404, 'not_found', 'Connessione non più disponibile.');
+  db.prepare("UPDATE connections SET status = 'withdrawn', responded_at = ? WHERE id = ?").run(now(), id);
+  return { status: 'none' };
+}
+
 function allConnections(db, viewer) {
   const viewerP = rawProfile(db, viewer.id);
   const toCard = (otherId, extra) => {

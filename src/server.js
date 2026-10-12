@@ -498,6 +498,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/connections', async ({ user, req }) => social.requestConnection(db, user, await readJson(req)));
   route('GET', '/api/connections/:id', ({ user, params }) => social.getRequest(db, user, params.id));
   route('POST', '/api/connections/:id/:action', ({ user, params }) => {
+    if (params.action === 'remove') return social.removeConnection(db, user, params.id);
     if (!['accept', 'decline', 'withdraw'].includes(params.action)) throw new HttpError(404, 'not_found');
     return social.respondConnection(db, user, params.id, params.action);
   });

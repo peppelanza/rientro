@@ -89,6 +89,28 @@ export async function report(person, { postId } = {}) {
   return r;
 }
 
+const REMOVE = `
+<div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Rimuovere la connessione con {{ first }}?</h2>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· I messaggi già scambiati restano.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
+<div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Rimuovi connessione" variant="destructive" on-click="{{ confirm }}"></dc-import></div>
+</div>`;
+
+// "✓ Siete connessi" on someone's profile: asks, then removes the connection. Resolves to true once removed
+export async function removeConnection(person, connectionId) {
+  const first = person.first_name || person.name.split(' ')[0];
+  const ok = await openModal({
+    template: REMOVE,
+    Logic: class extends DCLogic {
+      renderVals() { return { first, cancel: () => this.close(false), confirm: () => this.close(true) }; }
+    },
+  });
+  if (!ok) return false;
+  await api('POST', `/api/connections/${connectionId}/remove`);
+  toast(`Non sei più connesso con ${first}.`);
+  return true;
+}
+
 const BLOCK = `
 <div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Bloccare {{ first }}?</h2>

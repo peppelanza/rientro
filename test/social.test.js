@@ -526,3 +526,20 @@ test('"Mostralo solo alle mie connessioni": the video and its file only for conn
   assert.deepEqual(await sees(stranger), [false, true, 404], 'not connected: locked, and the file is refused too');
   assert.deepEqual(await sees(friend), [true, false, 200], 'a connection still sees it');
 });
+
+test('either of two connected members can remove the connection: silent, chat closed, they can connect again', async () => {
+  const a = await t.approved('rimuove-a@x.it');
+  const b = await t.approved('rimuove-b@x.it');
+  const id = await t.connect(a, b);
+  assert.equal((await b.get(`/api/profiles/${a.id}`)).body.connection.status, 'connected');
+  const stranger = await t.approved('rimuove-c@x.it');
+  assert.equal((await stranger.post(`/api/connections/${id}/remove`)).status, 404, 'only the two of them');
+  const before = (await a.get('/api/notifications')).body.items.length;
+  assert.equal((await b.post(`/api/connections/${id}/remove`)).status, 200);
+  assert.equal((await a.get(`/api/profiles/${b.id}`)).body.connection.status, 'none');
+  assert.equal((await a.get('/api/notifications')).body.items.length, before, 'no notification');
+  assert.equal((await a.post(`/api/threads/${b.id}`, { body: 'Ciao?' })).status, 403, 'no more messages');
+  assert.equal((await a.post(`/api/connections/${id}/remove`)).status, 404, 'already gone');
+  await t.connect(a, b);
+  assert.equal((await a.get(`/api/profiles/${b.id}`)).body.connection.status, 'connected', 'and they can connect again');
+});

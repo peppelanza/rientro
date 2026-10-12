@@ -1,6 +1,6 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
 import { api, CERCA_BACK_KEY, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, timeAgo, toast } from '../lib.js';
-import { block, connect, report } from '../social.js';
+import { block, connect, removeConnection, report } from '../social.js';
 import { Page } from './_base.js';
 
 export const title = 'Profilo';
@@ -148,6 +148,8 @@ export default class extends Page {
       }),
       decline: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/decline`); toast('Richiesta rifiutata.'); await this.refresh(); }),
       chat: () => go(`/messaggi/${p.id}`),
+      // "✓ Siete connessi": asks, then removes the connection (silent for the other)
+      removeConn: this.act(async () => { if (await removeConnection(person, p.connection.id)) await this.refresh(); }),
       menuOpen: !!s.menuOpen, toggleMenu: () => { if (!s.self) this.setState({ menuOpen: !s.menuOpen }); },
       doReport: async () => { if (s.self) return; this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/scopri'); },
       doBlock: async () => { if (s.self) return; this.setState({ menuOpen: false }); if (await block(person)) go('/scopri'); },

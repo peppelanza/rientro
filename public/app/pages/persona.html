@@ -30,7 +30,7 @@
 <sc-if value="{{ isNone }}"><div class="{{ previewClass }}"><dc-import name="UI Button" label="Connettiti" variant="accent" size="lg" full="{{ true }}" on-click="{{ connect }}" host-aria-disabled="{{ preview }}"></dc-import></div></sc-if>
 <sc-if value="{{ isSent }}"><dc-import name="UI Button" label="Richiesta inviata · in attesa" variant="secondary" size="lg" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import><dc-import name="UI Button" label="Annulla richiesta" variant="ghost" size="sm" full="{{ true }}" on-click="{{ withdraw }}"></dc-import></sc-if>
 <sc-if value="{{ isConnected }}"><div style="background:#FFFFFF;border-radius:28px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
-<dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" host-aria-disabled="{{ true }}"></dc-import>
+<dc-import name="UI Button" label="✓ Siete connessi" variant="success" full="{{ true }}" on-click="{{ removeConn }}" host-aria-label="Siete connessi: rimuovi la connessione" host-title="Rimuovi la connessione"></dc-import>
 <dc-import name="UI Button" label="Apri chat" full="{{ true }}" on-click="{{ chat }}"></dc-import>
 <sc-if value="{{ hasUnlocked }}"><div style="display:flex;flex-direction:column;font-size:14px;margin-top:8px"><sc-for list="{{ unlocked }}" as="u"><div style="display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-top:{{ u.bt }}"><span style="color:#8C84AE">{{ u.k }}</span><a href="{{ u.href }}" target="_blank" rel="noopener noreferrer" style="color:#3E2BA8">{{ u.v }}</a></div></sc-for></div>
 <span style="font-size:12px;color:#8C84AE">Visibili solo perché avete accettato la connessione.</span></sc-if>
