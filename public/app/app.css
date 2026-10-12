@@ -1051,3 +1051,8 @@ html.search-sheet-open { overflow: hidden; }
 .bell-loading .bell-item [data-sc-name="App Photo"] > div { background: var(--sk) !important; animation: sk-shine 1.4s linear infinite; }
 .bell-loading .bell-item [data-sc-name="App Photo"] > div > * { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .bell-loading .bell-item *, .bell-loading .bell-item [data-sc-name="App Photo"] > div { animation: none !important; } }
+
+/* A profile photo being checked and sent (Il tuo profilo, onboarding): it dims and a spinner turns */
+.photo-wrap { position: relative; display: inline-flex; flex: none; }
+.photo-busy { position: absolute; inset: 0; border-radius: 50%; background: rgba(26,23,38,.45); display: flex; align-items: center; justify-content: center; }
+.ios-spinner.light { filter: brightness(0) invert(1); }

@@ -68,9 +68,10 @@ async function boot() {
   if (!NO_LEGAL_PROMPT.has(page)) askLegalUpdate().catch(() => {});
 }
 
-// Terms or Privacy updated since the member last accepted them: a dialog on the member pages, until
-// they accept. It never blocks anything (the server doesn't either): closed, it comes back on the
-// next page. Not on public pages, sign-in, the legal pages themselves or during onboarding.
+// Terms or Privacy updated since the member last accepted them: a dialog on the member pages that
+// stays until they accept (no Escape, no click outside). Only the dialog stands in the way: the
+// server blocks nothing, so if it ever went away by a bug everything would still work, and it
+// comes back on the next page. Not on public pages, sign-in, the legal pages or during onboarding.
 const NO_LEGAL_PROMPT = new Set(['home', 'cervelli', 'territori', 'accedi', 'legal', 'onboarding', 'press']);
 const DOC_NAMES = { terms: ['i nuovi', 'Termini', '/legal/termini'], privacy: ['la nuova', 'Privacy Policy', '/legal/privacy'] };
 const day = v => new Date(`${v}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/^1 /, '1° ');
@@ -85,7 +86,7 @@ async function askLegalUpdate() {
 <p>Dal ${since} sono in vigore ${docs}. Leggili e, se sei d’accordo, confermali.</p>
 <sc-if value="{{ error }}"><p role="alert" class="legal-update-err">{{ error }}</p></sc-if>
 <dc-import name="UI Button" label="Ho letto e accetto" variant="accent" size="lg" full="{{ true }}" on-click="{{ accept }}"></dc-import></div>`;
-  await openModal({ template: tpl, Logic: class extends DCLogic {
+  await openModal({ dismissible: false, template: tpl, Logic: class extends DCLogic {
     state = { error: null };
     renderVals() {
       return { error: this.state.error, accept: async () => {

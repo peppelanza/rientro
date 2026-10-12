@@ -162,9 +162,10 @@ export const toastError = err => toast(err?.message || 'Qualcosa è andato stort
 // --- Modals --------------------------------------------------------------------------------
 
 // Mounts a dc template in an overlay, which opens and closes with a short animation (app.css). The
-// Logic gets `this.close(result)`.
+// Logic gets `this.close(result)`. dismissible: false keeps it open until the Logic closes it (no
+// Escape, no click outside).
 const MODAL_OUT_MS = 180;
-export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,38,.45)', sheet = false }) {
+export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,38,.45)', sheet = false, dismissible = true }) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.className = `modal-overlay${sheet ? ' sheet' : ''}`;
@@ -194,8 +195,8 @@ export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,
       previous?.focus?.();
       resolve(result);
     };
-    const onKey = e => { if (e.key === 'Escape') close(undefined); };
-    overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(undefined); });
+    const onKey = e => { if (e.key === 'Escape' && dismissible) close(undefined); };
+    overlay.addEventListener('mousedown', e => { if (e.target === overlay && dismissible) close(undefined); });
     document.addEventListener('keydown', onKey);
     document.body.append(overlay);
     class Bound extends Logic { close(r) { close(r); } }

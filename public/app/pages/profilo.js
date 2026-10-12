@@ -161,7 +161,7 @@ export default class extends Page {
       isIntestazione: is('intestazione'), isSuDiMe: is('su-di-me'), isObiettivo: is('obiettivo'), isPercorso: is('percorso'),
       isChiCerco: is('chi-cerco'), isInteressi: is('interessi'), isItalia: is('italia'), isLink: is('link'),
       // intestazione
-      photo: p.photo_url, photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoPct: s.up?.kind === 'photo' ? (s.up.checking ? 'Controllo…' : `${pct}%`) : '',
+      photo: p.photo_url, photoHint: !!p.photo_check && p.photo_check !== 'unchecked', photoBusy: s.up?.kind === 'photo', spinDelay: `-${Math.round(performance.now() % 800)}ms`, // a spinner on the photo while it's checked and sent (it keeps turning across redraws)
       pickPhoto: e => { this.uploadFile('photo', e.target.files[0]); e.target.value = ''; },
       canShoot: canTakePhoto(), shootPhoto: async () => { const f = await takePhoto(); if (f) this.uploadFile('photo', f); },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.mark(); } },

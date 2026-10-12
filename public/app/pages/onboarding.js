@@ -390,7 +390,7 @@ export default class extends Page {
       stageOpts: opts(cat.ideaStages), stage: p.idea_stage,
 
       // 11a
-      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', photoPct: up?.checking ? 'Controllo…' : `${pct}%`,
+      photo: p.photo_url, noPhoto: !p.photo_url, photoUploading: up?.kind === 'photo', spinDelay: `-${Math.round(performance.now() % 800)}ms`, // a spinner on the photo while it's checked and sent (it keeps turning across redraws)
       photoBorder: p.photo_url ? '2px solid #FFFFFF' : blocker && is('presentati') ? '2px dashed #D92D20' : '2px dashed #B9B2D6',
       // A check that didn't pass (face.js): just a suggestion, the admin looks at it later
       photoHint: !!p.photo_url && !!p.photo_check && p.photo_check !== 'unchecked',
