@@ -1096,3 +1096,6 @@ html.search-sheet-open { overflow: hidden; }
 /* Il tuo profilo: Scatta foto and Carica foto always side by side, next to the photo or under it */
 .photo-actions { display: flex; gap: 8px; max-width: 100%; }
 .photo-actions > .cam-btn { flex: 1 1 0; min-width: 0; padding: 0 12px; white-space: nowrap; }
+
+/* Formazione and Esperienze (entries.js): the list in a white box, the form in place of the row */
+.entry-box { background: #FFFFFF; border-radius: 24px; padding: 4px 18px; }

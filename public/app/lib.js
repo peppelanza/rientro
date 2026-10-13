@@ -101,6 +101,17 @@ const MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', '
 export const fmtDate = iso => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
 export const fmtShort = iso => { if (!iso) return ''; const d = new Date(iso); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
 export const fmtTime = iso => (iso ? new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '');
+// Job dates are typed as mm/aaaa (stored as aaaa-mm): the stored value as typed, and back. textToMonth
+// gives null for an empty field and undefined for something it can't read.
+export const monthToText = ym => (/^\d{4}-\d{2}$/.test(ym || '') ? `${ym.slice(5)}/${ym.slice(0, 4)}` : ym || '');
+export function textToMonth(t) {
+  const v = String(t ?? '').trim();
+  if (!v) return null;
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(v)) return v;
+  const m = v.match(/^(\d{1,2})\s*[/.\- ]\s*(\d{4})$/);
+  if (!m || +m[1] < 1 || +m[1] > 12 || +m[2] < 1940 || +m[2] > new Date().getFullYear() + 1) return undefined;
+  return `${m[2]}-${m[1].padStart(2, '0')}`;
+}
 export const fmtMonth = ym => { if (!ym) return ''; const [y, m] = ym.split('-'); return `${MONTHS[Number(m) - 1]} ${y}`; };
 
 export function timeAgo(iso, { short = false } = {}) {

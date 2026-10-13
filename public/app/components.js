@@ -2,7 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
-import { api, getCatalog, INTENT_BADGE, knownMe, timeAgo } from './lib.js';
+import { api, getCatalog, INTENT_BADGE, knownMe, monthToText, timeAgo } from './lib.js';
 import { describeNotification, notificationInitials } from './notifications.js';
 import { openSearchSheet, searchUrl } from './search-history.js';
 
@@ -383,6 +383,11 @@ def('App Field', String.raw`
       foot: p.error || p.foot || '', hasFoot: !!(p.error || p.foot || counter), counter, footColor: p.error ? '#B42318' : '#8C84AE',
       input: e => {
         if (grow) { e.target.style.height = 'auto'; e.target.style.height = `${e.target.scrollHeight}px`; }
+        // mask="month": mm/aaaa, the slash added while typing the digits
+        if (p.mask === 'month' && !String(e.inputType || '').startsWith('delete')) {
+          const d = e.target.value.replace(/\D/g, '').slice(0, 6);
+          e.target.value = d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d.length === 2 ? `${d}/` : d;
+        }
         p.onInput?.(e.target.value);
         if (counter) { this.state.v = e.target.value; this.__rerender(); }
       },
@@ -1052,3 +1057,65 @@ def('App Person Card', String.raw`
 });
 
 
+
+// ---------------------------------------------------------------------------------------------
+// Formazione and Esperienze, the same in onboarding and Il tuo profilo: a list of rows (App Entry
+// Row) in a white box; Modifica turns the row into its form right there, a new one is added at the
+// bottom. dc-props carry the values and the handlers.
+
+// App Entry Row — dc-props: { title, sub, meta, first (no line above), onEdit }
+def('App Entry Row', String.raw`
+<div class="entry-row" style="display:flex;gap:14px;padding:14px 0;align-items:flex-start;border-top:{{ bt }}">
+<div aria-hidden="true" style="width:40px;height:40px;border-radius:12px;background:#EFEBFF;flex:none;display:flex;align-items:center;justify-content:center;color:#6C4DF5;font:600 15px 'Geist',sans-serif">{{ ini }}</div>
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><span style="font-weight:600;overflow-wrap:anywhere">{{ title }}</span><sc-if value="{{ sub }}"><span style="font-size:14px;color:#6B6680">{{ sub }}</span></sc-if><sc-if value="{{ meta }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">{{ meta }}</span></sc-if></div>
+<dc-import name="UI Button" label="Modifica" variant="ghost" size="sm" on-click="{{ edit }}"></dc-import>
+</div>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return { title: p.title, sub: p.sub || '', meta: p.meta || '', ini: (p.title || '?').trim()[0]?.toUpperCase() ?? '', bt: p.first ? 'none' : '1px solid #ECE8F7', edit: () => p.onEdit?.() };
+  }
+});
+
+const ENTRY_FORM_BOX = 'display:flex;flex-direction:column;gap:12px;margin:8px -8px;padding:16px;border-radius:20px;background:#F8F6FF;border:1.5px solid #6C4DF5';
+const ENTRY_FORM_ACTIONS = `<div style="display:flex;gap:6px;align-items:center"><sc-if value="{{ isEdit }}"><dc-import name="UI Button" label="Elimina" variant="ghost" size="sm" on-click="{{ del }}"></dc-import></sc-if><div style="flex:1"></div><dc-import name="UI Button" label="Annulla" variant="ghost" size="sm" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Salva" size="sm" on-click="{{ save }}"></dc-import></div>`;
+const entryActions = p => ({ isEdit: !!p.form?.id, del: () => p.onDelete?.(), cancel: () => p.onCancel?.(), save: () => p.onSave?.() });
+const fieldProps = (p, keys) => Object.fromEntries(keys.map(k => [k, { onInput: v => p.onField?.(k, v) }]));
+
+// App Edu Form — dc-props: { form: { id, school, degree, years }, onField(k, v), onSave, onCancel, onDelete }
+def('App Edu Form', String.raw`
+<div style="${ENTRY_FORM_BOX}">
+<dc-import name="App Field" label="Istituto" field="edu-school" maxlength="120" value="{{ f.school }}" placeholder="Es. Politecnico di Milano" dc-props="{{ fp.school }}"></dc-import>
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 160px;gap:10px"><dc-import name="App Field" label="Titolo o programma" field="edu-degree" maxlength="160" value="{{ f.degree }}" placeholder="Es. Laurea in Ingegneria" dc-props="{{ fp.degree }}"></dc-import><dc-import name="App Field" label="Anni" field="edu-years" maxlength="20" value="{{ f.years }}" placeholder="2010 – 2013" dc-props="{{ fp.years }}"></dc-import></div>
+${ENTRY_FORM_ACTIONS}
+</div>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return { f: p.form || {}, fp: fieldProps(p, ['school', 'degree', 'years']), ...entryActions(p) };
+  }
+});
+
+// App Exp Form — dc-props: { form: { id, company, role, city, start_month, end_month, current }, onField(k, v),
+// onCurrent(checked), onSave, onCancel, onDelete }. Dates typed as mm/aaaa (lib.js textToMonth on save).
+def('App Exp Form', String.raw`
+<div style="${ENTRY_FORM_BOX}">
+<div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<dc-import name="App Field" label="Azienda" field="exp-company" maxlength="120" value="{{ f.company }}" placeholder="Es. Zalando" dc-props="{{ fp.company }}"></dc-import>
+<dc-import name="App Field" label="Ruolo" field="exp-role" maxlength="120" value="{{ f.role }}" placeholder="Es. Product Manager" dc-props="{{ fp.role }}"></dc-import>
+<dc-import name="App Field" label="Inizio" field="exp-start" mask="month" inputmode="numeric" maxlength="7" value="{{ start }}" placeholder="mm/aaaa" dc-props="{{ fp.start_month }}"></dc-import>
+<sc-if value="{{ ended }}"><dc-import name="App Field" label="Fine" field="exp-end" mask="month" inputmode="numeric" maxlength="7" value="{{ end }}" placeholder="mm/aaaa" dc-props="{{ fp.end_month }}"></dc-import></sc-if>
+</div>
+<label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;align-self:flex-start"><input type="checkbox" class="sr-only" checked="{{ f.current }}" onChange="{{ toggle }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;flex:none;box-sizing:border-box;background:{{ curBg }};border:{{ curBd }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ curMark }}</span>Lavoro ancora qui</label>
+<dc-import name="App Field" label="Città" field="exp-city" maxlength="80" value="{{ f.city }}" placeholder="Es. Berlino" dc-props="{{ fp.city }}"></dc-import>
+${ENTRY_FORM_ACTIONS}
+</div>`, class extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const f = p.form || {};
+    return {
+      f, fp: fieldProps(p, ['company', 'role', 'city', 'start_month', 'end_month']),
+      start: monthToText(f.start_month), end: monthToText(f.end_month), ended: !f.current,
+      curBg: f.current ? '#6C4DF5' : '#FFFFFF', curBd: f.current ? 'none' : '1.5px solid #CFC8E8', curMark: f.current ? '✓' : '',
+      toggle: e => p.onCurrent?.(e.target.checked), ...entryActions(p),
+    };
+  }
+});

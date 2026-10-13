@@ -1,6 +1,7 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, fmtMonth, getCatalog, getMe, go, orList, qs, toast, upload } from '../lib.js';
+import { api, getCatalog, getMe, go, orList, qs, toast, upload } from '../lib.js';
+import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
 import { canTakePhoto, takePhoto } from '../camera.js';
@@ -202,21 +203,15 @@ export default class extends Page {
       bgOther, bgMax: cat.areaOtherMax, bgText: bgOther ? p.background_area ?? '' : '',
       bgTextProps: { onInput: v => { p.background_area = v.trim() || null; this.mark(); } },
       yearOpts: opts(cat.years), years: p.years_experience, yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
-      jobs: p.experiences.map(e => ({ t: [e.role, e.company].filter(Boolean).join(' · '), m: [[fmtMonth(e.start_month), e.current ? 'oggi' : fmtMonth(e.end_month)].filter(Boolean).join(' – '), e.city?.toUpperCase()].filter(Boolean).join(' · '), edit: () => { s.exp = { ...e }; this.__rerender(); } })),
-      exp: s.exp ?? {}, expEditing: !!s.exp, expNotEditing: !s.exp, expIsEdit: !!s.exp?.id, expEnded: !s.exp?.current,
-      expProps: Object.fromEntries(['company', 'role', 'city', 'start_month', 'end_month'].map(k => [k, { onInput: v => { s.exp[k] = v; } }])),
-      expCurBg: s.exp?.current ? '#6C4DF5' : '#FFFFFF', expCurBd: s.exp?.current ? 'none' : '1.5px solid #CFC8E8', expCurMark: s.exp?.current ? '✓' : '',
-      toggleExpCur: e => { s.exp.current = e.target.checked; this.__rerender(); },
-      addExp: () => { s.exp = { company: '', role: '', city: '', start_month: '', end_month: '', current: false }; this.__rerender(); },
-      cancelExp: () => { s.exp = null; this.__rerender(); },
-      saveExp: () => { const e = s.exp; if (!nz(e.company)) return toast('Indica l’azienda.', { tone: 'err' }); this.listAction('exp', e.id ? 'PATCH' : 'POST', e.id, { company: e.company.trim(), role: nz(e.role), city: nz(e.city), start_month: nz(e.start_month), end_month: e.current ? null : nz(e.end_month), current: !!e.current }); },
-      delExp: () => this.listAction('exp', 'DELETE', s.exp.id),
-      edu: p.education.map((e, i) => ({ s: e.school, d: e.degree ?? '', y: e.years ?? '', bt: i ? '1px solid #ECE8F7' : 'none', edit: () => { s.edu = { ...e }; this.__rerender(); } })),
-      eduForm: s.edu ?? {}, eduEditing: !!s.edu, eduNotEditing: !s.edu, eduIsEdit: !!s.edu?.id,
-      eduProps: Object.fromEntries(['school', 'degree', 'years'].map(k => [k, { onInput: v => { s.edu[k] = v; } }])),
-      addEdu: () => { s.edu = { school: '', degree: '', years: '' }; this.__rerender(); }, cancelEdu: () => { s.edu = null; this.__rerender(); },
-      saveEdu: () => { const e = s.edu; if (!nz(e.school)) return toast('Indica l’istituto.', { tone: 'err' }); this.listAction('edu', e.id ? 'PATCH' : 'POST', e.id, { school: e.school.trim(), degree: nz(e.degree), years: nz(e.years) }); },
-      delEdu: () => this.listAction('edu', 'DELETE', s.edu.id),
+      // Formazione, Esperienze (entries.js)
+      ...entryVals({
+        state: s, profile: p, rerender: () => this.__rerender(),
+        save: {
+          edu: () => { const e = s.edu; if (!nz(e.school)) return toast('Indica l’istituto.', { tone: 'err' }); this.listAction('edu', e.id ? 'PATCH' : 'POST', e.id, { school: e.school.trim(), degree: nz(e.degree), years: nz(e.years) }); },
+          exp: () => { const body = expBody(s.exp); if (body) this.listAction('exp', s.exp.id ? 'PATCH' : 'POST', s.exp.id, body); },
+        },
+        remove: { edu: id => this.listAction('edu', 'DELETE', id), exp: id => this.listAction('exp', 'DELETE', id) },
+      }),
       // chi cerco
       seekAreas: cat.areas.map(a => { const mine = a === p.background_area; const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: mine, desc: mine ? 'È il tuo background' : '', control: mine ? 'none' : 'check', aria: on ? 'true' : 'false', fn: () => !mine && this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }),
       locOpts: opts(cat.seekingLocation), loc: p.seeking_location, locProps: { onSelect: v => this.set({ seeking_location: v || null }) },

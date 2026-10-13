@@ -204,8 +204,10 @@ export function saveExperience(db, userId, body, id = null) {
   const company = text(body.company, 'Azienda', { max: 120, nullable: false });
   const role = text(body.role, 'Ruolo', { max: 120 }) ?? null;
   const city = text(body.city, 'Città', { max: 80 }) ?? null;
-  const start = text(body.start_month, 'Inizio', { max: 7 }) ?? null;
-  const end = body.current ? null : (text(body.end_month, 'Fine', { max: 7 }) ?? null);
+  // aaaa-mm (typed as mm/aaaa in the browser)
+  const month = (v, f) => { const t = text(v, f, { max: 7 }) ?? null; if (t && !/^\d{4}-(0[1-9]|1[0-2])$/.test(t)) throw bad('invalid_field', `${f}: scrivi la data come mm/aaaa`); return t; };
+  const start = month(body.start_month, 'Inizio');
+  const end = body.current ? null : month(body.end_month, 'Fine');
   for (const m of [start, end]) if (m && !MONTH_RE.test(m)) throw bad('invalid_field', 'Usa il formato AAAA-MM');
   const current = body.current === true ? 1 : 0;
   if (id) {

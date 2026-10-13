@@ -1,7 +1,8 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, fmtMonth, fmtTime, getCatalog, getMe, go, orList, setMe, toast, upload } from '../lib.js';
+import { api, fmtTime, getCatalog, getMe, go, orList, setMe, toast, upload } from '../lib.js';
+import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -242,8 +243,8 @@ export default class extends Page {
 
   saveExp = this.act(async () => {
     const e = this.state.exp;
-    if (!nz(e.company)) { toast('Indica l’azienda.', { tone: 'err' }); return; }
-    const body = { company: e.company.trim(), role: nz(e.role), city: nz(e.city), start_month: nz(e.start_month), end_month: e.current ? null : nz(e.end_month), current: !!e.current };
+    const body = expBody(e);
+    if (!body) return;
     this.state.p.experiences = await api(e.id ? 'PATCH' : 'POST', `/api/me/experiences${e.id ? `/${e.id}` : ''}`, body);
     this.state.exp = null;
   });
@@ -408,26 +409,8 @@ export default class extends Page {
       yearOpts: opts(cat.years), years: p.years_experience,
 
       // 13a
-      edu: p.education.map((e, i) => ({ s: e.school, d: e.degree ?? '', y: e.years ?? '', bt: i ? '1px solid #ECE8F7' : 'none', edit: () => { s.edu = { ...e }; this.__rerender(); } })),
-      hasEdu: p.education.length > 0 || !!s.edu, eduEditing: !!s.edu, eduNotEditing: !s.edu,
-      eduForm: s.edu ?? {}, eduIsEdit: !!s.edu?.id,
-      eduSchoolProps: { onInput: v => { s.edu.school = v; } }, eduDegreeProps: { onInput: v => { s.edu.degree = v; } }, eduYearsProps: { onInput: v => { s.edu.years = v; } },
-      addEdu: () => { s.edu = { school: '', degree: '', years: '' }; this.__rerender(); document.querySelector('[data-key="edu-school"]')?.focus(); },
-      cancelEdu: () => { s.edu = null; this.__rerender(); }, saveEdu: this.saveEdu, delEdu: () => this.delEdu(s.edu.id),
-
-      // 14a
-      jobs: p.experiences.map(e => ({
-        t: [e.role, e.company].filter(Boolean).join(' · '),
-        m: [[fmtMonth(e.start_month), e.current ? 'oggi' : fmtMonth(e.end_month)].filter(Boolean).join(' – '), e.city?.toUpperCase()].filter(Boolean).join(' · '),
-        edit: () => { s.exp = { ...e }; this.__rerender(); },
-      })),
-      expEditing: !!s.exp, expNotEditing: !s.exp, expForm: s.exp ?? {}, expIsEdit: !!s.exp?.id, expEnded: !s.exp?.current,
-      expCompanyProps: { onInput: v => { s.exp.company = v; } }, expRoleProps: { onInput: v => { s.exp.role = v; } },
-      expCityProps: { onInput: v => { s.exp.city = v; } }, expStartProps: { onInput: v => { s.exp.start_month = v; } }, expEndProps: { onInput: v => { s.exp.end_month = v; } },
-      expCurrentBg: s.exp?.current ? '#6C4DF5' : '#FFFFFF', expCurrentBd: s.exp?.current ? 'none' : '1.5px solid #CFC8E8', expCurrentMark: s.exp?.current ? '✓' : '',
-      toggleExpCurrent: e => { s.exp.current = e.target.checked; this.__rerender(); },
-      addExp: () => { s.exp = { company: '', role: '', city: '', start_month: '', end_month: '', current: false }; this.__rerender(); document.querySelector('[data-key="exp-company"]')?.focus(); },
-      cancelExp: () => { s.exp = null; this.__rerender(); }, saveExp: this.saveExp, delExp: () => this.delExp(s.exp.id),
+      // Formazione, Esperienze (entries.js)
+      ...entryVals({ state: s, profile: p, rerender: () => this.__rerender(), save: { edu: this.saveEdu, exp: this.saveExp }, remove: { edu: id => this.delEdu(id), exp: id => this.delExp(id) } }),
 
       // 15a
       achievement: p.achievement ?? '', achProps: { onInput: v => { p.achievement = v; } },
