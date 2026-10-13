@@ -2,6 +2,7 @@
    server. Standalone (cached once, works without the app's styles), in the 404 page's look. */
 :root { --gutter: clamp(16px, 5vw, 56px); }
 * { box-sizing: border-box; }
+html, body { overflow-x: clip; overscroll-behavior-x: none; }
 body { min-height: 100vh; margin: 0; background: #E9E6F5; color: #1A1726; font-family: 'Geist', sans-serif; display: flex; flex-direction: column; }
 .up-top { padding: 28px var(--gutter) 0; }
 .up-logo { display: inline-flex; align-items: baseline; gap: 3px; font: italic 400 28px/1 'Instrument Serif', serif; color: #1A1726; text-decoration: none; }

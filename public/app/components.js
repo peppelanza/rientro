@@ -1002,7 +1002,8 @@ def('App Photo', String.raw`
       w: size ? `${size}px` : '100%', h: size ? `${size}px` : (p.height ? `${p.height}px` : 'auto'),
       ratio: size || p.height ? 'auto' : (p.ratio ?? '4/3'), radius: p.radius ?? (size ? '50%' : '22px'),
       bg: media ? '#1A1726' : dark ? 'repeating-linear-gradient(135deg,#2A2638 0 8px,#231F30 8px 16px)' : 'repeating-linear-gradient(135deg,#E3DEF5 0 8px,#DAD4F0 8px 16px)',
-      src: p.video ? null : p.src, video: p.video, alt: p.alt ?? '',
+      // #t=0.1: Safari on iPhone shows nothing (black) until play without it; with it, the first frame
+      src: p.video ? null : p.src, video: p.video ? `${p.video}#t=0.1` : p.video, alt: p.alt ?? '',
       initials: p.initials, showInitials: !media && !!p.initials, ifs: size ? Math.max(11, Math.round(size / 3)) : 28, ic: dark ? '#B7B0D4' : '#6B6680',
       label: p.label ?? 'FOTO', showLabel: !media && !p.initials && !small && p.label !== '',
       hasBadge: !!p.badge, badge: p.badge, badgeKind: p.badgeKind ?? 'idea', duration: p.duration, hasDuration: !!p.duration && !media,
