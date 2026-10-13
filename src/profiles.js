@@ -448,7 +448,7 @@ const FACETS = {
   intent: (p, v) => !v.length || v.includes(p.primary_intent),
   backgrounds: (p, v) => !v.length || v.includes(areaKey(p.background_area)),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
-  // "Quando si trasferisce": who lives abroad by their answer, or "Già rientrato/a" (back = lives in Italy)
+  // "Trasferimento": who lives abroad by their answer, or "Già rientrato/a" (back = lives in Italy)
   move: (p, v) => !v.length || (p.lives_in === 'italy' ? v.includes('back') : v.includes(moveWhen(p))),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),

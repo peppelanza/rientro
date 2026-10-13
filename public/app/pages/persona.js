@@ -113,7 +113,7 @@ export default class extends Page {
     // where they live is in the line under the name (with the country when abroad), not again here
     const facts = [
       ['Rientro', p.arrived],
-      ['Mi trasferisco', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
+      ['Trasferimento', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
     const unlocked = showLinks ? [
@@ -137,7 +137,7 @@ export default class extends Page {
       complement: p.complement,
       facts, hasFacts: facts.length > 0, unlocked, hasUnlocked: unlocked.length > 0,
       // Dove trovarmi, at the bottom: the links once connected, else that they unlock then
-      linksLocked: !showLinks, ownLinks: !!s.self && unlocked.length > 0, hasLinksSection: !showLinks || unlocked.length > 0,
+      ownLinks: !!s.self && unlocked.length > 0, hasLinksSection: !showLinks || unlocked.length > 0,
       // actions
       isNone: c === 'none', isSent: c === 'pending_sent', isReceived: c === 'pending_received', isConnected: connected,
       requestNote: p.connection.note, requestEyebrow: `Richiesta di connessione${p.connection.created_at ? ` · ${timeAgo(p.connection.created_at)}` : ''}`,

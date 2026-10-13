@@ -514,7 +514,7 @@ export default class extends Page {
         ['Idea', p.idea?.title],
         ['Cerca', p.seeking.label],
         ['Interessi', p.sectors.join(' · ')],
-        ['Si trasferisce', p.move],
+        ['Trasferimento', p.move],
         ['Rientro', p.arrived],
       ].filter(([, v]) => v).map(([k, v]) => ({ k, v })) : [],
       menuOpen: s.menuOpen, toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
