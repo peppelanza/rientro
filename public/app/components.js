@@ -204,7 +204,7 @@ def('App Nav', String.raw`
 // App TabBar — from UI TabBar (+ links, live dots). Shown on small screens only.
 
 def('App TabBar', String.raw`
-<nav class="r-show-sm tabbar" aria-label="Navigazione" style="position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 var(--gutter) 14px;box-sizing:border-box;font-family:'Geist',sans-serif">
+<sc-if value="{{ open }}"><nav class="r-show-sm tabbar" aria-label="Navigazione" style="position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 var(--gutter) 14px;box-sizing:border-box;font-family:'Geist',sans-serif">
 <div style="border-radius:999px;background:rgba(255,255,255,.82);border:1px solid #FFFFFF;box-shadow:0 10px 30px rgba(80,60,160,.14);padding:6px;display:grid;grid-template-columns:repeat(4,1fr);backdrop-filter:blur(12px)">
 <sc-for list="{{ items }}" as="it">
 <a href="{{ it.href }}" aria-current="{{ it.current }}" style="min-height:52px;border-radius:999px;background:{{ it.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;text-decoration:none">
@@ -213,9 +213,13 @@ def('App TabBar', String.raw`
 <sc-if value="{{ it.dot }}"><span style="position:absolute;top:7px;left:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:#6C4DF5;border:2px solid #FFFFFF"></span></sc-if>
 </a>
 </sc-for>
-</div></nav>`, class extends DCLogic {
+</div></nav></sc-if>`, class extends DCLogic {
   renderVals() {
     const a = this.props.active ?? 'scopri';
+    // Only where the member area is open (as App Nav's links): not while the profile isn't
+    // published yet (the onboarding preview), not before launch (the welcome page)
+    const me = this.props.me;
+    const open = !me?.user || (me.user.status === 'approved' && (!!me.launched || me.user.role === 'admin'));
     const c = this.props.me?.counts || {};
     // No room for a fifth: Profilo and Impostazioni are under the photo in the top bar
     const items = [['scopri', 'Scopri', '/scopri', '50%', 0], ['connessioni', 'Connessioni', '/connessioni', '6px', c.received], ['messaggi', 'Messaggi', '/messaggi', '6px 6px 6px 2px', c.unread_messages], ['gruppi', 'Gruppi', '/gruppi', '50% 50% 6px 6px', 0]]
@@ -223,7 +227,7 @@ def('App TabBar', String.raw`
         label, href, radius, dot: !!n && k !== a, current: k === a ? 'page' : false,
         bg: k === a ? '#EFEBFF' : 'transparent', fg: k === a ? '#3E2BA8' : '#6B6680', fill: k === a ? '#6C4DF5' : 'transparent', fw: k === a ? 600 : 500,
       }));
-    return { items };
+    return { items, open };
   }
 });
 
