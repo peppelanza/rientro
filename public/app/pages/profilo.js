@@ -229,6 +229,8 @@ export default class extends Page {
         to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
         idea: p.primary_intent === 'has_idea', intent: p.primary_intent, idea_title: p.idea_title,
         seeks: seeksText(cat.areas, p.seeking_backgrounds), tags: p.sectors.slice(0, 3).join(' · '), comp: null,
+        job: (e => (e ? [e.role, e.company] : [p.current_role, p.current_company]).filter(Boolean).join(' da '))((p.experiences || []).find(x => x.current)),
+        background: [p.background_area, p.years_experience && `${cat.years.find(([v]) => v === p.years_experience)?.[1] ?? p.years_experience} anni`].filter(Boolean).join(' · '),
         photo_url: p.photo_url, connection: null,
       },
       pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',
