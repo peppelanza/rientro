@@ -171,9 +171,10 @@ export default class extends Page {
       seekDesc: p.seeking.description, seekLoc: p.seeking.location ? `Dove: ${p.seeking.location}` : '',
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),
       seekText: p.seeking.description || p.seeking.label,
-      career: p.experiences.map(e => ({ y: [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
+      career: p.experiences.map(e => ({ y: e.current && !e.start_month ? 'attuale' : [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
       hasCareer: p.experiences.length > 0,
-      edu: p.education.map(e => ({ s: e.school, d: [e.degree, e.years].filter(Boolean).join(' · ') })), hasEdu: p.education.length > 0,
+      // as Il mio percorso: the years on the left, the school and the degree on the right
+      edu: p.education.map(e => ({ y: e.years || '', s: e.school, d: e.degree || '' })), hasEdu: p.education.length > 0,
       sectors: p.sectors.map(l => ({ l })), hasSectors: p.sectors.length > 0,
       achievement: p.achievement, achEyebrow: 'Un risultato di cui vado fiero/a',
       misses: p.misses_italy ? `“${p.misses_italy}”` : '',
