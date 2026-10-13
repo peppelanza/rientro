@@ -19,7 +19,7 @@ test('search: accents and capitals ignored, words start a word, each word counts
   assert.ok(!hit('marco', wordsOf('mario'), true), 'a wrong letter only from 6 letters up');
 });
 
-test('Scopri cards show what you filtered by: the background, and the sectors and places chosen first', async () => {
+test('Scopri cards: the background always, and the sectors and places chosen first', async () => {
   const { startApp } = await import('./helpers.js');
   const t2 = await startApp();
   try {
@@ -27,10 +27,10 @@ test('Scopri cards show what you filtered by: the background, and the sectors an
     const b = await t2.approved('cardviewer@x.it');
     const find = async q => (await b.get(`/api/profiles?${q}`)).body.people.find(p => p.id === a.id);
     const plain = await find('');
-    assert.equal(plain.background, null);
+    assert.match(plain.background, /^Salute e benessere/); // always, in place of the interests
     assert.ok(!plain.tags.includes('Sport'));
     const filtered = await find('backgrounds=Salute%20e%20benessere&sectors=Sport%20%26%20Tempo%20Libero&desired=Catania');
-    assert.equal(filtered.background, 'Salute e benessere');
+    assert.match(filtered.background, /^Salute e benessere/);
     assert.match(filtered.tags, /^Sport & Tempo Libero/);
     assert.match(filtered.to, /^Catania/);
     await a.patch('/api/me/profile', { primary_intent: 'has_idea', idea_title: 'Agriturismo sull’Etna' });

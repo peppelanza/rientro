@@ -420,7 +420,10 @@ export function card(db, viewer, p, viewerP, filters = null) {
     idea_title: p.idea_title,
     seeks: seeksLabel(p.seeking_backgrounds),
     tags: sectors.slice(0, 3).join(' · '),
-    background: filters?.backgrounds?.length ? p.background_area : null,
+    // the background in place of the interests, with the years ("Tecnologia e ingegneria · 6–10 anni")
+    background: [p.background_area, p.years_experience && `${label(YEARS, p.years_experience)} anni`].filter(Boolean).join(' · '),
+    // under the name: the job still going ("Lavoro ancora qui"), "Product Manager da Deliveroo"
+    job: p.current_role ? [p.current_role, p.current_company].filter(Boolean).join(' da ') : '',
     // filtering by goal: what they want to build
     idea_line: filters?.intent?.includes('has_idea') && p.primary_intent === 'has_idea' && p.idea_title ? p.idea_title : null,
     move: filters?.move?.length ? moveLabel(p) : null,
