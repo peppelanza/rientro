@@ -423,9 +423,9 @@ export default class extends Page {
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; setPreview(s, null); }),
 
       // 17a
-      sectorCount: `${p.sectors.length} / 5`, sectorQuery: s.sectorQuery,
+      sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`, sectorQuery: s.sectorQuery,
       sectorSearchProps: { onInput: v => { s.sectorQuery = v; this.__rerender(); } },
-      sectors: cat.sectors.filter(l => !sq || l.toLowerCase().includes(sq)).map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : p.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, 5) }) }; }),
+      sectors: cat.sectors.filter(l => !sq || l.toLowerCase().includes(sq)).map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, Infinity) }) }; }),
       noSectors: sq && !cat.sectors.some(l => l.toLowerCase().includes(sq)),
 
       // 18a

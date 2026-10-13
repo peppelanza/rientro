@@ -216,8 +216,8 @@ export default class extends Page {
       seekAreas: cat.areas.map(a => { const mine = a === p.background_area; const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: mine, desc: mine ? 'È il tuo background' : '', control: mine ? 'none' : 'check', aria: on ? 'true' : 'false', fn: () => !mine && this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }),
       ...placeToggle(p, patch => this.set(patch)),
       // interessi
-      sectorCount: `${p.sectors.length} / 5`,
-      sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : p.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, 5) }) }; }),
+      sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`,
+      sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, Infinity) }) }; }),
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       // The card as others see it in Scopri chi torna (same as the server's profiles.js card())

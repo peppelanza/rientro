@@ -69,7 +69,7 @@
 </sc-if>
 
 <sc-if value="{{ isInteressi }}">
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:500">Settori · fino a 5</span><span style="font-family:'Geist Mono',monospace;font-size:12px;padding:4px 10px;border-radius:999px;background:#EFEBFF;color:#3E2BA8">{{ sectorCount }}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:500">Settori</span><span style="font-family:'Geist Mono',monospace;font-size:12px;padding:4px 10px;border-radius:999px;background:#EFEBFF;color:#3E2BA8">{{ sectorCount }}</span></div>
 <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for></div>
 </sc-if>
 
