@@ -226,17 +226,15 @@ export function cleanupReplacedPhoto(db, oldId, newId) {
   if (oldId && oldId !== newId) removeFile(db, oldId);
 }
 
-// Owner and admins always; approved members see approved members' files, except
-// connections-only videos, which need an accepted connection.
-export function readFileFor(db, viewer, fileId, canSeeConnectionsOnly) {
+// Owner and admins always; approved members see approved members' files (videos too, for everyone).
+export function readFileFor(db, viewer, fileId) {
   const f = db.prepare(
-    `SELECT f.*, u.status AS owner_status, p.video_connections_only, p.visible
+    `SELECT f.*, u.status AS owner_status, p.visible
      FROM files f JOIN users u ON u.id = f.owner_id LEFT JOIN profiles p ON p.user_id = f.owner_id WHERE f.id = ?`,
   ).get(fileId);
   if (!f) throw new HttpError(404, 'not_found');
   const own = f.owner_id === viewer.id || viewer.role === 'admin';
-  const memberVisible = viewer.status === 'approved' && f.owner_status === 'approved' && f.visible === 1
-    && !(f.kind === 'profile_video' && f.video_connections_only === 1 && !canSeeConnectionsOnly(f.owner_id));
+  const memberVisible = viewer.status === 'approved' && f.owner_status === 'approved' && f.visible === 1;
   if (!own && !memberVisible) throw new HttpError(404, 'not_found');
   return { mime: f.mime_type, size: f.size_bytes, path: diskPath(f.storage_key) };
 }

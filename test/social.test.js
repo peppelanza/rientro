@@ -509,7 +509,7 @@ test('the age is never shown: not to other members (profile, cards, filters), no
   } finally { await t.close(); }
 });
 
-test('"Mostralo solo alle mie connessioni": the video and its file only for connections', async () => {
+test('the video is for every member (no connections-only option)', async () => {
   const owner = await t.approved('video-owner@x.it');
   const friend = await t.approved('video-friend@x.it');
   const stranger = await t.approved('video-stranger@x.it');
@@ -524,12 +524,11 @@ test('"Mostralo solo alle mie connessioni": the video and its file only for conn
   const sees = async who => {
     const p = (await who.get(`/api/profiles/${owner.id}`)).body;
     const file = await who.get('/api/files/vid-1');
-    return [!!p.video_url, p.video_locked, file.status];
+    return [!!p.video_url, file.status];
   };
-  assert.deepEqual(await sees(stranger), [true, false, 200], 'by default every member sees it');
-  assert.equal((await owner.patch('/api/me/profile', { video_connections_only: true })).body.video_connections_only, true);
-  assert.deepEqual(await sees(stranger), [false, true, 404], 'not connected: locked, and the file is refused too');
-  assert.deepEqual(await sees(friend), [true, false, 200], 'a connection still sees it');
+  assert.deepEqual(await sees(stranger), [true, 200]);
+  assert.deepEqual(await sees(friend), [true, 200]);
+  assert.equal((await owner.patch('/api/me/profile', { video_connections_only: true })).status, 400, 'the option is gone');
 });
 
 test('either of two connected members can remove the connection: silent, chat closed, they can connect again', async () => {

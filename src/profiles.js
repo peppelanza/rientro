@@ -87,7 +87,6 @@ const EDITABLE = {
   current_company: v => text(v, 'Azienda', { max: 80 }),
   years_experience: v => oneOf(v, values(YEARS), 'Anni di esperienza'),
   achievement: v => text(v, 'Risultato', { max: 400 }),
-  video_connections_only: v => bool(v, 'Video'),
   sectors: v => subset(v, SECTORS, 'Settori', 5),
   seeking_backgrounds: v => {
     const l = subset(v, AREAS, 'Chi stai cercando', AREAS.length);
@@ -135,7 +134,6 @@ export function getOwnProfile(db, userId) {
     desired_unknown: p.desired_unknown === 1,
     arrived_when: arrivedWhen(p),
     move_when: moveWhen(p),
-    video_connections_only: p.video_connections_only === 1,
     invite_connect: p.invite_connect === null ? null : p.invite_connect === 1,
     visible: p.visible === 1,
     photo_url: fileUrl(p.photo_file_id),
@@ -358,8 +356,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     education: education(db, targetId),
     experiences: experiences(db, targetId),
     photo_url: fileUrl(p.photo_file_id),
-    video_url: p.video_connections_only && !connected ? null : fileUrl(p.video_file_id),
-    video_locked: !!(p.video_file_id && p.video_connections_only && !connected),
+    video_url: fileUrl(p.video_file_id), // every member sees it
     // "Dove trovarti": all of it only for connections
     links: connected
       ? { linkedin_url: p.linkedin_url, website_url: p.website_url, instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url }

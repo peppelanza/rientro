@@ -570,7 +570,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/reports', async ({ user, req }) => social.report(db, user, await readJson(req)));
 
   route('GET', '/api/files/:id', ({ user, params, req, res }) => {
-    const f = readFileFor(db, user, params.id, ownerId => profiles.connectionState(db, user.id, ownerId).status === 'connected');
+    const f = readFileFor(db, user, params.id);
     streamFile(req, res, f);
   }, { raw: true });
 

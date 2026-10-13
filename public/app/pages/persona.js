@@ -43,7 +43,7 @@ function shrinkPhoto() {
 
 // Loading: the profile as it will be (pages/_base.js skeleton()), from a placeholder person
 const FAKE_PROFILE = {
-  id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null, video_locked: false,
+  id: '', first_name: 'Nome', last_name: 'Cognome', photo_url: null, video_url: null,
   lives_in_city: 'Città', lives_in_country: 'Paese', arrived: null, desired_comuni: ['Città'], desired_unknown: 0, places: 'Città o Città',
   primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore'],
   idea: { title: 'Il titolo di un’idea da costruire', description: 'Qualche riga che racconta l’idea, cosa risolve e per chi, abbastanza lunga da andare a capo almeno una volta.', stage: null },
@@ -161,7 +161,7 @@ export default class extends Page {
       doReport: async () => { if (s.self) return; this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/scopri'); },
       doBlock: async () => { if (s.self) return; this.setState({ menuOpen: false }); if (await block(person)) go('/scopri'); },
       // sections
-      bio: p.bio, video: p.video_url, videoLocked: p.video_locked,
+      bio: p.bio, video: p.video_url,
       // the badge ("Ha già un'idea"…) jumps to the idea below
       noIdea: !p.idea, toIdea: e => { e.preventDefault(); document.getElementById('idea')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
       idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',

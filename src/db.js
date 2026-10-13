@@ -39,6 +39,8 @@ export function openDb(file = config.dbPath) {
   migrateSectors(db);
   roleToExperience(db);
   freezeArrivals(db);
+  // "Mostra il video solo alle connessioni" is gone: the video is for every member
+  db.exec('UPDATE profiles SET video_connections_only = 0 WHERE video_connections_only = 1');
   // "In Italia" is no longer offered: indifferent
   db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'");
   migrateChecks(db);
