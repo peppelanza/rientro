@@ -597,3 +597,18 @@ test('Chi stai cercando: up to three areas, or Indifferente (stored as all of th
   assert.equal(seeking.any, true);
   assert.equal(seeking.label, 'Qualsiasi background');
 });
+
+test('Quando è stato il rientro and Quando vuoi trasferirti stay as answered (they don\'t age), and Scopri filters by the second', async () => {
+  const back = await t.approved('frozenback@x.it', { lives_in: 'italy', lives_in_country: 'Italia', lives_in_city: 'Bari', arrived_from_country: 'Germania', arrived_from_city: 'Berlino', arrived_when: '0_3m' });
+  // a year later the answer still reads 0–3 mesi
+  t.app.db.prepare("UPDATE profiles SET arrived_after = '2020-01', arrived_before = '2020-03' WHERE user_id = ?").run(back.id);
+  assert.equal((await back.get('/api/me')).body.profile.arrived_when, '0_3m');
+  const away = await t.approved('movesoon@x.it', { move_when: '0_3m' });
+  assert.equal((await away.get('/api/me')).body.profile.move_when, '0_3m');
+  assert.equal((await away.patch('/api/me/profile', { move_when: 'domani' })).status, 400);
+  const viewer = await t.approved('moveviewer@x.it');
+  const people = (await viewer.get('/api/profiles?move=0_3m')).body.people;
+  assert.ok(people.some(p => p.id === away.id && p.move === 'tra 0–3 mesi'));
+  assert.ok(!people.some(p => p.id === back.id));
+  assert.equal((await viewer.get(`/api/profiles/${away.id}`)).body.move, 'tra 0–3 mesi');
+});

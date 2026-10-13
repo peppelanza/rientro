@@ -73,6 +73,7 @@
 <sc-if value="{{ hasFrequent }}"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:13px;color:#6B6680;margin-right:4px">Scelte frequenti</span><sc-for list="{{ frequent }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" on-click="{{ c.add }}"></dc-import></sc-for></div></sc-if>
 <div style="height:1px;background:#DCD7EC"></div></sc-if>
 <dc-import name="App Checkbox" label="Non lo so ancora" checked="{{ unknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ unknown }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando vorresti trasferirti?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Quando vorresti trasferirti" options="{{ moveOpts }}" value="{{ move }}" dc-props="{{ moveProps }}"></dc-import></div></div>
 </div></sc-if>
 
 <sc-if value="{{ is_obiettivo }}"><div style="width:100%;max-width:960px;display:flex;flex-direction:column;gap:22px">

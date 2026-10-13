@@ -30,7 +30,16 @@ export function arrivedRange(when, now = thisMonth()) {
 }
 
 // The span that fits the stored range today, or null
+// Who lives abroad: when they'd move, kept as answered
+export const MOVE_WHEN = [['0_3m', '0–3 mesi'], ['4_12m', '4–12 mesi'], ['unknown', 'Non lo so ancora']];
+export const moveWhen = p => p.move_when ?? null;
+// "tra 0–3 mesi", "non lo sa ancora" (only who lives abroad)
+export const moveLabel = p => (p.lives_in !== 'abroad' || !p.move_when ? null : p.move_when === 'unknown' ? 'non lo sa ancora' : `tra ${MOVE_WHEN.find(x => x[0] === p.move_when)?.[1]}`);
+
+// As answered: "0–3 mesi fa" stays so (it doesn't age by itself); older answers without the choice
+// are read from their range
 export function arrivedWhen(p, now = thisMonth()) {
+  if (p.arrived_choice) return p.arrived_choice;
   if (!p.arrived_before) return null;
   if (!p.arrived_after) return '2y_plus';
   const ago = now - (monthIndex(p.arrived_after) + monthIndex(p.arrived_before)) / 2;
@@ -57,6 +66,7 @@ const EDITABLE = {
   arrived_from_country: v => text(v, 'Paese di provenienza', { max: 60 }),
   arrived_from_city: v => text(v, 'Città di provenienza', { max: 80 }),
   arrived_when: v => oneOf(v, ARRIVED_WHEN.map(x => x[0]), 'Quando è stato il rientro'),
+  move_when: v => oneOf(v, MOVE_WHEN.map(x => x[0]), 'Quando vorresti trasferirti'),
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, INTENTS, 'Obiettivo'),
@@ -124,6 +134,7 @@ export function getOwnProfile(db, userId) {
     ...rest,
     desired_unknown: p.desired_unknown === 1,
     arrived_when: arrivedWhen(p),
+    move_when: moveWhen(p),
     video_connections_only: p.video_connections_only === 1,
     invite_connect: p.invite_connect === null ? null : p.invite_connect === 1,
     visible: p.visible === 1,
@@ -152,8 +163,8 @@ export function updateProfile(db, user, body) {
   if ('arrived_when' in live) {
     const when = live.arrived_when;
     delete live.arrived_when;
-    if (when === null) Object.assign(live, { arrived_after: null, arrived_before: null });
-    else if (when !== arrivedWhen(current)) Object.assign(live, arrivedRange(when));
+    if (when === null) Object.assign(live, { arrived_after: null, arrived_before: null, arrived_choice: null });
+    else if (when !== arrivedWhen(current)) Object.assign(live, arrivedRange(when), { arrived_choice: when });
   }
   // The birth year stays private: others see the age band, kept in step here and every day after
   if ('birth_year' in live) {
@@ -334,6 +345,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     // the age is never shown, to anyone (not even you or the admins): only kept, from the birth year
     lives_in_city: p.lives_in_city, lives_in_country: p.lives_in_country,
     arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
+    move: moveLabel(p), // "0–3 mesi": when they'd move (only who lives abroad)
     desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p), back: isBack(p),
     primary_intent: p.primary_intent,
     idea: p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,
@@ -380,6 +392,7 @@ export function card(db, viewer, p, viewerP, filters = null) {
     seeks: seeksLabel(p.seeking_backgrounds),
     tags: sectors.slice(0, 3).join(' · '),
     background: filters?.backgrounds?.length ? p.background_area : null,
+    move: filters?.move?.length ? moveLabel(p) : null,
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),
     connection: connectionState(db, viewer.id, p.user_id),
@@ -404,6 +417,7 @@ const FACETS = {
   intent: (p, v) => !v.length || v.includes(p.primary_intent),
   backgrounds: (p, v) => !v.length || v.includes(areaKey(p.background_area)),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
+  move: (p, v) => !v.length || (p.lives_in === 'abroad' && v.includes(moveWhen(p))),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
 };
@@ -448,6 +462,7 @@ export function parseDiscoverQuery(q) {
     intent: arr('intent').filter(x => INTENTS.includes(x)),
     backgrounds: arr('backgrounds').filter(x => AREAS.includes(x) || x === AREA_OTHER),
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
+    move: arr('move').filter(x => MOVE_WHEN.some(m => m[0] === x)),
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
@@ -497,6 +512,7 @@ export function discover(db, viewer, filters) {
     people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
+      move: Object.fromEntries(MOVE_WHEN.map(([m]) => [m, count('move', p => p.lives_in === 'abroad' && moveWhen(p) === m)])),
       backgrounds: Object.fromEntries([...AREAS, AREA_OTHER].map(a => [a, count('backgrounds', p => areaKey(p.background_area) === a)])),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => wantsPlace(p, c))])),
     },

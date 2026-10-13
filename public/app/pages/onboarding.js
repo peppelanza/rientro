@@ -25,7 +25,7 @@ const FIELDS = {
   luogo: ['lives_in', 'lives_in_country', 'lives_in_city'],
   residenza: ['lives_in', 'lives_in_country', 'lives_in_city'],
   arrivo: ['arrived_from_country', 'arrived_from_city', 'arrived_when'],
-  dove: ['desired_comuni', 'desired_unknown'],
+  dove: ['desired_comuni', 'desired_unknown', 'move_when'],
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
   presentati: ['first_name', 'last_name', 'birth_year', 'bio'],
@@ -120,7 +120,7 @@ export default class extends Page {
       case 'luogo': return p.lives_in ? null : 'Scegli dove vivi';
       case 'residenza': return !p.lives_in ? 'Scegli dove vivi' : p.lives_in === 'abroad' && !nz(p.lives_in_country) ? 'Indica il paese' : !nz(p.lives_in_city) ? (p.lives_in === 'italy' ? 'Scegli il comune' : 'Indica la città') : null;
       case 'arrivo': return !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
-      case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
+      case 'dove': return !(p.desired_comuni.length || p.desired_unknown) ? 'Scegli almeno un comune' : !p.move_when ? 'Indica quando vorresti trasferirti' : null;
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'invito': return p.invite_connect === null || p.invite_connect === undefined ? 'Scegli una delle due opzioni' : null;
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
@@ -433,6 +433,7 @@ export default class extends Page {
       seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)),
       seekDesc: p.seeking_description ?? '', seekDescProps: { onInput: v => { p.seeking_description = v; } },
       ...placeToggle(p, patch => this.set(patch)),
+      moveOpts: opts(cat.moveWhen), move: p.move_when, moveProps: { onSelect: v => this.set({ move_when: v || null }) },
 
       // 19a
 

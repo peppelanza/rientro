@@ -12,7 +12,7 @@ export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown', 'move_when']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -215,6 +215,7 @@ export default class extends Page {
       // chi cerco
       seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)), // your own area too, or Indifferente
       ...placeToggle(p, patch => this.set(patch)),
+      moveOpts: opts(cat.moveWhen), move: p.move_when, moveProps: { onSelect: v => this.set({ move_when: v || null }) },
       // interessi
       sectorCount: `${p.sectors.length} / 5`,
       sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: pickSector(p.sectors, l) }) }; }),

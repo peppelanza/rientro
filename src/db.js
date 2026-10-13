@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { config, LEGAL_VERSIONS } from './config.js';
 import { PROCESSING_REGISTER } from './processing-register.js';
+import { arrivedWhen } from './profiles.js';
 import { OLD_AREAS, OLD_IDEA_STAGES, OLD_SECTORS } from './catalog.js';
 
 const schemaPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'schema.sql');
@@ -37,6 +38,7 @@ export function openDb(file = config.dbPath) {
   migrateAreas(db);
   migrateSectors(db);
   roleToExperience(db);
+  freezeArrivals(db);
   // "In Italia" is no longer offered: indifferent
   db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'");
   migrateChecks(db);
@@ -91,6 +93,7 @@ function collapseMessageNotifications(db) {
 // Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
+  move_when: 'TEXT', arrived_choice: 'TEXT',
   birth_year: 'INTEGER', suggested_photo_url: 'TEXT', photo_check: 'TEXT',
   invite_connect: 'INTEGER', invite_note: 'TEXT', // onboarding: ask the inviter to connect (invites.js)
 };
@@ -144,6 +147,13 @@ export function migrateAreas(db) {
     const seeking = [...new Set(JSON.parse(r.seeking_backgrounds || '[]').map(a => OLD_AREAS[a] ?? a))];
     save.run(OLD_AREAS[r.background_area] ?? r.background_area, JSON.stringify(seeking), r.user_id);
   }
+}
+
+// "Quando è stato il rientro" no longer ages by itself: answers given before keep what they read now
+export function freezeArrivals(db) {
+  const rows = db.prepare('SELECT user_id, arrived_after, arrived_before FROM profiles WHERE arrived_choice IS NULL AND arrived_before IS NOT NULL').all();
+  const save = db.prepare('UPDATE profiles SET arrived_choice = ? WHERE user_id = ?');
+  for (const r of rows) save.run(arrivedWhen({ ...r, arrived_choice: null }), r.user_id);
 }
 
 // Ruolo attuale and Azienda were typed in Intestazione; now the current job comes from Esperienze

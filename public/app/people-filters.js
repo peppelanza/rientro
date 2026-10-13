@@ -2,7 +2,9 @@
 // they are, how they live in the address (bookmarkable, kept on reload), and the values of the side
 // panel (App People Filters, components.js) and of the phone's "Filtri" row above the results.
 
-export const LIST_KEYS = ['intent', 'backgrounds', 'sectors', 'desired'];
+export const LIST_KEYS = ['intent', 'move', 'backgrounds', 'sectors', 'desired'];
+// Who lives abroad: when they'd move (profiles.js MOVE_WHEN)
+export const MOVE = { '0_3m': 'Tra 0–3 mesi', '4_12m': 'Tra 4–12 mesi', unknown: 'Non lo sa ancora' };
 export const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insieme", networking: 'Networking' };
 
 export function readFilters(params = new URLSearchParams(location.search)) {
@@ -10,10 +12,10 @@ export function readFilters(params = new URLSearchParams(location.search)) {
   for (const k of LIST_KEYS) f[k] = params.get(k) ? params.get(k).split(',').filter(Boolean) : [];
   return f;
 }
-export const emptyFilters = () => ({ lives: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] });
+export const emptyFilters = () => ({ lives: '', include_unknown: false, intent: [], move: [], backgrounds: [], sectors: [], desired: [] });
 
 // The filters behind "Tutti i filtri" (computer): everything but where they live and want to live
-export const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length;
+export const hiddenFilters = f => f.intent.length + f.move.length + f.backgrounds.length + f.sectors.length;
 
 // For the address
 export function toQuery(f) {
@@ -42,6 +44,7 @@ export function activeFilters(f, cat) {
   for (const c of f.desired) out.push({ label: c, without: g => ({ ...g, desired: g.desired.filter(x => x !== c) }) });
   if (f.lives) out.push({ label: f.lives === 'italy' ? 'Vive in Italia' : 'Vive all’estero', without: g => ({ ...g, lives: '' }) });
   for (const i of f.intent) out.push({ label: INTENT[i], without: g => ({ ...g, intent: g.intent.filter(x => x !== i) }) });
+  for (const m of f.move) out.push({ label: `Si trasferisce: ${MOVE[m].toLowerCase()}`, without: g => ({ ...g, move: g.move.filter(x => x !== m) }) });
   for (const b of f.backgrounds) out.push({ label: b, without: g => ({ ...g, backgrounds: g.backgrounds.filter(x => x !== b) }) });
   for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
   return out;
@@ -91,6 +94,7 @@ export function filterPanel(page, counts = { intent: {}, backgrounds: {} }) {
     includeUnknown: f.include_unknown, toggleUnknown: () => set({ include_unknown: !f.include_unknown }), hasDesired: f.desired.length > 0,
     livesOpts: [{ v: '', l: 'Ovunque' }, { v: 'italy', l: 'Italia' }, { v: 'abroad', l: 'Estero' }], lives: f.lives,
     livesProps: { onSelect: v => set({ lives: v }) },
+    moves: Object.entries(MOVE).map(([v, l]) => ({ l, count: counts.move?.[v] ?? 0, on: f.move.includes(v), fn: () => toggle('move', v) })),
     intents: Object.entries(INTENT).map(([v, l]) => ({ l, count: counts.intent?.[v] ?? 0, on: f.intent.includes(v), fn: () => toggle('intent', v) })),
     bgs: s.moreBg ? bgList : bgList.filter((x, i) => i < 3 || x.on), moreBgLabel: s.moreBg ? 'Mostra meno' : `Mostra altri ${cat.areas.length - 2}`,
     toggleMoreBg: () => page.setState({ moreBg: !s.moreBg }),

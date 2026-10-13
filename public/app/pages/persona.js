@@ -111,6 +111,7 @@ export default class extends Page {
     const facts = [
       ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
       ['Rientro', p.arrived],
+      ['Si trasferisce', p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
     if (!connected) facts.push({ k: 'LinkedIn, sito, Instagram, X, calendario', v: '🔒 Dopo la connessione', isText: true, fg: '#8C84AE' });
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });

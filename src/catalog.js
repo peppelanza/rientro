@@ -69,6 +69,7 @@ export const TERRITORY_CITIES = COMUNI.filter(c => REGIONAL_CAPITALS.includes(c[
 export const catalog = {
   areas: AREAS, areaOther: AREA_OTHER, areaOtherMax: AREA_OTHER_MAX, sectors: SECTORS, sources: SOURCES, ageBands: AGE_BANDS, years: YEARS, ideaStages: IDEA_STAGES,
   seekingLocation: SEEKING_LOCATION, reportReasons: REPORT_REASONS,
+  moveWhen: [['0_3m', '0–3 mesi'], ['4_12m', '4–12 mesi'], ['unknown', 'Non lo so ancora']], // profiles.js MOVE_WHEN
   workArrangements: WORK_ARRANGEMENTS, employmentTypes: EMPLOYMENT_TYPES, availability: AVAILABILITY,
   comuni: COMUNI, regions: REGIONS, territoryCities: TERRITORY_CITIES,
 };

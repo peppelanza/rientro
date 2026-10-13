@@ -68,6 +68,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   arrived_from_city      TEXT,
   arrived_after          TEXT,              -- month range of the return, 'YYYY-MM'; after is NULL for "more than 2 years ago"
   arrived_before         TEXT,
+  -- Who lives abroad: when they'd move, as answered (profiles.js MOVE_WHEN): 0_3m, 4_12m, unknown
+  move_when              TEXT,
+  -- "Quando è stato il rientro" as answered (it doesn't move with time); arrived_after/before stay for the range
+  arrived_choice         TEXT,
   -- 2 Dove vorresti vivere
   desired_comuni         TEXT NOT NULL DEFAULT '[]',
   desired_unknown        INTEGER NOT NULL DEFAULT 0,
