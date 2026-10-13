@@ -1086,3 +1086,7 @@ html.search-sheet-open { overflow: hidden; }
 .invite-card-name { font: 600 19px/1.15 'Unbounded', sans-serif; letter-spacing: -.04em; overflow-wrap: anywhere; }
 .invite-card-sub { font-size: 15px; opacity: .92; }
 .invite-card-sub em { font: italic 400 1.2em 'Instrument Serif', serif; }
+
+/* Il tuo profilo: Scatta foto and Carica foto always side by side, next to the photo or under it */
+.photo-actions { display: flex; gap: 8px; max-width: 100%; }
+.photo-actions > .cam-btn { flex: 1 1 0; min-width: 0; padding: 0 12px; white-space: nowrap; }
