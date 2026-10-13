@@ -4,13 +4,15 @@ import fs from 'node:fs';
 // Served to the frontend via GET /api/catalog so both sides validate against the same values.
 
 // Background: one of these, or "Altro" with the member's own words (up to 25 characters, stored as is)
-export const AREAS = ['Tecnologia e ingegneria', 'Design, arte e cultura', 'Business, finanza e diritto', 'Marketing e comunicazione', 'Educazione e formazione', 'Scienze e ricerca', 'Salute e benessere', 'Sociale e servizi alla persona', 'Ambiente e agricoltura', 'Industria, artigianato e costruzioni', 'Turismo, ospitalità e ristorazione'];
+export const AREAS = ['Tecnologia e ingegneria', 'Design, arte e cultura', 'Business, finanza e diritto', 'Marketing e comunicazione', 'Educazione e formazione', 'Scienze e ricerca', 'Salute e benessere', 'Sociale e servizi alla persona', 'Ambiente e agricoltura', 'Industria e artigianato', 'Turismo e ospitalità'];
 export const AREA_OTHER = 'Altro';
 export const AREA_OTHER_MAX = 25;
 // Search filter: the areas plus "Altro" for whoever wrote their own
 export const areaKey = v => (!v ? null : AREAS.includes(v) ? v : AREA_OTHER);
 // Earlier areas, moved over by db.js migrateAreas
-export const OLD_AREAS = { 'Tech / Engineering': 'Tecnologia e ingegneria', Prodotto: 'Tecnologia e ingegneria', Design: 'Design, arte e cultura', 'Business / Sales': 'Business, finanza e diritto', 'Marketing / Growth': 'Marketing e comunicazione', Operations: 'Business, finanza e diritto', Finanza: 'Business, finanza e diritto', 'Ricerca / Scienza': 'Scienze e ricerca' };
+export const OLD_AREAS = { 'Tech / Engineering': 'Tecnologia e ingegneria', Prodotto: 'Tecnologia e ingegneria', Design: 'Design, arte e cultura', 'Business / Sales': 'Business, finanza e diritto', 'Marketing / Growth': 'Marketing e comunicazione', Operations: 'Business, finanza e diritto', Finanza: 'Business, finanza e diritto', 'Ricerca / Scienza': 'Scienze e ricerca',
+  // shortened afterwards
+  'Industria, artigianato e costruzioni': 'Industria e artigianato', 'Turismo, ospitalità e ristorazione': 'Turismo e ospitalità' };
 
 export const SECTORS = ['AI', 'SaaS', 'PropTech', 'Fintech', 'Climate', 'Turismo', 'Food & Agritech', 'HealthTech', 'Education', 'Dev tools', 'Moda & Design', 'Manifattura', 'Mobilità', 'Media', 'Impact / Non profit', 'Hardware'];
 

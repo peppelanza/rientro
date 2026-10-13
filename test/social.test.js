@@ -563,4 +563,10 @@ test('background: one of the areas, or "Altro" in your own words (up to 25 chara
   const row = t.app.db.prepare('SELECT background_area, seeking_backgrounds FROM profiles WHERE user_id = ?').get(b.id);
   assert.equal(row.background_area, 'Tecnologia e ingegneria');
   assert.equal(row.seeking_backgrounds, '["Business, finanza e diritto"]');
+  // and the two areas shortened later
+  t.app.db.prepare("UPDATE profiles SET background_area = 'Turismo, ospitalità e ristorazione', seeking_backgrounds = '[\"Industria, artigianato e costruzioni\"]' WHERE user_id = ?").run(b.id);
+  migrateAreas(t.app.db);
+  const row2 = t.app.db.prepare('SELECT background_area, seeking_backgrounds FROM profiles WHERE user_id = ?').get(b.id);
+  assert.equal(row2.background_area, 'Turismo e ospitalità');
+  assert.equal(row2.seeking_backgrounds, '["Industria e artigianato"]');
 });
