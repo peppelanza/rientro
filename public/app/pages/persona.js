@@ -1,7 +1,7 @@
 // Member profile (design 03 · 29a profilo completo, 29c mobile, 29d dopo l'accettazione; 05 · 42a/43a).
-import { api, CERCA_BACK_KEY, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, timeAgo, toast } from '../lib.js';
+import { api, CERCA_BACK_KEY, getMe, go, INTENT_BADGE, orList, SCOPRI_BACK_KEY, setMe, timeAgo, toast } from '../lib.js';
 import { block, connect, removeConnection, report } from '../social.js';
-import { Page } from './_base.js';
+import { homeFor, Page } from './_base.js';
 
 export const title = 'Profilo';
 export const tabbar = true;
@@ -108,12 +108,13 @@ export default class extends Page {
     const connected = c === 'connected';
     const L = p.links;
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
+    // where they live is in the line under the name (with the country when abroad), not again here
     const facts = [
-      ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
+      ['Background', p.background_area],
+      ['Esperienza', p.years_experience && `${p.years_experience} anni`],
       ['Rientro', p.arrived],
       ['Si trasferisce', p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
-    if (!connected) facts.push({ k: 'LinkedIn, sito, Instagram, X, calendario', v: '🔒 Dopo la connessione', isText: true, fg: '#8C84AE' });
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
     const unlocked = connected ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
@@ -125,18 +126,25 @@ export default class extends Page {
     return {
       loading: false, notFound: false, ready: true, me: s.me, ...from(), name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
-      from: p.lives_in_city, places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown,
+      from: [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', '),
+      places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown, isBack: !!p.back,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],
       seeks: p.seeking.label || '—', seeksEyebrow: `${p.first_name} cerca`,
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',
       complement: p.complement,
-      facts, unlocked, hasUnlocked: unlocked.length > 0,
+      facts, hasFacts: facts.length > 0, unlocked, hasUnlocked: unlocked.length > 0,
+      // Dove trovarmi, at the bottom: the links once connected, else that they unlock then
+      linksLocked: !connected, hasLinksSection: !connected || unlocked.length > 0,
       // actions
       isNone: c === 'none', isSent: c === 'pending_sent', isReceived: c === 'pending_received', isConnected: connected,
       requestNote: p.connection.note, requestEyebrow: `Richiesta di connessione${p.connection.created_at ? ` · ${timeAgo(p.connection.created_at)}` : ''}`,
       // In the preview the buttons are there, as others see them, but do nothing
       preview: !!s.self, previewClass: s.self ? 'preview-off' : '',
+      // Still in onboarding: this is the last step, Pubblica il profilo here (what's missing first)
+      onboardingPreview: !!s.self && s.me.user.status === 'onboarding', donePreview: !!s.self && s.me.user.status !== 'onboarding',
+      missing: (s.me.missing || []).join(', '), hasMissing: (s.me.missing || []).length > 0,
+      publish: this.act(async () => { const me = await api('POST', '/api/me/submit'); setMe(me); go(homeFor(me)); toast('Il tuo profilo è online.'); }),
       connect: async () => { if (s.self) return; if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),
       // A request is answered right here (declining is silent for the other person)
@@ -161,7 +169,7 @@ export default class extends Page {
       seekDesc: p.seeking.description, seekLoc: p.seeking.location ? `Dove: ${p.seeking.location}` : '',
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),
       seekText: p.seeking.description || p.seeking.label,
-      career: p.experiences.map(e => ({ y: [e.start_month?.slice(0, 4), e.current ? 'OGGI' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
+      career: p.experiences.map(e => ({ y: [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
       hasCareer: p.experiences.length > 0,
       edu: p.education.map(e => ({ s: e.school, d: [e.degree, e.years].filter(Boolean).join(' · ') })), hasEdu: p.education.length > 0,
       sectors: p.sectors.map(l => ({ l })), hasSectors: p.sectors.length > 0,

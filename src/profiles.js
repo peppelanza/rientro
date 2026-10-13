@@ -417,7 +417,8 @@ const FACETS = {
   intent: (p, v) => !v.length || v.includes(p.primary_intent),
   backgrounds: (p, v) => !v.length || v.includes(areaKey(p.background_area)),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
-  move: (p, v) => !v.length || (p.lives_in === 'abroad' && v.includes(moveWhen(p))),
+  // "Quando si trasferisce": who lives abroad by their answer, or "Già rientrato/a" (back = lives in Italy)
+  move: (p, v) => !v.length || (p.lives_in === 'italy' ? v.includes('back') : v.includes(moveWhen(p))),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
 };
@@ -462,7 +463,7 @@ export function parseDiscoverQuery(q) {
     intent: arr('intent').filter(x => INTENTS.includes(x)),
     backgrounds: arr('backgrounds').filter(x => AREAS.includes(x) || x === AREA_OTHER),
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
-    move: arr('move').filter(x => MOVE_WHEN.some(m => m[0] === x)),
+    move: arr('move').filter(x => x === 'back' || MOVE_WHEN.some(m => m[0] === x)),
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
@@ -512,7 +513,7 @@ export function discover(db, viewer, filters) {
     people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
-      move: Object.fromEntries(MOVE_WHEN.map(([m]) => [m, count('move', p => p.lives_in === 'abroad' && moveWhen(p) === m)])),
+      move: { ...Object.fromEntries(MOVE_WHEN.map(([m]) => [m, count('move', p => p.lives_in === 'abroad' && moveWhen(p) === m)])), back: count('move', p => p.lives_in === 'italy') },
       backgrounds: Object.fromEntries([...AREAS, AREA_OTHER].map(a => [a, count('backgrounds', p => areaKey(p.background_area) === a)])),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => wantsPlace(p, c))])),
     },

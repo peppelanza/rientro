@@ -4,7 +4,7 @@
 
 export const LIST_KEYS = ['intent', 'move', 'backgrounds', 'sectors', 'desired'];
 // Who lives abroad: when they'd move (profiles.js MOVE_WHEN)
-export const MOVE = { '0_3m': 'Tra 0–3 mesi', '4_12m': 'Tra 4–12 mesi', unknown: 'Non lo sa ancora' };
+export const MOVE = { '0_3m': 'Tra 0–3 mesi', '4_12m': 'Tra 4–12 mesi', unknown: 'Non lo sa ancora', back: 'Già rientrato/a' };
 export const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insieme", networking: 'Networking' };
 
 export function readFilters(params = new URLSearchParams(location.search)) {
@@ -44,7 +44,7 @@ export function activeFilters(f, cat) {
   for (const c of f.desired) out.push({ label: c, without: g => ({ ...g, desired: g.desired.filter(x => x !== c) }) });
   if (f.lives) out.push({ label: f.lives === 'italy' ? 'Vive in Italia' : 'Vive all’estero', without: g => ({ ...g, lives: '' }) });
   for (const i of f.intent) out.push({ label: INTENT[i], without: g => ({ ...g, intent: g.intent.filter(x => x !== i) }) });
-  for (const m of f.move) out.push({ label: `Si trasferisce: ${MOVE[m].toLowerCase()}`, without: g => ({ ...g, move: g.move.filter(x => x !== m) }) });
+  for (const m of f.move) out.push({ label: m === 'back' ? MOVE.back : `Si trasferisce: ${MOVE[m].toLowerCase()}`, without: g => ({ ...g, move: g.move.filter(x => x !== m) }) });
   for (const b of f.backgrounds) out.push({ label: b, without: g => ({ ...g, backgrounds: g.backgrounds.filter(x => x !== b) }) });
   for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
   return out;

@@ -611,4 +611,6 @@ test('Quando è stato il rientro and Quando vuoi trasferirti stay as answered (t
   assert.ok(people.some(p => p.id === away.id && p.move === 'tra 0–3 mesi'));
   assert.ok(!people.some(p => p.id === back.id));
   assert.equal((await viewer.get(`/api/profiles/${away.id}`)).body.move, 'tra 0–3 mesi');
+  const backs = (await viewer.get('/api/profiles?move=back')).body.people;
+  assert.ok(backs.some(p => p.id === back.id) && !backs.some(p => p.id === away.id));
 });

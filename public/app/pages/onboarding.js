@@ -48,6 +48,8 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 // Already back in Italy: where they live is where they wanted to be (profiles.js isBack)
 const isBack = p => p?.lives_in === 'italy';
 
+export const previewHref = me => `/persone/${me.user.id}?anteprima=1`;
+
 export default class extends Page {
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
@@ -60,6 +62,8 @@ export default class extends Page {
       step: known.includes(want) ? want : known.includes(p.onboarding_step) ? p.onboarding_step : 'benvenuto',
       edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
+    // The preview is the real profile page, as others will see it (persona.js), with Pubblica on top
+    if (this.state.step === 'anteprima') return go(previewHref(me));
     if (p.lives_in === 'abroad' && p.lives_in_country) this.loadCities();
     if (p.arrived_from_country) this.loadFromCities();
   }
@@ -156,6 +160,7 @@ export default class extends Page {
       // Leaving the video step with a video: that's the take, the server converts it now
       if (s.step === 'video' && s.p.video_url) confirmVideo();
       s.edu = null; s.exp = null;
+      if (nextStep === 'anteprima') return go(previewHref(s.me));
       this.goTo(nextStep);
     })();
   }
