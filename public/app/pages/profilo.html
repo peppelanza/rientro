@@ -52,7 +52,7 @@
 <sc-if value="{{ bgOther }}"><div style="max-width:420px"><dc-import name="App Field" label="Il tuo background" field="background-other" maxlength="{{ bgMax }}" value="{{ bgText }}" placeholder="Es. Architettura" dc-props="{{ bgTextProps }}"></dc-import></div></sc-if>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Anni di esperienza</span><div class="r-full" style="max-width:420px"><dc-import name="App Segmented" label="Anni di esperienza" options="{{ yearOpts }}" value="{{ years }}" dc-props="{{ yearsProps }}"></dc-import></div></div>
 <div style="height:1px;background:#ECE8F7"></div>
-<dc-import name="UI Eyebrow" text="Esperienze"></dc-import>
+<dc-import name="UI Eyebrow" text="Lavoro"></dc-import>
 <sc-if value="{{ hasExpBox }}"><div class="entry-box"><sc-for list="{{ expItems }}" as="e"><sc-if value="{{ e.editing }}"><dc-import name="App Exp Form" dc-props="{{ expFormProps }}"></dc-import></sc-if><sc-if value="{{ e.view }}"><dc-import name="App Entry Row" dc-props="{{ e.row }}"></dc-import></sc-if></sc-for><sc-if value="{{ expAdding }}"><dc-import name="App Exp Form" dc-props="{{ expFormProps }}"></dc-import></sc-if></div></sc-if>
 <sc-if value="{{ expNotEditing }}"><dc-import name="UI Button" label="+ Aggiungi esperienza" variant="outline" full="{{ true }}" on-click="{{ addExp }}"></dc-import></sc-if>
 <div style="height:1px;background:#ECE8F7"></div>

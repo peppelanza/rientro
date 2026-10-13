@@ -19,7 +19,7 @@ const SECTIONS = [
   ['intestazione', 'Intestazione', ['first_name', 'last_name', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown', 'move_when']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
-  ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
+  ['percorso', 'Lavoro e formazione', ['background_area', 'years_experience']],
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
   ['interessi', 'Interessi', ['sectors']],
   ['italia', "Cosa mi manca di casa", ['misses_italy']],
