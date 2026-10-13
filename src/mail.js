@@ -44,6 +44,11 @@ export function sendLoginCodeEmail(email, codeValue) {
     .catch(() => { throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.'); });
 }
 
+// A link to copy and pass on, not to click: plain text in a box, selected whole with a tap where the
+// client allows it; the dots in their own spans keep mail apps from turning it into a link
+const copyable = text => `<div style="margin:0 0 6px;padding:16px 18px;border-radius:16px;background:#F4F2FB;border:1px dashed #C9BEFA;text-align:center;font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:18px;font-weight:600;letter-spacing:.01em;color:#1A1726;-webkit-user-select:all;user-select:all">${esc(text).replace(/\./g, '<span>.</span>')}</div>`
+  + p('Copialo e mandalo a chi vuoi invitare.', { size: 13, color: '#8C84AE', margin: '0 0 22px' });
+
 // --- Welcome (once, when the profile goes online): what happens next, and the member's invite link ---
 
 export function welcomeEmail({ firstName = null, inviteUrl = null, launched = isLaunched() } = {}) {
@@ -64,7 +69,7 @@ export function welcomeEmail({ firstName = null, inviteUrl = null, launched = is
     html: layout({
       preheader: launched ? 'Il tuo profilo è online.' : `Il tuo profilo è pronto. Apriamo il ${date}.`,
       body: h1('Benvenuto su Rientro') + p(esc(hello)) + (lead ? p(lead) : '') + steps(how)
-        + (invite ? p(esc(invite)) + note(`<a href="${esc(inviteUrl)}" style="color:#6C4DF5;font-weight:600;text-decoration:none">${esc(inviteUrl.replace(/^https?:\/\//, ''))}</a>`) : '')
+        + (invite ? p(esc(invite)) + copyable(inviteUrl.replace(/^https?:\/\//, '')) : '')
         + button(...cta) + p(privacy, { size: 13, color: '#8C84AE', margin: '0' }),
     }),
   };

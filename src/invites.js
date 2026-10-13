@@ -40,10 +40,16 @@ const person = (db, id) => {
   return p && { id, first_name: p.first_name, last_name: p.last_name, name: [p.first_name, p.last_name].filter(Boolean).join(' '), photo_url: fileUrl(p.photo_file_id), role: p.current_role };
 };
 
-// For the sign-in page: "Giuseppe ti ha invitato su Rientro"
+// For the sign-in page: "Giuseppe ti ha invitato su Rientro", with their photo (served to whoever
+// holds the link, /api/public/invite-photo)
 export const inviterForCode = (db, code) => {
   const id = inviterIdFor(db, code);
-  return id && person(db, id);
+  const p = id && person(db, id);
+  return p && { first_name: p.first_name, last_name: p.last_name, name: p.name, photo_url: p.photo_url ? '/api/public/invite-photo' : null };
+};
+export const inviterPhotoId = (db, code) => {
+  const id = inviterIdFor(db, code);
+  return id ? db.prepare('SELECT photo_file_id FROM profiles WHERE user_id = ?').get(id)?.photo_file_id ?? null : null;
 };
 
 // A new account opened with an invite cookie: remembered once, never yourself

@@ -26,7 +26,7 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   // Opening the link: remembered in a cookie, then the page without the code
   const open = await fetch(`${t.base}/?${code}`, { redirect: 'manual' });
   assert.equal(open.status, 302);
-  assert.equal(open.headers.get('location'), '/');
+  assert.equal(open.headers.get('location'), '/accedi');
   assert.match(open.headers.get('set-cookie'), new RegExp(`rientro_invite=${code}`));
   assert.equal((await (await fetch(`${t.base}/api/public/invite`, { headers: { cookie: `rientro_invite=${code}` } })).json()).inviter.first_name, 'Giuseppe');
 

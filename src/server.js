@@ -21,7 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
-import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, recordInvite } from './invites.js';
+import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
 import { pageHtml, seoFor, sitemapPaths } from './seo.js';
@@ -385,6 +385,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }), pub);
   // The sign-in page of someone who came through an invite link: who invited them (invites.js)
   route('GET', '/api/public/invite', ({ cookies }) => ({ inviter: inviterForCode(db, cookies[INVITE_COOKIE]) }), pub);
+  route('GET', '/api/public/invite-photo', ({ cookies, req, res }) => {
+    const id = inviterPhotoId(db, cookies[INVITE_COOKIE]);
+    if (!id) throw new HttpError(404, 'not_found');
+    streamFile(req, res, fileOnDisk(db, id));
+  }, { ...pub, raw: true });
   route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: oauthEnabled('linkedin'), google: oauthEnabled('google'), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
@@ -682,10 +687,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       }
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
-        // An invite link (rientro.it/?gius2839, invites.js): remembered for the sign-up, then the page without it
+        // An invite link (rientro.it/?gius2839, invites.js): remembered for the sign-up, then straight to it
         const invite = url.search.slice(1).toLowerCase();
         if (INVITE_CODE.test(invite) && !path.extname(p)) {
-          res.writeHead(302, { Location: p, 'Set-Cookie': cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400), 'Cache-Control': 'no-store' });
+          res.writeHead(302, { Location: '/accedi', 'Set-Cookie': cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400), 'Cache-Control': 'no-store' });
           res.end();
           return;
         }

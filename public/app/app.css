@@ -1071,4 +1071,13 @@ html.search-sheet-open { overflow: hidden; }
 .invite-box p { margin: 0; font-size: 15px; line-height: 1.5; color: #4A4560; }
 .invite-link { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .invite-link code { flex: 1; min-width: 0; padding: 12px 16px; border-radius: 16px; background: #F4F2FB; font: 500 15px 'Geist Mono', monospace; color: #1A1726; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.invite-from-line { margin: 0 0 4px; font-size: 15px; color: #4A4560; }
+.invite-card { position: relative; display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 16px 20px 16px 16px; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(135deg, #6C4DF5 0%, #8F6BFF 100%); color: #FFFFFF; box-shadow: 0 14px 32px rgba(108,77,245,.28); }
+.invite-card::after { content: ''; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.22), rgba(255,255,255,0) 70%); pointer-events: none; }
+.invite-card-photo { position: relative; flex: none; border-radius: 50%; padding: 3px; background: rgba(255,255,255,.35); }
+.invite-card-photo > span { position: absolute; right: -4px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; color: #6C4DF5; display: grid; place-items: center; font-size: 13px; box-shadow: 0 2px 6px rgba(26,23,38,.18); }
+.invite-card-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.invite-card-eyebrow { font-family: 'Geist Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+.invite-card-name { font: 600 19px/1.15 'Unbounded', sans-serif; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.invite-card-sub { font-size: 15px; opacity: .92; }
+.invite-card-sub em { font: italic 400 1.2em 'Instrument Serif', serif; }
