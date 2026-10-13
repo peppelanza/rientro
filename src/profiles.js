@@ -224,13 +224,22 @@ export function saveExperience(db, userId, body, id = null) {
     db.prepare('INSERT INTO experiences (id, user_id, company, role, city, start_month, end_month, current, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(id, userId, company, role, city, start, end, current, n);
   }
+  syncCurrentJob(db, userId);
   return experiences(db, userId);
+}
+
+// The role shown on cards and profiles ("Product Manager · Zalando") is the job marked "Lavoro ancora
+// qui" in Esperienze (onboarding asks it there), kept in current_role / current_company
+export function syncCurrentJob(db, userId) {
+  const job = db.prepare('SELECT role, company FROM experiences WHERE user_id = ? AND current = 1 ORDER BY start_month DESC, position LIMIT 1').get(userId);
+  db.prepare('UPDATE profiles SET current_role = ?, current_company = ? WHERE user_id = ?').run(job?.role || null, job?.company || null, userId);
 }
 
 export function deleteRow(db, table, userId, id) {
   if (!['education', 'experiences'].includes(table)) throw new Error('bad table');
   const r = db.prepare(`DELETE FROM ${table} WHERE id = ? AND user_id = ?`).run(id, userId);
   if (!r.changes) throw new HttpError(404, 'not_found');
+  if (table === 'experiences') syncCurrentJob(db, userId);
   return table === 'education' ? education(db, userId) : experiences(db, userId);
 }
 
@@ -350,7 +359,12 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
 }
 
 // Compact card for lists (UI Person Card shape: name, age, role, from, to, idea, seeks, tags, time, comp)
-export function card(db, viewer, p, viewerP) {
+// filters (Scopri): what the search filtered by shows on the card too: the background, the
+// sectors and the places chosen come first (cards show three)
+export function card(db, viewer, p, viewerP, filters = null) {
+  const first = (list, wanted) => [...list.filter(wanted), ...list.filter(x => !wanted(x))];
+  const sectors = filters?.sectors?.length ? first(p.sectors, s => filters.sectors.includes(s)) : p.sectors;
+  const places = filters?.desired?.length ? first(p.desired_comuni, c => filters.desired.some(pl => wantsPlace({ desired_comuni: [c] }, pl))) : p.desired_comuni;
   return {
     id: p.user_id,
     name: [p.first_name, p.last_name].filter(Boolean).join(' '),
@@ -359,12 +373,13 @@ export function card(db, viewer, p, viewerP) {
     from: p.lives_in_city ?? '',
     // already back in Italy: where from (shown "Rientrato da X → Y" instead of where they'd like to go)
     back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
-    to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
+    to: orList(places, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
     idea: p.primary_intent === 'has_idea',
     intent: p.primary_intent,
     idea_title: p.idea_title,
     seeks: seeksLabel(p.seeking_backgrounds),
-    tags: p.sectors.slice(0, 3).join(' · '),
+    tags: sectors.slice(0, 3).join(' · '),
+    background: filters?.backgrounds?.length ? p.background_area : null,
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),
     connection: connectionState(db, viewer.id, p.user_id),
@@ -476,7 +491,7 @@ export function discover(db, viewer, filters) {
   }
   const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
   const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE },
-    p => ({ ...card(db, viewer, p, viewerP), ...(filters.q ? { match_in: p.match_in, match_word: p.match_word } : {}) }));
+    p => ({ ...card(db, viewer, p, viewerP, filters), ...(filters.q ? { match_in: p.match_in, match_word: p.match_word } : {}) }));
   return {
     total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
     people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)

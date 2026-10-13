@@ -1,6 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, pickSector, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
+import { api, jobLine, pickSector, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -12,7 +12,7 @@ export const title = 'Il tuo profilo';
 export const tabbar = true;
 
 const SECTIONS = [
-  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'current_role', 'current_company', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown']],
+  ['intestazione', 'Intestazione', ['first_name', 'last_name', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
@@ -152,7 +152,7 @@ export default class extends Page {
     const text = k => ({ value: p[k] ?? '', props: { onInput: v => { p[k] = v; this.mark(); } } });
     const pct = s.up?.total ? Math.round((s.up.loaded / s.up.total) * 100) : 0;
     const t = {};
-    for (const k of ['first_name', 'last_name', 'current_role', 'current_company', 'lives_in_country', 'lives_in_city', 'bio', 'achievement', 'idea_title', 'idea_description', 'seeking_description', 'misses_italy', 'linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']) t[k] = text(k);
+    for (const k of ['first_name', 'last_name', 'lives_in_country', 'lives_in_city', 'bio', 'achievement', 'idea_title', 'idea_description', 'seeking_description', 'misses_italy', 'linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']) t[k] = text(k);
     return {
       loading: false, me, cat, t,
       menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 720px)').matches) return; e.preventDefault(); this.goSection(k); } })),
@@ -219,11 +219,11 @@ export default class extends Page {
       sectorCount: `${p.sectors.length} / 5`,
       sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: pickSector(p.sectors, l) }) }; }),
       // preview (right column)
-      pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
+      pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: jobLine(p),
       // The card as others see it in Scopri chi torna (same as the server's profiles.js card())
       pvPerson: {
         id: me.user.id, name: [p.first_name, p.last_name].filter(Boolean).join(' '), first_name: p.first_name,
-        role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city ?? '',
+        role: jobLine(p), from: p.lives_in_city ?? '',
         back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
         to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
         idea: p.primary_intent === 'has_idea', intent: p.primary_intent, idea_title: p.idea_title,

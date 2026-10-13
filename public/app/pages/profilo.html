@@ -16,8 +16,6 @@
 <div class="r-grid-1" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <dc-import name="App Field" label="Nome" field="first_name" maxlength="60" value="{{ t.first_name.value }}" autocomplete="given-name" dc-props="{{ t.first_name.props }}"></dc-import>
 <dc-import name="App Field" label="Cognome" field="last_name" maxlength="60" value="{{ t.last_name.value }}" autocomplete="family-name" dc-props="{{ t.last_name.props }}"></dc-import>
-<dc-import name="App Field" label="Ruolo attuale" field="current_role" maxlength="80" value="{{ t.current_role.value }}" dc-props="{{ t.current_role.props }}"></dc-import>
-<dc-import name="App Field" label="Azienda" field="current_company" maxlength="80" value="{{ t.current_company.value }}" dc-props="{{ t.current_company.props }}"></dc-import>
 </div>
 <div style="max-width:240px"><dc-import name="App Field" label="Anno di nascita" field="birth-year" value="{{ birthYear }}" inputmode="numeric" maxlength="4" autocomplete="bday-year" placeholder="Es. 1990" foot="Non mostriamo l’età agli altri utenti" dc-props="{{ birthProps }}"></dc-import></div>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Dove vivo</span><div class="r-full" style="max-width:320px"><dc-import name="App Segmented" label="Dove vivi" options="{{ livesOpts }}" value="{{ lives }}" dc-props="{{ livesProps }}"></dc-import></div></div>

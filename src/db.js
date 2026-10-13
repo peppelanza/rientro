@@ -36,6 +36,7 @@ export function openDb(file = config.dbPath) {
   migrateIdeaStages(db);
   migrateAreas(db);
   migrateSectors(db);
+  roleToExperience(db);
   // "In Italia" is no longer offered: indifferent
   db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'");
   migrateChecks(db);
@@ -142,6 +143,19 @@ export function migrateAreas(db) {
   for (const r of rows) {
     const seeking = [...new Set(JSON.parse(r.seeking_backgrounds || '[]').map(a => OLD_AREAS[a] ?? a))];
     save.run(OLD_AREAS[r.background_area] ?? r.background_area, JSON.stringify(seeking), r.user_id);
+  }
+}
+
+// Ruolo attuale and Azienda were typed in Intestazione; now the current job comes from Esperienze
+// ("Lavoro ancora qui"). A role typed before with no current job becomes one (idempotent)
+export function roleToExperience(db) {
+  const rows = db.prepare(`SELECT user_id, current_role, current_company FROM profiles p
+    WHERE (current_role IS NOT NULL OR current_company IS NOT NULL)
+      AND NOT EXISTS (SELECT 1 FROM experiences e WHERE e.user_id = p.user_id AND e.current = 1)`).all();
+  for (const r of rows) {
+    const n = db.prepare('SELECT COUNT(*) AS n FROM experiences WHERE user_id = ?').get(r.user_id).n;
+    db.prepare('INSERT INTO experiences (id, user_id, company, role, current, position) VALUES (?, ?, ?, ?, 1, ?)')
+      .run(newId(), r.user_id, r.current_company || '', r.current_role || null, n);
   }
 }
 

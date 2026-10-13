@@ -18,3 +18,20 @@ test('search: accents and capitals ignored, words start a word, each word counts
   assert.equal(similar.fuzzy, true, 'forgiven results say so');
   assert.ok(!hit('marco', wordsOf('mario'), true), 'a wrong letter only from 6 letters up');
 });
+
+test('Scopri cards show what you filtered by: the background, and the sectors and places chosen first', async () => {
+  const { startApp } = await import('./helpers.js');
+  const t2 = await startApp();
+  try {
+    const a = await t2.approved('cardfilter@x.it', { background_area: 'Salute e benessere', sectors: ['AI, Software & SaaS', 'Finanza & Assicurazioni', 'Arte & Cultura', 'Sport & Tempo Libero'], desired_comuni: ['Milano', 'Torino', 'Bologna', 'Catania'] });
+    const b = await t2.approved('cardviewer@x.it');
+    const find = async q => (await b.get(`/api/profiles?${q}`)).body.people.find(p => p.id === a.id);
+    const plain = await find('');
+    assert.equal(plain.background, null);
+    assert.ok(!plain.tags.includes('Sport'));
+    const filtered = await find('backgrounds=Salute%20e%20benessere&sectors=Sport%20%26%20Tempo%20Libero&desired=Catania');
+    assert.equal(filtered.background, 'Salute e benessere');
+    assert.match(filtered.tags, /^Sport & Tempo Libero/);
+    assert.match(filtered.to, /^Catania/);
+  } finally { t2.close(); }
+});

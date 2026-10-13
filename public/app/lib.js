@@ -131,6 +131,13 @@ export function seekCards(areas, list, set) {
 }
 export const seeksText = (areas, list) => (areas.every(a => list.includes(a)) ? 'Qualsiasi background' : list.join(', '));
 
+// "Product Manager · Zalando": the job marked "Lavoro ancora qui" (as the server's profiles.js
+// syncCurrentJob keeps it), else what the profile had
+export function jobLine(p) {
+  const e = (p.experiences || []).find(x => x.current);
+  return (e ? [e.role, e.company] : [p.current_role, p.current_company]).filter(Boolean).join(' · ');
+}
+
 // Every capped choice says the same when you try one more: "Massimo 5 settori"
 export const limitNote = (n, noun) => toast(`Massimo ${n} ${noun}: togline uno per sceglierne un altro.`, { tone: 'info' });
 
