@@ -11,7 +11,7 @@
 </sc-if>
 
 <sc-if value="{{ inSteps }}">
-<div class="{{ pageClass }}" style="min-height:100vh;background:{{ pageBg }};color:{{ pageFg }};display:flex;flex-direction:column">
+<div style="min-height:100vh;background:{{ pageBg }};color:{{ pageFg }};display:flex;flex-direction:column">
 <dc-import name="App Onboarding Bar" step="{{ stepN }}" total="{{ total }}" dark="{{ dark }}"></dc-import>
 <main style="flex:1;display:flex;justify-content:center;padding:44px var(--gutter) 24px">
 
@@ -187,7 +187,7 @@
 </div></sc-if>
 
 </main>
-<div style="position:sticky;bottom:0;background:{{ footBg }};z-index:10">
+<div style="position:sticky;bottom:0;background:{{ pageBg }};z-index:10">
 <dc-import name="App Step Footer" status="{{ footStatus }}" error="{{ footError }}" disabled="{{ footDisabled }}" skip="{{ footSkip }}" primary="{{ footPrimary }}" accent="{{ footAccent }}" dark="{{ dark }}" dc-props="{{ footProps }}"></dc-import>
 </div>
 </div>

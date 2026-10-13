@@ -280,9 +280,7 @@ export default class extends Page {
     const inviter = s.me?.invite?.invited_by || {};
     const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
-    // "Cosa ti manca di casa": the usual page, with a soft hint of the flag (app.css .ob-tricolore)
     const dark = false;
-    const flag = is('manca');
     const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
     const up = s.up;
     const pct = up && up.total ? Math.round((up.loaded / up.total) * 100) : 0;
@@ -306,7 +304,7 @@ export default class extends Page {
       loading: false,
       // chrome
       isWelcome: is('benvenuto'), isPreview: is('anteprima'), inSteps: idx >= 0,
-      pageBg: '#E9E6F5', pageFg: '#1A1726', dark, pageClass: flag ? 'ob-tricolore' : '', footBg: flag ? 'transparent' : '#E9E6F5',
+      pageBg: '#E9E6F5', pageFg: '#1A1726', dark,
       stepN: idx + 1, total: steps.length,
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
