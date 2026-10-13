@@ -57,3 +57,24 @@ test('Scopri keeps its members in memory and reads again only who changed: edits
     assert.ok(!(await names('')).includes('Bruno'), 'a hidden profile leaves');
   } finally { t2.close(); }
 });
+
+test('affinity: a score orders "Più affini" and the strongest reason shows in words', async () => {
+  const { startApp } = await import('./helpers.js');
+  const t2 = await startApp();
+  try {
+    const base = { sectors: ['Arte & Cultura'], desired_comuni: ['Aosta'], primary_intent: 'networking' };
+    const me = await t2.approved('aff-me@x.it', { ...base, background_area: 'Tecnologia e ingegneria', seeking_backgrounds: ['Business, finanza e diritto'], desired_comuni: ['Palermo'], primary_intent: 'seeking_idea' });
+    await t2.approved('aff-mutual@x.it', { ...base, first_name: 'Mutuo', background_area: 'Business, finanza e diritto', seeking_backgrounds: ['Tecnologia e ingegneria'] });
+    await t2.approved('aff-city@x.it', { ...base, first_name: 'Citta', background_area: 'Design, arte e cultura', seeking_backgrounds: ['Salute e benessere'], desired_comuni: ['Palermo'] });
+    await t2.approved('aff-idea@x.it', { ...base, first_name: 'Idea', background_area: 'Design, arte e cultura', seeking_backgrounds: ['Salute e benessere'], primary_intent: 'has_idea', idea_title: 'Un frantoio' });
+    await t2.approved('aff-none@x.it', { ...base, first_name: 'Nessuno', background_area: 'Design, arte e cultura', seeking_backgrounds: ['Salute e benessere'] });
+    const people = (await me.get('/api/profiles?sort=match')).body.people;
+    const order = people.map(p => p.first_name).filter(n => ['Mutuo', 'Citta', 'Idea', 'Nessuno'].includes(n));
+    assert.deepEqual(order, ['Mutuo', 'Citta', 'Idea', 'Nessuno']);
+    const comp = n => people.find(p => p.first_name === n).comp;
+    assert.match(comp('Mutuo'), /^Vi cercate a vicenda/);
+    assert.equal(comp('Citta'), 'Anche Citta vuole vivere a Palermo');
+    assert.equal(comp('Idea'), "Ha già un'idea: Un frantoio");
+    assert.equal(comp('Nessuno'), null);
+  } finally { t2.close(); }
+});

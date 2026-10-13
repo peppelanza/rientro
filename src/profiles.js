@@ -305,16 +305,45 @@ export function connectionState(db, viewerId, targetId) {
 }
 
 // "Cerca Prodotto, il tuo background" (design Person Card / 29a)
-export function complement(viewerP, p) {
-  if (!viewerP || !p) return null;
-  if (viewerP.background_area && !seeksAny(p.seeking_backgrounds) && p.seeking_backgrounds.includes(viewerP.background_area)) return `Cerca ${viewerP.background_area}, il tuo background`;
-  if (p.background_area && !seeksAny(viewerP.seeking_backgrounds) && viewerP.seeking_backgrounds.includes(p.background_area)) {
-    return `Tu cerchi ${p.background_area}, ${p.first_name} è ${p.current_role || p.background_area}`;
-  }
-  const shared = p.sectors.filter(s => viewerP.sectors.includes(s));
-  if (shared.length >= 2) return `Ha scelto ${shared[0]} e ${shared[1]}, come te`;
-  return null;
+// Affinity: how well two members fit, as a score (Scopri's "Più affini" order) and the strongest
+// reason in words (the purple box on cards and profiles). Each signal adds its weight:
+//   both look for each other's background  60  "Vi cercate a vicenda: …"
+//   they look for your background           35  "Cerca …, il tuo background"
+//   you look for theirs                     30  "Tu cerchi …, Luca è Founder"
+//   the same city (to live in, or theirs)   25  "Anche Luca vuole vivere a Palermo"
+//   one has an idea, the other looks for one 15 "Ha già un'idea: …" / "Cerca un'idea da costruire insieme"
+//   each sector in common (up to 3)          6  "Ha scelto … e …, come te" (from two)
+//   a complete profile (photo, video, about) up to 8, no words
+// "Indifferente" in Chi stai cercando takes no part in the background signals.
+// affinityFor(viewerP) prepares the viewer's side once, then scores any number of members.
+export function affinityFor(viewerP) {
+  if (!viewerP) return () => ({ score: 0, reason: null });
+  const vBg = viewerP.background_area;
+  const vSeek = seeksAny(viewerP.seeking_backgrounds) ? new Set() : new Set(viewerP.seeking_backgrounds);
+  const vPlaces = new Set(viewerP.lives_in === 'italy' ? [viewerP.lives_in_city].filter(Boolean) : viewerP.desired_comuni);
+  const vSectors = new Set(viewerP.sectors);
+  return p => {
+    let score = 0;
+    const reasons = []; // [weight, words]
+    const add = (w, words) => { score += w; if (words) reasons.push([w, words]); };
+    const theySeekYou = !!vBg && !seeksAny(p.seeking_backgrounds) && p.seeking_backgrounds.includes(vBg);
+    const youSeekThem = !!p.background_area && vSeek.has(p.background_area);
+    if (theySeekYou && youSeekThem) add(60, `Vi cercate a vicenda: ${p.first_name} cerca ${vBg}, tu cerchi ${p.background_area}`);
+    else if (theySeekYou) add(35, `Cerca ${vBg}, il tuo background`);
+    else if (youSeekThem) add(30, `Tu cerchi ${p.background_area}, ${p.first_name} è ${p.current_role || p.background_area}`);
+    const theirPlaces = p.lives_in === 'italy' ? [p.lives_in_city].filter(Boolean) : p.desired_comuni;
+    const city = theirPlaces.find(c => vPlaces.has(c));
+    if (city) add(25, p.lives_in === 'italy' ? `${p.first_name} vive già a ${city}` : `Anche ${p.first_name} vuole vivere a ${city}`);
+    if (viewerP.primary_intent === 'seeking_idea' && p.primary_intent === 'has_idea') add(15, p.idea_title ? `Ha già un'idea: ${p.idea_title}` : "Ha già un'idea e cerca con chi costruirla");
+    else if (viewerP.primary_intent === 'has_idea' && p.primary_intent === 'seeking_idea') add(15, "Cerca un'idea da costruire insieme");
+    const shared = p.sectors.filter(x => vSectors.has(x));
+    if (shared.length) add(6 * Math.min(shared.length, 3), shared.length >= 2 ? `Ha scelto ${shared[0]} e ${shared[1]}, come te` : null);
+    add((p.photo_file_id ? 3 : 0) + (p.video_file_id ? 3 : 0) + (p.bio ? 2 : 0));
+    reasons.sort((a, b) => b[0] - a[0]);
+    return { score, reason: reasons[0]?.[1] ?? null };
+  };
 }
+export const complement = (viewerP, p) => affinityFor(viewerP)(p).reason;
 
 const places = p => (p.desired_comuni.length ? orList(p.desired_comuni) : p.desired_unknown ? 'Non lo sa ancora' : '—');
 
@@ -559,8 +588,9 @@ export function discover(db, viewer, filters) {
     // experience), then the newest
     results = [...results].sort((a, b) => hits.get(b).found - hits.get(a).found || hits.get(b).score - hits.get(a).score);
   } else if (filters.sort === 'match') {
-    // Complementary profiles first; the newest first within each group (sort is stable)
-    results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
+    // The best fits first (affinityFor); the newest first among equals (the sort is stable)
+    const fit = affinityFor(viewerP);
+    results = results.map(p => [p, fit(p).score]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
   }
   // A filter's counts: the results plus who misses only that filter, tallied in one go per filter
   const tally = (facet, keyOf, values) => {
