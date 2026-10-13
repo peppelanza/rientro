@@ -574,3 +574,14 @@ test('background: one of the areas, or "Altro" in your own words (up to 25 chara
   migrateSectors(t.app.db);
   assert.equal(t.app.db.prepare('SELECT sectors FROM profiles WHERE user_id = ?').get(b.id).sectors, '["AI, Software & SaaS","Finanza & Assicurazioni"]');
 });
+
+test('Dove trovarti: every link (LinkedIn and site too) only for connections', async () => {
+  const a = await t.approved('linkowner@x.it', { linkedin_url: 'https://linkedin.com/in/owner', website_url: 'https://owner.it', instagram_handle: 'owner' });
+  const b = await t.approved('linkviewer@x.it');
+  const before = (await b.get(`/api/profiles/${a.id}`)).body.links;
+  assert.deepEqual(before, { locked: true });
+  await t.connect(b, a);
+  const after = (await b.get(`/api/profiles/${a.id}`)).body.links;
+  assert.equal(after.linkedin_url, 'https://linkedin.com/in/owner');
+  assert.equal(after.website_url, 'https://owner.it/');
+});

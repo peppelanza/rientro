@@ -56,7 +56,7 @@ export function welcomeEmail({ firstName = null, inviteUrl = null, launched = is
   const hello = `Ciao${firstName ? ` ${firstName}` : ''}, ${launched ? 'il tuo profilo è online: da adesso gli altri possono trovarti.' : 'il tuo profilo è pronto.'}`;
   const how = [
     ['Scopri chi torna', launched ? 'Nella tua città o con competenze complementari alle tue.' : 'Filtrando per città, competenze e settori.'],
-    ['Connettiti con una nota', 'Due righe su di te: se accetta, potete scrivervi e si sbloccano Instagram, X e il calendario.'],
+    ['Connettiti con una nota', 'Due righe su di te: se accetta, potete scrivervi e vedete i link l’uno dell’altro.'],
     [launched ? 'Segui i gruppi' : 'Entra nei gruppi', 'Della tua città e dei tuoi settori.'],
   ];
   const lead = launched ? '' : `Apriamo il ${date}. Quel giorno ti scriviamo e potrai:`;

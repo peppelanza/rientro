@@ -338,10 +338,10 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     photo_url: fileUrl(p.photo_file_id),
     video_url: p.video_connections_only && !connected ? null : fileUrl(p.video_file_id),
     video_locked: !!(p.video_file_id && p.video_connections_only && !connected),
-    links: {
-      linkedin_url: p.linkedin_url, website_url: p.website_url,
-      ...(connected ? { instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url } : { locked: true }),
-    },
+    // "Dove trovarti": all of it only for connections
+    links: connected
+      ? { linkedin_url: p.linkedin_url, website_url: p.website_url, instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url }
+      : { locked: true },
     connection: conn,
     complement: complement(viewerP, p),
     viewer_background: viewerP?.background_area ?? null,

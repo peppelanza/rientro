@@ -12,7 +12,7 @@ export const DOCS = {
     title: 'Privacy Policy', updated: 'AGGIORNATA IL 13 OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
-      ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. Instagram, X e calendario solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
+      ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. I tuoi link (LinkedIn, sito, Instagram, X, calendario) solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
       ['Cosa non facciamo', 'Non vendiamo i tuoi dati e non li cediamo a terzi per il loro marketing. Nessun cookie di tracciamento o pubblicità.'],
       ['Il controllo è tuo', 'Scarica o elimina tutto dalle impostazioni quando vuoi. Newsletter e notifiche si gestiscono in un clic. Per tutto il resto: privacy@rientro.it.'],
     ],
@@ -47,7 +47,7 @@ export const DOCS = {
         'Tutti gli altri dati sono facoltativi: se non li inserisci il tuo profilo sarà semplicemente meno completo. Anche il consenso alla newsletter è facoltativo e negarlo non ha alcuna conseguenza sull’uso di Rientro.',
       ]],
       ['Chi può vedere i tuoi dati', [
-        '• Gli altri membri di Rientro vedono il tuo profilo da quando lo pubblichi. Instagram, X e il link al calendario sono visibili solo alle persone con cui sei connesso. La tua email non viene mai mostrata a nessuno.',
+        '• Gli altri membri di Rientro vedono il tuo profilo da quando lo pubblichi. I tuoi link (LinkedIn, sito, Instagram, X e calendario) sono visibili solo alle persone con cui sei connesso. La tua email non viene mai mostrata a nessuno.',
         '• Le tue connessioni vedono i messaggi che vi scambiate: i messaggi sono visibili solo a chi partecipa alla conversazione.',
         '• Chi ti ha invitato: se ti sei iscritto con il suo link e scegli di chiedergli di connettervi, riceve la tua richiesta segnata come arrivata dal suo link. Se non la invii, non gli diciamo che ti sei iscritto.',
         '• Gruppi: i post (testi e foto) e i commenti che pubblichi nei gruppi sono pubblici. Chiunque, anche senza essere iscritto a Rientro, può leggerli insieme al tuo nome, cognome e foto, e le pagine dei gruppi possono essere indicizzate dai motori di ricerca (per esempio Google). Il resto del tuo profilo resta riservato ai membri: per vederlo bisogna iscriversi. Puoi eliminare i tuoi post e commenti in qualsiasi momento; scrivere nei gruppi è facoltativo.',

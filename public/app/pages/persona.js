@@ -111,9 +111,8 @@ export default class extends Page {
     const facts = [
       ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
       ['Rientro', p.arrived],
-      ...(connected ? [] : [['LinkedIn', li ? `${li} ↗` : null, L.linkedin_url], ['Sito', L.website_url ? `${L.website_url.replace(/^https:\/\//, '')} ↗` : null, L.website_url]]),
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
-    if (!connected) facts.push({ k: 'Instagram, X, calendario', v: '🔒 Dopo la connessione', isText: true, fg: '#8C84AE' });
+    if (!connected) facts.push({ k: 'LinkedIn, sito, Instagram, X, calendario', v: '🔒 Dopo la connessione', isText: true, fg: '#8C84AE' });
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
     const unlocked = connected ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
