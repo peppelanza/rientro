@@ -531,14 +531,3 @@ export function comuneCounts(db) {
   }
   return counts;
 }
-
-// Age bands follow the birth year as the years go by (run at start and once a day)
-export function refreshAgeBands(db, now = new Date()) {
-  const set = db.prepare('UPDATE profiles SET age_band = ? WHERE user_id = ?');
-  let changed = 0;
-  for (const r of db.prepare('SELECT user_id, birth_year, age_band FROM profiles WHERE birth_year IS NOT NULL').all()) {
-    const band = ageBandFor(r.birth_year, now);
-    if (band !== r.age_band) { set.run(band, r.user_id); changed++; }
-  }
-  return changed;
-}

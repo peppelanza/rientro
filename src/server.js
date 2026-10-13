@@ -796,10 +796,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   };
   retain();
   setInterval(retain, 24 * 3600_000).unref();
-  // Age bands move up with the birth year
-  const ages = () => { try { profiles.refreshAgeBands(db); } catch (err) { console.error('[ages]', err); } };
-  ages();
-  setInterval(ages, 24 * 3600_000).unref();
   // Email for requests and messages still unread after 15 minutes, grouped (email-digest.js)
   let digesting = false;
   setInterval(async () => {
