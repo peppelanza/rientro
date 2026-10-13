@@ -879,7 +879,7 @@ def('App Comune Picker', String.raw`
 </div></sc-if>
 <sc-if value="{{ showField }}"><div class="dc-field" style="width:100%;height:{{ h }};border-radius:999px;background:#FFFFFF;border:1px solid #E4E0F2;box-sizing:border-box;padding:0 18px;display:flex;align-items:center;gap:10px;font-size:{{ fs }}px;color:#1A1726">
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8C84AE" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-<input class="bare-input" data-key="{{ field }}" maxlength="60" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" disabled="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
+<input class="bare-input" data-key="{{ field }}" maxlength="60" role="combobox" aria-expanded="{{ open }}" aria-autocomplete="list" aria-label="{{ label }}" value="{{ query }}" placeholder="{{ placeholder }}" readonly="{{ full }}" onInput="{{ input }}" onKeyDown="{{ keydown }}" onFocus="{{ focus }}" onBlur="{{ blur }}">
 </div></sc-if>
 <sc-if value="{{ open }}"><div role="listbox" class="dd-list {{ kbClass }}" onMouseLeave="{{ leave }}" style="position:absolute;left:0;right:0;top:{{ dropTop }};z-index:15;border-radius:22px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;box-shadow:0 16px 36px rgba(80,60,160,.14);font-size:14px">
 <sc-for list="{{ matches }}" as="m"><div role="option" aria-selected="{{ m.active }}" class="dd-opt" onMouseDown="{{ m.pick }}" onMouseOver="{{ m.hover }}" onMouseMove="{{ m.hover }}" style="padding:10px 12px;border-radius:16px;display:flex;justify-content:space-between;gap:12px;cursor:pointer"><span>{{ m.pre }}<b style="font-weight:600">{{ m.head }}</b>{{ m.rest }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6B6680;white-space:nowrap">{{ m.meta }}</span></div></sc-for>
@@ -973,7 +973,8 @@ def('App Comune Picker', String.raw`
       noneText: this.props.noneText ?? `Nessun ${noun} trovato`,
       h: this.props.size === 'lg' ? '52px' : '44px', fs: this.props.size === 'lg' ? 17 : 14, dropTop: 'calc(100% + 6px)',
       input: e => { disarmHover(); this.setState({ query: e.target.value, open: true, kb: false, idx: -1 }); },
-      focus: () => { if (this.state.query) this.setState({ open: true }); },
+      // full: a tap says why nothing can be added (the same note as every capped choice)
+      focus: e => { if (full) { e.target.blur(); limitNote(max, noun === 'comune' ? 'comuni' : 'scelte'); return; } if (this.state.query) this.setState({ open: true }); },
       blur: () => setTimeout(() => this.state.open && this.setState({ open: false }), 150),
       keydown: e => {
         if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ kb: true, idx: Math.min(active + 1, options.length - 1) }); }

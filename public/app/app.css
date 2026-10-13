@@ -75,12 +75,17 @@ button { font: inherit; }
 .media-fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 /* Toasts (design 00 · Feedback) */
-#toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+#toasts { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
 .toast { pointer-events: auto; background: #1A1726; color: #fff; border-radius: 999px; padding: 10px 14px 10px 10px; display: flex; gap: 10px; align-items: center; font: 14px 'Geist', sans-serif; box-shadow: 0 12px 30px rgba(26,23,38,.22); max-width: min(560px, calc(100vw - 32px)); }
 .toast-icon { width: 22px; height: 22px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; flex: none; }
 .toast-icon.ok { background: #1F7A4F; }
 .toast-icon.err { background: #D92D20; }
 .toast-icon.info { background: #6C4DF5; }
+/* Phones: above the bottom bars (onboarding's Indietro/Continua, the tab bar), as wide as the screen */
+@media (max-width: 720px) {
+  #toasts { left: 16px; right: 16px; transform: none; bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .toast { width: 100%; max-width: none; box-sizing: border-box; border-radius: 18px; padding: 12px 14px 12px 12px; line-height: 1.35; }
+}
 .toast-action { margin-left: 8px; background: none; border: none; color: #A8A2C2; cursor: pointer; font-size: 13px; }
 
 /* Modals */

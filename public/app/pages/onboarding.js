@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, jobLine, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
+import { api, jobLine, limitNote, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -366,7 +366,7 @@ export default class extends Page {
 
       // 8a
       desired: p.desired_comuni,
-      frequent: FREQUENT.filter(c => !p.desired_comuni.includes(c)).map(c => ({ l: `+ ${c}`, add: () => p.desired_comuni.length < 10 && this.set({ desired_comuni: [...p.desired_comuni, c], desired_unknown: false }) })),
+      frequent: FREQUENT.filter(c => !p.desired_comuni.includes(c)).map(c => ({ l: `+ ${c}`, add: () => (p.desired_comuni.length < 10 ? this.set({ desired_comuni: [...p.desired_comuni, c], desired_unknown: false }) : limitNote(10, 'comuni')) })),
       hasFrequent: p.desired_comuni.length < 10,
       unknown: p.desired_unknown, notUnknown: !p.desired_unknown, toggleUnknown: () => this.set({ desired_unknown: !p.desired_unknown, desired_comuni: !p.desired_unknown ? [] : p.desired_comuni }),
 
