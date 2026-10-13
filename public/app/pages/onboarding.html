@@ -84,8 +84,8 @@
 
 <sc-if value="{{ is_idea }}"><div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">{{ ideaHeading }}</h2><sc-if value="{{ ideaHint }}"><span style="font-size:16px;color:#6B6680">{{ ideaHint }}</span></sc-if></div>
-<dc-import name="App Field" label="In una frase" size="lg" field="idea-title" value="{{ ideaTitle }}" maxlength="140" placeholder="Esempio: Agenzia creativa o Progetto sociale" dc-props="{{ ideaTitleProps }}"></dc-import>
-<dc-import name="App Field" label="Descrizione" rows="4" field="idea-desc" value="{{ ideaDesc }}" maxlength="1000" placeholder="Di cosa si tratta?" dc-props="{{ ideaDescProps }}"></dc-import>
+<dc-import name="App Field" label="Titolo dell’idea" size="lg" field="idea-title" value="{{ ideaTitle }}" maxlength="140" placeholder="Es. Agriturismo digitale sull’Etna" dc-props="{{ ideaTitleProps }}"></dc-import>
+<dc-import name="App Field" label="Descrivi la tua idea" rows="4" field="idea-desc" value="{{ ideaDesc }}" maxlength="1000" placeholder="Di cosa si tratta, per chi è, cosa ti serve per partire" dc-props="{{ ideaDescProps }}"></dc-import>
 <sc-if value="{{ hasIdea }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="App Segmented" label="A che punto sei" options="{{ stageOpts }}" value="{{ stage }}" dc-props="{{ stageProps }}"></dc-import></div></sc-if>
 </div></sc-if>
 
@@ -171,7 +171,7 @@
 
 <sc-if value="{{ is_link }}"><div style="width:100%;max-width:680px;display:flex;flex-direction:column;gap:14px">
 <h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Dove trovarti</h2>
-<div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px"><dc-import name="UI Eyebrow" text="Visibili solo alle tue connessioni" tone="accent"></dc-import><span style="font-size:12px;color:#6B6680">🔒 Nascosto finché non accetti</span></div>
+<div class="r-stack" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px"><dc-import name="UI Eyebrow" text="Visibili solo alle tue connessioni" tone="accent"></dc-import></div>
 <div class="r-grid-1" style="display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;padding:16px;border-radius:24px;background:#EFEBFF"><label for="f-linkedin" style="font-size:14px;font-weight:500">LinkedIn</label><dc-import name="App Field" field="linkedin" maxlength="300" type="url" value="{{ linkedin }}" placeholder="https://linkedin.com/in/…" dc-props="{{ linkedinProps }}"></dc-import><span style="font-size:14px;font-weight:500">Sito</span><dc-import name="App Field" field="website" maxlength="300" type="url" value="{{ website }}" placeholder="https://" dc-props="{{ websiteProps }}"></dc-import><span style="font-size:14px;font-weight:500">Instagram</span><dc-import name="App Field" field="instagram" maxlength="31" value="{{ instagram }}" placeholder="@nome" dc-props="{{ instagramProps }}"></dc-import><span style="font-size:14px;font-weight:500">X / Twitter</span><dc-import name="App Field" field="x" maxlength="31" value="{{ xh }}" placeholder="@nome" dc-props="{{ xProps }}"></dc-import><span style="font-size:14px;font-weight:500">Link calendario</span><dc-import name="App Field" field="calendar" maxlength="300" type="url" value="{{ calendar }}" placeholder="https://cal.com/…" dc-props="{{ calendarProps }}"></dc-import></div>
 </div></sc-if>
 

@@ -106,7 +106,9 @@ export default class extends Page {
     const c = p.connection.status;
     const name = `${p.first_name} ${p.last_name}`;
     const connected = c === 'connected';
-    const L = p.links;
+    // your own preview: your links as your connections see them
+    const L = s.self && p.own_links ? p.own_links : p.links;
+    const showLinks = connected || (s.self && !!p.own_links);
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
     // where they live is in the line under the name (with the country when abroad), not again here
     const facts = [
@@ -116,7 +118,7 @@ export default class extends Page {
       ['Si trasferisce', p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
-    const unlocked = connected ? [
+    const unlocked = showLinks ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
       ['X', L.x_handle && `${L.x_handle} ↗`, handleUrl('https://x.com/', L.x_handle)], ['Calendario', L.calendar_url && 'Prenota una call ↗', L.calendar_url],
@@ -135,7 +137,7 @@ export default class extends Page {
       complement: p.complement,
       facts, hasFacts: facts.length > 0, unlocked, hasUnlocked: unlocked.length > 0,
       // Dove trovarmi, at the bottom: the links once connected, else that they unlock then
-      linksLocked: !connected, hasLinksSection: !connected || unlocked.length > 0,
+      linksLocked: !showLinks, ownLinks: !!s.self && unlocked.length > 0, hasLinksSection: !showLinks || unlocked.length > 0,
       // actions
       isNone: c === 'none', isSent: c === 'pending_sent', isReceived: c === 'pending_received', isConnected: connected,
       requestNote: p.connection.note, requestEyebrow: `Richiesta di connessione${p.connection.created_at ? ` · ${timeAgo(p.connection.created_at)}` : ''}`,

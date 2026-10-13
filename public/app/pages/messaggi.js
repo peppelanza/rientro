@@ -511,7 +511,7 @@ export default class extends Page {
       sideComp: p?.complement || '',
       sideRows: p ? [
         ['Background', p.background_area],
-        [p.primary_intent === 'has_idea' ? 'Idea' : 'Vorrebbe costruire', p.idea?.title],
+        ['Idea', p.idea?.title],
         ['Cerca', p.seeking.label],
         ['Interessi', p.sectors.join(' · ')],
         ['Si trasferisce', p.move],

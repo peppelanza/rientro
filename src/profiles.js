@@ -70,8 +70,8 @@ const EDITABLE = {
   desired_comuni: v => list(v, 'Comuni', { maxItems: 10, maxLen: 80 }),
   desired_unknown: v => bool(v, 'Non lo so ancora'),
   primary_intent: v => oneOf(v, INTENTS, 'Obiettivo'),
-  idea_title: v => text(v, 'In una frase', { max: 140 }),
-  idea_description: v => text(v, 'Descrizione', { max: 1000 }),
+  idea_title: v => text(v, 'Titolo dell’idea', { max: 140 }),
+  idea_description: v => text(v, 'Descrivi la tua idea', { max: 1000 }),
   idea_stage: v => oneOf(v, values(IDEA_STAGES), 'A che punto sei'),
   first_name: v => text(v, 'Nome', { max: 60 }),
   last_name: v => text(v, 'Cognome', { max: 60 }),
@@ -375,7 +375,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     move: moveLabel(p), // "0–3 mesi": when they'd move (only who lives abroad)
     desired_comuni: p.desired_comuni, desired_unknown: p.desired_unknown === 1, places: places(p), back: isBack(p),
     primary_intent: p.primary_intent,
-    idea: p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,
+    idea: p.primary_intent === 'has_idea' && p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,
     background_area: p.background_area, current_role: p.current_role, current_company: p.current_company,
     years_experience: label(YEARS, p.years_experience),
     bio: p.bio, achievement: p.achievement, misses_italy: p.misses_italy,
@@ -390,6 +390,8 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     links: connected
       ? { linkedin_url: p.linkedin_url, website_url: p.website_url, instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url }
       : { locked: true },
+    // your own preview: your links, to see which ones your connections get
+    ...(self ? { own_links: { linkedin_url: p.linkedin_url, website_url: p.website_url, instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url } } : {}),
     connection: conn,
     complement: complement(viewerP, p),
     viewer_background: viewerP?.background_area ?? null,
@@ -419,8 +421,7 @@ export function card(db, viewer, p, viewerP, filters = null) {
     tags: sectors.slice(0, 3).join(' · '),
     background: filters?.backgrounds?.length ? p.background_area : null,
     // filtering by goal: what they want to build
-    idea_line: filters?.intent?.includes(p.primary_intent) && p.idea_title ? p.idea_title : null,
-    idea_label: p.primary_intent === 'has_idea' ? 'Idea' : 'Vorrebbe costruire',
+    idea_line: filters?.intent?.includes('has_idea') && p.primary_intent === 'has_idea' && p.idea_title ? p.idea_title : null,
     move: filters?.move?.length ? moveLabel(p) : null,
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),

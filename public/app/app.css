@@ -1122,3 +1122,10 @@ html.search-sheet-open { overflow: hidden; }
 .pc-btn-primary { background: #1A1726; color: #FFFFFF; }
 .pc-btn-secondary { background: #F1EFF8; color: #1A1726; }
 .pc-btn-accent { background: #6C4DF5; color: #FFFFFF; box-shadow: 0 8px 20px rgba(108,77,245,.28); }
+
+/* Il tuo profilo: choice cards on the white card get a light tint until chosen */
+.opt-tint [data-sc-name="UI Option Card"]:not([aria-checked="true"]) > div { background: #F6F4FC !important; border-color: #ECE8F7 !important; }
+.opt-tint [data-sc-name="UI Chip"]:not([aria-checked="true"]) > * { background: #F6F4FC !important; border-color: #ECE8F7 !important; }
+
+/* Profile page: below 1100px the label goes above its text (the two columns would squeeze it) */
+@media (max-width: 1100px) { .pf-sections section { grid-template-columns: minmax(0,1fr) !important; gap: 10px !important; } }

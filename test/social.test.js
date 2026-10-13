@@ -356,8 +356,11 @@ test('profile preview (?anteprima) is exactly what a member who is not connected
     const other = await t.approved('prev-other@example.com');
     const preview = (await me.get(`/api/profiles/${me.id}?anteprima=1`)).body;
     const seen = (await other.get(`/api/profiles/${me.id}`)).body;
-    // Only what depends on who is looking may differ
-    for (const k of ['complement', 'viewer_background']) { delete preview[k]; delete seen[k]; }
+    // Only what depends on who is looking may differ, and your own links come apart (own_links) to
+    // show which ones your connections get
+    assert.equal(preview.own_links.instagram_handle, '@mia.ig');
+    assert.equal(seen.own_links, undefined);
+    for (const k of ['complement', 'viewer_background', 'own_links']) { delete preview[k]; delete seen[k]; }
     assert.deepEqual(preview, seen);
     assert.equal(preview.links.instagram_handle, undefined);
     assert.equal(preview.connection.status, 'none');
