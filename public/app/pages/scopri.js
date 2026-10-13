@@ -84,12 +84,22 @@ export default class extends Page {
     if (r) { person.connection = { status: 'pending_sent', id: r.id }; this.__rerender(); }
   }
 
+  componentWillUnmount() { removeEventListener('scroll', this.snapBefore); this.endWatch?.disconnect(); }
+
   didRender(el) {
     // phones: the cards one at a time (app.css html.scopri-snap), only while there are cards; once
     // what comes after the last one shows (the pages bar, the end of the page), the scroll is free
     // again, and back up among the cards it snaps again
     const cards = el.querySelector('.scopri-cards');
     document.documentElement.classList.toggle('scopri-snap', !!cards);
+    // With the filters open (longer than the screen) the scroll is free above the cards, to reach the
+    // filters at the bottom; one at a time again from the first card (in the top half of the screen)
+    this.snapBefore ??= () => {
+      const first = this.state.showFilters && document.querySelector('.scopri-cards > *');
+      document.documentElement.classList.toggle('scopri-snap-before', !!first && first.getBoundingClientRect().top > innerHeight / 2);
+    };
+    if (!this.snapBeforeOn) { addEventListener('scroll', this.snapBefore, { passive: true }); this.snapBeforeOn = true; }
+    this.snapBefore();
     this.endWatch?.disconnect();
     const end = el.querySelector('.scopri-end'); // right after the last card
     if (end) {

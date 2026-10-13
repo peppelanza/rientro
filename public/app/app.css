@@ -828,12 +828,14 @@ html.pv-open { overflow: hidden; }
    usual spacing) and can't skip one. The top of the page is a stop too; past the last card the scroll
    is free (scopri.js sets html.scopri-snap, and .scopri-snap-free while the end of the list shows). */
 @media (max-width: 720px) {
-  html.scopri-snap:not(.scopri-snap-free) { scroll-snap-type: y mandatory; }
+  html.scopri-snap:not(.scopri-snap-free):not(.scopri-snap-before) { scroll-snap-type: y mandatory; }
   /* not while pulling to refresh: the page slides down, the stops with it, and the browser would
      scroll to meet them, ending the pull before the data is back */
   html.scopri-snap:has(> body.pull-active) { scroll-snap-type: none; }
   html.scopri-snap [data-sc-name="App Nav"] { scroll-snap-align: start; }
   html.scopri-snap .scopri-cards > * { scroll-snap-align: center; scroll-snap-stop: always; }
+  /* filters open: going back up from the first card stops at the end of the panel, not at the top */
+  html.scopri-snap aside[aria-label="Filtri"] { scroll-snap-align: end; }
 }
 
 /* Gruppi: the bell beside the group's name follows it (the top bar's bell, filled while on) */

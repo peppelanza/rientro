@@ -5,16 +5,18 @@
 
 <!-- (only once loaded: before, the filters would sit under the loading space and then jump up) -->
 <sc-if value="{{ loaded }}"><div class="r-page">
-<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
-<dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import>
-<sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for>
+<!-- Phones: title and count, then Filtri and Ordina on one row, then the filters chosen; the panel opens under them -->
+<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-direction:column;gap:8px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">Scopri chi torna</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div>
+<div style="display:flex;gap:8px;align-items:center"><dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
+<sc-if value="{{ hasActive }}"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px"><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for></div></sc-if>
 </div></div>
 
 <div class="r-grid-1" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px var(--gutter) 0">
 <dc-import name="App People Filters" dc-props="{{ filterUi }}"></dc-import>
 
 <main style="display:flex;flex-direction:column;gap:22px;padding-right:8px;min-width:0">
-<div class="r-stack" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">Scopri chi torna</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
+<div class="r-stack r-hide-sm" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:8px"><div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">Scopri chi torna</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div><sc-if value="{{ isGrid }}"><dc-import name="UI Button" label="{{ sortLabel }}" variant="glass" size="sm" on-click="{{ toggleSort }}"></dc-import></sc-if></div>
 <sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
 
 
