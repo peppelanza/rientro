@@ -133,7 +133,7 @@ export function recordVideo() {
         review.src = URL.createObjectURL(take);
         live.hidden = true; review.hidden = false; retake.hidden = false;
         badge.classList.remove('is-rec'); badge.textContent = clock(Math.min(seconds, MAX_SECONDS));
-        main.textContent = 'Usa questo video'; main.disabled = false;
+        main.textContent = 'Conferma'; main.disabled = false;
         status.textContent = 'Riguardalo: se ti convince, usalo.';
         main.focus();
       };
