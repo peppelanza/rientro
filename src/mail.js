@@ -73,6 +73,27 @@ export function welcomeEmail({ launched = isLaunched() } = {}) {
 
 export const sendWelcomeEmail = (email, opts) => sendEmail({ to: email, ...welcomeEmail(opts) });
 
+// --- Profile left halfway (onboarding-reminder.js): once, a day after the last change ------------
+
+export function onboardingReminderEmail({ firstName = null, launched = isLaunched() } = {}) {
+  const date = launchDate();
+  const hello = firstName ? `Ciao ${firstName}, il` : 'Il';
+  const intro = `${hello} tuo profilo su Rientro è a metà. Ti mancano pochi minuti: finché non lo completi, gli altri non possono trovarti.`;
+  const why = launched
+    ? 'Con il profilo completo puoi scoprire chi torna nella tua città, con competenze complementari alle tue, e connetterti con una nota.'
+    : `Apriamo il ${date}: con il profilo pronto, quel giorno sarai tra i primi che gli altri trovano.`;
+  const cta = ['Completa il profilo', url('/onboarding')];
+  return {
+    subject: 'Il tuo profilo su Rientro è quasi pronto',
+    text: `${intro}\n\n${why}\n\nRiprendi da dove avevi lasciato: ${cta[1]}${textFooter}`,
+    html: layout({
+      preheader: 'Ti mancano pochi minuti per completarlo.',
+      body: h1('Ti manca poco') + p(esc(intro)) + p(esc(why)) + button(...cta)
+        + p('Riprendi da dove avevi lasciato: quello che hai già scritto è salvato.', { size: 13, color: '#8C84AE', margin: '0' }),
+    }),
+  };
+}
+
 // --- Notifications digest (email-digest.js): new requests and unread messages, grouped -------
 
 // requests: [{ name, note }], messages: [{ name, count, preview, id }]

@@ -47,13 +47,14 @@ export function openDb(file = config.dbPath) {
   return db;
 }
 
-// users: the deletion-request columns, and the inactivity-warning column of a retention rule that
+// users: the deletion-request columns, the onboarding reminder (onboarding-reminder.js), and the inactivity-warning column of a retention rule that
 // was dropped before launch
 function migrateUserColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(users)').all().map(c => c.name));
   if (!have.has('deletion_requested_at')) db.exec('ALTER TABLE users ADD COLUMN deletion_requested_at TEXT');
   if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
   if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
+  if (!have.has('onboarding_reminded_at')) db.exec('ALTER TABLE users ADD COLUMN onboarding_reminded_at TEXT');
   const notifCols = new Set(db.prepare('PRAGMA table_info(notifications)').all().map(c => c.name));
   // Email digests (email-digest.js): what is already there was seen in the app before emails existed
   if (!notifCols.has('emailed_at')) db.exec("ALTER TABLE notifications ADD COLUMN emailed_at TEXT; UPDATE notifications SET emailed_at = created_at;");

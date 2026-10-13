@@ -21,7 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
   -- Own deletion request: the account is hidden at once and erased 30 days later unless the
   -- member signs in again (privacy policy §9). The optional reason is kept until then.
   deletion_requested_at TEXT,
-  deletion_reason       TEXT
+  deletion_reason       TEXT,
+  -- "Il tuo profilo è quasi pronto": sent once to who left the profile halfway (onboarding-reminder.js)
+  onboarding_reminded_at TEXT
 );
 
 -- 6-digit sign-in codes (design 5a/5b). Only a salted hash of the code is stored.

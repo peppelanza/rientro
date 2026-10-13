@@ -20,6 +20,7 @@ import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
+import { sendOnboardingReminders } from './onboarding-reminder.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
 import { pageHtml, seoFor, sitemapPaths } from './seo.js';
@@ -780,6 +781,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     digesting = true;
     try { await sendNotificationDigests(db); } catch (err) { console.error('[digest]', err); }
     // Terms / Privacy updated: the members told by email, a batch a minute (legal-notice.js)
-    try { await sendLegalNotices(db); } catch (err) { console.error('[legal notice]', err); } finally { digesting = false; }
+    try { await sendLegalNotices(db); } catch (err) { console.error('[legal notice]', err); }
+    // Profile left halfway for a day: one email inviting to finish it (onboarding-reminder.js)
+    try { await sendOnboardingReminders(db); } catch (err) { console.error('[onboarding reminder]', err); } finally { digesting = false; }
   }, 60_000).unref();
 }
