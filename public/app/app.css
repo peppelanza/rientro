@@ -256,7 +256,8 @@ button { font: inherit; }
 .rec-btn-main { background: #6C4DF5; color: #FFFFFF; box-shadow: 0 10px 24px rgba(108,77,245,.3); }
 .rec-btn-main:disabled { background: #CFC8E8; box-shadow: none; cursor: default; }
 .rec-btn-ghost { background: #F1EFF8; color: #1A1726; }
-@media (max-width: 720px) { .rec-stage { aspect-ratio: 3 / 4; } .rec-actions .rec-btn { flex: 1; } }
+/* The frame stays landscape on phones too: it's what gets recorded (video.js) */
+@media (max-width: 720px) { .rec-actions .rec-btn { flex: 1; } }
 
 /* "Rientro dei cervelli" article: in-article ads for Rientro. They sit outside the article's
    sections (own colours, full card) so readers don't mistake them for content. */

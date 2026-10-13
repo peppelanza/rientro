@@ -96,6 +96,7 @@ export function recordVideo() {
 
     const close = file => {
       clearInterval(tick);
+      cancelAnimationFrame(frameLoop);
       if (recorder?.state === 'recording') recorder.stop();
       stream?.getTracks().forEach(t => t.stop());
       review.pause();
@@ -118,13 +119,37 @@ export function recordVideo() {
       status.textContent = '';
     };
 
+    // What's recorded is what the frame shows: the middle of the camera, landscape 16:9 (profiles show
+    // videos landscape), also when the phone is held upright. Drawn on a canvas and recorded from it,
+    // with the microphone; browsers without canvas recording keep the camera as it is.
+    let frameLoop = 0;
+    const framed = () => {
+      const vw = live.videoWidth, vh = live.videoHeight;
+      if (!vw || !vh || !HTMLCanvasElement.prototype.captureStream) return stream;
+      const sw = Math.min(vw, vh * 16 / 9), sh = sw * 9 / 16;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(Math.min(1280, sw) / 2) * 2;
+      canvas.height = Math.round(canvas.width * 9 / 16 / 2) * 2;
+      const g = canvas.getContext('2d');
+      const draw = () => {
+        const w = live.videoWidth, h = live.videoHeight;
+        const cw = Math.min(w, h * 16 / 9), ch = cw * 9 / 16; // the phone may turn while recording
+        g.drawImage(live, (w - cw) / 2, (h - ch) / 2, cw, ch, 0, 0, canvas.width, canvas.height);
+        frameLoop = requestAnimationFrame(draw);
+      };
+      draw();
+      return new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...stream.getAudioTracks()]);
+    };
+    const stopFrames = () => cancelAnimationFrame(frameLoop);
+
     const stop = () => { clearInterval(tick); if (recorder?.state === 'recording') recorder.stop(); };
 
     const start = () => {
       chunks = [];
-      recorder = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 2_000_000 });
+      recorder = new MediaRecorder(framed(), { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 2_000_000 });
       recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
       recorder.onstop = () => {
+        stopFrames();
         const seconds = (performance.now() - started) / 1000;
         if (seconds < MIN_SECONDS) { showLive(); status.textContent = `Troppo breve: servono almeno ${MIN_SECONDS} secondi.`; return; }
         const blobType = (recorder.mimeType || type || 'video/webm').split(';')[0];
