@@ -1038,8 +1038,8 @@ def('App Person Card', String.raw`
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>
 <sc-if value="{{ showActions }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-<a href="{{ href }}" style="text-decoration:none"><dc-import name="UI Button" label="{{ secondaryLabel }}" variant="secondary" full="{{ true }}"></dc-import></a>
-<dc-import name="UI Button" label="{{ action.l }}" variant="{{ action.v }}" full="{{ true }}" on-click="{{ action.fn }}" host-aria-disabled="{{ action.off }}"></dc-import>
+<a href="{{ href }}" class="pc-btn pc-btn-secondary"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>{{ secondaryLabel }}</a>
+<button type="button" class="pc-btn pc-btn-{{ action.v }}" onClick="{{ action.fn }}" aria-disabled="{{ action.off }}"><sc-if value="{{ action.isConnect }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3.1-7 7-7 1.4 0 2.7.4 3.8 1"/><path d="M18 14v6M15 17h6"/></svg></sc-if><sc-if value="{{ action.isChat }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></sc-if><sc-if value="{{ action.isWait }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></sc-if><sc-if value="{{ action.isReply }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v5"/></svg></sc-if>{{ action.l }}</button>
 </div></sc-if>
 </div>
 </article>`, class extends DCLogic {
@@ -1048,17 +1048,17 @@ def('App Person Card', String.raw`
     const c = p.connection?.status ?? 'none';
     const go = href => () => { location.href = href; };
     const action = {
-      none: { l: 'Connettiti', v: 'primary', fn: () => this.props.onConnect?.(p), off: false },
-      pending_sent: { l: 'In attesa', v: 'secondary', fn: go('/connessioni?tab=inviate'), off: false }, // to your sent requests
-      pending_received: { l: 'Rispondi', v: 'accent', fn: go('/connessioni?tab=ricevute'), off: false }, // to the requests you received
-      connected: { l: 'Messaggio', v: 'primary', fn: go(`/messaggi/${p.id}`), off: false },
-    }[c] ?? { l: 'Connettiti', v: 'primary', fn: null, off: true };
+      none: { l: 'Connettiti', v: 'primary', isConnect: true, fn: () => this.props.onConnect?.(p), off: false },
+      pending_sent: { l: 'In attesa', v: 'secondary', isWait: true, fn: go('/connessioni?tab=inviate'), off: false }, // to your sent requests
+      pending_received: { l: 'Rispondi', v: 'accent', isReply: true, fn: go('/connessioni?tab=ricevute'), off: false }, // to the requests you received
+      connected: { l: 'Messaggi', v: 'primary', isChat: true, fn: go(`/messaggi/${p.id}`), off: false },
+    }[c] ?? { l: 'Connettiti', v: 'primary', isConnect: true, fn: null, off: true };
     return {
       // da: where the profile's back link goes (persona.js); noactions: just the card, no buttons
       p, goingTo: !p.back_from, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}${this.props.da ? `?da=${this.props.da}` : ''}`, showActions: !b(this.props.noactions),
       badge: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[0], badgeKind: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[1],
       hasComp: !!p.comp, action,
-      secondaryLabel: b(this.props.compact) ? 'Profilo' : 'Scopri il profilo',
+      secondaryLabel: 'Profilo',
     };
   }
 });
