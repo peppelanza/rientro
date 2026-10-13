@@ -2,7 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
-import { api, getCatalog, INTENT_BADGE, knownMe, monthToText, timeAgo } from './lib.js';
+import { api, getCatalog, INTENT_BADGE, knownMe, limitNote, monthToText, timeAgo } from './lib.js';
 import { describeNotification, notificationInitials } from './notifications.js';
 import { openSearchSheet, searchUrl } from './search-history.js';
 
@@ -925,6 +925,7 @@ def('App Comune Picker', String.raw`
     this.state.open = false;
     if (max === 1) this.props.onChange?.([name]); // a new pick replaces the old one
     else if (sel.length < max) this.props.onChange?.([...sel, name]);
+    else limitNote(max, (this.props.noun ?? 'comune') === 'comune' ? 'comuni' : 'scelte');
   }
   renderVals() {
     const sel = this.props.selected || [];

@@ -80,6 +80,7 @@ button { font: inherit; }
 .toast-icon { width: 22px; height: 22px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; flex: none; }
 .toast-icon.ok { background: #1F7A4F; }
 .toast-icon.err { background: #D92D20; }
+.toast-icon.info { background: #6C4DF5; }
 .toast-action { margin-left: 8px; background: none; border: none; color: #A8A2C2; cursor: pointer; font-size: 13px; }
 
 /* Modals */

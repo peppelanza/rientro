@@ -78,7 +78,7 @@ const EDITABLE = {
   years_experience: v => oneOf(v, values(YEARS), 'Anni di esperienza'),
   achievement: v => text(v, 'Risultato', { max: 400 }),
   video_connections_only: v => bool(v, 'Video'),
-  sectors: v => subset(v, SECTORS, 'Settori', SECTORS.length), // as many as you like
+  sectors: v => subset(v, SECTORS, 'Settori', 5),
   seeking_backgrounds: v => {
     const l = subset(v, AREAS, 'Chi stai cercando', AREAS.length);
     if (l && l.length > SEEK_MAX && !seeksAny(l)) throw bad('invalid_field', `Chi stai cercando: fino a ${SEEK_MAX}, oppure Indifferente`);

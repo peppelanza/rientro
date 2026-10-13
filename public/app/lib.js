@@ -106,11 +106,11 @@ export const fmtTime = iso => (iso ? new Date(iso).toLocaleTimeString('it-IT', {
 export const myPlace = p => (p.lives_in === 'italy' ? p.lives_in_city || null : p.desired_unknown ? null : orList(p.desired_comuni || []) || null);
 export function placeToggle(p, set) {
   const place = myPlace(p);
-  const on = p.seeking_location === 'same_city';
+  // two chips: Indifferente (the default) and the member's city
   return {
-    hasMyPlace: !!place, locOn: on, locLabel: `Solo persone a ${place}`,
-    locBg: on ? '#6C4DF5' : '#FFFFFF', locBd: on ? 'none' : '1.5px solid #CFC8E8', locMark: on ? '✓' : '',
-    toggleLoc: e => set({ seeking_location: e.target.checked ? 'same_city' : 'any' }),
+    hasMyPlace: !!place, loc: p.seeking_location === 'same_city' ? 'same_city' : 'any',
+    locOpts: [{ v: 'any', l: 'Indifferente' }, { v: 'same_city', l: place ?? '' }],
+    locProps: { onSelect: v => set({ seeking_location: v === 'same_city' ? 'same_city' : 'any' }) },
   };
 }
 
@@ -123,12 +123,24 @@ export function seekCards(areas, list, set) {
   return [
     ...areas.map(t => card(t, !any && list.includes(t), () => {
       const cur = any ? [] : list;
-      set({ seeking_backgrounds: cur.includes(t) ? cur.filter(x => x !== t) : cur.length >= SEEK_MAX ? cur : [...cur, t] });
+      if (!cur.includes(t) && cur.length >= SEEK_MAX) { limitNote(SEEK_MAX, 'aree (oppure Indifferente)'); return; }
+      set({ seeking_backgrounds: cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t] });
     })),
     card('Indifferente', any, () => set({ seeking_backgrounds: any ? [] : [...areas] })),
   ];
 }
 export const seeksText = (areas, list) => (areas.every(a => list.includes(a)) ? 'Qualsiasi background' : list.join(', '));
+
+// Every capped choice says the same when you try one more: "Massimo 5 settori"
+export const limitNote = (n, noun) => toast(`Massimo ${n} ${noun}: togline uno per sceglierne un altro.`, { tone: 'info' });
+
+// Settori: up to five; a sixth isn't added (nothing greyed out), a note says why
+export const SECTORS_MAX = 5;
+export function pickSector(list, s) {
+  if (list.includes(s)) return list.filter(x => x !== s);
+  if (list.length >= SECTORS_MAX) { limitNote(SECTORS_MAX, 'settori'); return list; }
+  return [...list, s];
+}
 
 // Job dates are typed as mm/aaaa (stored as aaaa-mm): the stored value as typed, and back. textToMonth
 // gives null for an empty field and undefined for something it can't read.
@@ -184,8 +196,11 @@ export function toast(message, { tone = 'ok', action, onAction, ms = 4000 } = {}
     host.setAttribute('role', 'status');
     document.body.append(host);
   }
+  // the same note already showing (a second tap on a full list): not twice
+  if ([...host.children].some(c => c.dataset.msg === message)) return;
   const el = document.createElement('div');
   el.className = 'toast';
+  el.dataset.msg = message;
   const icon = document.createElement('span');
   icon.className = `toast-icon ${tone}`;
   icon.textContent = tone === 'ok' ? '✓' : '!';

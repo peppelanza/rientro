@@ -1,6 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
+import { api, pickSector, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -216,8 +216,8 @@ export default class extends Page {
       seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)), // your own area too, or Indifferente
       ...placeToggle(p, patch => this.set(patch)),
       // interessi
-      sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`,
-      sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, Infinity) }) }; }),
+      sectorCount: `${p.sectors.length} / 5`,
+      sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: pickSector(p.sectors, l) }) }; }),
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       // The card as others see it in Scopri chi torna (same as the server's profiles.js card())

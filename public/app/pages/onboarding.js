@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
+import { api, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -423,9 +423,9 @@ export default class extends Page {
       removeVideo: this.act(async () => { await api('DELETE', '/api/me/video'); p.video_url = null; setPreview(s, null); }),
 
       // 17a
-      sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`, sectorQuery: s.sectorQuery,
+      sectorCount: `${p.sectors.length} / 5`, sectorQuery: s.sectorQuery,
       sectorSearchProps: { onInput: v => { s.sectorQuery = v; this.__rerender(); } },
-      sectors: cat.sectors.filter(l => !sq || l.toLowerCase().includes(sq)).map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, Infinity) }) }; }),
+      sectors: cat.sectors.filter(l => !sq || l.toLowerCase().includes(sq)).map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: pickSector(p.sectors, l) }) }; }),
       noSectors: sq && !cat.sectors.some(l => l.toLowerCase().includes(sq)),
 
       // 18a
