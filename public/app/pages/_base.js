@@ -43,6 +43,17 @@ export class Page extends DCLogic {
     } catch (err) { toastError(err); }
   }
   // Wraps an async action: disables re-entry, shows errors as toasts, re-renders at the end.
+  // For lists that follow the filters (Scopri, Cerca): the latest choice wins. A new one never waits
+  // for the previous to finish (act would drop it); a reply that arrives after a newer request is
+  // thrown away. fn gets current(): false once a newer request started.
+  latest(fn) {
+    return async (...args) => {
+      const seq = (this.__seq = (this.__seq || 0) + 1);
+      const current = () => seq === this.__seq;
+      try { await fn(current, ...args); } catch (err) { if (current()) toastError(err); } finally { if (current()) this.__rerender(); }
+    };
+  }
+
   act(fn) {
     return async (...args) => {
       if (this.__busy) return;

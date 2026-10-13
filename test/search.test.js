@@ -35,3 +35,22 @@ test('Scopri cards show what you filtered by: the background, and the sectors an
     assert.match(filtered.to, /^Catania/);
   } finally { t2.close(); }
 });
+
+test('Scopri keeps its members in memory and reads again only who changed: edits, new profiles, hidden ones, experiences', async () => {
+  const { startApp } = await import('./helpers.js');
+  const t2 = await startApp();
+  try {
+    const viewer = await t2.approved('ixviewer@x.it');
+    const a = await t2.approved('ixa@x.it', { first_name: 'Ada' });
+    const names = async q => (await viewer.get(`/api/profiles?${q}`)).body.people.map(p => p.first_name);
+    assert.ok((await names('')).includes('Ada'));
+    await a.patch('/api/me/profile', { first_name: 'Adele' });
+    assert.ok((await names('q=adele')).includes('Adele'), 'an edit shows at once');
+    await a.post('/api/me/experiences', { company: 'Zalando', role: 'PM', current: true });
+    assert.ok((await names('q=zalando')).includes('Adele'), 'a new experience is searchable');
+    const b = await t2.approved('ixb@x.it', { first_name: 'Bruno' });
+    assert.equal((await names(''))[0], 'Bruno', 'a new profile comes first');
+    t2.app.db.prepare('UPDATE profiles SET visible = 0 WHERE user_id = ?').run(b.id);
+    assert.ok(!(await names('')).includes('Bruno'), 'a hidden profile leaves');
+  } finally { t2.close(); }
+});

@@ -1,7 +1,7 @@
 import { AREA_OTHER, AREA_OTHER_MAX, AREAS, SEEK_MAX, seeksAny, seeksLabel, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
-import { forgiving, hit, terms, wordsOf } from './search.js';
+import { hit, terms, wordsOf } from './search.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
 
 // A: has an idea, B: looking for one with others, C: networking only (no idea step)
@@ -443,8 +443,11 @@ const SEARCH_PARTS = [
 ];
 // { found, score, where, word } or null when no word is there; found: how many of the words are;
 // where/word: the first one found outside what a result row shows, and where
+const searchParts = new WeakMap();
 export function searchHit(p, ts, fuzzy = false) {
-  const parts = SEARCH_PARTS.map(([where, weight, texts]) => [where, weight, wordsOf(texts(p).filter(Boolean).join(' '))]);
+  // split once per member: index rows keep them until the index is rebuilt
+  let parts = searchParts.get(p);
+  if (!parts) { parts = SEARCH_PARTS.map(([where, weight, texts]) => [where, weight, wordsOf(texts(p).filter(Boolean).join(' '))]); searchParts.set(p, parts); }
   let found = 0, score = 0, where = '', word = '';
   for (const t of ts) {
     const part = parts.find(([, , words]) => hit(t, words, fuzzy));
@@ -474,47 +477,107 @@ export function parseDiscoverQuery(q) {
 }
 const DISCOVER_PER_PAGE = 24;
 
-export function discover(db, viewer, filters) {
-  const rows = db.prepare(
-    `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id
-     WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL AND u.id != ?
-       AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = ? AND b.blocked_id = u.id) OR (b.blocker_id = u.id AND b.blocked_id = ?))
-     ORDER BY p.approved_at DESC`,
-  ).all(viewer.id, viewer.id, viewer.id).map(p => {
-    for (const f of JSON_FIELDS) p[f] = JSON.parse(p[f]);
-    return p;
-  });
-  if (filters.q) { // the search looks into experiences and education too
-    const byUser = sql => Map.groupBy(db.prepare(sql).all(), r => r.user_id);
-    const exp = byUser('SELECT user_id, company, role, city FROM experiences');
-    const edu = byUser('SELECT user_id, school, degree FROM education');
-    for (const p of rows) { p.exp = exp.get(p.user_id); p.edu = edu.get(p.user_id); }
+// --- Scopri's index --------------------------------------------------------------------------
+// The members Scopri can show, kept in memory with what the search needs (their experiences and
+// education; the words, split once, see searchHit). Built once; after that only the members who
+// changed are read again: triggers in schema.sql note them in discover_dirty (their profile, status,
+// experiences, education). Thousands of members cost a few reads per change, not a full read per
+// request.
+const INDEX_SQL = `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id
+  WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`;
+let index = { db: null, rows: [], pos: new Map(), comuni: null };
+const byNewest = (a, b) => (a.approved_at < b.approved_at ? 1 : a.approved_at > b.approved_at ? -1 : 0);
+function indexRow(p, exp, edu) {
+  for (const f of JSON_FIELDS) p[f] = JSON.parse(p[f]);
+  p.exp = exp;
+  p.edu = edu;
+  return Object.freeze(p); // shared by every request: never changed in place
+}
+function rebuildIndex(db) {
+  const byUser = sql => Map.groupBy(db.prepare(sql).all(), r => r.user_id);
+  const exp = byUser('SELECT user_id, company, role, city FROM experiences');
+  const edu = byUser('SELECT user_id, school, degree FROM education');
+  const rows = db.prepare(INDEX_SQL).all().map(p => indexRow(p, exp.get(p.user_id), edu.get(p.user_id))).sort(byNewest);
+  index = { db, rows, pos: new Map(rows.map((p, i) => [p.user_id, i])), comuni: null };
+  db.prepare('DELETE FROM discover_dirty').run();
+}
+function discoverIndex(db) {
+  if (index.db !== db) { rebuildIndex(db); return index; }
+  const dirty = db.prepare('SELECT id, user_id FROM discover_dirty ORDER BY id').all();
+  if (!dirty.length) return index;
+  const ids = [...new Set(dirty.map(d => d.user_id))];
+  if (ids.length > 500) { rebuildIndex(db); return index; } // a big batch (an import): read it all
+  let reshape = false;
+  for (const id of ids) {
+    const fresh = db.prepare(`${INDEX_SQL} AND p.user_id = ?`).get(id);
+    const at = index.pos.get(id);
+    if (!fresh) { if (at !== undefined) { index.rows[at] = null; reshape = true; } continue; }
+    const row = indexRow(fresh,
+      db.prepare('SELECT user_id, company, role, city FROM experiences WHERE user_id = ?').all(id),
+      db.prepare('SELECT user_id, school, degree FROM education WHERE user_id = ?').all(id));
+    if (at !== undefined && index.rows[at]?.approved_at === row.approved_at) index.rows[at] = row; // same place
+    else { if (at !== undefined) index.rows[at] = null; index.rows.push(row); reshape = true; }
   }
+  if (reshape) {
+    index.rows = index.rows.filter(Boolean).sort(byNewest);
+    index.pos = new Map(index.rows.map((p, i) => [p.user_id, i]));
+  }
+  index.comuni = null;
+  db.prepare('DELETE FROM discover_dirty WHERE id <= ?').run(dirty.at(-1).id);
+  return index;
+}
+
+export function discover(db, viewer, filters) {
+  // Everyone but you and whoever you blocked or blocked you (one read)
+  const blocked = new Set(db.prepare('SELECT blocked_id AS id FROM blocks WHERE blocker_id = ? UNION SELECT blocker_id FROM blocks WHERE blocked_id = ?')
+    .all(viewer.id, viewer.id).map(r => r.id));
+  const rows = discoverIndex(db).rows.filter(p => p.user_id !== viewer.id && !blocked.has(p.user_id));
   filters = { ...filters, terms: terms(filters.q || ''), fuzzy: false };
-  const passes = (p, except) => Object.entries(FACETS).every(([k, fn]) => k === except || fn(p, filters[k], filters, db));
-  const viewerP = rawProfile(db, viewer.id);
+  const keys = Object.keys(FACETS);
+  // One pass over the members: who passes every filter (the results) and, for each filter, who
+  // passes all the others (what its counts are made of)
+  const scan = fuzzy => {
+    filters.fuzzy = fuzzy;
+    const results = [];
+    const near = Object.fromEntries(keys.map(k => [k, []]));
+    for (const p of rows) {
+      let failed = null, fails = 0;
+      for (const k of keys) if (!FACETS[k](p, filters[k], filters, db)) { failed = k; if (++fails > 1) break; }
+      if (!fails) results.push(p);
+      else if (fails === 1) near[failed].push(p);
+    }
+    return { results, near };
+  };
+  let { results, near } = scan(false);
+  let fuzzy = false;
   // a search that finds nothing exactly tries once more forgiving a typo
-  let results = forgiving(fuzzy => { filters.fuzzy = fuzzy; return rows.filter(p => passes(p)); });
-  if (filters.q) {
+  if (!results.length && filters.terms.length) { ({ results, near } = scan(true)); fuzzy = true; }
+  const viewerP = rawProfile(db, viewer.id);
+  const hits = filters.q ? new Map(results.map(p => [p, searchHit(p, filters.terms, filters.fuzzy)])) : null;
+  if (hits) {
     // the best matches first: more of the words, then where they are (a name above a word in the
     // experience), then the newest
-    const hits = new Map(results.map(p => [p, searchHit(p, filters.terms, filters.fuzzy)]));
-    results = results.sort((a, b) => hits.get(b).found - hits.get(a).found || hits.get(b).score - hits.get(a).score);
-    for (const p of results) Object.assign(p, { match_in: hits.get(p).where, match_word: hits.get(p).word });
+    results = [...results].sort((a, b) => hits.get(b).found - hits.get(a).found || hits.get(b).score - hits.get(a).score);
   } else if (filters.sort === 'match') {
     // Complementary profiles first; the newest first within each group (sort is stable)
     results = results.map(p => [p, complement(viewerP, p) ? 1 : 0]).sort((a, b) => b[1] - a[1]).map(([p]) => p);
   }
-  const count = (facet, test) => rows.filter(p => passes(p, facet) && test(p)).length;
+  // A filter's counts: the results plus who misses only that filter, tallied in one go per filter
+  const tally = (facet, keyOf, values) => {
+    const out = Object.fromEntries(values.map(v => [v, 0]));
+    for (const list of [results, near[facet]]) for (const p of list) { const k = keyOf(p); if (k in out) out[k]++; }
+    return out;
+  };
+  const count = (facet, test) => results.filter(test).length + near[facet].filter(test).length;
   const pg = paginate(results, { page: filters.page ?? 1, perPage: DISCOVER_PER_PAGE },
-    p => ({ ...card(db, viewer, p, viewerP, filters), ...(filters.q ? { match_in: p.match_in, match_word: p.match_word } : {}) }));
+    p => ({ ...card(db, viewer, p, viewerP, filters), ...(hits ? { match_in: hits.get(p).where, match_word: hits.get(p).word } : {}) }));
   return {
     total: pg.total, page: pg.page, pages: pg.pages, per_page: pg.per_page,
-    people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)
+    people: pg.items, fuzzy, // only similar to what was searched (src/search.js)
     counts: {
-      intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
-      move: { ...Object.fromEntries(MOVE_WHEN.map(([m]) => [m, count('move', p => p.lives_in === 'abroad' && moveWhen(p) === m)])), back: count('move', p => p.lives_in === 'italy') },
-      backgrounds: Object.fromEntries([...AREAS, AREA_OTHER].map(a => [a, count('backgrounds', p => areaKey(p.background_area) === a)])),
+      intent: tally('intent', p => p.primary_intent, INTENTS),
+      move: tally('move', p => (p.lives_in === 'italy' ? 'back' : p.lives_in === 'abroad' ? moveWhen(p) : null), [...MOVE_WHEN.map(([m]) => m), 'back']),
+      backgrounds: tally('backgrounds', p => areaKey(p.background_area), [...AREAS, AREA_OTHER]),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => wantsPlace(p, c))])),
     },
   };
@@ -522,13 +585,13 @@ export function discover(db, viewer, filters) {
 
 // For the "N persone" hint in the comune picker (27a): per comune, and per region (each person once)
 export function comuneCounts(db) {
+  const ix = discoverIndex(db);
+  if (ix.comuni) return ix.comuni;
   const counts = {};
-  for (const { desired_comuni } of db.prepare(
-    `SELECT p.desired_comuni FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL`,
-  ).all()) {
-    const comuni = JSON.parse(desired_comuni);
+  for (const { desired_comuni: comuni } of ix.rows) {
     for (const c of comuni) counts[c] = (counts[c] || 0) + 1;
     for (const r of new Set(comuni.flatMap(c => [...(regionsOf.get(c) || [])]))) counts[r + REGION_SUFFIX] = (counts[r + REGION_SUFFIX] || 0) + 1;
   }
+  ix.comuni = counts;
   return counts;
 }

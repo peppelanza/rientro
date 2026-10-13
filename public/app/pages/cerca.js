@@ -47,22 +47,25 @@ export default class extends Page {
   }
 
   // People (src/profiles.js, best matches first) or the groups' posts and comments (src/groups.js)
-  async fetch() {
+  async fetch(current = () => true) {
     const s = this.state;
     if (!s.q) return;
     const q = encodeURIComponent(s.q);
     if (s.tab === 'gruppi') {
       s.groupList ??= (await api('GET', '/api/groups')).groups; // for the "Gruppo" filter
-      s.hits = await api('GET', `/api/groups/search?q=${q}${s.inGroup ? `&group=${encodeURIComponent(s.inGroup)}` : ''}`);
+      const hits = await api('GET', `/api/groups/search?q=${q}${s.inGroup ? `&group=${encodeURIComponent(s.inGroup)}` : ''}`);
+      if (current()) s.hits = hits;
     } else {
-      s.people = await api('GET', `/api/profiles?q=${q}&${apiQuery(s.f)}&sort=match&page=${s.page}`);
-      s.page = s.people.page;
+      const people = await api('GET', `/api/profiles?q=${q}&${apiQuery(s.f)}&sort=match&page=${s.page}`);
+      if (!current()) return; // a newer choice is on its way
+      s.people = people;
+      s.page = people.page;
     }
   }
 
   // Another tab, filters, group or page: in the address too
   change(patch, { scroll = false } = {}) {
-    return this.act(async () => {
+    return this.latest(async current => {
       Object.assign(this.state, patch);
       const s = this.state;
       const p = new URLSearchParams({ q: s.q });
@@ -70,8 +73,8 @@ export default class extends Page {
       if (s.tab === 'gruppi') { p.set('tab', 'gruppi'); if (s.inGroup) p.set('gruppo', s.inGroup); }
       else if (s.page > 1) p.set('page', String(s.page));
       history.replaceState(null, '', `/cerca?${p}`);
-      await this.fetch();
-      if (scroll) scrollTo({ top: 0, behavior: 'smooth' });
+      await this.fetch(current);
+      if (scroll && current()) scrollTo({ top: 0, behavior: 'smooth' });
     })();
   }
 

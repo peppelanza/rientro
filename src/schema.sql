@@ -498,3 +498,29 @@ CREATE TABLE IF NOT EXISTS legal_notice_sends (
   PRIMARY KEY (user_id, doc, version)
 );
 
+
+-- ---------------------------------------------------------------------------
+-- Scopri's members in memory (profiles.js discoverIndex): the triggers below note who changed
+-- (their profile, status, experiences or education), and only those are read again
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS discover_dirty (
+  id      INTEGER PRIMARY KEY,
+  user_id TEXT NOT NULL
+);
+-- the first version kept a counter instead
+DROP TRIGGER IF EXISTS discover_profiles_ins; DROP TRIGGER IF EXISTS discover_profiles_upd; DROP TRIGGER IF EXISTS discover_profiles_del;
+DROP TRIGGER IF EXISTS discover_users_upd; DROP TRIGGER IF EXISTS discover_users_del;
+DROP TRIGGER IF EXISTS discover_exp_ins; DROP TRIGGER IF EXISTS discover_exp_upd; DROP TRIGGER IF EXISTS discover_exp_del;
+DROP TRIGGER IF EXISTS discover_edu_ins; DROP TRIGGER IF EXISTS discover_edu_upd; DROP TRIGGER IF EXISTS discover_edu_del;
+DROP TABLE IF EXISTS cache_versions;
+CREATE TRIGGER IF NOT EXISTS dd_profiles_ins AFTER INSERT ON profiles BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_profiles_upd AFTER UPDATE ON profiles BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_profiles_del AFTER DELETE ON profiles BEGIN INSERT INTO discover_dirty (user_id) VALUES (OLD.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_users_upd AFTER UPDATE OF status, deletion_requested_at ON users BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.id); END;
+CREATE TRIGGER IF NOT EXISTS dd_users_del AFTER DELETE ON users BEGIN INSERT INTO discover_dirty (user_id) VALUES (OLD.id); END;
+CREATE TRIGGER IF NOT EXISTS dd_exp_ins AFTER INSERT ON experiences BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_exp_upd AFTER UPDATE ON experiences BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_exp_del AFTER DELETE ON experiences BEGIN INSERT INTO discover_dirty (user_id) VALUES (OLD.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_edu_ins AFTER INSERT ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_edu_upd AFTER UPDATE ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
+CREATE TRIGGER IF NOT EXISTS dd_edu_del AFTER DELETE ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (OLD.user_id); END;

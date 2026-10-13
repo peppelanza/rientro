@@ -66,16 +66,19 @@ export default class extends Page {
 
   // New filters or a new order start again from page 1
   apply(f, { page = 1, scroll = false } = {}) {
-    return this.act(async () => {
+    return this.latest(async current => {
       this.state.f = f;
       this.state.page = page;
       const q = toQuery(f);
       if (page > 1) q.set('page', String(page));
       history.replaceState(null, '', `/scopri${q.toString() ? `?${q}` : ''}`);
-      this.state.res = await api('GET', `/api/profiles?${this.listQuery(f)}`);
-      this.state.page = this.state.res.page;
+      this.__rerender(); // the filter shows as chosen at once
+      const res = await api('GET', `/api/profiles?${this.listQuery(f)}`);
+      if (!current()) return; // a newer choice is on its way
+      this.state.res = res;
+      this.state.page = res.page;
       await this.suggestRelax();
-      if (scroll) scrollTo({ top: 0, behavior: 'smooth' });
+      if (scroll && current()) scrollTo({ top: 0, behavior: 'smooth' });
     })();
   }
 
