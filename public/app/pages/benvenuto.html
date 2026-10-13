@@ -19,7 +19,7 @@
 <div class="welcome-open" style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Button" label="Apri profilo" variant="accent" on-click="{{ open }}"></dc-import></div>
 </section>
 <sc-if value="{{ inviteUrl }}"><section class="invite-box">
-<h2>Invita chi conosci</h2>
+<h2>Invita chi vuoi</h2>
 <p>Chi si iscrive con il tuo link personale può chiederti di connettervi già prima del lancio. Più persone inviti, più persone potranno trovarti.</p>
 <div class="invite-link"><code>{{ inviteShort }}</code><dc-import name="UI Button" label="{{ copyLabel }}" variant="accent" on-click="{{ copy }}"></dc-import><sc-if value="{{ canShare }}"><dc-import name="UI Button" label="Condividi" variant="ghost" on-click="{{ share }}"></dc-import></sc-if></div>
 </section></sc-if>
