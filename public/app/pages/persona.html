@@ -24,7 +24,6 @@
 <div class="persona-mini"><div><div class="persona-mini-in">
 <sc-if value="{{ idea }}"><a href="#idea" onClick="{{ toIdea }}" aria-label="{{ badgeLabel }}: vai all’idea" style="text-decoration:none;cursor:pointer"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></a></sc-if><sc-if value="{{ noIdea }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></sc-if>
 <span class="persona-mini-name">{{ name }}</span>
-<span style="font-size:14px;color:#1A1726">{{ role }}</span>
 <sc-if value="{{ hasPlaces }}"><span style="font-size:13px;color:#6B6680">Vivo a {{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
 <sc-if value="{{ unknownPlaces }}"><span style="font-size:13px;color:#6B6680">Vivo a {{ from }}</span></sc-if>
 </div></div></div>
@@ -47,7 +46,6 @@
 <button type="button" role="menuitem" onClick="{{ doBlock }}" style="padding:10px 12px;border-radius:16px;border:none;background:transparent;text-align:left;font:inherit;color:#B42318;cursor:pointer">Blocca {{ first }}</button>
 </div></sc-if></div></div></div>
 <h1 class="r-hero persona-name" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:64px;line-height:1;letter-spacing:-.05em">{{ name }}</h1>
-<span style="font-size:20px;color:#1A1726">{{ role }}</span>
 <sc-if value="{{ hasPlaces }}"><span style="font-size:17px;color:#6B6680">Vivo a {{ from }} <span style="color:#6C4DF5">→</span> voglio trasferirmi a <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
 <sc-if value="{{ unknownPlaces }}"><span style="font-size:17px;color:#6B6680">Vivo a {{ from }} · non ho ancora scelto dove trasferirmi</span></sc-if>
 <sc-if value="{{ isBack }}"><span style="font-size:17px;color:#6B6680">Vivo a <b style="font-weight:600;color:#1A1726">{{ from }}</b></span></sc-if>
