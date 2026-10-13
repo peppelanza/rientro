@@ -141,7 +141,8 @@ export default class extends Page {
       hits: groupsTab ? (res?.items || []).map(h => {
         const m = mark(h.text.length > 240 ? `${h.text.slice(0, 239)}…` : h.text, words);
         return {
-          href: `/gruppi/${h.group.id}?post=${h.post_id}`, // that post on its own group: h.group.name, name: h.author.name, photo: h.author.photo_url,
+          // that post, on its own group's page
+          href: `/gruppi/${h.group.id}?post=${h.post_id}`, group: h.group.name, name: h.author.name, photo: h.author.photo_url,
           ini: initials(h.author.name), when: timeAgo(h.created_at), where: h.in_comment ? 'in un commento' : '',
           a: m.a, m: m.m, b: m.b, hasM: !!m.m,
         };

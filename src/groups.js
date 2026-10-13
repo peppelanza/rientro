@@ -9,7 +9,7 @@ import { now, tx } from './db.js';
 import { removeFile } from './files.js';
 import { fileUrl, isBlocked, rawProfile } from './profiles.js';
 import { pageParams, paginate } from './paging.js';
-import { fixedWords, forgiving, hits, terms } from './search.js';
+import { hit, terms, wordsOf } from './search.js';
 import { nameOf, notify, requireLaunched } from './social.js';
 import { HttpError, bad, only, text } from './validate.js';
 
@@ -124,35 +124,102 @@ export function listPosts(db, viewer, id, query = new URLSearchParams()) {
 // Search in the groups (the search's "Gruppi" tab: src/search.js): posts and comments by what they say,
 // across every group (or one: ?group=), newest first, at most 50. A post found by a comment shows that
 // comment.
+// --- Search index ----------------------------------------------------------------------------
+// Posts and comments by word, in memory, like a search engine's index: a sorted vocabulary where
+// the words starting with what was typed are found by binary search, each word pointing to the
+// posts and comments that have it. Built once; then only what changed is read again (triggers in
+// schema.sql note it in gsearch_dirty). Thousands of posts cost a few lookups per search.
+let six = { db: null, items: new Map(), vocab: new Map(), sorted: null };
+const keyOf = (kind, id) => `${kind}${id}`;
+function addItem(item) {
+  six.items.set(item.key, item);
+  for (const w of item.words) {
+    let set = six.vocab.get(w);
+    if (!set) { set = new Set(); six.vocab.set(w, set); six.sorted = null; }
+    set.add(item.key);
+  }
+}
+function dropItem(key) {
+  const item = six.items.get(key);
+  if (!item) return;
+  six.items.delete(key);
+  for (const w of item.words) {
+    const set = six.vocab.get(w);
+    set?.delete(key);
+    if (set && !set.size) { six.vocab.delete(w); six.sorted = null; }
+  }
+}
+const postItem = r => ({ key: keyOf('p', r.id), kind: 'p', id: r.id, post_id: r.id, group_id: r.group_id, author_id: r.author_id, body: r.body, created_at: r.created_at, words: wordsOf(r.body) });
+const commentItem = r => ({ key: keyOf('c', r.id), kind: 'c', id: r.id, post_id: r.post_id, author_id: r.author_id, body: r.body, created_at: r.created_at, words: wordsOf(r.body) });
+function searchIndex(db) {
+  if (six.db !== db) {
+    six = { db, items: new Map(), vocab: new Map(), sorted: null };
+    for (const r of db.prepare('SELECT * FROM group_posts').all()) addItem(postItem(r));
+    for (const r of db.prepare('SELECT * FROM group_comments').all()) addItem(commentItem(r));
+    db.prepare('DELETE FROM gsearch_dirty').run();
+    return six;
+  }
+  const dirty = db.prepare('SELECT id, kind, item_id FROM gsearch_dirty ORDER BY id').all();
+  if (!dirty.length) return six;
+  for (const d of dirty) {
+    dropItem(keyOf(d.kind, d.item_id));
+    const r = db.prepare(`SELECT * FROM ${d.kind === 'p' ? 'group_posts' : 'group_comments'} WHERE id = ?`).get(d.item_id);
+    if (r) addItem(d.kind === 'p' ? postItem(r) : commentItem(r));
+  }
+  db.prepare('DELETE FROM gsearch_dirty WHERE id <= ?').run(dirty.at(-1).id);
+  return six;
+}
+// The posts and comments having a word that starts with the term (or, forgiving, nearly)
+function keysFor(term, fuzzy) {
+  six.sorted ??= [...six.vocab.keys()].sort();
+  const words = six.sorted;
+  const out = new Set();
+  if (!fuzzy) {
+    let lo = 0, hi = words.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (words[mid] < term) lo = mid + 1; else hi = mid; }
+    for (let i = lo; i < words.length && words[i].startsWith(term); i++) for (const k of six.vocab.get(words[i])) out.add(k);
+  } else {
+    for (const w of words) if (hit(term, [w], true)) for (const k of six.vocab.get(w)) out.add(k);
+  }
+  return out;
+}
+
 export function searchGroups(db, viewer, query = new URLSearchParams()) {
   requireMemberArea(viewer);
   const ts = terms(query.get('q') || '');
   if (!ts.length) return { items: [] };
-  const v = { $viewer: viewer.id };
   // ?group=: only in that one (the "Gruppo" filter)
   const only = query.get('group') && groupOr404(db, query.get('group')).id;
-  const posts = db.prepare(`SELECT * FROM group_posts WHERE author_id NOT IN ${HIDDEN} ${only ? 'AND group_id = $group' : ''} ORDER BY id DESC`)
-    .all(only ? { ...v, $group: only } : v);
-  const comments = db.prepare(`SELECT * FROM group_comments WHERE author_id NOT IN ${HIDDEN} ORDER BY id DESC`).all(v);
+  const hidden = new Set(db.prepare(HIDDEN.slice(1, -1).replaceAll('$viewer', '?')).all(viewer.id, viewer.id).map(r => Object.values(r)[0]));
+  const ix = searchIndex(db);
   const names = new Map(db.prepare('SELECT id, name FROM groups').all().map(g => [g.id, g.name]));
-  const items = forgiving(fuzzy => {
+  const run = fuzzy => {
+    // item -> how many of the words it has
+    const n = new Map();
+    for (const t of ts) for (const k of keysFor(t, fuzzy)) n.set(k, (n.get(k) || 0) + 1);
     // post id -> [how many of the words, the comment that says it or null (the post itself)]
     const found = new Map();
-    for (const p of posts) { const n = hits(ts, fixedWords(`p${p.id}`, p.body), fuzzy); if (n) found.set(p.id, [n, null]); }
-    for (const c of comments) {
-      const n = hits(ts, fixedWords(`c${c.id}`, c.body), fuzzy);
-      if (n > (found.get(c.post_id)?.[0] ?? 0)) found.set(c.post_id, [n, c]);
+    for (const [k, c] of n) {
+      const item = ix.items.get(k);
+      if (!item || hidden.has(item.author_id)) continue;
+      const post = item.kind === 'p' ? item : ix.items.get(keyOf('p', item.post_id));
+      if (!post || hidden.has(post.author_id) || (only && post.group_id !== only)) continue;
+      const best = found.get(post.id);
+      if (!best || c > best[0] || (c === best[0] && item.kind === 'p')) found.set(post.id, [c, item.kind === 'c' ? item : null]);
     }
-    // more of the words first, the newest within each (posts are newest first, the sort is stable)
-    return posts.filter(p => found.has(p.id)).sort((a, b) => found.get(b.id)[0] - found.get(a.id)[0]).slice(0, 50).map(p => {
-      const c = found.get(p.id)[1];
+    // more of the words first, the newest within each
+    return [...found.entries()].sort((a, b) => b[1][0] - a[1][0] || b[0] - a[0]).slice(0, 50).map(([id, [, c]]) => {
+      const p = ix.items.get(keyOf('p', id));
       return {
         group: { id: p.group_id, name: names.get(p.group_id) }, post_id: p.id,
         author: author(db, (c || p).author_id), text: (c || p).body, in_comment: !!c, created_at: (c || p).created_at,
       };
     });
-  });
-  return { items, fuzzy: !!items.fuzzy };
+  };
+  let items = run(false);
+  let fuzzy = false;
+  if (!items.length) { items = run(true); fuzzy = true; }
+  return { items, fuzzy };
 }
 
 export function createPost(db, viewer, id, body) {

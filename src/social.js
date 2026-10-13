@@ -191,12 +191,13 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   if (ts.length) {
     // all the viewer's messages, newest first, each split into words once (they never change)
     const mine = db.prepare('SELECT * FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id DESC').all(viewer.id, viewer.id);
+    // by the other person, once (not every message for every conversation)
+    const withWhom = Map.groupBy(mine, m => (m.sender_id === viewer.id ? m.recipient_id : m.sender_id));
     // a conversation counts the most words its name or one of its messages has (that message shown)
     found = forgiving(fuzzy => connected.flatMap(c => {
       let best = hits(ts, wordsOf(c.name), fuzzy), said = null;
-      for (const m of mine) {
+      for (const m of withWhom.get(c.id) || []) {
         if (best === ts.length) break;
-        if (m.sender_id !== c.id && m.recipient_id !== c.id) continue;
         const n = hits(ts, fixedWords(`m${m.id}`, m.body), fuzzy);
         if (n > best) { best = n; said = m; }
       }

@@ -160,3 +160,20 @@ test('following a group: its new posts reach the bell (not the author\'s own, no
     assert.equal((await a.patch('/api/me/notifications', { notify_groups_email: false })).body.notify_groups_email, false);
   } finally { await t.close(); }
 });
+
+test('groups search: an index kept up to date: new posts and comments found at once, deleted ones gone, a typo forgiven', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('gsa@x.it');
+    const b = await t.approved('gsb@x.it');
+    const find = async q => (await b.get(`/api/groups/search?q=${encodeURIComponent(q)}`)).body;
+    const post = (await a.post('/api/groups/generale/posts', { body: 'Cerco un socio per un frantoio in Puglia' })).body;
+    assert.equal((await find('frantoio')).items.length, 1);
+    assert.equal((await find('frantoio')).items[0].post_id, post.id);
+    await b.post(`/api/groups/generale/posts/${post.id}/comments`, { body: 'Conosco un agronomo a Lecce' });
+    assert.equal((await find('agronomo')).items[0].in_comment, true, 'a new comment is searchable');
+    assert.equal((await find('frantioo')).fuzzy, true, 'a typo is forgiven');
+    await a.del(`/api/groups/generale/posts/${post.id}`);
+    assert.equal((await find('frantoio')).items.length, 0, 'a deleted post is gone');
+  } finally { t.close(); }
+});

@@ -524,3 +524,16 @@ CREATE TRIGGER IF NOT EXISTS dd_exp_del AFTER DELETE ON experiences BEGIN INSERT
 CREATE TRIGGER IF NOT EXISTS dd_edu_ins AFTER INSERT ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
 CREATE TRIGGER IF NOT EXISTS dd_edu_upd AFTER UPDATE ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (NEW.user_id); END;
 CREATE TRIGGER IF NOT EXISTS dd_edu_del AFTER DELETE ON education BEGIN INSERT INTO discover_dirty (user_id) VALUES (OLD.user_id); END;
+
+-- The groups' search index in memory (groups.js searchIndex): posts and comments that changed
+CREATE TABLE IF NOT EXISTS gsearch_dirty (
+  id      INTEGER PRIMARY KEY,
+  kind    TEXT NOT NULL,      -- 'p' post, 'c' comment
+  item_id INTEGER NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS gs_posts_ins AFTER INSERT ON group_posts BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('p', NEW.id); END;
+CREATE TRIGGER IF NOT EXISTS gs_posts_upd AFTER UPDATE ON group_posts BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('p', NEW.id); END;
+CREATE TRIGGER IF NOT EXISTS gs_posts_del AFTER DELETE ON group_posts BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('p', OLD.id); END;
+CREATE TRIGGER IF NOT EXISTS gs_comments_ins AFTER INSERT ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', NEW.id); END;
+CREATE TRIGGER IF NOT EXISTS gs_comments_upd AFTER UPDATE ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', NEW.id); END;
+CREATE TRIGGER IF NOT EXISTS gs_comments_del AFTER DELETE ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', OLD.id); END;
