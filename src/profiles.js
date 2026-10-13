@@ -82,7 +82,7 @@ const EDITABLE = {
   seeking_backgrounds: v => subset(v, AREAS, 'Chi stai cercando', 2),
   seeking_description: v => text(v, 'Descrivi la persona che cerchi', { max: 400 }),
   seeking_location: v => oneOf(v, values(SEEKING_LOCATION), 'Dove dovrebbe vivere'),
-  misses_italy: v => text(v, 'Cosa ti manca dell’Italia', { max: 200 }),
+  misses_italy: v => text(v, 'Cosa ti manca di casa', { max: 200 }),
   linkedin_url: v => httpsUrl(v, 'LinkedIn'),
   website_url: v => httpsUrl(v, 'Sito'),
   instagram_handle: v => handle(v, 'Instagram'),
@@ -408,7 +408,7 @@ const SEARCH_PARTS = [
   ['background', 2, p => [p.background_area]],
   ['un risultato di cui va fiero/a', 1, p => [p.achievement]],
   ['chi cerca', 1, p => [p.seeking_description, ...p.seeking_backgrounds]],
-  ['“Cosa mi manca dell’Italia”', 1, p => [p.misses_italy]],
+  ['“Cosa mi manca di casa”', 1, p => [p.misses_italy]],
 ];
 // { found, score, where, word } or null when no word is there; found: how many of the words are;
 // where/word: the first one found outside what a result row shows, and where

@@ -280,7 +280,7 @@ export default class extends Page {
     const inviter = s.me?.invite?.invited_by || {};
     const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
-    // "Cosa ti manca dell'Italia": the usual page, with a soft hint of the flag (app.css .ob-tricolore)
+    // "Cosa ti manca di casa": the usual page, with a soft hint of the flag (app.css .ob-tricolore)
     const dark = false;
     const flag = is('manca');
     const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');

@@ -18,7 +18,7 @@ const SECTIONS = [
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
   ['interessi', 'Interessi', ['sectors']],
-  ['italia', "Cosa mi manca dell'Italia", ['misses_italy']],
+  ['italia', "Cosa mi manca di casa", ['misses_italy']],
   ['link', 'Links', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
 ];
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
