@@ -110,12 +110,13 @@ export default class extends Page {
     const L = s.self && p.own_links ? p.own_links : p.links;
     const showLinks = connected || (s.self && !!p.own_links);
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
-    // in the box with where they live and want to go (the first line, with the country when abroad)
-    const facts = [
-      ['Rientro', p.arrived],
-      ['Vorrei trasferirmi', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
-    ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
-    facts.forEach(f => { f.bt = '1px solid #ECE8F7'; }); // under the line of where they live and want to go
+    // The box under the name: where they'd like to move, from where and when; or, back already, where to
+    // and from where (Il mio rientro). Who doesn't know where or when yet says so.
+    const fromFull = [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ');
+    const move = p.back
+      ? { title: 'Il mio rientro', where: p.lives_in_city || '—', sub: p.arrived ? p.arrived.replace(/^Da /, 'da ') : '' }
+      : { title: 'Vorrei trasferirmi', where: !p.desired_unknown && p.desired_comuni.length ? p.places : 'Non so ancora dove',
+        sub: [fromFull && `da ${fromFull}`, p.move && (p.move === 'non lo sa ancora' ? 'non so ancora quando' : p.move)].filter(Boolean).join(' · ') };
     const unlocked = showLinks ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
@@ -135,7 +136,7 @@ export default class extends Page {
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',
       complement: p.complement,
-      facts, hasFacts: facts.length > 0, unlocked, hasUnlocked: unlocked.length > 0,
+      moveTitle: move.title, moveWhere: move.where, moveSub: move.sub, unlocked, hasUnlocked: unlocked.length > 0,
       // Dove trovarmi, at the bottom: the links once connected, else that they unlock then
       ownLinks: !!s.self && unlocked.length > 0, hasLinksSection: !showLinks || unlocked.length > 0,
       // actions
