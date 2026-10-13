@@ -507,7 +507,7 @@ export default class extends Page {
       sideBadge: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0] : '', sideBadgeKind: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1] : 'neutral',
       sideRole: p ? [p.current_role, p.current_company].filter(Boolean).join(' · ') : '',
       sideFrom: p ? [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', ') : '',
-      sideTo: p && !p.back ? (p.desired_unknown ? 'non lo sa ancora' : p.places || '') : '', sideBack: !!p?.back,
+      sideTo: p && !p.back ? (p.desired_unknown ? 'Non lo sa ancora' : p.places || '') : '', sideBack: !!p?.back,
       sideComp: p?.complement || '',
       sideRows: p ? [
         ['Background', p.background_area],
