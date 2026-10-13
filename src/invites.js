@@ -3,7 +3,7 @@
 // invited by them (users.invited_by) and, in onboarding, can ask them to connect even before launch: the request goes out as the profile goes online, and waits in
 // the inviter's Ricevute marked as coming from their link (connections.via_invite).
 import crypto from 'node:crypto';
-import { config } from './config.js';
+import { config, isLaunched } from './config.js';
 import { newId, now } from './db.js';
 import { connectionBetween, fileUrl, isBlocked } from './profiles.js';
 import { notify } from './social.js';
@@ -77,6 +77,7 @@ export function connectInviter(db, user) {
   const id = newId();
   db.prepare("INSERT INTO connections (id, requester_id, addressee_id, status, note, created_at, via_invite) VALUES (?, ?, ?, 'pending', ?, ?, 1)")
     .run(id, user.id, to, row.invite_note || null, now());
-  notify(db, to, 'connection_request', user.id, { connection_id: id });
+  // Before launch there's nowhere to answer it: no bell, no email; it waits in Ricevute for launch day
+  if (isLaunched()) notify(db, to, 'connection_request', user.id, { connection_id: id });
   return id;
 }

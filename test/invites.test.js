@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { makeClient, startApp } from './helpers.js';
+import { config } from '../src/config.js';
 
 let t;
 const welcomes = [];
@@ -41,7 +42,8 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   const { COMPLETE_PROFILE, PNG } = await import('./helpers.js');
   assert.equal((await anna.patch('/api/me/profile', { ...COMPLETE_PROFILE, first_name: 'Anna', invite_connect: true, invite_note: 'Ciao Giuseppe!' })).status, 200);
   await anna.raw('POST', '/api/me/photo', PNG);
-  assert.equal((await anna.post('/api/me/submit')).status, 200);
+  config.forceLaunched = false; // before launch (the tests run as launched)
+  try { assert.equal((await anna.post('/api/me/submit')).status, 200); } finally { config.forceLaunched = true; }
   const w = welcomes.find(x => x.email === 'anna@x.it');
   assert.equal(w.firstName, 'Anna');
   assert.match(w.inviteUrl, /\?anna[0-9]{4}$/);
@@ -49,6 +51,8 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   assert.equal(c.status, 'pending');
   assert.equal(c.via_invite, 1);
   assert.equal(c.note, 'Ciao Giuseppe!');
+  // Before launch: no bell and no email for it, it waits for launch day
+  assert.equal(t.app.db.prepare("SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND kind = 'connection_request'").get(giuseppe.id).n, 0);
   const received = (await giuseppe.get('/api/connections?tab=received')).body.items;
   assert.equal(received.find(r => r.connection_id === c.id).via_invite, true);
 
