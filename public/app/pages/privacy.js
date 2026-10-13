@@ -56,8 +56,10 @@ export default class extends Page {
     const bl = s.blocks;
     return {
       loading: false, me, menu: settingsMenu, cat,
-      publicFields: ['Nome e foto', 'Luoghi', 'Percorso', 'Formazione', 'Idea', 'Video', 'Interessi', 'LinkedIn', 'Sito', 'Cosa ti manca'],
-      privateFields: ['Instagram', 'X / Twitter', 'Link calendario', 'Chat'],
+      // what others see, as profiles.js publicProfile gives it: every link only to connections; the
+      // video too when the member chose so (the switch below)
+      publicFields: ['Nome e foto', 'Luoghi', 'Percorso', 'Formazione', 'Idea', ...(me.profile.video_connections_only ? [] : ['Video']), 'Interessi', 'Cosa ti manca'],
+      privateFields: [...(me.profile.video_connections_only ? ['Video'] : []), 'LinkedIn', 'Sito', 'Instagram', 'X / Twitter', 'Link calendario', 'Chat'],
       hasVideo: !!me.profile.video_url, blockedBorder: me.profile.video_url ? '1px solid #ECE8F7' : 'none', videoOnly: me.profile.video_connections_only, toggleVideo: this.toggleVideo,
       blockedLabel: n ? `${n} ${n === 1 ? 'persona' : 'persone'}` : 'nessuna',
       showBlockSearch: n > 5, bq: s.bq, blockSearchProps: { onInput: v => this.searchBlocks(v) },
