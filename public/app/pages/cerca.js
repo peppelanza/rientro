@@ -25,7 +25,7 @@ const initials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2);
 
 // Loading: the results as they will be (pages/_base.js skeleton()), one placeholder row
 const FAKE_PEOPLE = { total: 1, page: 1, pages: 1, per_page: 12, people: Array.from({ length: 1 }, (_, i) => ({ id: `sk${i}`, name: 'Nome Cognome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', photo_url: null })) };
-const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], time: [], comuni: [], regions: [] };
+const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], comuni: [], regions: [] };
 const FAKE_HITS = { items: Array.from({ length: 1 }, (_, i) => ({ post_id: -i, group: { id: '', name: 'Gruppo' }, author: { name: 'Nome Cognome', photo_url: null }, text: 'Il testo di un post nei gruppi, abbastanza lungo da occupare una riga e mezza.', in_comment: false, created_at: new Date().toISOString() })) };
 
 export default class extends Page {

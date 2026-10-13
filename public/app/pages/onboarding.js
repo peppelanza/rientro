@@ -15,8 +15,8 @@ export const title = 'Il tuo profilo';
 const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
   ['presentati', 'Su di te'], ['video', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
-  ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'], ['tempo', 'Cosa cerchi'],
-  ['manca', 'Ultimi dettagli'], ['link', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
+  ['link', 'Su di te'], ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'],
+  ['manca', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
 ];
 
 // Profile fields saved by each step
@@ -32,7 +32,6 @@ const FIELDS = {
   risultato: ['achievement'],
   settori: ['sectors'],
   chi: ['seeking_backgrounds', 'seeking_description', 'seeking_location'],
-  tempo: ['time_commitment', 'start_when'],
   manca: ['misses_italy'],
   link: ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url'],
   fonte: ['source'],
@@ -124,7 +123,6 @@ export default class extends Page {
       case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
       case 'background': return p.background_area ? null : 'Scegli la tua area';
       case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
-      case 'tempo': return p.time_commitment ? null : 'Scegli quanto tempo vuoi dedicare';
       default: return null;
     }
   }
@@ -295,7 +293,6 @@ export default class extends Page {
       ['Rientro', p.lives_in !== 'italy' ? null : p.arrived_from_city ? [`Da ${p.arrived_from_city}, ${p.arrived_from_country}`, ARRIVED_WHEN.find(x => x.v === p.arrived_when)?.l.toLowerCase()].filter(Boolean).join(' · ') : null],
       ['Vuole vivere a', isBack(p) ? '' : orList(p.desired_comuni) || (p.desired_unknown ? 'Non lo sa ancora' : '')], ['LinkedIn', p.linkedin_url ? `${p.linkedin_url.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '')} ↗` : ''],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
-    const timeLabel = [cat.time.find(t => t[0] === p.time_commitment)?.[1], cat.start.find(t => t[0] === p.start_when)?.[1]?.toLowerCase()].filter(Boolean).join(' · ');
 
     return {
       loading: false,
@@ -308,7 +305,7 @@ export default class extends Page {
       footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
       is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
-      is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'), is_tempo: is('tempo'),
+      is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'),
       is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'),
 
       // Callback bundles for app components (functions reach components as props via dc-props)
@@ -319,7 +316,6 @@ export default class extends Page {
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.__rerender(); } },
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
       locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
-      startProps: { onSelect: v => this.set({ start_when: v || null }) },
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
@@ -453,8 +449,6 @@ export default class extends Page {
       locOpts: opts(cat.seekingLocation), loc: p.seeking_location,
 
       // 19a
-      times: cat.time.map(([v, t, d]) => ({ t, d, ...card(p.time_commitment === v, () => this.set({ time_commitment: v })) })),
-      startOpts: opts(cat.start), startWhen: p.start_when,
 
       // 20a
       misses: p.misses_italy ?? '', missesInput: e => { p.misses_italy = e.target.value; },
@@ -472,14 +466,14 @@ export default class extends Page {
       pvFacts, pvBio: p.bio, pvIdeaTitle: p.idea_title, pvIdeaDesc: p.idea_description,
       pvIdeaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',
       pvStage: p.idea_stage ? `Fase: ${cat.ideaStages.find(x => x[0] === p.idea_stage)[1].toLowerCase()}` : '',
-      pvSeeks: p.seeking_backgrounds.join(', ') || '—', pvTime: timeLabel || '—',
+      pvSeeks: p.seeking_backgrounds.join(', ') || '—',
       pvNoVideo: !p.video_url,
       pvMissing: [
         !p.lives_in_city && 'Dove vivi', !isBack(p) && !p.desired_comuni.length && !p.desired_unknown && 'Dove vorresti vivere', !p.primary_intent && 'Obiettivo',
         !p.photo_url && 'Foto', (!p.first_name || !p.last_name) && 'Nome e cognome', !p.background_area && 'Background',
-        !p.seeking_backgrounds.length && 'Chi stai cercando', !p.time_commitment && 'Tempo',
+        !p.seeking_backgrounds.length && 'Chi stai cercando',
       ].filter(Boolean).join(', '),
-      editBio: () => this.goTo('presentati'), editIdea: () => this.goTo('idea'), editSeek: () => this.goTo('chi'), editTime: () => this.goTo('tempo'), addVideo: () => this.goTo('video'),
+      editBio: () => this.goTo('presentati'), editIdea: () => this.goTo('idea'), editSeek: () => this.goTo('chi'), addVideo: () => this.goTo('video'),
       backToQuestions: () => this.goTo(steps.at(-1)[0]), submit: this.submit,
     };
   }

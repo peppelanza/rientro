@@ -95,6 +95,8 @@ export function addProfileColumns(db) {
       WHERE arrived_period GLOB '[0-9][0-9][0-9][0-9]-H[12]'`);
     db.exec('ALTER TABLE profiles DROP COLUMN arrived_period');
   }
+  // "Quanto tempo vuoi dedicare" and "Quando potresti iniziare" are gone
+  for (const c of ['time_commitment', 'start_when']) if (have.has(c)) db.exec(`ALTER TABLE profiles DROP COLUMN ${c}`);
   // "Ho sempre vissuto in Italia" is gone: whoever lives in Italy came back from somewhere
   if (have.has('always_in_italy')) db.exec('ALTER TABLE profiles DROP COLUMN always_in_italy');
   if (have.has('in_italy_long_time')) {

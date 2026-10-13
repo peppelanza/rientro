@@ -12,7 +12,7 @@ const API_TAB = { connessioni: 'connected', ricevute: 'received', inviate: 'sent
 const FAKE = i => ({
   id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città', since: new Date().toISOString(),
   created_at: new Date().toISOString(), note: 'Una breve nota per presentarsi.', photo_url: null,
-  seeks: 'Prodotto', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', connection: null,
+  seeks: 'Prodotto', tags: 'Settore · Settore', comp: '', intent: 'networking', connection: null,
 });
 const skeletonState = s => {
   const c = s.me?.counts || {};

@@ -76,12 +76,12 @@ export function createDemoPeople(db, admin) {
       const arrived = p.arrived ?? [];
       db.prepare(`INSERT INTO profiles (user_id, lives_in, lives_in_country, lives_in_city, arrived_from_country, arrived_from_city,
           desired_comuni, primary_intent, idea_title, idea_description, idea_stage, first_name, last_name, birth_year, age_band, bio,
-          background_area, current_role, current_company, years_experience, sectors, seeking_backgrounds, time_commitment, start_when,
+          background_area, current_role, current_company, years_experience, sectors, seeking_backgrounds,
           misses_italy, linkedin_url, source, visible, submitted_at, approved_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`).run(
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`).run(
         id, livesIn, country, city, arrived[0] ?? null, arrived[1] ?? null,
         JSON.stringify(p.want), p.intent, p.idea?.[0] ?? null, p.idea?.[1] ?? null, p.idea?.[2] ?? null, p.first, p.last, p.year, ageBandFor(p.year), p.bio,
-        p.area, p.role, p.company, p.years, JSON.stringify(p.sectors), JSON.stringify(p.seek), p.time, p.start,
+        p.area, p.role, p.company, p.years, JSON.stringify(p.sectors), JSON.stringify(p.seek),
         p.misses || null, `https://www.linkedin.com/in/${slug(p.first)}-${slug(p.last)}-prova`, 'Passaparola, un amico o collega', ts, ts, ts,
       );
       if (p.arrived) {

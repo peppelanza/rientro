@@ -22,9 +22,9 @@ function saveSort(sort) {
 // Loading: the page as it will be (pages/_base.js skeleton()), with one placeholder person
 const FAKE_PERSON = i => ({
   id: `sk${i}`, name: 'Nome Cognome', first_name: 'Nome', role: 'Ruolo · Azienda', from: 'Città', to: 'Città o Città',
-  seeks: 'Prodotto, Engineering', tags: 'Settore · Settore', time: 'Full-time', comp: '', intent: 'networking', photo_url: null, connection: null,
+  seeks: 'Prodotto, Engineering', tags: 'Settore · Settore', comp: '', intent: 'networking', photo_url: null, connection: null,
 });
-const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], time: [], comuni: [], regions: [] };
+const FAKE_CAT = { areas: ['Area', 'Area', 'Area', 'Area'], sectors: ['Settore', 'Settore', 'Settore', 'Settore', 'Settore'], comuni: [], regions: [] };
 const skeletonState = s => ({
   cat: s.cat || FAKE_CAT, f: s.f || readFilters(), sort: s.sort || readSort(), moreFilters: s.moreFilters ?? false, comuneCounts: {},
   res: { total: 1, page: 1, pages: 1, per_page: 12, people: [FAKE_PERSON(0)], counts: { intent: {}, backgrounds: {}, desired: {} } },

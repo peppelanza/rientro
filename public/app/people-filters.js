@@ -6,21 +6,20 @@ export const LIST_KEYS = ['intent', 'backgrounds', 'sectors', 'desired'];
 export const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'idea insieme", networking: 'Networking' };
 
 export function readFilters(params = new URLSearchParams(location.search)) {
-  const f = { lives: params.get('lives') || '', time: params.get('time') || '', include_unknown: params.get('include_unknown') === '1' };
+  const f = { lives: params.get('lives') || '', include_unknown: params.get('include_unknown') === '1' };
   for (const k of LIST_KEYS) f[k] = params.get(k) ? params.get(k).split(',').filter(Boolean) : [];
   return f;
 }
-export const emptyFilters = () => ({ lives: '', time: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] });
+export const emptyFilters = () => ({ lives: '', include_unknown: false, intent: [], backgrounds: [], sectors: [], desired: [] });
 
 // The filters behind "Tutti i filtri" (computer): everything but where they live and want to live
-export const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length + (f.time ? 1 : 0);
+export const hiddenFilters = f => f.intent.length + f.backgrounds.length + f.sectors.length;
 
 // For the address
 export function toQuery(f) {
   const q = new URLSearchParams();
   for (const k of LIST_KEYS) if (f[k].length) q.set(k, f[k].join(','));
   if (f.lives) q.set('lives', f.lives);
-  if (f.time) q.set('time', f.time);
   if (f.include_unknown && f.desired.length) q.set('include_unknown', '1');
   return q;
 }
@@ -45,7 +44,6 @@ export function activeFilters(f, cat) {
   for (const i of f.intent) out.push({ label: INTENT[i], without: g => ({ ...g, intent: g.intent.filter(x => x !== i) }) });
   for (const b of f.backgrounds) out.push({ label: b.split(' /')[0], without: g => ({ ...g, backgrounds: g.backgrounds.filter(x => x !== b) }) });
   for (const s of f.sectors) out.push({ label: s, without: g => ({ ...g, sectors: g.sectors.filter(x => x !== s) }) });
-  if (f.time) out.push({ label: cat.time.find(t => t[0] === f.time)?.[1], without: g => ({ ...g, time: '' }) });
   return out;
 }
 
@@ -98,6 +96,5 @@ export function filterPanel(page, counts = { intent: {}, backgrounds: {} }) {
     toggleMoreBg: () => page.setState({ moreBg: !s.moreBg }),
     sectors: shownSectors, moreSectorsLabel: s.moreSectors ? 'Meno' : `+ ${cat.sectors.length - shownSectors.length}`, hasMoreSectors: s.moreSectors || shownSectors.length < cat.sectors.length,
     toggleMoreSectors: () => page.setState({ moreSectors: !s.moreSectors }),
-    timeOpts: [{ v: 'full_time', l: 'Full-time' }, { v: 'part_time', l: 'Part-time' }], time: f.time, timeProps: { onSelect: v => set({ time: v }) },
   };
 }

@@ -50,7 +50,7 @@ export default class extends AdminPage {
       ['Background', [p.background_area, lab(cat.years, p.years_experience) && `${lab(cat.years, p.years_experience)} anni`].filter(Boolean).join(' · ')],
       ['Ruolo', [p.current_role, p.current_company].filter(Boolean).join(' · ')],
       ['Cerca', p.seeking_backgrounds.join(', ')], ['Settori', p.sectors.join(', ')],
-      ['Tempo', [d.labels.time, d.labels.start?.toLowerCase()].filter(Boolean).join(' · ')], ['Fonte', p.source],
+      ['Fonte', p.source],
       ['LinkedIn', p.linkedin_url], ['Su di me', p.bio],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const tab = k => ({ tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.setState({ tab: k }) });

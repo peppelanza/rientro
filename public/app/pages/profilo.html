@@ -85,8 +85,6 @@
 <sc-if value="{{ isInteressi }}">
 <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;font-weight:500">Settori · fino a 5</span><span style="font-family:'Geist Mono',monospace;font-size:12px;padding:4px 10px;border-radius:999px;background:#EFEBFF;color:#3E2BA8">{{ sectorCount }}</span></div>
 <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" tone="{{ c.tone }}" size="sm" on-click="{{ c.fn }}" host-role="checkbox" host-aria-checked="{{ c.aria }}"></dc-import></sc-for></div>
-<div role="radiogroup" aria-label="Tempo" class="r-grid-1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><sc-for list="{{ times }}" as="x"><dc-import name="UI Option Card" title="{{ x.t }}" desc="{{ x.d }}" selected="{{ x.on }}" size="sm" on-click="{{ x.fn }}" host-role="radio" host-aria-checked="{{ x.aria }}"></dc-import></sc-for></div>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Quando potresti iniziare?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Quando potresti iniziare" options="{{ startOpts }}" value="{{ startWhen }}" dc-props="{{ startProps }}"></dc-import></div></div>
 </sc-if>
 
 <sc-if value="{{ isItalia }}">

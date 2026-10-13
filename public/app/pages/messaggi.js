@@ -502,7 +502,7 @@ export default class extends Page {
       composeKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
       submit: e => { e.preventDefault(); this.send(); },
       send: this.send,
-      seeks: p?.seeking.backgrounds.join(', ') || '—', time: p?.time.commitment || '—', links, hasLinks: links.length > 0,
+      seeks: p?.seeking.backgrounds.join(', ') || '—', links, hasLinks: links.length > 0,
       menuOpen: s.menuOpen, toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
       doReport: async () => { this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/messaggi'); },
       doBlock: async () => { this.setState({ menuOpen: false }); if (await block(person)) go('/messaggi'); },

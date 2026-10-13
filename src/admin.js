@@ -2,7 +2,7 @@
 // data is written to admin_audit_log. Rientro Talent (B2B) is not built: there is no
 // company-facing access; the CSV export is admin-only and audited row-count by row-count.
 import { waitingCount } from './support.js';
-import { label, orList, SOURCES, START, TIME } from './catalog.js';
+import { orList, SOURCES } from './catalog.js';
 import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
@@ -139,7 +139,7 @@ export function getUser(db, admin, userId) {
     ).all(userId),
     reports: db.prepare('SELECT id, reason, details, status, created_at FROM reports WHERE reported_id = ? ORDER BY created_at DESC').all(userId),
     labels: {
-      time: label(TIME, p.time_commitment), start: label(START, p.start_when), intent: INTENT[p.primary_intent] ?? null,
+      intent: INTENT[p.primary_intent] ?? null,
     },
   };
 }
@@ -306,8 +306,6 @@ export function analytics(db, admin, query) {
     unknown_pct: share(approved, u => u.desired_unknown === 1),
     composition: {
       idea: share(approved, u => u.primary_intent === 'has_idea'),
-      full_time: share(approved, u => u.time_commitment === 'full_time'),
-      part_time: share(approved, u => u.time_commitment === 'part_time'),
     },
     backgrounds: topCounts(approved.map(u => u.background_area).filter(Boolean), 5).map(([l, n]) => ({ l, v: pct(n, approved.length) })),
     weeks,
@@ -320,7 +318,7 @@ export const EXPORT_COLUMNS = {
   users: {
     'Nome e cognome': u => name(u), Email: u => u.email, 'Vive a': u => [u.lives_in_city, u.lives_in_country].filter(Boolean).join(', '),
     'Vuole vivere a': u => u.desired_comuni.join('; '), Intento: u => INTENT[u.primary_intent] ?? '', Background: u => u.background_area ?? '',
-    Settori: u => u.sectors.join('; '), Tempo: u => label(TIME, u.time_commitment) ?? '', Fonte: u => u.source ?? '', Stato: u => STATUS_LABEL[u.status],
+    Settori: u => u.sectors.join('; '), Fonte: u => u.source ?? '', Stato: u => STATUS_LABEL[u.status],
   },
   connections: { Da: r => r.from_name, A: r => r.to_name, Stato: r => r.status, Creata: r => r.created_at, Risposta: r => r.responded_at ?? '' },
   reports: { Segnalato: r => r.reported_name, Motivo: r => REASON[r.reason], Stato: r => r.status, Aperta: r => r.created_at },

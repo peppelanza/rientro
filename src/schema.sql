@@ -97,8 +97,6 @@ CREATE TABLE IF NOT EXISTS profiles (
   seeking_backgrounds    TEXT NOT NULL DEFAULT '[]',
   seeking_description    TEXT,
   seeking_location       TEXT CHECK (seeking_location IS NULL OR seeking_location IN ('any', 'same_city', 'italy')),
-  time_commitment        TEXT CHECK (time_commitment IS NULL OR time_commitment IN ('full_time', 'part_time', 'tbd')),
-  start_when             TEXT CHECK (start_when IS NULL OR start_when IN ('now', '6_months', '1_year', 'later')),
   -- 14 Cosa ti manca, 15 Link, 16 Fonte
   misses_italy           TEXT,
   linkedin_url           TEXT,

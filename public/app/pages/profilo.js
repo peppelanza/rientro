@@ -16,7 +16,7 @@ const SECTIONS = [
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
   ['percorso', 'Percorso e formazione', ['background_area', 'years_experience']],
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
-  ['interessi', 'Interessi e tempo', ['sectors', 'time_commitment', 'start_when']],
+  ['interessi', 'Interessi', ['sectors']],
   ['italia', "Cosa mi manca dell'Italia", ['misses_italy']],
   ['link', 'Links', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
 ];
@@ -218,8 +218,6 @@ export default class extends Page {
       // interessi
       sectorCount: `${p.sectors.length} / 5`,
       sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : p.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, 5) }) }; }),
-      times: cat.time.map(([v, tt, d]) => ({ t: tt, d, ...card(p.time_commitment === v, () => this.set({ time_commitment: v })) })),
-      startOpts: opts(cat.start), startWhen: p.start_when, startProps: { onSelect: v => this.set({ start_when: v || null }) },
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',

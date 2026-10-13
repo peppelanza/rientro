@@ -1,4 +1,4 @@
-import { AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, START, TIME, YEARS } from './catalog.js';
+import { AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { forgiving, hit, terms, wordsOf } from './search.js';
@@ -80,8 +80,6 @@ const EDITABLE = {
   seeking_backgrounds: v => subset(v, AREAS, 'Chi stai cercando', 2),
   seeking_description: v => text(v, 'Descrivi la persona che cerchi', { max: 400 }),
   seeking_location: v => oneOf(v, values(SEEKING_LOCATION), 'Dove dovrebbe vivere'),
-  time_commitment: v => oneOf(v, values(TIME), 'Tempo'),
-  start_when: v => oneOf(v, values(START), 'Quando potresti iniziare'),
   misses_italy: v => text(v, 'Cosa ti manca dell’Italia', { max: 200 }),
   linkedin_url: v => httpsUrl(v, 'LinkedIn'),
   website_url: v => httpsUrl(v, 'Sito'),
@@ -239,7 +237,6 @@ export function missingForSubmit(p) {
   if (!p.birth_year) missing.push('Anno di nascita');
   if (!p.background_area) missing.push('Background');
   if (!p.seeking_backgrounds.length) missing.push('Chi stai cercando');
-  if (!p.time_commitment) missing.push('Tempo');
   return missing;
 }
 
@@ -327,7 +324,6 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     bio: p.bio, achievement: p.achievement, misses_italy: p.misses_italy,
     sectors: p.sectors,
     seeking: { backgrounds: p.seeking_backgrounds, description: p.seeking_description, location: label(SEEKING_LOCATION, p.seeking_location) },
-    time: { commitment: label(TIME, p.time_commitment), start: label(START, p.start_when) },
     education: education(db, targetId),
     experiences: experiences(db, targetId),
     photo_url: fileUrl(p.photo_file_id),
@@ -359,7 +355,6 @@ export function card(db, viewer, p, viewerP) {
     idea_title: p.idea_title,
     seeks: p.seeking_backgrounds.join(', '),
     tags: p.sectors.slice(0, 3).join(' · '),
-    time: label(TIME, p.time_commitment) ?? '',
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),
     connection: connectionState(db, viewer.id, p.user_id),
@@ -385,7 +380,6 @@ const FACETS = {
   backgrounds: (p, v) => !v.length || v.includes(p.background_area),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
-  time: (p, v) => !v || p.time_commitment === v,
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
 };
 
@@ -431,7 +425,6 @@ export function parseDiscoverQuery(q) {
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',
-    time: ['full_time', 'part_time'].includes(q.get('time')) ? q.get('time') : '',
     q: (q.get('q') || '').trim().toLowerCase().slice(0, 80),
     // "Più affini" (default) or "Più recenti", over all the results, then 24 per page
     sort: q.get('sort') === 'recent' ? 'recent' : 'match',

@@ -23,12 +23,6 @@ export const IDEA_STAGES = [['idea', 'Solo un\'idea'], ['prototype', 'Ci sto lav
 // Stages used before they were reduced to three, and where each one now belongs
 export const OLD_IDEA_STAGES = { validation: 'prototype', first_customers: 'revenue' };
 
-export const TIME = [
-  ['full_time', 'Full-time', 'È il mio progetto principale'],
-  ['part_time', 'Part-time', 'Accanto al lavoro attuale'],
-  ['tbd', 'Da definire', 'Dipende dal progetto'],
-];
-export const START = [['now', 'Subito'], ['6_months', 'Entro 6 mesi'], ['1_year', 'Entro un anno'], ['later', 'Più avanti']];
 export const SEEKING_LOCATION = [['any', 'Indifferente'], ['same_city', 'Nella mia stessa città'], ['italy', 'In Italia']];
 
 export const REPORT_REASONS = [
@@ -58,7 +52,7 @@ export const TERRITORY_CITIES = COMUNI.filter(c => REGIONAL_CAPITALS.includes(c[
 
 export const catalog = {
   areas: AREAS, sectors: SECTORS, sources: SOURCES, ageBands: AGE_BANDS, years: YEARS, ideaStages: IDEA_STAGES,
-  time: TIME, start: START, seekingLocation: SEEKING_LOCATION, reportReasons: REPORT_REASONS,
+  seekingLocation: SEEKING_LOCATION, reportReasons: REPORT_REASONS,
   workArrangements: WORK_ARRANGEMENTS, employmentTypes: EMPLOYMENT_TYPES, availability: AVAILABILITY,
   comuni: COMUNI, regions: REGIONS, territoryCities: TERRITORY_CITIES,
 };
