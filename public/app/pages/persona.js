@@ -113,7 +113,7 @@ export default class extends Page {
     // in the box with where they live and want to go (the first line, with the country when abroad)
     const facts = [
       ['Rientro', p.arrived],
-      ['Trasferimento', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
+      ['Vorrei trasferirmi', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
     facts.forEach(f => { f.bt = '1px solid #ECE8F7'; }); // under the line of where they live and want to go
     const unlocked = showLinks ? [
