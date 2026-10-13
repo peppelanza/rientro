@@ -76,5 +76,8 @@ test('affinity: a score orders "Più affini" and the strongest reason shows in w
     assert.equal(comp('Citta'), 'Anche Citta vuole vivere a Palermo');
     assert.equal(comp('Idea'), "Ha già un'idea: Un frantoio");
     assert.equal(comp('Nessuno'), null);
+    // on the profile page the idea has its own box: the reason doesn't repeat it
+    const ideaId = people.find(p => p.first_name === 'Idea').id;
+    assert.equal((await me.get(`/api/profiles/${ideaId}`)).body.complement, null);
   } finally { t2.close(); }
 });

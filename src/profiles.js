@@ -316,7 +316,8 @@ export function connectionState(db, viewerId, targetId) {
 //   a complete profile (photo, video, about) up to 8, no words
 // "Indifferente" in Chi stai cercando takes no part in the background signals.
 // affinityFor(viewerP) prepares the viewer's side once, then scores any number of members.
-export function affinityFor(viewerP) {
+// noIdea: the profile page, where the idea has its own box: its reason isn't repeated (the next one shows)
+export function affinityFor(viewerP, { noIdea = false } = {}) {
   if (!viewerP) return () => ({ score: 0, reason: null });
   const vBg = viewerP.background_area;
   const vSeek = seeksAny(viewerP.seeking_backgrounds) ? new Set() : new Set(viewerP.seeking_backgrounds);
@@ -334,7 +335,7 @@ export function affinityFor(viewerP) {
     const theirPlaces = p.lives_in === 'italy' ? [p.lives_in_city].filter(Boolean) : p.desired_comuni;
     const city = theirPlaces.find(c => vPlaces.has(c));
     if (city) add(25, p.lives_in === 'italy' ? `${p.first_name} vive già a ${city}` : `Anche ${p.first_name} vuole vivere a ${city}`);
-    if (viewerP.primary_intent === 'seeking_idea' && p.primary_intent === 'has_idea') add(15, p.idea_title ? `Ha già un'idea: ${p.idea_title}` : "Ha già un'idea e cerca con chi costruirla");
+    if (viewerP.primary_intent === 'seeking_idea' && p.primary_intent === 'has_idea') add(15, noIdea ? null : p.idea_title ? `Ha già un'idea: ${p.idea_title}` : "Ha già un'idea e cerca con chi costruirla");
     else if (viewerP.primary_intent === 'has_idea' && p.primary_intent === 'seeking_idea') add(15, "Cerca un'idea da costruire insieme");
     const shared = p.sectors.filter(x => vSectors.has(x));
     if (shared.length) add(6 * Math.min(shared.length, 3), shared.length >= 2 ? `Ha scelto ${shared[0]} e ${shared[1]}, come te` : null);
@@ -393,7 +394,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     // your own preview: your links, to see which ones your connections get
     ...(self ? { own_links: { linkedin_url: p.linkedin_url, website_url: p.website_url, instagram_handle: p.instagram_handle, x_handle: p.x_handle, calendar_url: p.calendar_url } } : {}),
     connection: conn,
-    complement: complement(viewerP, p),
+    complement: affinityFor(viewerP, { noIdea: true })(p).reason,
     viewer_background: viewerP?.background_area ?? null,
   };
 }
