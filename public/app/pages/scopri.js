@@ -127,7 +127,7 @@ export default class extends Page {
       pagerProps: { onPage: n => this.apply(f, { page: n, scroll: true }) },
       isGrid: res.total > 0, isEmpty: res.total === 0,
       people, cardProps: { onConnect: p => this.connectTo(p) },
-      relax: s.relax, relaxText: s.relax ? `Senza “${s.relax.label}” ci ${s.relax.total === 1 ? 'è 1 persona' : `sono ${s.relax.total} persone`}.` : '',
+      relax: s.relax, relaxText: s.relax ? `Senza “${s.relax.label}” ${s.relax.total === 1 ? 'c’è 1 persona' : `ci sono ${s.relax.total} persone`}.` : '',
       relaxLabel: s.relax ? `Togli solo “${s.relax.label}”` : '', applyRelax: () => this.apply(s.relax.f),
     };
   }
