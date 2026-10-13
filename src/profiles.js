@@ -309,7 +309,7 @@ export function connectionState(db, viewerId, targetId) {
 // reason in words (the purple box on cards and profiles). Each signal adds its weight:
 //   both look for each other's background  60  "Vi cercate a vicenda: …"
 //   they look for your background           35  "Cerca …, il tuo background"
-//   you look for theirs                     30  "Tu cerchi …, Luca è Founder"
+//   you look for theirs                     30  "Tu cerchi …: è il background di Luca"
 //   the same city (to live in, or theirs)   25  "Anche Luca vuole vivere a Palermo"
 //   one has an idea, the other looks for one 15 "Ha già un'idea: …" / "Cerca un'idea da costruire insieme"
 //   each sector in common (up to 3)          6  "Ha scelto … e …, come te" (from two)
@@ -331,7 +331,7 @@ export function affinityFor(viewerP, { noIdea = false } = {}) {
     const youSeekThem = !!p.background_area && vSeek.has(p.background_area);
     if (theySeekYou && youSeekThem) add(60, `Vi cercate a vicenda: ${p.first_name} cerca ${vBg}, tu cerchi ${p.background_area}`);
     else if (theySeekYou) add(35, `Cerca ${vBg}, il tuo background`);
-    else if (youSeekThem) add(30, `Tu cerchi ${p.background_area}, ${p.first_name} è ${p.current_role || p.background_area}`);
+    else if (youSeekThem) add(30, `Tu cerchi ${p.background_area}: è il background di ${p.first_name}`);
     const theirPlaces = p.lives_in === 'italy' ? [p.lives_in_city].filter(Boolean) : p.desired_comuni;
     const city = theirPlaces.find(c => vPlaces.has(c));
     if (city) add(25, p.lives_in === 'italy' ? `${p.first_name} vive già a ${city}` : `Anche ${p.first_name} vuole vivere a ${city}`);
