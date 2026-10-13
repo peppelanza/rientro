@@ -1,5 +1,6 @@
 import { AREA_OTHER, AREA_OTHER_MAX, AREAS, SEEK_MAX, seeksAny, seeksLabel, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
+import { cardFields } from '../public/app/card-fields.js';
 import { paginate } from './paging.js';
 import { hit, terms, wordsOf } from './search.js';
 import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
@@ -378,6 +379,8 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     primary_intent: p.primary_intent,
     idea: p.primary_intent === 'has_idea' && p.idea_title ? { title: p.idea_title, description: p.idea_description, stage: label(IDEA_STAGES, p.idea_stage) } : null,
     background_area: p.background_area, current_role: p.current_role, current_company: p.current_company,
+    // as on the Scopri card (card-fields.js): "Product Manager da Zalando", back from "Londra"
+    job: cardFields(p, YEARS).job, back_from: cardFields(p, YEARS).back_from,
     years_experience: label(YEARS, p.years_experience),
     bio: p.bio, achievement: p.achievement, misses_italy: p.misses_italy,
     sectors: p.sectors,
@@ -408,22 +411,9 @@ export function card(db, viewer, p, viewerP, filters = null) {
   const places = filters?.desired?.length ? first(p.desired_comuni, c => filters.desired.some(pl => wantsPlace({ desired_comuni: [c] }, pl))) : p.desired_comuni;
   return {
     id: p.user_id,
-    name: [p.first_name, p.last_name].filter(Boolean).join(' '),
-    first_name: p.first_name,
+    ...cardFields(p, YEARS, { places, sectors }), // the same in Il tuo profilo's preview
     role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
-    from: p.lives_in_city ?? '',
-    // already back in Italy: where from (shown "Rientrato da X → Y" instead of where they'd like to go)
-    back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
-    to: orList(places, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
-    idea: p.primary_intent === 'has_idea',
-    intent: p.primary_intent,
-    idea_title: p.idea_title,
     seeks: seeksLabel(p.seeking_backgrounds),
-    tags: sectors.slice(0, 3).join(' · '),
-    // the background in place of the interests, with the years ("Tecnologia e ingegneria · 6–10 anni")
-    background: [p.background_area, p.years_experience && `${label(YEARS, p.years_experience)} anni`].filter(Boolean).join(' · '),
-    // under the name: the job still going ("Lavoro ancora qui"), "Product Manager da Deliveroo"
-    job: p.current_role ? [p.current_role, p.current_company].filter(Boolean).join(' da ') : '',
     // filtering by goal: what they want to build
     idea_line: filters?.intent?.includes('has_idea') && p.primary_intent === 'has_idea' && p.idea_title ? p.idea_title : null,
     move: filters?.move?.length ? moveLabel(p) : null,

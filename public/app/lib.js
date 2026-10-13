@@ -1,5 +1,8 @@
 // Shared client helpers: API calls, session, catalog, formatting, toasts and modals.
 import { mountPage } from '../dc/runtime.js';
+import { orList } from './card-fields.js'; // the same as the server's
+
+export { orList };
 
 export async function api(method, path, body, { raw = false } = {}) {
   const headers = { 'x-requested-with': 'rientro' };
@@ -310,8 +313,3 @@ export function debounce(fn, ms = 300) {
 }
 
 // "Napoli", "Napoli o Torino", "Napoli, Torino o Palermo"; past max: "…, Palermo o altre 2 città"
-export function orList(items, max = Infinity) {
-  const list = items.filter(Boolean);
-  if (list.length > max) return `${list.slice(0, max).join(', ')} o altre ${list.length - max} città`;
-  return list.length > 1 ? `${list.slice(0, -1).join(', ')} o ${list.at(-1)}` : (list[0] ?? '');
-}

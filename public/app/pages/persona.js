@@ -125,7 +125,7 @@ export default class extends Page {
     const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.back ? '' : orList(p.desired_comuni, 3) };
     return {
       loading: false, notFound: false, ready: true, me: s.me, ...from(), name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
-      role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
+      role: [p.current_role, p.current_company].filter(Boolean).join(' · '), job: p.job || '', backFrom: p.back_from || '',
       from: [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', '),
       places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown, isBack: !!p.back,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],

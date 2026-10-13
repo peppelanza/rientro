@@ -1030,7 +1030,7 @@ def('App Photo', String.raw`
 
 // ---------------------------------------------------------------------------------------------
 // App Person Card — from UI Person Card (+ real photo, profile link, connection-aware action).
-// Props: person (profiles.card shape), compact, ratio, onConnect(person)
+// Props: person (profiles.card shape), compact, ratio, onConnect(person), href (the profile's link: the preview's own)
 
 def('App Person Card', String.raw`
 <article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
@@ -1060,7 +1060,7 @@ def('App Person Card', String.raw`
     }[c] ?? { l: 'Connettiti', v: 'primary', isConnect: true, fn: null, off: true };
     return {
       // da: where the profile's back link goes (persona.js); noactions: just the card, no buttons
-      p, goingTo: !p.back_from, ratio: this.props.ratio ?? '5/4', href: `/persone/${p.id}${this.props.da ? `?da=${this.props.da}` : ''}`, showActions: !b(this.props.noactions),
+      p, goingTo: !p.back_from, ratio: this.props.ratio ?? '5/4', href: this.props.href || `/persone/${p.id}${this.props.da ? `?da=${this.props.da}` : ''}`, showActions: !b(this.props.noactions),
       badge: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[0], badgeKind: (INTENT_BADGE[p.intent] ?? INTENT_BADGE[p.idea ? 'has_idea' : 'seeking_idea'])[1],
       hasComp: !!p.comp, action,
       secondaryLabel: 'Profilo',

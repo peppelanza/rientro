@@ -505,7 +505,7 @@ export default class extends Page {
       seeks: p?.seeking.label || '—', links, hasLinks: links.length > 0,
       // the summary on the right, as on the Scopri card
       sideBadge: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0] : '', sideBadgeKind: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1] : 'neutral',
-      sideRole: p ? [p.current_role, p.current_company].filter(Boolean).join(' · ') : '',
+      sideRole: p?.job || '', sideBackFrom: p?.back_from || '',
       sideFrom: p ? [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', ') : '',
       sideTo: p && !p.back ? (p.desired_unknown ? 'Non lo sa ancora' : p.places || '') : '', sideBack: !!p?.back,
       sideComp: p?.complement || '',

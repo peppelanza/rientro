@@ -1,5 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
+import { cardFields } from '../card-fields.js';
 import { api, jobLine, pickSector, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
@@ -9,6 +10,9 @@ import { preparePhoto } from '../face.js';
 import { Page } from './_base.js';
 
 export const title = 'Il tuo profilo';
+
+// The job "Lavoro ancora qui" in Esperienze, as the server copies it into current_role / current_company
+const currentJob = p => { const e = (p.experiences || []).find(x => x.current); return { current_role: e?.role || null, current_company: e?.company || null }; };
 export const tabbar = true;
 
 const SECTIONS = [
@@ -81,6 +85,8 @@ export default class extends Page {
   save = this.act(async () => {
     const s = this.state;
     const body = Object.fromEntries(this.sec[2].map(k => [k, nz(s.p[k])]));
+    // "Altro" chosen with nothing written: the background can't stay empty (onboarding asks it too)
+    if ('background_area' in body && !body.background_area) { toast(s.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area', { tone: 'err' }); return; }
     if (body.lives_in === 'italy') delete body.lives_in_country;
     const saved = await api('PATCH', '/api/me/profile', body);
     s.me.profile = { ...s.me.profile, ...saved };
@@ -223,15 +229,10 @@ export default class extends Page {
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: jobLine(p),
       // The card as others see it in Scopri chi torna (same as the server's profiles.js card())
       pvPerson: {
-        id: me.user.id, name: [p.first_name, p.last_name].filter(Boolean).join(' '), first_name: p.first_name,
-        role: jobLine(p), from: p.lives_in_city ?? '',
-        back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
-        to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
-        idea: p.primary_intent === 'has_idea', intent: p.primary_intent, idea_title: p.idea_title,
-        seeks: seeksText(cat.areas, p.seeking_backgrounds), tags: p.sectors.slice(0, 3).join(' · '), comp: null,
-        job: (e => (e ? [e.role, e.company] : [p.current_role, p.current_company]).filter(Boolean).join(' da '))((p.experiences || []).find(x => x.current)),
-        background: [p.background_area, p.years_experience && `${cat.years.find(([v]) => v === p.years_experience)?.[1] ?? p.years_experience} anni`].filter(Boolean).join(' · '),
-        photo_url: p.photo_url, connection: null,
+        id: me.user.id,
+        // the job as the server keeps it once saved: the one marked "Lavoro ancora qui"
+        ...cardFields({ ...p, ...currentJob(p) }, cat.years),
+        role: jobLine(p), seeks: seeksText(cat.areas, p.seeking_backgrounds), comp: null, photo_url: p.photo_url, connection: null,
       },
       pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',
       previewHref: status === 'approved' ? `/persone/${me.user.id}?anteprima=1` : '/onboarding?passo=anteprima',

@@ -125,7 +125,7 @@ export default class extends Page {
       peopleTab: !groupsTab, groupsTab,
       // Persone: a row each, the words highlighted; found elsewhere in the profile, it says where
       rows: groupsTab ? [] : (res?.people || []).map(p => {
-        const one = mark(p.role, words); const two = mark(routeOf(p), words);
+        const one = mark(p.job, words); const two = mark(routeOf(p), words);
         return {
           name: p.name, photo: p.photo_url, ini: initials(p.name), href: `/persone/${p.id}?da=cerca`, // back: "Torna ai risultati"
           a: one.a, m1: one.m, b: one.b, has1: !!one.m, c: two.a, m2: two.m, d: two.b, has2: !!two.m,
