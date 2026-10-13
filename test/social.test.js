@@ -338,7 +338,9 @@ test('emails are branded and escape what members write', async () => {
   const otp = loginCodeEmail('123456');
   assert.match(otp.html, /Rientro<span[^>]*>\.<\/span>/);
   assert.match(otp.html, /123456/);
-  assert.match(welcomeEmail({ launched: false }).subject, /apriamo il 1° gennaio 2027/);
+  assert.match(welcomeEmail({ launched: false }).subject, /il tuo profilo è pronto/);
+  assert.match(welcomeEmail({ launched: false }).text, /Apriamo il 1° gennaio 2027/);
+  assert.match(welcomeEmail({ launched: false, firstName: '<b>Gio</b>', inviteUrl: 'https://www.rientro.it/?gio1234' }).html, /&lt;b&gt;Gio&lt;\/b&gt;[\s\S]*www\.rientro\.it\/\?gio1234/);
   assert.match(welcomeEmail({ launched: true }).html, /Scopri chi torna/);
   const d = digestEmail({ requests: [{ name: '<b>X</b>', note: '<script>' }], messages: [] });
   assert.ok(!d.html.includes('<script>') && d.html.includes('&lt;script&gt;'));

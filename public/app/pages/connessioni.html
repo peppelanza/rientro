@@ -31,7 +31,7 @@
 <sc-for list="{{ received }}" as="r">
 <div class="conn-card" aria-label="{{ r.aria }}">
 <a href="{{ r.href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" size="56" src="{{ r.photo }}" initials="{{ r.ini }}"></dc-import></a>
-<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><a href="{{ r.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:13px;color:#6B6680">{{ r.role }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">RICHIESTA · {{ r.when }}</span><sc-if value="{{ r.note }}"><span class="conn-note">{{ r.note }}</span></sc-if></div>
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><a href="{{ r.href }}" style="font-weight:600;color:#1A1726;text-decoration:none">{{ r.name }}</a><span style="font-size:13px;color:#6B6680">{{ r.role }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#8C84AE">RICHIESTA · {{ r.when }}</span><sc-if value="{{ r.viaInvite }}"><span class="invite-badge">Invitato con il tuo link</span></sc-if><sc-if value="{{ r.note }}"><span class="conn-note">{{ r.note }}</span></sc-if></div>
 <div class="conn-actions"><dc-import name="UI Button" label="Accetta" variant="accent" size="sm" on-click="{{ r.accept }}"></dc-import><dc-import name="UI Button" label="Rifiuta" variant="secondary" size="sm" on-click="{{ r.decline }}"></dc-import></div>
 </div>
 </sc-for>

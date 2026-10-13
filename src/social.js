@@ -146,7 +146,7 @@ function allConnections(db, viewer) {
   rows.splice(0, rows.length, ...rows.filter(c => best.get(other(c)) === c));
   return {
     connected: rows.filter(c => c.status === 'accepted').map(c => toCard(c.requester_id === viewer.id ? c.addressee_id : c.requester_id, { connection_id: c.id, since: c.responded_at })),
-    received: rows.filter(c => c.status === 'pending' && c.addressee_id === viewer.id).map(c => toCard(c.requester_id, { connection_id: c.id, note: c.note, created_at: c.created_at })),
+    received: rows.filter(c => c.status === 'pending' && c.addressee_id === viewer.id).map(c => toCard(c.requester_id, { connection_id: c.id, note: c.note, created_at: c.created_at, via_invite: c.via_invite === 1 })),
     sent: rows.filter(c => c.status === 'pending' && c.requester_id === viewer.id).map(c => toCard(c.addressee_id, { connection_id: c.id, note: c.note, created_at: c.created_at })),
   };
 }

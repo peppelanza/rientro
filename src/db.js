@@ -55,6 +55,11 @@ function migrateUserColumns(db) {
   if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
   if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
   if (!have.has('onboarding_reminded_at')) db.exec('ALTER TABLE users ADD COLUMN onboarding_reminded_at TEXT');
+  // Invite links (invites.js): each member's own code, and who invited whom
+  if (!have.has('invite_code')) db.exec('ALTER TABLE users ADD COLUMN invite_code TEXT; CREATE UNIQUE INDEX IF NOT EXISTS users_invite_code ON users(invite_code);');
+  if (!have.has('invited_by')) db.exec('ALTER TABLE users ADD COLUMN invited_by TEXT REFERENCES users(id) ON DELETE SET NULL');
+  const connCols = new Set(db.prepare('PRAGMA table_info(connections)').all().map(c => c.name));
+  if (!connCols.has('via_invite')) db.exec('ALTER TABLE connections ADD COLUMN via_invite INTEGER NOT NULL DEFAULT 0');
   const notifCols = new Set(db.prepare('PRAGMA table_info(notifications)').all().map(c => c.name));
   // Email digests (email-digest.js): what is already there was seen in the app before emails existed
   if (!notifCols.has('emailed_at')) db.exec("ALTER TABLE notifications ADD COLUMN emailed_at TEXT; UPDATE notifications SET emailed_at = created_at;");
@@ -83,6 +88,7 @@ function collapseMessageNotifications(db) {
 const NEW_PROFILE_COLUMNS = {
   arrived_from_country: 'TEXT', arrived_from_city: 'TEXT', arrived_after: 'TEXT', arrived_before: 'TEXT',
   birth_year: 'INTEGER', suggested_photo_url: 'TEXT', photo_check: 'TEXT',
+  invite_connect: 'INTEGER', invite_note: 'TEXT', // onboarding: ask the inviter to connect (invites.js)
 };
 export function addProfileColumns(db) {
   const have = new Set(db.prepare('PRAGMA table_info(profiles)').all().map(c => c.name));

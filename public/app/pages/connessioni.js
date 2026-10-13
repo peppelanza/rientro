@@ -92,7 +92,7 @@ export default class extends Page {
       noConns: s.tab === 'connessioni' && !items.length, noConnsLabel: none || 'Nessuna connessione accettata per ora.',
       // Ricevute and Inviate: the same cards as Connessioni, with the note and the answer
       received: (s.tab === 'ricevute' ? items : []).map(c => ({
-        ...card(c), aria: `Richiesta di ${c.name}`, accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
+        ...card(c), viaInvite: !!c.via_invite, aria: `Richiesta di ${c.name}`, accept: () => this.respond(c, 'accept'), decline: () => this.respond(c, 'decline'),
       })),
       noReceived: s.tab === 'ricevute' && !items.length, noReceivedLabel: none || 'Nessuna richiesta in attesa.',
       sent: (s.tab === 'inviate' ? items : []).map(c => ({ ...card(c), aria: `Richiesta a ${c.name}`, withdraw: () => this.respond(c, 'withdraw') })),

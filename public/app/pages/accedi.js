@@ -30,7 +30,12 @@ export default class extends Page {
   }
 
   async load() {
-    const launch = await fetch('/api/public/launch').then(r => r.json()).catch(() => null);
+    const [launch, invite] = await Promise.all([
+      fetch('/api/public/launch').then(r => r.json()).catch(() => null),
+      // Came through someone's invite link (invites.js)
+      fetch('/api/public/invite').then(r => r.json()).catch(() => null),
+    ]);
+    this.state.inviter = invite?.inviter || null;
     const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
     const city = (qs().get('citta') ?? '').trim().slice(0, 80);
     Object.assign(this.state, { launch, launchDate: date, city });
@@ -101,6 +106,7 @@ export default class extends Page {
     const wait = Math.max(0, Math.ceil((s.resendAt - Date.now()) / 1000));
     const error = !!s.codeError;
     return {
+      invitedBy: s.inviter ? `${s.inviter.name} ti ha invitato su Rientro` : '',
       stepChoose: s.step === 'choose', stepEmail: s.step === 'email', stepCode: s.step === 'code',
       // One way in: a new email creates the account, a known one signs in
       title: 'Accedi a Rientro',

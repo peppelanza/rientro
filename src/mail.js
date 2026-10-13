@@ -44,29 +44,28 @@ export function sendLoginCodeEmail(email, codeValue) {
     .catch(() => { throw new HttpError(503, 'email_unavailable', 'Non riusciamo a inviare il codice in questo momento. Riprova tra poco.'); });
 }
 
-// --- Welcome (once, when the account is created): how Rientro works, before or after launch ---
+// --- Welcome (once, when the profile goes online): what happens next, and the member's invite link ---
 
-export function welcomeEmail({ launched = isLaunched() } = {}) {
+export function welcomeEmail({ firstName = null, inviteUrl = null, launched = isLaunched() } = {}) {
   const date = launchDate();
+  const hello = `Ciao${firstName ? ` ${firstName}` : ''}, ${launched ? 'il tuo profilo è online: da adesso gli altri possono trovarti.' : 'il tuo profilo è pronto.'}`;
   const how = [
-    ['Completa il profilo', 'Foto, chi sei, dove vivi e dove vorresti tornare, cosa stai cercando: un’idea da costruire insieme, un co-founder, o semplicemente persone come te.'],
-    launched
-      ? ['Scopri chi torna', 'Cerca per città, competenze e settori. Vedi subito chi ha un profilo complementare al tuo.']
-      : [`Il ${date} apriamo`, `Da quel giorno potrai scoprire chi torna, filtrare per città, competenze e settori. Ti scriveremo il giorno del lancio.`],
-    ['Connettiti con una nota', 'Invii una richiesta con due righe su di te. Se accetta, potete scrivervi e si sbloccano Instagram, X e il calendario.'],
+    ['Scopri chi torna', launched ? 'Nella tua città o con competenze complementari alle tue.' : 'Filtrando per città, competenze e settori.'],
+    ['Connettiti con una nota', 'Due righe su di te: se accetta, potete scrivervi e si sbloccano Instagram, X e il calendario.'],
+    [launched ? 'Segui i gruppi' : 'Entra nei gruppi', 'Della tua città e dei tuoi settori.'],
   ];
-  const intro = launched
-    ? 'Rientro è la community di chi vuole tornare in Italia o al Sud per costruire qualcosa. Ecco come funziona.'
-    : `Rientro è la community di chi vuole tornare in Italia o al Sud per costruire qualcosa. Apriamo il ${date}: intanto prepara il tuo profilo, così il giorno del lancio sarai tra i primi.`;
-  const cta = launched ? ['Completa il profilo', url('/onboarding')] : ['Prepara il tuo profilo', url('/onboarding')];
+  const lead = launched ? '' : `Apriamo il ${date}. Quel giorno ti scriviamo e potrai:`;
+  const invite = inviteUrl && `Invita chi conosci con il tuo link personale: chi si iscrive con il tuo link può chiederti ${launched ? 'subito di connettervi' : 'di connettervi già prima del lancio'}. Più persone inviti, più persone potranno trovarti.`;
+  const cta = launched ? ['Scopri chi torna', url('/scopri')] : ['Vedi il tuo profilo', url('/profilo')];
+  const privacy = 'Il tuo profilo è visibile solo agli altri membri di Rientro.';
   return {
-    subject: launched ? 'Benvenuto su Rientro' : `Benvenuto su Rientro: apriamo il ${date}`,
-    text: `Benvenuto su Rientro!\n\n${intro}\n\n${how.map(([t, d], i) => `${i + 1}. ${t}: ${d}`).join('\n')}\n\nIl tuo profilo è visibile solo agli altri membri di Rientro.\n\n${cta[0]}: ${cta[1]}${textFooter}`,
+    subject: launched ? 'Benvenuto su Rientro' : 'Benvenuto su Rientro, il tuo profilo è pronto',
+    text: [hello, lead, how.map(([t, d], i) => `${i + 1}. ${t}: ${d}`).join('\n'), invite && `${invite}\n${inviteUrl}`, `${cta[0]}: ${cta[1]}`, privacy].filter(Boolean).join('\n\n') + textFooter,
     html: layout({
-      preheader: launched ? 'Come funziona Rientro, in tre passi.' : `Apriamo il ${date}. Intanto prepara il tuo profilo.`,
-      body: (launched ? '' : eyebrow(`Apre il ${date}`)) + h1('Benvenuto su Rientro') + p(intro)
-        + steps(how) + button(...cta)
-        + p('Il tuo profilo è visibile solo agli altri membri di Rientro.', { size: 13, color: '#8C84AE', margin: '0' }),
+      preheader: launched ? 'Il tuo profilo è online.' : `Il tuo profilo è pronto. Apriamo il ${date}.`,
+      body: h1('Benvenuto su Rientro') + p(esc(hello)) + (lead ? p(lead) : '') + steps(how)
+        + (invite ? p(esc(invite)) + note(`<a href="${esc(inviteUrl)}" style="color:#6C4DF5;font-weight:600;text-decoration:none">${esc(inviteUrl.replace(/^https?:\/\//, ''))}</a>`) : '')
+        + button(...cta) + p(privacy, { size: 13, color: '#8C84AE', margin: '0' }),
     }),
   };
 }

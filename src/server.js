@@ -21,6 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
+import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
 import { pageHtml, seoFor, sitemapPaths } from './seo.js';
@@ -285,11 +286,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return { ok: true, ...(showCodeOnPage() ? { dev_code: code } : {}) };
   }, pub);
 
-  route('POST', '/api/auth/verify-code', async ({ req, res }) => {
+  route('POST', '/api/auth/verify-code', async ({ req, res, cookies }) => {
     const body = await readJson(req);
     limitVerify(`v:${clientIp(req)}`);
     const { sessionToken, user, restored, isNew } = auth.verifyCode(db, body, req.headers['user-agent']);
-    if (isNew) sendWelcome(user.email);
+    if (isNew) recordInvite(db, user.id, cookies[INVITE_COOKIE]);
     if (user.status === 'suspended') {
       auth.logout(db, sessionToken);
       throw new HttpError(403, 'suspended', 'Questo account è sospeso. Scrivici se pensi sia un errore.');
@@ -329,7 +330,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
         return out;
       });
-      if (isNew) sendWelcome(user.email);
+      if (isNew) recordInvite(db, user.id, cookies[INVITE_COOKIE]);
       if (user.status === 'suspended') { auth.logout(db, sessionToken); return back(res, 'sospeso'); }
       const set = [cookie(STATE_COOKIE, '', 0, statePath), ...sessionCookie(sessionToken, config.sessionTtlDays * 86400)];
       if (restored) set.push(cookie('rientro_flash', encodeURIComponent('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.'), 120, { httpOnly: false }));
@@ -382,6 +383,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',
   }), pub);
+  // The sign-in page of someone who came through an invite link: who invited them (invites.js)
+  route('GET', '/api/public/invite', ({ cookies }) => ({ inviter: inviterForCode(db, cookies[INVITE_COOKIE]) }), pub);
   route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: oauthEnabled('linkedin'), google: oauthEnabled('google'), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));
@@ -399,6 +402,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     communication: prefs.getCommunicationPreferences(db, user.id),
     job_seeking_notice: { text: JOB_SEEKING_NOTICE_TEXT, version: LEGAL_VERSIONS.job_seeking_notice },
     counts: social.badgeCounts(db, user),
+    invite: inviteInfo(db, user),
     // An admin in "Accedi come" sees the member's whole site, even before launch
     launched: isLaunched() || imp,
     ...(user.role === 'admin' ? { admin_url: adminUrl(), site_url: `${config.baseUrl}/` } : {}),
@@ -462,7 +466,17 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   // The member keeps this take (Continua, or leaves the profile page): convert it in the background
   route('POST', '/api/me/video/confirm', ({ user }) => { confirmVideo(db, user.id); return { ok: true }; });
   route('DELETE', '/api/me/video', ({ user }) => { removeVideo(db, user.id); return { ok: true }; });
-  route('POST', '/api/me/submit', ({ user, cookies }) => { profiles.publishProfile(db, user); return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id), cookies); });
+  route('POST', '/api/me/submit', ({ user, cookies }) => {
+    profiles.publishProfile(db, user);
+    // The profile just went online: the request to the inviter chosen in onboarding (invites.js),
+    // and the welcome email, with the member's own invite link
+    if (user.status === 'onboarding') {
+      connectInviter(db, user);
+      const info = inviteInfo(db, { ...user, status: 'approved' });
+      sendWelcome(user.email, { firstName: db.prepare('SELECT first_name FROM profiles WHERE user_id = ?').get(user.id)?.first_name, inviteUrl: info.url });
+    }
+    return me(db.prepare('SELECT * FROM users WHERE id = ?').get(user.id), cookies);
+  });
 
   route('PUT', '/api/me/job-seeking', async ({ user, req, url }) => {
     const source = url.searchParams.get('source') === 'onboarding' ? 'onboarding' : 'settings';
@@ -668,6 +682,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       }
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
+        // An invite link (rientro.it/?gius2839, invites.js): remembered for the sign-up, then the page without it
+        const invite = url.search.slice(1).toLowerCase();
+        if (INVITE_CODE.test(invite) && !path.extname(p)) {
+          res.writeHead(302, { Location: p, 'Set-Cookie': cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400), 'Cache-Control': 'no-store' });
+          res.end();
+          return;
+        }
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
         // The app shell, with Cloudflare's visit counter except in the admin panel (web-analytics.js)
         const shell = ({ track = true } = {}) => {
@@ -746,10 +767,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   return { db, handle, server: http.createServer(handle) };
 }
 
-// Welcome email on sign-up (mail.js): never holds up the sign-in, and only with an email provider
-function defaultSendWelcome(email) {
+// Welcome email once the profile is online (mail.js): never holds it up, and only with an email provider
+function defaultSendWelcome(email, opts) {
   if (!canSendEmail()) return;
-  sendWelcomeEmail(email).catch(err => console.error('[welcome]', err.message));
+  sendWelcomeEmail(email, opts).catch(err => console.error('[welcome]', err.message));
 }
 
 async function defaultSendLoginCode(email, code) {

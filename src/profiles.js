@@ -88,6 +88,9 @@ const EDITABLE = {
   calendar_url: v => httpsUrl(v, 'Link calendario'),
   source: v => oneOf(v, SOURCES, 'Come hai conosciuto Rientro'),
   onboarding_step: v => text(v, 'step', { max: 20 }),
+  // Who came through an invite link: ask the inviter to connect once the profile is online (invites.js)
+  invite_connect: v => (v === null ? null : bool(v, 'Connessione')),
+  invite_note: v => text(v, 'Nota', { max: 300 }),
 };
 
 const JSON_FIELDS = new Set(['desired_comuni', 'sectors', 'seeking_backgrounds']);
@@ -116,6 +119,7 @@ export function getOwnProfile(db, userId) {
     desired_unknown: p.desired_unknown === 1,
     arrived_when: arrivedWhen(p),
     video_connections_only: p.video_connections_only === 1,
+    invite_connect: p.invite_connect === null ? null : p.invite_connect === 1,
     visible: p.visible === 1,
     photo_url: fileUrl(p.photo_file_id),
     video_url: fileUrl(p.video_file_id),

@@ -1,6 +1,6 @@
 // Before launch: where a member lands once their profile is online. A big "your profile is ready"
 // box with a countdown to launch, and a small preview of their profile that opens the editor (/profilo).
-import { api, getMe, go, orList } from '../lib.js';
+import { api, getMe, go, orList, toast } from '../lib.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Il tuo profilo è pronto';
@@ -40,7 +40,7 @@ export default class extends Page {
     }, 1000);
   }
 
-  componentWillUnmount() { clearInterval(this.tick); }
+  componentWillUnmount() { clearInterval(this.tick); clearTimeout(this.copiedTimer); }
 
   renderVals() {
     const s = this.state;
@@ -54,6 +54,15 @@ export default class extends Page {
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city || p.lives_in_country || '', to: places, hasRoute: !!((p.lives_in_city || p.lives_in_country) && places),
       open: () => go('/profilo'),
+      // The member's invite link (invites.js)
+      inviteUrl: s.me.invite?.url, inviteShort: (s.me.invite?.url || '').replace(/^https?:\/\/(www\.)?/, ''),
+      copyLabel: s.copied ? 'Copiato ✓' : 'Copia link', canShare: !!navigator.share,
+      copy: async () => {
+        try { await navigator.clipboard.writeText(s.me.invite.url); } catch { toast('Non riusciamo a copiarlo: selezionalo e copialo a mano.', { tone: 'err' }); return; }
+        s.copied = true; this.__rerender();
+        clearTimeout(this.copiedTimer); this.copiedTimer = setTimeout(() => { s.copied = false; this.__rerender(); }, 2500);
+      },
+      share: () => navigator.share({ title: 'Rientro', text: 'Ti invito su Rientro, la community di chi torna in Italia o al Sud per costruire qualcosa.', url: s.me.invite.url }).catch(() => {}),
     };
   }
 }

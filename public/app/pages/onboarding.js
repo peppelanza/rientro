@@ -16,7 +16,7 @@ const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
   ['presentati', 'Su di te'], ['video', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
   ['link', 'Su di te'], ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'],
-  ['manca', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
+  ['manca', 'Ultimi dettagli'], ['invito', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
 ];
 
 // Profile fields saved by each step
@@ -33,6 +33,7 @@ const FIELDS = {
   settori: ['sectors'],
   chi: ['seeking_backgrounds', 'seeking_description', 'seeking_location'],
   manca: ['misses_italy'],
+  invito: ['invite_connect', 'invite_note'],
   link: ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url'],
   fonte: ['source'],
 };
@@ -94,7 +95,8 @@ export default class extends Page {
   // came back (it's where they live); the idea step only for who has one
   get steps() {
     const p = this.state.p;
-    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'dove' || !isBack(p)) && (k !== 'idea' || p?.primary_intent === 'has_idea'));
+    return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'dove' || !isBack(p)) && (k !== 'idea' || p?.primary_intent === 'has_idea')
+      && (k !== 'invito' || !!this.state.me?.invite?.invited_by));
   }
 
   goTo(step) {
@@ -119,6 +121,7 @@ export default class extends Page {
       case 'arrivo': return !nz(p.arrived_from_country) ? 'Indica il paese' : !nz(p.arrived_from_city) ? 'Indica la città' : !p.arrived_when ? 'Indica quando è stato il rientro' : null;
       case 'dove': return p.desired_comuni.length || p.desired_unknown ? null : 'Scegli almeno un comune';
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
+      case 'invito': return p.invite_connect === null || p.invite_connect === undefined ? 'Scegli una delle due opzioni' : null;
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
       case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
       case 'background': return p.background_area ? null : this.state.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area';
@@ -273,6 +276,7 @@ export default class extends Page {
       if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
     }
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
+    const inviter = s.me?.invite?.invited_by || {};
     const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');
@@ -307,7 +311,7 @@ export default class extends Page {
       is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'),
-      is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'),
+      is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'), is_invito: is('invito'),
 
       // Callback bundles for app components (functions reach components as props via dc-props)
       footProps: { onNext: () => this.next(), onSkip: () => this.next(true), onBack: () => this.back() },
@@ -463,6 +467,13 @@ export default class extends Page {
 
       // 22a
       sources: cat.sources.map(t => ({ t, ...card(p.source === t, () => this.set({ source: t })) })),
+      // Who came through an invite link (invites.js): the request leaves when the profile goes online
+      inviter, inviterIni: `${(inviter.first_name || '?')[0]}${(inviter.last_name || '')[0] || ''}`.toUpperCase(),
+      inviteHint: s.me.launched ? `Riceverà la tua richiesta appena il tuo profilo sarà online.` : `Riceverà la tua richiesta appena il tuo profilo sarà online: potrete scrivervi dal giorno del lancio, quando accetterà.`,
+      inviteYes: card(p.invite_connect === true, () => this.set({ invite_connect: true })),
+      inviteNo: card(p.invite_connect === false, () => this.set({ invite_connect: false })),
+      inviteNoteLabel: `Due righe per ${inviter.first_name || 'chi ti ha invitato'}`, inviteNote: p.invite_note ?? '',
+      inviteNoteProps: { onInput: v => { p.invite_note = v; } },
 
       // 23a
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Il tuo nome', pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),

@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS users (
   deletion_requested_at TEXT,
   deletion_reason       TEXT,
   -- "Il tuo profilo è quasi pronto": sent once to who left the profile halfway (onboarding-reminder.js)
-  onboarding_reminded_at TEXT
+  onboarding_reminded_at TEXT,
+  -- Invite links (invites.js): the member's own code (rientro.it/invito/<code>), and who invited them
+  invite_code   TEXT UNIQUE,
+  invited_by    TEXT REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- 6-digit sign-in codes (design 5a/5b). Only a salted hash of the code is stored.
@@ -82,6 +85,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   suggested_photo_url    TEXT,
   -- Automatic check of the profile photo that didn't pass (face.js): reviewed by the admin after sign-up
   photo_check            TEXT,
+  invite_connect         INTEGER,   -- onboarding, who came through an invite link: 1 = ask the inviter to connect, 0 = no (invites.js)
+  invite_note            TEXT,
   age_band               TEXT CHECK (age_band IS NULL OR age_band IN ('18-24', '25-29', '30-34', '35-39', '40-44', '45-50+')),
   bio                    TEXT,
   photo_file_id          TEXT REFERENCES files(id) ON DELETE SET NULL,
@@ -230,7 +235,8 @@ CREATE TABLE IF NOT EXISTS connections (
   status        TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'declined', 'withdrawn')),
   note          TEXT,
   created_at    TEXT NOT NULL,
-  responded_at  TEXT
+  responded_at  TEXT,
+  via_invite    INTEGER NOT NULL DEFAULT 0   -- asked in onboarding by someone who came through this member's invite link
 );
 CREATE INDEX IF NOT EXISTS connections_pair ON connections(requester_id, addressee_id);
 CREATE INDEX IF NOT EXISTS connections_addressee ON connections(addressee_id, status);
