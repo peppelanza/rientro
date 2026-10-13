@@ -263,6 +263,7 @@ const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|su
 
 export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode, sendWelcome = defaultSendWelcome, loginLimits = { ip: 20, email: 5 }, oauthFetch = fetch, emailDomainCheck = checkEmailDomain, turnstileFetch = fetch, cfFetch = fetch } = {}) {
   groups.seedGroups(db);
+  demo.completeTestProfile(db); // the test person with a complete profile (demo.js)
   const limitIp = rateLimiter(loginLimits.ip, 15 * 60_000);
   const limitEmail = rateLimiter(loginLimits.email, 15 * 60_000);
   const limitVerify = rateLimiter(loginLimits.ip, 15 * 60_000);

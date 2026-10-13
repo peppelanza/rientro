@@ -15,6 +15,30 @@ import { eraseAccount } from './privacy.js';
 import { arrivedRange } from './profiles.js';
 
 export const DEMO_DOMAIN = 'prova.rientro.invalid';
+// One test person with everything onboarding asks filled in (links, experiences, education…), to see
+// a complete profile: Giulia Ferrara. Done when she's created and, for one created before, at start.
+const COMPLETE_EMAIL = `giulia.ferrara@${DEMO_DOMAIN}`;
+export function completeTestProfile(db) {
+  const u = db.prepare('SELECT u.id FROM users u JOIN profiles p ON p.user_id = u.id WHERE u.email = ? AND p.achievement IS NULL').get(COMPLETE_EMAIL);
+  if (!u) return;
+  tx(db, () => {
+    db.prepare(`UPDATE profiles SET achievement = ?, move_when = '0_3m', seeking_description = ?, seeking_location = 'same_city',
+      linkedin_url = ?, website_url = ?, instagram_handle = ?, x_handle = ?, calendar_url = ?, current_role = ?, current_company = ? WHERE user_id = ?`).run(
+      'Ho lanciato in 9 paesi il servizio di consegna della spesa di Deliveroo: da zero a 2 milioni di ordini al mese.',
+      'Un CTO che abbia già costruito un marketplace e voglia vivere in Sicilia.',
+      'https://www.linkedin.com/in/esempio', 'https://www.esempio.it', '@esempio', '@esempio', 'https://cal.com/esempio',
+      'Senior Product Manager', 'Deliveroo', u.id);
+    db.prepare('DELETE FROM experiences WHERE user_id = ?').run(u.id);
+    db.prepare('DELETE FROM education WHERE user_id = ?').run(u.id);
+    const exp = db.prepare('INSERT INTO experiences (id, user_id, company, role, city, start_month, end_month, current, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    exp.run(newId(), u.id, 'Deliveroo', 'Senior Product Manager', 'Londra', '2019-04', null, 1, 0);
+    exp.run(newId(), u.id, 'Just Eat', 'Product Manager', 'Londra', '2016-02', '2019-03', 0, 1);
+    exp.run(newId(), u.id, 'Yoox Net-a-Porter', 'Product Analyst', 'Milano', '2013-09', '2016-01', 0, 2);
+    const edu = db.prepare('INSERT INTO education (id, user_id, school, degree, years, position) VALUES (?, ?, ?, ?, ?, ?)');
+    edu.run(newId(), u.id, 'Politecnico di Milano', 'Laurea magistrale in Ingegneria gestionale', '2011 – 2013', 0);
+    edu.run(newId(), u.id, 'Università di Catania', 'Laurea in Economia aziendale', '2008 – 2011', 1);
+  });
+}
 export const isDemoEmail = email => typeof email === 'string' && email.toLowerCase().endsWith(`@${DEMO_DOMAIN}`);
 export const NOT_DEMO_SQL = `u.email NOT LIKE '%@${DEMO_DOMAIN}'`;
 
@@ -96,6 +120,7 @@ export function createDemoPeople(db, admin) {
     attachUpload(db, { id, status: 'approved' }, 'profile_photo', { key, mime: 'image/png', size: buf.length, sha256: crypto.createHash('sha256').update(buf).digest('hex') });
     created.push(id);
   });
+  completeTestProfile(db);
   audit(db, admin.id, 'demo.create', null, { count: created.length });
   return { created: created.length, total: demoCount(db) };
 }

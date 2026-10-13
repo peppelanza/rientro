@@ -120,7 +120,7 @@ export default class extends Page {
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
       ['X', L.x_handle && `${L.x_handle} ↗`, handleUrl('https://x.com/', L.x_handle)], ['Calendario', L.calendar_url && 'Prenota una call ↗', L.calendar_url],
-    ].filter(([, v]) => v).map(([k, v, href], i) => ({ k, v, href, bt: i ? '1px solid #ECE8F7' : 'none' })) : [];
+    ].filter(([, v]) => v).map(([k, v, href], i) => ({ k, v: v.replace(/ ↗$/, ''), href, bt: i ? '1px solid #ECE8F7' : 'none', isLinkedin: k === 'LinkedIn', isSite: k === 'Sito', isInstagram: k === 'Instagram', isX: k === 'X', isCalendar: k === 'Calendario' })) : [];
     const seeksMe = p.viewer_background && !p.seeking.any && p.seeking.backgrounds.includes(p.viewer_background);
     const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.back ? '' : orList(p.desired_comuni, 3) };
     return {
