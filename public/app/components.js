@@ -828,13 +828,18 @@ def('App Site Header', String.raw`
 // dc-import (on-click), like UI Checkbox.
 
 def('App Checkbox', String.raw`
-<div style="display:flex;align-items:center;gap:14px;min-height:44px;font-family:'Geist',sans-serif;font-size:17px;font-weight:500;color:#1A1726;cursor:pointer">
-<span style="width:28px;height:28px;border-radius:9px;flex:none;box-sizing:border-box;background:{{ bg }};border:{{ bd }};color:#FFFFFF;font-size:16px;display:flex;align-items:center;justify-content:center">{{ mark }}</span>
+<div style="display:flex;align-items:center;gap:{{ gap }}px;min-height:{{ mh }}px;font-family:'Geist',sans-serif;font-size:{{ fs }}px;font-weight:500;color:#1A1726;cursor:pointer">
+<span style="width:{{ box }}px;height:{{ box }}px;border-radius:{{ r }}px;flex:none;box-sizing:border-box;background:{{ bg }};border:{{ bd }};color:#FFFFFF;font-size:{{ ms }}px;display:flex;align-items:center;justify-content:center">{{ mark }}</span>
 <span>{{ label }}</span>
 </div>`, class extends DCLogic {
   renderVals() {
     const on = b(this.props.checked);
-    return { label: this.props.label ?? '', bg: on ? '#6C4DF5' : '#FFFFFF', bd: on ? 'none' : '2px solid #CFC8E8', mark: on ? '✓' : '' };
+    // size="sm": the size of the other fields in Il tuo profilo (default: onboarding's large one)
+    const sm = this.props.size === 'sm';
+    return {
+      label: this.props.label ?? '', bg: on ? '#6C4DF5' : '#FFFFFF', bd: on ? 'none' : `${sm ? 1.5 : 2}px solid #CFC8E8`, mark: on ? '✓' : '',
+      gap: sm ? 10 : 14, mh: sm ? 32 : 44, fs: sm ? 14 : 17, box: sm ? 20 : 28, r: sm ? 7 : 9, ms: sm ? 12 : 16,
+    };
   }
 });
 
