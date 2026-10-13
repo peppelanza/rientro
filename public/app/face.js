@@ -80,25 +80,33 @@ async function check(file) {
 }
 
 // Resolution: photos show up to about 400 px wide, so 800 px keeps them sharp on retina screens.
-// The crop is never enlarged: if framing tighter would leave fewer than CROP_SIDE pixels, it zooms
-// out instead (down to the whole photo). Below MIN_SIDE the photo goes to the admin's checks.
+// The crop is never enlarged: it aims for at least CROP_SIDE pixels, going below only to centre the
+// face (not below MIN_SIDE). Below MIN_SIDE the photo goes to the admin's checks.
 const MIN_SIDE = 400;
 const CROP_SIDE = 800;
 
 // Square sized on the face, not just placed on it: about 2.6 times the face (head, hair and
 // shoulders), the face a little above the middle so it stays in view in the round avatars and the
 // 5:4 cards alike, and always whole inside the square with some room around it.
-async function frame(bitmap, face, name) {
-  const W = bitmap.width, H = bitmap.height;
-  const side = Math.round(Math.min(W, H, Math.max(face.width * 2.6, face.height * 2.6, CROP_SIDE)));
+// When that square would bump into the photo's edge (a webcam shot, 16:9, where 2.6 times the face
+// is already the whole height), it gets smaller so the face can still sit in the middle both ways,
+// down to twice the face: being centred matters more than the extra pixels.
+export function cropBox(W, H, face) {
+  const big = Math.max(face.width, face.height);
   const cx = face.originX + face.width / 2, cy = face.originY + face.height / 2 + face.height * 0.1;
+  const want = Math.min(W, H, Math.max(big * 2.6, CROP_SIDE));
+  const room = 2 * Math.min(cx, W - cx, cy, H - cy); // the largest square centred there
+  const side = Math.round(Math.min(want, Math.max(room, big * 2, Math.min(MIN_SIDE, W, H))));
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
   // Centred where possible, never outside the photo, and the face whole with a margin of a third of
   // its size on every side (hair, ears, chin), as far as the photo allows
-  const m = Math.max(face.width, face.height) / 3;
+  const m = big / 3;
   const place = (c, start, len, total) => clamp(clamp(c - side / 2, start + len + m - side, start - m), 0, total - side);
-  const x = Math.round(place(cx, face.originX, face.width, W));
-  const y = Math.round(place(cy, face.originY, face.height, H));
+  return { x: Math.round(place(cx, face.originX, face.width, W)), y: Math.round(place(cy, face.originY, face.height, H)), side };
+}
+
+async function frame(bitmap, face, name) {
+  const { x, y, side } = cropBox(bitmap.width, bitmap.height, face);
   const out = Math.min(side, 1200);
   const canvas = new OffscreenCanvas(out, out);
   const g = canvas.getContext('2d');
