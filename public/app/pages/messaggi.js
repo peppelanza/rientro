@@ -1,6 +1,6 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
 // New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, orList, overlayClosing, routeOf, threadTime, toast, toastError } from '../lib.js';
+import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, INTENT_BADGE, orList, overlayClosing, routeOf, threadTime, toast, toastError } from '../lib.js';
 import { block, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
@@ -503,6 +503,20 @@ export default class extends Page {
       submit: e => { e.preventDefault(); this.send(); },
       send: this.send,
       seeks: p?.seeking.label || '—', links, hasLinks: links.length > 0,
+      // the summary on the right, as on the Scopri card
+      sideBadge: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0] : '', sideBadgeKind: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1] : 'neutral',
+      sideRole: p ? [p.current_role, p.current_company].filter(Boolean).join(' · ') : '',
+      sideFrom: p ? [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', ') : '',
+      sideTo: p && !p.back ? (p.desired_unknown ? 'non lo sa ancora' : p.places || '') : '', sideBack: !!p?.back,
+      sideComp: p?.complement || '',
+      sideRows: p ? [
+        ['Background', p.background_area],
+        [p.primary_intent === 'has_idea' ? 'Idea' : 'Vorrebbe costruire', p.idea?.title],
+        ['Cerca', p.seeking.label],
+        ['Interessi', p.sectors.join(' · ')],
+        ['Si trasferisce', p.move],
+        ['Rientro', p.arrived],
+      ].filter(([, v]) => v).map(([k, v]) => ({ k, v })) : [],
       menuOpen: s.menuOpen, toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
       doReport: async () => { this.setState({ menuOpen: false }); const r = await report(person); if (r?.blocked) go('/messaggi'); },
       doBlock: async () => { this.setState({ menuOpen: false }); if (await block(person)) go('/messaggi'); },
