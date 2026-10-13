@@ -585,3 +585,15 @@ test('Dove trovarti: every link (LinkedIn and site too) only for connections', a
   assert.equal(after.linkedin_url, 'https://linkedin.com/in/owner');
   assert.equal(after.website_url, 'https://owner.it/');
 });
+
+test('Chi stai cercando: up to three areas, or Indifferente (stored as all of them, shown as "Qualsiasi background")', async () => {
+  const { AREAS } = await import('../src/catalog.js');
+  const a = await t.approved('seekany@x.it');
+  assert.equal((await a.patch('/api/me/profile', { seeking_backgrounds: AREAS.slice(0, 3) })).status, 200);
+  assert.equal((await a.patch('/api/me/profile', { seeking_backgrounds: AREAS.slice(0, 4) })).status, 400);
+  assert.equal((await a.patch('/api/me/profile', { seeking_backgrounds: [...AREAS] })).status, 200);
+  const b = await t.approved('seekviewer@x.it');
+  const seeking = (await b.get(`/api/profiles/${a.id}`)).body.seeking;
+  assert.equal(seeking.any, true);
+  assert.equal(seeking.label, 'Qualsiasi background');
+});

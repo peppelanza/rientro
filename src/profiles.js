@@ -1,4 +1,4 @@
-import { AREA_OTHER, AREA_OTHER_MAX, AREAS, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
+import { AREA_OTHER, AREA_OTHER_MAX, AREAS, SEEK_MAX, seeksAny, seeksLabel, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { forgiving, hit, terms, wordsOf } from './search.js';
@@ -79,7 +79,11 @@ const EDITABLE = {
   achievement: v => text(v, 'Risultato', { max: 400 }),
   video_connections_only: v => bool(v, 'Video'),
   sectors: v => subset(v, SECTORS, 'Settori', SECTORS.length), // as many as you like
-  seeking_backgrounds: v => subset(v, AREAS, 'Chi stai cercando', 2),
+  seeking_backgrounds: v => {
+    const l = subset(v, AREAS, 'Chi stai cercando', AREAS.length);
+    if (l && l.length > SEEK_MAX && !seeksAny(l)) throw bad('invalid_field', `Chi stai cercando: fino a ${SEEK_MAX}, oppure Indifferente`);
+    return l;
+  },
   seeking_description: v => text(v, 'Descrivi la persona che cerchi', { max: 400 }),
   seeking_location: v => oneOf(v, values(SEEKING_LOCATION), 'Dove dovrebbe vivere'),
   misses_italy: v => text(v, 'Cosa ti manca di casa', { max: 200 }),
@@ -285,8 +289,8 @@ export function connectionState(db, viewerId, targetId) {
 // "Cerca Prodotto, il tuo background" (design Person Card / 29a)
 export function complement(viewerP, p) {
   if (!viewerP || !p) return null;
-  if (viewerP.background_area && p.seeking_backgrounds.includes(viewerP.background_area)) return `Cerca ${viewerP.background_area}, il tuo background`;
-  if (p.background_area && viewerP.seeking_backgrounds.includes(p.background_area)) {
+  if (viewerP.background_area && !seeksAny(p.seeking_backgrounds) && p.seeking_backgrounds.includes(viewerP.background_area)) return `Cerca ${viewerP.background_area}, il tuo background`;
+  if (p.background_area && !seeksAny(viewerP.seeking_backgrounds) && viewerP.seeking_backgrounds.includes(p.background_area)) {
     return `Tu cerchi ${p.background_area}, ${p.first_name} è ${p.current_role || p.background_area}`;
   }
   const shared = p.sectors.filter(s => viewerP.sectors.includes(s));
@@ -329,7 +333,7 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     bio: p.bio, achievement: p.achievement, misses_italy: p.misses_italy,
     sectors: p.sectors,
     // "a Palermo": the member's own city, when they look only there
-    seeking: { backgrounds: p.seeking_backgrounds, description: p.seeking_description, location: p.seeking_location === 'same_city' && myPlace(p) ? `a ${myPlace(p)}` : null },
+    seeking: { backgrounds: p.seeking_backgrounds, label: seeksLabel(p.seeking_backgrounds), any: seeksAny(p.seeking_backgrounds), description: p.seeking_description, location: p.seeking_location === 'same_city' && myPlace(p) ? `a ${myPlace(p)}` : null },
     education: education(db, targetId),
     experiences: experiences(db, targetId),
     photo_url: fileUrl(p.photo_file_id),
@@ -359,7 +363,7 @@ export function card(db, viewer, p, viewerP) {
     idea: p.primary_intent === 'has_idea',
     intent: p.primary_intent,
     idea_title: p.idea_title,
-    seeks: p.seeking_backgrounds.join(', '),
+    seeks: seeksLabel(p.seeking_backgrounds),
     tags: p.sectors.slice(0, 3).join(' · '),
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),

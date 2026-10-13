@@ -114,6 +114,22 @@ export function placeToggle(p, set) {
   };
 }
 
+// Chi stai cercando: the areas as cards (like Il tuo background), up to 3, plus "Indifferente", which
+// clears the others and is stored as every area (catalog.js seeksAny)
+export const SEEK_MAX = 3;
+export function seekCards(areas, list, set) {
+  const any = areas.every(a => list.includes(a));
+  const card = (t, on, fn) => ({ t, on, off: false, desc: '', control: 'none', aria: on ? 'true' : 'false', dis: false, fn });
+  return [
+    ...areas.map(t => card(t, !any && list.includes(t), () => {
+      const cur = any ? [] : list;
+      set({ seeking_backgrounds: cur.includes(t) ? cur.filter(x => x !== t) : cur.length >= SEEK_MAX ? cur : [...cur, t] });
+    })),
+    card('Indifferente', any, () => set({ seeking_backgrounds: any ? [] : [...areas] })),
+  ];
+}
+export const seeksText = (areas, list) => (areas.every(a => list.includes(a)) ? 'Qualsiasi background' : list.join(', '));
+
 // Job dates are typed as mm/aaaa (stored as aaaa-mm): the stored value as typed, and back. textToMonth
 // gives null for an empty field and undefined for something it can't read.
 export const monthToText = ym => (/^\d{4}-\d{2}$/.test(ym || '') ? `${ym.slice(5)}/${ym.slice(0, 4)}` : ym || '');

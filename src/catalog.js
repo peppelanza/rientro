@@ -6,6 +6,10 @@ import fs from 'node:fs';
 // Background: one of these, or "Altro" with the member's own words (up to 25 characters, stored as is)
 export const AREAS = ['Tecnologia e ingegneria', 'Design, arte e cultura', 'Business, finanza e diritto', 'Marketing e comunicazione', 'Educazione e formazione', 'Scienze e ricerca', 'Salute e benessere', 'Sociale e servizi alla persona', 'Ambiente e agricoltura', 'Industria e artigianato', 'Turismo e ospitalità'];
 export const AREA_OTHER = 'Altro';
+// Chi stai cercando: up to SEEK_MAX areas, or "Indifferente", stored as all of them
+export const SEEK_MAX = 3;
+export const seeksAny = list => AREAS.every(a => list.includes(a));
+export const seeksLabel = list => (seeksAny(list) ? 'Qualsiasi background' : list.join(', '));
 export const AREA_OTHER_MAX = 25;
 // Search filter: the areas plus "Altro" for whoever wrote their own
 export const areaKey = v => (!v ? null : AREAS.includes(v) ? v : AREA_OTHER);

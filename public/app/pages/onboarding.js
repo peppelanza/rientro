@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, fmtTime, getCatalog, getMe, go, orList, placeToggle, setMe, toast, upload } from '../lib.js';
+import { api, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -429,11 +429,8 @@ export default class extends Page {
       noSectors: sq && !cat.sectors.some(l => l.toLowerCase().includes(sq)),
 
       // 18a
-      // every area can be chosen, your own too (someone like you)
-      seekAreas: cat.areas.map(t => {
-        const on = p.seeking_backgrounds.includes(t);
-        return { t, on, off: false, desc: '', control: 'check', aria: on ? 'true' : 'false', dis: false, fn: () => this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, t, 2) }) };
-      }),
+      // every area can be chosen, your own too; or Indifferente (lib.js seekCards)
+      seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)),
       seekDesc: p.seeking_description ?? '', seekDescProps: { onInput: v => { p.seeking_description = v; } },
       ...placeToggle(p, patch => this.set(patch)),
 
@@ -462,7 +459,7 @@ export default class extends Page {
       pvFacts, pvBio: p.bio, pvIdeaTitle: p.idea_title, pvIdeaDesc: p.idea_description,
       pvIdeaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',
       pvStage: p.idea_stage ? `Fase: ${cat.ideaStages.find(x => x[0] === p.idea_stage)[1].toLowerCase()}` : '',
-      pvSeeks: p.seeking_backgrounds.join(', ') || '—',
+      pvSeeks: seeksText(cat.areas, p.seeking_backgrounds) || '—',
       pvNoVideo: !p.video_url,
       pvMissing: [
         !p.lives_in_city && 'Dove vivi', !isBack(p) && !p.desired_comuni.length && !p.desired_unknown && 'Dove vorresti vivere', !p.primary_intent && 'Obiettivo',

@@ -1,6 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, getCatalog, getMe, go, orList, placeToggle, qs, toast, upload } from '../lib.js';
+import { api, getCatalog, getMe, go, orList, placeToggle, qs, seekCards, seeksText, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -213,7 +213,7 @@ export default class extends Page {
         remove: { edu: id => this.listAction('edu', 'DELETE', id), exp: id => this.listAction('exp', 'DELETE', id) },
       }),
       // chi cerco
-      seekAreas: cat.areas.map(a => { const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: false, desc: '', control: 'check', aria: on ? 'true' : 'false', fn: () => this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }), // your own area too
+      seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)), // your own area too, or Indifferente
       ...placeToggle(p, patch => this.set(patch)),
       // interessi
       sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`,
@@ -227,7 +227,7 @@ export default class extends Page {
         back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
         to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
         idea: p.primary_intent === 'has_idea', intent: p.primary_intent, idea_title: p.idea_title,
-        seeks: p.seeking_backgrounds.join(', '), tags: p.sectors.slice(0, 3).join(' · '), comp: null,
+        seeks: seeksText(cat.areas, p.seeking_backgrounds), tags: p.sectors.slice(0, 3).join(' · '), comp: null,
         photo_url: p.photo_url, connection: null,
       },
       pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',

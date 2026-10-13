@@ -119,14 +119,14 @@ export default class extends Page {
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
       ['X', L.x_handle && `${L.x_handle} ↗`, handleUrl('https://x.com/', L.x_handle)], ['Calendario', L.calendar_url && 'Prenota una call ↗', L.calendar_url],
     ].filter(([, v]) => v).map(([k, v, href], i) => ({ k, v, href, bt: i ? '1px solid #ECE8F7' : 'none' })) : [];
-    const seeksMe = p.viewer_background && p.seeking.backgrounds.includes(p.viewer_background);
+    const seeksMe = p.viewer_background && !p.seeking.any && p.seeking.backgrounds.includes(p.viewer_background);
     const person = { id: p.id, name, first_name: p.first_name, photo_url: p.photo_url, role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city, to: p.back ? '' : orList(p.desired_comuni, 3) };
     return {
       loading: false, notFound: false, ready: true, me: s.me, ...from(), name, self: !!s.self, notSelf: !s.self, first: p.first_name, photo: p.photo_url,
       role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
       from: p.lives_in_city, places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],
-      seeks: p.seeking.backgrounds.join(', ') || '—', seeksEyebrow: `${p.first_name} cerca`,
+      seeks: p.seeking.label || '—', seeksEyebrow: `${p.first_name} cerca`,
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',
       complement: p.complement,
@@ -159,7 +159,7 @@ export default class extends Page {
       ideaBadges: [p.idea?.stage && `Fase: ${p.idea.stage.toLowerCase()}`].filter(Boolean).map(l => ({ l })),
       seekDesc: p.seeking.description, seekLoc: p.seeking.location ? `Dove: ${p.seeking.location}` : '',
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),
-      seekText: p.seeking.description || p.seeking.backgrounds.join(', '),
+      seekText: p.seeking.description || p.seeking.label,
       career: p.experiences.map(e => ({ y: [e.start_month?.slice(0, 4), e.current ? 'OGGI' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
       hasCareer: p.experiences.length > 0,
       edu: p.education.map(e => ({ s: e.school, d: [e.degree, e.years].filter(Boolean).join(' · ') })), hasEdu: p.education.length > 0,
