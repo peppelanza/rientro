@@ -96,6 +96,8 @@ async function askLegalUpdate() {
   } });
 }
 
+// "Il sistema è in aggiornamento" instead of Render's error page during a deploy (/sw.js)
+navigator.serviceWorker?.register('/sw.js').catch(() => {});
 tapFeedback();
 searchHistory();
 launchBar();

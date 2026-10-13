@@ -1,0 +1,18 @@
+/* "Il sistema è in aggiornamento": shown by the service worker (/sw.js) while a deploy restarts the
+   server. Standalone (cached once, works without the app's styles), in the 404 page's look. */
+:root { --gutter: clamp(16px, 5vw, 56px); }
+* { box-sizing: border-box; }
+body { min-height: 100vh; margin: 0; background: #E9E6F5; color: #1A1726; font-family: 'Geist', sans-serif; display: flex; flex-direction: column; }
+.up-top { padding: 28px var(--gutter) 0; }
+.up-logo { display: inline-flex; align-items: baseline; gap: 3px; font: italic 400 28px/1 'Instrument Serif', serif; color: #1A1726; text-decoration: none; }
+.up-logo span { width: 7px; height: 7px; border-radius: 50%; background: #6C4DF5; }
+.up-main { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 20px; padding: 48px var(--gutter) 96px; }
+.up-code { display: inline-flex; align-items: center; gap: 10px; font-family: 'Geist Mono', monospace; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #6B6680; }
+.up-code b { font-weight: 400; }
+.up-code i { width: 8px; height: 8px; border-radius: 50%; background: #6C4DF5; animation: up-pulse 1.4s ease-in-out infinite; }
+.up-title { margin: 0; font: 600 clamp(40px, 6vw, 76px)/1 'Unbounded', sans-serif; letter-spacing: -.06em; max-width: 900px; text-wrap: balance; }
+.up-title em { font: italic 400 1.15em 'Instrument Serif', serif; letter-spacing: -.03em; color: #6C4DF5; }
+.up-text { margin: 0; max-width: 520px; font-size: 18px; line-height: 1.5; color: #4A4560; }
+.up-button { margin-top: 8px; height: 52px; padding: 0 26px; display: inline-flex; align-items: center; border-radius: 999px; background: #6C4DF5; color: #FFFFFF; font-size: 16px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 20px rgba(108,77,245,.28); }
+@keyframes up-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+@media (prefers-reduced-motion: reduce) { .up-code i { animation: none; } }

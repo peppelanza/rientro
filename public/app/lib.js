@@ -9,6 +9,12 @@ export async function api(method, path, body, { raw = false } = {}) {
   const res = await fetch(path, { method, headers, body: payload });
   if (raw && res.ok) return res;
   const data = (res.headers.get('content-type') || '').includes('json') ? await res.json() : null;
+  // The server restarting for a deploy (Render's own error page, not ours): reloading shows
+  // "Il sistema è in aggiornamento" from the service worker (/sw.js), which comes back by itself
+  if ([502, 503, 504].includes(res.status) && !data && navigator.serviceWorker?.controller) {
+    location.reload();
+    throw new Error('updating');
+  }
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     location.href = `/accedi?next=${encodeURIComponent(location.pathname + location.search)}`;
     throw new Error('unauthenticated');
