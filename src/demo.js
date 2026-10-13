@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { audit } from './admin.js';
-import { ageBandFor, OLD_AREAS } from './catalog.js';
+import { ageBandFor, OLD_AREAS, OLD_SECTORS } from './catalog.js';
 import { config } from './config.js';
 import { newId, now, tx } from './db.js';
 import { attachUpload } from './files.js';
@@ -81,7 +81,7 @@ export function createDemoPeople(db, admin) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`).run(
         id, livesIn, country, city, arrived[0] ?? null, arrived[1] ?? null,
         JSON.stringify(p.want), p.intent, p.idea?.[0] ?? null, p.idea?.[1] ?? null, p.idea?.[2] ?? null, p.first, p.last, p.year, ageBandFor(p.year), p.bio,
-        OLD_AREAS[p.area] ?? p.area, p.role, p.company, p.years, JSON.stringify(p.sectors), JSON.stringify([...new Set(p.seek.map(a => OLD_AREAS[a] ?? a))]),
+        OLD_AREAS[p.area] ?? p.area, p.role, p.company, p.years, JSON.stringify([...new Set(p.sectors.map(a => OLD_SECTORS[a] ?? a))]), JSON.stringify([...new Set(p.seek.map(a => OLD_AREAS[a] ?? a))]),
         p.misses || null, `https://www.linkedin.com/in/${slug(p.first)}-${slug(p.last)}-prova`, 'Passaparola, un amico o collega', ts, ts, ts,
       );
       if (p.arrived) {

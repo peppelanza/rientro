@@ -17,7 +17,7 @@ export const COMPLETE_PROFILE = {
   desired_comuni: ['Milano', 'Bologna'], primary_intent: 'has_idea',
   first_name: 'Test', last_name: 'Utente', birth_year: 1988, bio: 'x'.repeat(160),
   background_area: 'Tecnologia e ingegneria', current_role: 'Product Manager', seeking_backgrounds: ['Business, finanza e diritto'],
-  sectors: ['AI', 'Fintech'],
+  sectors: ['AI, Software & SaaS', 'Finanza & Assicurazioni'],
 };
 
 export async function startApp(opts = {}) {

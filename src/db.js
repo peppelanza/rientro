@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { config, LEGAL_VERSIONS } from './config.js';
 import { PROCESSING_REGISTER } from './processing-register.js';
-import { OLD_AREAS, OLD_IDEA_STAGES } from './catalog.js';
+import { OLD_AREAS, OLD_IDEA_STAGES, OLD_SECTORS } from './catalog.js';
 
 const schemaPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'schema.sql');
 
@@ -35,6 +35,7 @@ export function openDb(file = config.dbPath) {
   migrateUserColumns(db);
   migrateIdeaStages(db);
   migrateAreas(db);
+  migrateSectors(db);
   migrateChecks(db);
   migrateNoReview(db);
   desiredFollowsHome(db);
@@ -140,6 +141,14 @@ export function migrateAreas(db) {
     const seeking = [...new Set(JSON.parse(r.seeking_backgrounds || '[]').map(a => OLD_AREAS[a] ?? a))];
     save.run(OLD_AREAS[r.background_area] ?? r.background_area, JSON.stringify(seeking), r.user_id);
   }
+}
+
+// Sectors went from sixteen to twenty: old names become the new ones (idempotent)
+export function migrateSectors(db) {
+  const old = Object.keys(OLD_SECTORS);
+  const rows = db.prepare(`SELECT user_id, sectors FROM profiles WHERE ${old.map(() => 'sectors LIKE ?').join(' OR ')}`).all(...old.map(a => `%"${a}"%`));
+  const save = db.prepare('UPDATE profiles SET sectors = ? WHERE user_id = ?');
+  for (const r of rows) save.run(JSON.stringify([...new Set(JSON.parse(r.sectors || '[]').map(a => OLD_SECTORS[a] ?? a))]), r.user_id);
 }
 
 // CHECK lists widened after launch: the third intent ("networking") and the 18–24 age band. A CHECK

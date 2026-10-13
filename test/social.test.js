@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { makeClient, startApp } from './helpers.js';
-import { addProfileColumns, migrateAreas } from '../src/db.js';
+import { addProfileColumns, migrateAreas, migrateSectors } from '../src/db.js';
 import { arrivedWhen } from '../src/profiles.js';
 
 let t;
@@ -232,7 +232,7 @@ test('paging and search: discover sorts all results before paging, connections a
   try {
     const me = await t.approved('lettore@example.com', { background_area: 'Tecnologia e ingegneria' });
     const others = [];
-    for (let i = 0; i < 26; i++) others.push(await t.approved(`p${i}@example.com`, { first_name: `Persona${i}`, background_area: 'Design, arte e cultura', sectors: ['Turismo'], seeking_backgrounds: i === 0 ? ['Tecnologia e ingegneria'] : ['Marketing e comunicazione'] }));
+    for (let i = 0; i < 26; i++) others.push(await t.approved(`p${i}@example.com`, { first_name: `Persona${i}`, background_area: 'Design, arte e cultura', sectors: ['Turismo & Ospitalità'], seeking_backgrounds: i === 0 ? ['Tecnologia e ingegneria'] : ['Marketing e comunicazione'] }));
     // Page 1 of "Più affini": the only complementary profile (the oldest one) comes first
     const p1 = (await me.get('/api/profiles?sort=match')).body;
     assert.equal(p1.total, 26);
@@ -569,4 +569,8 @@ test('background: one of the areas, or "Altro" in your own words (up to 25 chara
   const row2 = t.app.db.prepare('SELECT background_area, seeking_backgrounds FROM profiles WHERE user_id = ?').get(b.id);
   assert.equal(row2.background_area, 'Turismo e ospitalità');
   assert.equal(row2.seeking_backgrounds, '["Industria e artigianato"]');
+  // sectors: old names become the new ones, merged when two land on the same
+  t.app.db.prepare("UPDATE profiles SET sectors = '[\"AI\",\"SaaS\",\"Fintech\"]' WHERE user_id = ?").run(b.id);
+  migrateSectors(t.app.db);
+  assert.equal(t.app.db.prepare('SELECT sectors FROM profiles WHERE user_id = ?').get(b.id).sectors, '["AI, Software & SaaS","Finanza & Assicurazioni"]');
 });

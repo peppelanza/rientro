@@ -14,7 +14,9 @@ export const OLD_AREAS = { 'Tech / Engineering': 'Tecnologia e ingegneria', Prod
   // shortened afterwards
   'Industria, artigianato e costruzioni': 'Industria e artigianato', 'Turismo, ospitalità e ristorazione': 'Turismo e ospitalità' };
 
-export const SECTORS = ['AI', 'SaaS', 'PropTech', 'Fintech', 'Climate', 'Turismo', 'Food & Agritech', 'HealthTech', 'Education', 'Dev tools', 'Moda & Design', 'Manifattura', 'Mobilità', 'Media', 'Impact / Non profit', 'Hardware'];
+export const SECTORS = ['AI, Software & SaaS', 'Finanza & Assicurazioni', 'Immobiliare & Costruzioni', 'Industria & Manifattura', 'Moda, Design & Creatività', 'Media, Cinema & Intrattenimento', 'Arte & Cultura', 'Educazione & Formazione', 'Salute & Benessere', 'Agricoltura, Food & Vino', 'Turismo & Ospitalità', 'Ambiente, Energia & Clima', 'Mobilità & Trasporti', 'Scienza & Ricerca', 'Sociale & Terzo Settore', 'Sport & Tempo Libero', 'Servizi Professionali', 'Commercio & Retail', 'Telecomunicazioni & Infrastrutture', 'Politica & Pubblica Amministrazione'];
+// Earlier sectors, moved over by db.js migrateSectors
+export const OLD_SECTORS = { AI: 'AI, Software & SaaS', SaaS: 'AI, Software & SaaS', 'Dev tools': 'AI, Software & SaaS', PropTech: 'Immobiliare & Costruzioni', Fintech: 'Finanza & Assicurazioni', Climate: 'Ambiente, Energia & Clima', Turismo: 'Turismo & Ospitalità', 'Food & Agritech': 'Agricoltura, Food & Vino', HealthTech: 'Salute & Benessere', Education: 'Educazione & Formazione', 'Moda & Design': 'Moda, Design & Creatività', Manifattura: 'Industria & Manifattura', Hardware: 'Industria & Manifattura', 'Mobilità': 'Mobilità & Trasporti', Media: 'Media, Cinema & Intrattenimento', 'Impact / Non profit': 'Sociale & Terzo Settore' };
 
 export const SOURCES = ['Passaparola, un amico o collega', 'LinkedIn', 'Instagram', 'Articolo, podcast o newsletter', 'Un evento', 'Altro'];
 
