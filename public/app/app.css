@@ -1099,3 +1099,11 @@ html.search-sheet-open { overflow: hidden; }
 
 /* Formazione and Esperienze (entries.js): the list in a white box, the form in place of the row */
 .entry-box { background: #FFFFFF; border-radius: 24px; padding: 4px 18px; }
+
+/* Onboarding, "Cosa ti manca dell'Italia": the usual background with a soft hint of the flag,
+   green from the left, white in the middle, red from the right */
+.ob-tricolore { background:
+  radial-gradient(55% 70% at 0% 60%, rgba(0, 146, 70, .17), rgba(0, 146, 70, 0) 72%),
+  radial-gradient(40% 50% at 50% 0%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 70%),
+  radial-gradient(55% 70% at 100% 60%, rgba(206, 43, 55, .15), rgba(206, 43, 55, 0) 72%),
+  #E9E6F5 !important; }
