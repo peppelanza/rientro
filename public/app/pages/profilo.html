@@ -50,6 +50,7 @@
 
 <sc-if value="{{ isPercorso }}">
 <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Background</span><div role="radiogroup" aria-label="Background" class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ areas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" selected="{{ a.on }}" control="none" size="sm" layout="row" on-click="{{ a.fn }}" host-role="radio" host-aria-checked="{{ a.aria }}"></dc-import></sc-for></div></div>
+<sc-if value="{{ bgOther }}"><div style="max-width:420px"><dc-import name="App Field" label="Il tuo background" field="background-other" maxlength="{{ bgMax }}" value="{{ bgText }}" placeholder="Es. Architettura" dc-props="{{ bgTextProps }}"></dc-import></div></sc-if>
 <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Anni di esperienza</span><div class="r-full" style="max-width:420px"><dc-import name="App Segmented" label="Anni di esperienza" options="{{ yearOpts }}" value="{{ years }}" dc-props="{{ yearsProps }}"></dc-import></div></div>
 <div style="height:1px;background:#ECE8F7"></div>
 <dc-import name="UI Eyebrow" text="Esperienze"></dc-import>

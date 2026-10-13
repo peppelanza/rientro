@@ -60,7 +60,7 @@ test('the admin is a member: onboarding, then online like everyone', async () =>
     const me = (await a.get('/api/me')).body;
     assert.equal(me.user.status, 'onboarding');
     assert.equal((await a.get('/api/profiles')).status, 403); // profile not sent yet
-    await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Catania'], primary_intent: 'has_idea', first_name: 'Admin', last_name: 'Rientro', birth_year: 1988, bio: 'x'.repeat(160), background_area: 'Prodotto', current_role: 'Founder', seeking_backgrounds: ['Tech / Engineering'], sectors: ['AI'] });
+    await a.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Catania'], primary_intent: 'has_idea', first_name: 'Admin', last_name: 'Rientro', birth_year: 1988, bio: 'x'.repeat(160), background_area: 'Tecnologia e ingegneria', current_role: 'Founder', seeking_backgrounds: ['Business, finanza e diritto'], sectors: ['AI'] });
     const { PNG } = await import('./helpers.js');
     await a.raw('POST', '/api/me/photo', PNG);
     assert.equal((await a.post('/api/me/submit')).status, 200);

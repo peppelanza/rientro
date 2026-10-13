@@ -48,7 +48,7 @@ const FAKE_PROFILE = {
   primary_intent: 'networking', current_role: 'Ruolo', current_company: 'Azienda', sectors: ['Settore'],
   idea: { title: 'Il titolo di un’idea da costruire', description: 'Qualche riga che racconta l’idea, cosa risolve e per chi, abbastanza lunga da andare a capo almeno una volta.', stage: null },
   bio: 'Qualche riga di presentazione: chi è, cosa ha fatto finora e cosa cerca tornando, lunga abbastanza da occupare due righe.',
-  seeking: { backgrounds: ['Prodotto'], description: '', location: null },
+  seeking: { backgrounds: ['Tecnologia e ingegneria'], description: '', location: null },
   experiences: [{ company: 'Azienda', role: 'Ruolo', city: 'Città', start_month: '2020-01', end_month: null, current: 1 }],
   education: [{ school: 'Università', degree: 'Laurea', years: '2010 – 2015' }], achievement: null, misses_italy: null,
   links: {}, complement: null, connection: { status: 'none' }, viewer_background: null,

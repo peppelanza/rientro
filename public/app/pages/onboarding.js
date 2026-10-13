@@ -28,7 +28,7 @@ const FIELDS = {
   obiettivo: ['primary_intent'],
   idea: ['idea_title', 'idea_description', 'idea_stage'],
   presentati: ['first_name', 'last_name', 'birth_year', 'bio'],
-  background: ['background_area', 'current_role', 'current_company', 'years_experience'],
+  background: ['background_area', 'years_experience'],
   risultato: ['achievement'],
   settori: ['sectors'],
   chi: ['seeking_backgrounds', 'seeking_description', 'seeking_location'],
@@ -121,7 +121,7 @@ export default class extends Page {
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
       case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
-      case 'background': return p.background_area ? null : 'Scegli la tua area';
+      case 'background': return p.background_area ? null : this.state.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area';
       case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
       default: return null;
     }
@@ -273,6 +273,7 @@ export default class extends Page {
       if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
     }
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
+    const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = is('manca');
     const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
@@ -395,9 +396,11 @@ export default class extends Page {
       bioProps: { onInput: v => { p.bio = v; } },
 
       // 12a
-      areas: cat.areas.map(t => ({ t, ...card(p.background_area === t, () => this.set({ background_area: t, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== t) })) })),
-      role: p.current_role ?? '', company: p.current_company ?? '',
-      roleProps: { onInput: v => { p.current_role = v; } }, companyProps: { onInput: v => { p.current_company = v; } },
+      // "Altro": the member's own words, in the same field (see catalog.js AREAS)
+      areas: [...cat.areas.map(t => ({ t, ...card(!bgOther && p.background_area === t, () => { s.bgOther = false; this.set({ background_area: t, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== t) }); }) })),
+        { t: cat.areaOther, ...card(bgOther, () => { if (bgOther) return; s.bgOther = true; this.set({ background_area: null }); }) }],
+      bgOther, bgMax: cat.areaOtherMax, bgText: bgOther ? p.background_area ?? '' : '',
+      bgTextProps: { onInput: v => { p.background_area = v.trim() || null; this.touch(); } },
       yearOpts: opts(cat.years), years: p.years_experience,
 
       // 13a

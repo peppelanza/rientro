@@ -369,7 +369,14 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { raw: true });
 
   // ---- public
-  route('GET', '/api/catalog', ({ res }) => send(res, 200, catalog, { 'Cache-Control': 'public, max-age=3600' }), { ...pub, raw: true });
+  // Checked on every load (the lists change with a deploy, like the app code that reads them), but
+  // sent again only when they did change
+  const catalogTag = `"${crypto.createHash('sha1').update(JSON.stringify(catalog)).digest('base64url').slice(0, 16)}"`;
+  route('GET', '/api/catalog', ({ req, res }) => {
+    const headers = { 'Cache-Control': 'no-cache', ETag: catalogTag };
+    if (req.headers['if-none-match'] === catalogTag) { res.writeHead(304, headers); res.end(); return; }
+    send(res, 200, catalog, headers);
+  }, { ...pub, raw: true });
   route('GET', '/api/legal', () => ({
     versions: LEGAL_VERSIONS, job_seeking_notice: JOB_SEEKING_NOTICE_TEXT,
     processing_register: admin.processingRegister(db), review_status: 'draft_pending_legal_review',

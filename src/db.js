@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { config, LEGAL_VERSIONS } from './config.js';
 import { PROCESSING_REGISTER } from './processing-register.js';
-import { OLD_IDEA_STAGES } from './catalog.js';
+import { OLD_AREAS, OLD_IDEA_STAGES } from './catalog.js';
 
 const schemaPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'schema.sql');
 
@@ -34,6 +34,7 @@ export function openDb(file = config.dbPath) {
   addProfileColumns(db);
   migrateUserColumns(db);
   migrateIdeaStages(db);
+  migrateAreas(db);
   migrateChecks(db);
   migrateNoReview(db);
   desiredFollowsHome(db);
@@ -118,6 +119,19 @@ export function migrateIdeaStages(db) {
     db.prepare('UPDATE profiles SET idea_stage = ? WHERE idea_stage = ?').run(to, from);
     db.prepare(`UPDATE profiles SET pending_changes = json_set(pending_changes, '$.idea_stage', ?)
       WHERE json_valid(pending_changes) AND json_extract(pending_changes, '$.idea_stage') = ?`).run(to, from);
+  }
+}
+
+// Background areas went from eight to eleven (plus "Altro"): old names become the new ones, also in
+// "Chi stai cercando" (idempotent)
+export function migrateAreas(db) {
+  const old = Object.keys(OLD_AREAS);
+  const rows = db.prepare(`SELECT user_id, background_area, seeking_backgrounds FROM profiles WHERE ${old.map(() => 'background_area = ? OR seeking_backgrounds LIKE ?').join(' OR ')}`)
+    .all(...old.flatMap(a => [a, `%"${a}"%`]));
+  const save = db.prepare('UPDATE profiles SET background_area = ?, seeking_backgrounds = ? WHERE user_id = ?');
+  for (const r of rows) {
+    const seeking = [...new Set(JSON.parse(r.seeking_backgrounds || '[]').map(a => OLD_AREAS[a] ?? a))];
+    save.run(OLD_AREAS[r.background_area] ?? r.background_area, JSON.stringify(seeking), r.user_id);
   }
 }
 

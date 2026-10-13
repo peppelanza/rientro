@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { makeClient, startApp } from './helpers.js';
-import { addProfileColumns } from '../src/db.js';
+import { addProfileColumns, migrateAreas } from '../src/db.js';
 import { arrivedWhen } from '../src/profiles.js';
 
 let t;
@@ -94,10 +94,10 @@ test('education and experience CRUD', async () => {
 });
 
 test('connection request with note → accept → chat; decline is silent', async () => {
-  const a = await t.approved('giulia@x.it', { background_area: 'Marketing / Growth', seeking_backgrounds: ['Prodotto'] });
-  const b = await t.approved('marco@x.it', { background_area: 'Prodotto' });
+  const a = await t.approved('giulia@x.it', { background_area: 'Marketing e comunicazione', seeking_backgrounds: ['Tecnologia e ingegneria'] });
+  const b = await t.approved('marco@x.it', { background_area: 'Tecnologia e ingegneria' });
   const card = (await b.get('/api/profiles')).body.people.find(p => p.id === a.id);
-  assert.equal(card.comp, 'Cerca Prodotto, il tuo background');
+  assert.equal(card.comp, 'Cerca Tecnologia e ingegneria, il tuo background');
 
   const req = await b.post('/api/connections', { to: a.id, note: 'Ciao Giulia!' });
   assert.equal((await b.post('/api/connections', { to: a.id })).status, 409);
@@ -230,9 +230,9 @@ test('admin "Accedi come": acts as the member, banner flag, exit gives the admin
 test('paging and search: discover sorts all results before paging, connections and blocks are searchable', async () => {
   const t = await startApp();
   try {
-    const me = await t.approved('lettore@example.com', { background_area: 'Prodotto' });
+    const me = await t.approved('lettore@example.com', { background_area: 'Tecnologia e ingegneria' });
     const others = [];
-    for (let i = 0; i < 26; i++) others.push(await t.approved(`p${i}@example.com`, { first_name: `Persona${i}`, background_area: 'Design', sectors: ['Turismo'], seeking_backgrounds: i === 0 ? ['Prodotto'] : ['Marketing / Growth'] }));
+    for (let i = 0; i < 26; i++) others.push(await t.approved(`p${i}@example.com`, { first_name: `Persona${i}`, background_area: 'Design, arte e cultura', sectors: ['Turismo'], seeking_backgrounds: i === 0 ? ['Tecnologia e ingegneria'] : ['Marketing e comunicazione'] }));
     // Page 1 of "Più affini": the only complementary profile (the oldest one) comes first
     const p1 = (await me.get('/api/profiles?sort=match')).body;
     assert.equal(p1.total, 26);
@@ -542,4 +542,20 @@ test('either of two connected members can remove the connection: silent, chat cl
   assert.equal((await a.post(`/api/connections/${id}/remove`)).status, 404, 'already gone');
   await t.connect(a, b);
   assert.equal((await a.get(`/api/profiles/${b.id}`)).body.connection.status, 'connected', 'and they can connect again');
+});
+
+test('background: one of the areas, or "Altro" in your own words (up to 25 characters), and old areas move over', async () => {
+  const a = await t.approved('altro@x.it', { background_area: 'Architettura' });
+  assert.equal((await a.get('/api/me')).body.profile.background_area, 'Architettura');
+  assert.equal((await a.patch('/api/me/profile', { background_area: 'x'.repeat(26) })).status, 400);
+  // "Altro" in the search filter finds whoever wrote their own
+  const b = await t.approved('cercaaltro@x.it');
+  const names = (await b.get('/api/profiles?backgrounds=Altro')).body.people.map(p => p.first_name);
+  assert.ok(names.includes('altro') && !names.includes('cercaaltro'), names.join());
+  // Old names in the database become the new ones
+  t.app.db.prepare("UPDATE profiles SET background_area = 'Prodotto', seeking_backgrounds = '[\"Finanza\",\"Operations\"]' WHERE user_id = ?").run(b.id);
+  migrateAreas(t.app.db);
+  const row = t.app.db.prepare('SELECT background_area, seeking_backgrounds FROM profiles WHERE user_id = ?').get(b.id);
+  assert.equal(row.background_area, 'Tecnologia e ingegneria');
+  assert.equal(row.seeking_backgrounds, '["Business, finanza e diritto"]');
 });

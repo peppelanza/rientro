@@ -70,7 +70,7 @@ export default class extends Page {
   goSection(key) {
     const s = this.state;
     if (s.dirty && !confirm('Hai modifiche non salvate in questa sezione. Uscire senza salvare?')) return;
-    s.p = structuredClone(s.me.profile);
+    s.p = structuredClone(s.me.profile); s.bgOther = undefined;
     Object.assign(s, { section: key, index: false, dirty: false, edu: null, exp: null });
     history.replaceState(null, '', `/profilo?sezione=${key}`);
     this.__rerender();
@@ -83,12 +83,12 @@ export default class extends Page {
     if (body.lives_in === 'italy') delete body.lives_in_country;
     const saved = await api('PATCH', '/api/me/profile', body);
     s.me.profile = { ...s.me.profile, ...saved };
-    s.p = structuredClone(s.me.profile);
+    s.p = structuredClone(s.me.profile); s.bgOther = undefined;
     s.dirty = false;
     toast('Modifiche salvate.');
   });
 
-  cancel() { const s = this.state; s.p = structuredClone(s.me.profile); s.dirty = false; this.__rerender(); }
+  cancel() { const s = this.state; s.p = structuredClone(s.me.profile); s.bgOther = undefined; s.dirty = false; this.__rerender(); }
 
   // Explicit image (nsfw.js): it goes to the admin's quarantine, the account is suspended and signed out
   async photoBlocked({ file, scores }) {
@@ -146,6 +146,7 @@ export default class extends Page {
     const is = k => s.section === k;
     const status = me.user.status;
     const card = (on, fn) => ({ on, fn, aria: on ? 'true' : 'false' });
+    const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (l, v, max) => (l.includes(v) ? l.filter(x => x !== v) : l.length >= max ? l : [...l, v]);
     const text = k => ({ value: p[k] ?? '', props: { onInput: v => { p[k] = v; this.mark(); } } });
     const pct = s.up?.total ? Math.round((s.up.loaded / s.up.total) * 100) : 0;
@@ -195,7 +196,11 @@ export default class extends Page {
       hasIdea: p.primary_intent === 'has_idea', stageOpts: opts(cat.ideaStages), stage: p.idea_stage, stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
 
       // percorso
-      areas: cat.areas.map(a => ({ t: a, ...card(p.background_area === a, () => this.set({ background_area: a, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== a) })) })),
+      // "Altro": the member's own words, in the same field (see catalog.js AREAS)
+      areas: [...cat.areas.map(a => ({ t: a, ...card(!bgOther && p.background_area === a, () => { s.bgOther = false; this.set({ background_area: a, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== a) }); }) })),
+        { t: cat.areaOther, ...card(bgOther, () => { if (bgOther) return; s.bgOther = true; this.set({ background_area: null }); }) }],
+      bgOther, bgMax: cat.areaOtherMax, bgText: bgOther ? p.background_area ?? '' : '',
+      bgTextProps: { onInput: v => { p.background_area = v.trim() || null; this.mark(); } },
       yearOpts: opts(cat.years), years: p.years_experience, yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
       jobs: p.experiences.map(e => ({ t: [e.role, e.company].filter(Boolean).join(' · '), m: [[fmtMonth(e.start_month), e.current ? 'oggi' : fmtMonth(e.end_month)].filter(Boolean).join(' – '), e.city?.toUpperCase()].filter(Boolean).join(' · '), edit: () => { s.exp = { ...e }; this.__rerender(); } })),
       exp: s.exp ?? {}, expEditing: !!s.exp, expNotEditing: !s.exp, expIsEdit: !!s.exp?.id, expEnded: !s.exp?.current,

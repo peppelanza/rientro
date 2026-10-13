@@ -1,4 +1,4 @@
-import { AREAS, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
+import { AREA_OTHER, AREA_OTHER_MAX, AREAS, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { paginate } from './paging.js';
 import { forgiving, hit, terms, wordsOf } from './search.js';
@@ -70,7 +70,7 @@ const EDITABLE = {
     return v;
   },
   bio: v => text(v, 'Su di me', { max: 600 }),
-  background_area: v => oneOf(v, AREAS, 'Background'),
+  background_area: v => (AREAS.includes(v) ? v : text(v, 'Background', { max: AREA_OTHER_MAX })),
   current_role: v => text(v, 'Ruolo attuale', { max: 80 }),
   current_company: v => text(v, 'Azienda', { max: 80 }),
   years_experience: v => oneOf(v, values(YEARS), 'Anni di esperienza'),
@@ -377,7 +377,7 @@ function wantsPlace(p, place) {
 const FACETS = {
   lives: (p, v) => !v || p.lives_in === v,
   intent: (p, v) => !v.length || v.includes(p.primary_intent),
-  backgrounds: (p, v) => !v.length || v.includes(p.background_area),
+  backgrounds: (p, v) => !v.length || v.includes(areaKey(p.background_area)),
   sectors: (p, v) => !v.length || v.some(s => p.sectors.includes(s)),
   desired: (p, v, f) => !v.length || v.some(place => wantsPlace(p, place)) || (f.include_unknown && p.desired_unknown === 1),
   q: (p, v, f) => !v || !!searchHit(p, f.terms, f.fuzzy),
@@ -421,7 +421,7 @@ export function parseDiscoverQuery(q) {
   return {
     lives: ['italy', 'abroad'].includes(q.get('lives')) ? q.get('lives') : '',
     intent: arr('intent').filter(x => INTENTS.includes(x)),
-    backgrounds: arr('backgrounds').filter(x => AREAS.includes(x)),
+    backgrounds: arr('backgrounds').filter(x => AREAS.includes(x) || x === AREA_OTHER),
     sectors: arr('sectors').filter(x => SECTORS.includes(x)),
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',
@@ -472,7 +472,7 @@ export function discover(db, viewer, filters) {
     people: pg.items, fuzzy: !!results.fuzzy, // only similar to what was searched (src/search.js)
     counts: {
       intent: Object.fromEntries(INTENTS.map(i => [i, count('intent', p => p.primary_intent === i)])),
-      backgrounds: Object.fromEntries(AREAS.map(a => [a, count('backgrounds', p => p.background_area === a)])),
+      backgrounds: Object.fromEntries([...AREAS, AREA_OTHER].map(a => [a, count('backgrounds', p => areaKey(p.background_area) === a)])),
       desired: Object.fromEntries(filters.desired.map(c => [c, count('desired', p => wantsPlace(p, c))])),
     },
   };

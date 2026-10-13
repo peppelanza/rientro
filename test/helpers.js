@@ -16,7 +16,7 @@ export const COMPLETE_PROFILE = {
   lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma',
   desired_comuni: ['Milano', 'Bologna'], primary_intent: 'has_idea',
   first_name: 'Test', last_name: 'Utente', birth_year: 1988, bio: 'x'.repeat(160),
-  background_area: 'Prodotto', current_role: 'Product Manager', seeking_backgrounds: ['Tech / Engineering'],
+  background_area: 'Tecnologia e ingegneria', current_role: 'Product Manager', seeking_backgrounds: ['Business, finanza e diritto'],
   sectors: ['AI', 'Fintech'],
 };
 
