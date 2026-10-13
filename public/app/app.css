@@ -1103,7 +1103,5 @@ html.search-sheet-open { overflow: hidden; }
 /* Onboarding, "Cosa ti manca dell'Italia": the usual background with a soft hint of the flag,
    green from the left, white in the middle, red from the right */
 .ob-tricolore { background:
-  radial-gradient(70% 90% at -5% 55%, rgba(0, 146, 70, .34), rgba(0, 146, 70, .12) 40%, rgba(0, 146, 70, 0) 75%),
-  radial-gradient(45% 60% at 50% 40%, rgba(255, 255, 255, .85), rgba(255, 255, 255, 0) 75%),
-  radial-gradient(70% 90% at 105% 55%, rgba(206, 43, 55, .30), rgba(206, 43, 55, .10) 40%, rgba(206, 43, 55, 0) 75%),
-  #EEECF6 !important; background-attachment: fixed !important; }
+  linear-gradient(90deg, rgba(0, 146, 70, .30) 0%, rgba(0, 146, 70, .16) 20%, rgba(255, 255, 255, .55) 42%, rgba(255, 255, 255, .55) 58%, rgba(206, 43, 55, .14) 80%, rgba(206, 43, 55, .28) 100%),
+  #EEECF6 !important; }
