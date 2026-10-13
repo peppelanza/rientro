@@ -198,7 +198,7 @@ export default class extends Page {
 
       // percorso
       // "Altro": the member's own words, in the same field (see catalog.js AREAS)
-      areas: [...cat.areas.map(a => ({ t: a, ...card(!bgOther && p.background_area === a, () => { s.bgOther = false; this.set({ background_area: a, seeking_backgrounds: p.seeking_backgrounds.filter(x => x !== a) }); }) })),
+      areas: [...cat.areas.map(a => ({ t: a, ...card(!bgOther && p.background_area === a, () => { s.bgOther = false; this.set({ background_area: a }); }) })),
         { t: cat.areaOther, ...card(bgOther, () => { if (bgOther) return; s.bgOther = true; this.set({ background_area: null }); }) }],
       bgOther, bgMax: cat.areaOtherMax, bgText: bgOther ? p.background_area ?? '' : '',
       bgTextProps: { onInput: v => { p.background_area = v.trim() || null; this.mark(); } },
@@ -213,7 +213,7 @@ export default class extends Page {
         remove: { edu: id => this.listAction('edu', 'DELETE', id), exp: id => this.listAction('exp', 'DELETE', id) },
       }),
       // chi cerco
-      seekAreas: cat.areas.map(a => { const mine = a === p.background_area; const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: mine, desc: mine ? 'È il tuo background' : '', control: mine ? 'none' : 'check', aria: on ? 'true' : 'false', fn: () => !mine && this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }),
+      seekAreas: cat.areas.map(a => { const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: false, desc: '', control: 'check', aria: on ? 'true' : 'false', fn: () => this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }), // your own area too
       ...placeToggle(p, patch => this.set(patch)),
       // interessi
       sectorCount: `${p.sectors.length} ${p.sectors.length === 1 ? 'scelto' : 'scelti'}`,

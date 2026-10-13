@@ -160,9 +160,6 @@ export function updateProfile(db, user, body) {
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   const after = { ...current, ...live };
   if (isBack(after) && after.lives_in_city) Object.assign(live, { desired_comuni: JSON.stringify([after.lives_in_city]), desired_unknown: 0 });
-  if (live.seeking_backgrounds && next.background_area && JSON.parse(live.seeking_backgrounds).includes(next.background_area)) {
-    throw bad('invalid_field', 'Cerca competenze diverse dal tuo background.');
-  }
   const keys = Object.keys(live);
   if (!keys.length) return effectiveProfile(db, user.id);
   const params = { $user_id: user.id, $ts: now() };
