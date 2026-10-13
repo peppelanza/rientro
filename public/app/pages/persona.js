@@ -110,12 +110,12 @@ export default class extends Page {
     const L = s.self && p.own_links ? p.own_links : p.links;
     const showLinks = connected || (s.self && !!p.own_links);
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
-    // where they live is in the line under the name (with the country when abroad), not again here
+    // in the box with where they live and want to go (the first line, with the country when abroad)
     const facts = [
       ['Rientro', p.arrived],
       ['Trasferimento', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
-    facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
+    facts.forEach(f => { f.bt = '1px solid #ECE8F7'; }); // under the line of where they live and want to go
     const unlocked = showLinks ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
