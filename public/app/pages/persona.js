@@ -112,10 +112,8 @@ export default class extends Page {
     const li = L.linkedin_url?.replace(/^https:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '');
     // where they live is in the line under the name (with the country when abroad), not again here
     const facts = [
-      ['Background', p.background_area],
-      ['Esperienza', p.years_experience && `${p.years_experience} anni`],
       ['Rientro', p.arrived],
-      ['Si trasferisce', p.move],
+      ['Mi trasferisco', p.move === 'non lo sa ancora' ? 'non lo so ancora' : p.move],
     ].filter(([, v]) => v).map(([k, v, href]) => ({ k, v, href, isLink: !!href, isText: !href, fg: '#1A1726' }));
     facts.forEach((f, i) => { f.bt = i ? '1px solid #ECE8F7' : 'none'; });
     const unlocked = showLinks ? [
@@ -131,7 +129,9 @@ export default class extends Page {
       from: [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', '),
       places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown, isBack: !!p.back,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],
-      seeks: p.seeking.label || '—', seeksEyebrow: `${p.first_name} cerca`,
+      seeks: p.seeking.label || '—', seeksEyebrow: 'Chi cerco',
+      // their background, with the years (the box next to what they look for)
+      bgArea: p.background_area || '', bgYears: p.years_experience ? `${p.years_experience} anni di esperienza` : '',
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,
       bgBoxBg: seeksMe ? '#EFEBFF' : '#FFFFFF', bgBoxFg: seeksMe ? '#3E2BA8' : '#1A1726', bgTone: seeksMe ? 'accent' : 'muted',
       complement: p.complement,
