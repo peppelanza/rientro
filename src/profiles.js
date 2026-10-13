@@ -389,6 +389,9 @@ export function card(db, viewer, p, viewerP, filters = null) {
     seeks: seeksLabel(p.seeking_backgrounds),
     tags: sectors.slice(0, 3).join(' · '),
     background: filters?.backgrounds?.length ? p.background_area : null,
+    // filtering by goal: what they want to build
+    idea_line: filters?.intent?.includes(p.primary_intent) && p.idea_title ? p.idea_title : null,
+    idea_label: p.primary_intent === 'has_idea' ? 'Idea' : 'Vorrebbe costruire',
     move: filters?.move?.length ? moveLabel(p) : null,
     comp: complement(viewerP, p),
     photo_url: fileUrl(p.photo_file_id),

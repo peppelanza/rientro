@@ -33,6 +33,9 @@ test('Scopri cards show what you filtered by: the background, and the sectors an
     assert.equal(filtered.background, 'Salute e benessere');
     assert.match(filtered.tags, /^Sport & Tempo Libero/);
     assert.match(filtered.to, /^Catania/);
+    await a.patch('/api/me/profile', { primary_intent: 'has_idea', idea_title: 'Agriturismo sull’Etna' });
+    assert.equal((await find('')).idea_line, null, 'not without the filter');
+    assert.equal((await find('intent=has_idea')).idea_line, 'Agriturismo sull’Etna', 'filtering by goal shows the idea');
   } finally { t2.close(); }
 });
 
