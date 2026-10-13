@@ -9,7 +9,7 @@
 </main></sc-if>
 <sc-if value="{{ notEmpty }}"><main style="padding:36px var(--gutter) 56px;display:flex;flex-direction:column;gap:22px;width:100%;box-sizing:border-box">
 <h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-size:40px;font-weight:600;letter-spacing:-.05em">Connessioni</h1>
-<div role="tablist" style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ tabs }}" as="t"><dc-import name="UI Chip" label="{{ t.l }}" tone="{{ t.tone }}" count="{{ t.count }}" on-click="{{ t.fn }}" host-role="tab" host-aria-selected="{{ t.on }}"></dc-import></sc-for></div>
+<div role="tablist" class="tab-row" style="display:flex;gap:6px"><sc-for list="{{ tabs }}" as="t"><dc-import name="UI Chip" label="{{ t.l }}" tone="{{ t.tone }}" count="{{ t.count }}" on-click="{{ t.fn }}" host-role="tab" host-aria-selected="{{ t.on }}"></dc-import></sc-for></div>
 <div style="width:100%;max-width:360px"><dc-import name="App Field" search="{{ true }}" field="conn-q" value="{{ q }}" placeholder="Cerca per nome, ruolo o città" dc-props="{{ searchProps }}"></dc-import></div>
 
 <sc-if value="{{ isConn }}">

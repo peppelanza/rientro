@@ -136,9 +136,8 @@ ${doc.sections.map(([t, ps], i) => `<section id="s${i + 1}"><h2>${i + 1}. ${esc(
       // the many small comuni have a page but not one worth indexing: the regions and the main cities do
       robots: listed ? null : 'noindex, follow',
       body: wrap(`<main><h1>Tornare ${esc(t.prep)} ${esc(t.name)}, con qualcuno</h1><p>${esc(description)}</p>
-${t.count ? `<p>${t.count} persone vogliono vivere ${esc(t.prep)} ${esc(t.name)}.</p>` : ''}
 ${t.places.length ? `<h2>Altri comuni ${t.kind === 'region' ? `${esc(t.prep)} ${esc(t.name)}` : `${esc(t.regionPrep ?? 'in')} ${esc(t.region ?? '')}`}</h2><p>${t.places.map(c => (c.linkable ? `<a href="/territori/${photoSlug(c.name)}">${esc(c.name)}</a>` : esc(c.name))).join(', ')}</p>` : ''}
-<p><a href="/accedi">Accedi a Rientro</a></p></main>`),
+<p><a href="/accedi?citta=${encodeURIComponent(t.name)}">Accedi a Rientro</a></p></main>`),
     };
   }
   if (p === '/accedi') return { canonical: p, title: 'Accedi a Rientro · Rientro', description: SITE_DESCRIPTION, image: OG.home, robots: 'noindex, follow', ld: [] };

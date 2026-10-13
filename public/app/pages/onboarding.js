@@ -286,6 +286,7 @@ export default class extends Page {
     const bgOther = s.bgOther ?? (!!p.background_area && !cat.areas.includes(p.background_area));
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = false;
+    const narrow = matchMedia('(max-width: 600px)').matches;
     const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
     const up = s.up;
     const pct = up && up.total ? Math.round((up.loaded / up.total) * 100) : 0;
@@ -312,8 +313,9 @@ export default class extends Page {
       pageBg: '#E9E6F5', pageFg: '#1A1726', dark,
       stepN: idx + 1, total: steps.length,
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
-      footDisabled: !!blocker, footSkip: optional ? ({ risultato: 'Salta', video: 'Lo aggiungo dopo' }[s.step] ?? 'Salta') : null,
-      footPrimary: is('fonte') ? 'Vedi l’anteprima del profilo →' : 'Continua', footAccent: is('fonte'),
+      // phones: short labels, so Indietro, Salta and the main button fit on one line
+      footDisabled: !!blocker, footSkip: optional ? ((!narrow && { video: 'Lo aggiungo dopo' }[s.step]) || 'Salta') : null,
+      footPrimary: is('fonte') ? (narrow ? 'Anteprima →' : 'Vedi l’anteprima del profilo →') : 'Continua', footAccent: is('fonte'),
       is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'),

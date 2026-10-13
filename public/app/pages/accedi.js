@@ -39,10 +39,16 @@ export default class extends Page {
     const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
     const city = (qs().get('citta') ?? '').trim().slice(0, 80);
     Object.assign(this.state, { launch, launchDate: date, city });
-    // A city with its own territory page shows that page's photo as a postcard
+    // From a territory (the home's picker, a territory page): its name, and its photo as a postcard
+    // for a region or a city with its own page, shown once the picture has loaded (never empty)
     if (city) {
       const t = await fetch(`/api/public/territory/${encodeURIComponent(city)}`).then(r => (r.ok ? r.json() : null)).catch(() => null);
-      if (t?.kind === 'city' && t.photo && t.cities.includes(t.name)) this.state.postcard = { src: t.photo, name: t.name };
+      if (t) this.state.place = { name: t.name, prep: t.prep };
+      if (t?.photo && (t.kind === 'region' || t.cities.includes(t.name))) {
+        const img = new Image();
+        img.onload = () => { this.state.postcard = { src: t.photo, name: t.name }; this.__rerender(); };
+        img.src = t.photo;
+      }
     }
     const err = OAUTH_ERRORS[qs().get('errore')];
     if (err) this.state.oauthNote = err;
@@ -114,7 +120,7 @@ export default class extends Page {
       title: 'Accedi a Rientro',
       // Left panel: before launch it speaks to who came from "Scopri chi rientra a [città]"
       panelTitle: !s.ready ? '' : s.launch?.launched === false
-        ? `Registrati per esplorare chi rientra ${s.city ? `${/^a/i.test(s.city) ? 'ad' : 'a'} ${s.city}` : 'nella tua città'}`
+        ? `Registrati per esplorare chi rientra ${s.place ? `${s.place.prep} ${s.place.name}` : s.city ? `${/^a/i.test(s.city) ? 'ad' : 'a'} ${s.city}` : 'nella tua città'}`
         : 'Il tuo profilo è la tua presentazione.',
       panelText: s.launchDate ? `Assicura il tuo posto prima del lancio di Rientro il ${s.launchDate}.` : '',
       postcard: s.postcard?.src ?? null,

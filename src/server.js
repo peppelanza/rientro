@@ -11,7 +11,7 @@ import { checkEmailDomain } from './email-check.js';
 import { turnstileEnabled, verifyTurnstile } from './turnstile.js';
 import { beaconTag, traffic } from './web-analytics.js';
 import * as auth from './auth.js';
-import { catalog, COMUNI } from './catalog.js';
+import { catalog, COMUNI, REGIONS } from './catalog.js';
 import { adminUrl, config, cookieDomain, isLaunched, JOB_SEEKING_NOTICE_TEXT, LEGAL_VERSIONS } from './config.js';
 import { openDb, tx } from './db.js';
 import { attachUpload, checkVideo, confirmVideo, fileOnDisk, readFileFor, storeGroupImage, storeSupportImage, receiveUpload, removeVideo, sweepVideoConversions } from './files.js';
@@ -213,7 +213,7 @@ function sendNotFound(res, { kind = 'page', home = '/' } = {}) {
 
 // /accedi?citta=… only for real comuni. Any casing is accepted and redirected to the official
 // name (so the page shows "Torino", not "torino"); a name that isn't a comune is a 404.
-const COMUNE_BY_FOLDED = new Map(COMUNI.map(c => [c[0].toLocaleLowerCase('it'), c[0]]));
+const COMUNE_BY_FOLDED = new Map([...REGIONS.map(r => [r.toLocaleLowerCase('it'), r]), ...COMUNI.map(c => [c[0].toLocaleLowerCase('it'), c[0]])]); // regions too (from their territory page)
 function checkCity(url) {
   if (!url.searchParams.has('citta')) return 'ok';
   const raw = url.searchParams.get('citta').trim();

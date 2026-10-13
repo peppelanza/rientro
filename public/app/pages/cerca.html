@@ -5,19 +5,22 @@
 <sc-if value="{{ noQuery }}"><p class="search-hint">Scrivi cosa cercare: persone, città, settori o parole dei gruppi.</p></sc-if>
 <sc-if value="{{ hasQuery }}"><div class="r-page">
 <!-- Phones: the filters (Persone) or the group (Gruppi) behind a chip, as in Scopri -->
-<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
+<div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;flex-direction:column;gap:14px">
+<div class="search-tabs" role="tablist" aria-label="Cerca in"><sc-for list="{{ tabs }}" as="t"><button type="button" role="tab" class="{{ t.cls }}" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}">{{ t.l }}</button></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1;overflow-wrap:anywhere">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ countLabel }}</span></div>
+<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">
 <sc-if value="{{ peopleTab }}"><dc-import name="UI Chip" label="Filtri" tone="{{ filtersTone }}" count="{{ filtersCount }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import>
 <sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for></sc-if>
 <sc-if value="{{ groupsTab }}"><dc-import name="UI Chip" label="{{ groupChip }}" tone="{{ filtersTone }}" on-click="{{ toggleFilters }}" host-aria-expanded="{{ showFilters }}"></dc-import></sc-if>
-</div></div>
+</div></div></div>
 
 <div class="r-grid-1" style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;padding:28px var(--gutter) 0">
 <sc-if value="{{ peopleTab }}"><dc-import name="App People Filters" dc-props="{{ filterUi }}"></dc-import></sc-if>
 <sc-if value="{{ groupsTab }}"><aside aria-label="Gruppo" class="{{ groupClass }}" style="align-self:start"><dc-import name="App Side Menu" title="Gruppo" items="{{ groupMenu }}" active="{{ groupActive }}"></dc-import></aside></sc-if>
 
 <main style="display:flex;flex-direction:column;gap:22px;min-width:0">
-<div class="search-tabs" role="tablist" aria-label="Cerca in"><sc-for list="{{ tabs }}" as="t"><button type="button" role="tab" class="{{ t.cls }}" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}">{{ t.l }}</button></sc-for></div>
-<div style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1;overflow-wrap:anywhere">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ countLabel }}</span></div>
+<div class="search-tabs r-hide-sm" role="tablist" aria-label="Cerca in"><sc-for list="{{ tabs }}" as="t"><button type="button" role="tab" class="{{ t.cls }}" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}">{{ t.l }}</button></sc-for></div>
+<div class="r-hide-sm" style="display:flex;flex-direction:column;gap:10px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1;overflow-wrap:anywhere">{{ heading }}</h1><span role="status" style="font-size:15px;color:#6B6680">{{ countLabel }}</span></div>
 
 <sc-if value="{{ peopleTab }}">
 <sc-if value="{{ hasActive }}"><div class="r-hide-sm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;margin-right:4px">{{ activeLabel }}</span><sc-for list="{{ activeChips }}" as="c"><dc-import name="UI Chip" label="{{ c.l }}" size="sm" removable="{{ true }}" on-click="{{ c.remove }}" host-aria-label="{{ c.aria }}"></dc-import></sc-for><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;margin-left:4px;cursor:pointer">Rimuovi tutti</button></div></sc-if>
