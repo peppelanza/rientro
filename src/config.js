@@ -75,9 +75,9 @@ export const adminUrl = () => (config.adminHost ? `${new URL(config.baseUrl).pro
 // A new version of terms or privacy (the day it applies, YYYY-MM-DD) emails every member about it
 // once (legal-notice.js); nothing has to be accepted again.
 export const LEGAL_VERSIONS = {
-  privacy: '2026-10-04',
+  privacy: '2026-10-13',
   terms: '2026-10-04',
-  cookies: '2026-10-07',
+  cookies: '2026-10-13',
   // The inline explanation shown under "Sto anche cercando lavoro in Italia per un'azienda italiana".
   job_seeking_notice: 'job-notice-v1',
 };
