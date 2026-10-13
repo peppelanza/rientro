@@ -65,7 +65,7 @@
 <sc-if value="{{ isChiCerco }}">
 <div class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ seekAreas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" desc="{{ a.desc }}" selected="{{ a.on }}" disabled="{{ a.off }}" control="{{ a.control }}" size="sm" layout="row" on-click="{{ a.fn }}" host-role="checkbox" host-aria-checked="{{ a.aria }}"></dc-import></sc-for></div>
 <dc-import name="App Field" label="Descrivi la persona che cerchi" rows="3" field="seeking_description" maxlength="400" value="{{ t.seeking_description.value }}" dc-props="{{ t.seeking_description.props }}"></dc-import>
-<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Dove dovrebbe vivere?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Dove dovrebbe vivere" options="{{ locOpts }}" value="{{ loc }}" dc-props="{{ locProps }}"></dc-import></div></div>
+<sc-if value="{{ hasMyPlace }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Dove dovrebbe vivere?</span><label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;align-self:flex-start"><input type="checkbox" class="sr-only" checked="{{ locOn }}" onChange="{{ toggleLoc }}"><span aria-hidden="true" style="width:20px;height:20px;border-radius:7px;flex:none;box-sizing:border-box;background:{{ locBg }};border:{{ locBd }};color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center">{{ locMark }}</span>{{ locLabel }}</label></div></sc-if>
 </sc-if>
 
 <sc-if value="{{ isInteressi }}">

@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, fmtTime, getCatalog, getMe, go, orList, setMe, toast, upload } from '../lib.js';
+import { api, fmtTime, getCatalog, getMe, go, orList, placeToggle, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -321,7 +321,6 @@ export default class extends Page {
       stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },
       birthYear: p.birth_year ?? '', birthProps: { onInput: v => { p.birth_year = parseBirthYear(v); this.__rerender(); } },
       yearsProps: { onSelect: v => this.set({ years_experience: v || null }) },
-      locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
 
       // 6a
       welcomeName: first ? `Benvenuto, ${first}` : 'Benvenuto', questions: 'Raccontaci di te rispondendo a qualche domanda.',
@@ -436,7 +435,7 @@ export default class extends Page {
         return { t, on, off: mine, desc: mine ? 'È il tuo background' : '', control: mine ? 'none' : 'check', aria: on ? 'true' : 'false', dis: mine ? 'true' : false, fn: () => !mine && this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, t, 2) }) };
       }),
       seekDesc: p.seeking_description ?? '', seekDescProps: { onInput: v => { p.seeking_description = v; } },
-      locOpts: opts(cat.seekingLocation), loc: p.seeking_location,
+      ...placeToggle(p, patch => this.set(patch)),
 
       // 19a
 

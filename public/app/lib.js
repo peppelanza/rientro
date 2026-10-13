@@ -101,6 +101,19 @@ const MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', '
 export const fmtDate = iso => { if (!iso) return '—'; const d = new Date(iso); return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
 export const fmtShort = iso => { if (!iso) return ''; const d = new Date(iso); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
 export const fmtTime = iso => (iso ? new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '');
+// "Chi stai cercando › Dove": the member's own city: where they live once back, else where they'd
+// like to move (null when they don't know yet). Same as profiles.js myPlace.
+export const myPlace = p => (p.lives_in === 'italy' ? p.lives_in_city || null : p.desired_unknown ? null : orList(p.desired_comuni || []) || null);
+export function placeToggle(p, set) {
+  const place = myPlace(p);
+  const on = p.seeking_location === 'same_city';
+  return {
+    hasMyPlace: !!place, locOn: on, locLabel: `Solo persone a ${place}`,
+    locBg: on ? '#6C4DF5' : '#FFFFFF', locBd: on ? 'none' : '1.5px solid #CFC8E8', locMark: on ? '✓' : '',
+    toggleLoc: e => set({ seeking_location: e.target.checked ? 'same_city' : 'any' }),
+  };
+}
+
 // Job dates are typed as mm/aaaa (stored as aaaa-mm): the stored value as typed, and back. textToMonth
 // gives null for an empty field and undefined for something it can't read.
 export const monthToText = ym => (/^\d{4}-\d{2}$/.test(ym || '') ? `${ym.slice(5)}/${ym.slice(0, 4)}` : ym || '');

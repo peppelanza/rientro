@@ -158,7 +158,7 @@ export default class extends Page {
       noIdea: !p.idea, toIdea: e => { e.preventDefault(); document.getElementById('idea')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
       idea: p.idea, ideaEyebrow: p.primary_intent === 'has_idea' ? 'Cosa voglio costruire' : 'Cosa mi piacerebbe costruire',
       ideaBadges: [p.idea?.stage && `Fase: ${p.idea.stage.toLowerCase()}`].filter(Boolean).map(l => ({ l })),
-      seekDesc: p.seeking.description, seekLoc: p.seeking.location && p.seeking.location !== 'Indifferente' ? `Dove: ${p.seeking.location.toLowerCase()}` : '',
+      seekDesc: p.seeking.description, seekLoc: p.seeking.location ? `Dove: ${p.seeking.location}` : '',
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),
       seekText: p.seeking.description || p.seeking.backgrounds.join(', '),
       career: p.experiences.map(e => ({ y: [e.start_month?.slice(0, 4), e.current ? 'OGGI' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),

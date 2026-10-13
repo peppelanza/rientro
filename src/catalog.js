@@ -34,7 +34,8 @@ export const IDEA_STAGES = [['idea', 'Solo un\'idea'], ['prototype', 'Ci sto lav
 // Stages used before they were reduced to three, and where each one now belongs
 export const OLD_IDEA_STAGES = { validation: 'prototype', first_customers: 'revenue' };
 
-export const SEEKING_LOCATION = [['any', 'Indifferente'], ['same_city', 'Nella mia stessa città'], ['italy', 'In Italia']];
+// "Dove dovrebbe vivere": only "in my city" is asked (the member's city, profiles.js myPlace); else indifferent
+export const SEEKING_LOCATION = [['any', 'Indifferente'], ['same_city', 'Nella mia città']];
 
 export const REPORT_REASONS = [
   ['fake_profile', 'Profilo falso o foto non sua'],

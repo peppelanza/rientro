@@ -1,6 +1,6 @@
 // Profile editor (design 05 · 37a editor a sezioni). Each section saves on its own and is online at
 // once (there's no review).
-import { api, getCatalog, getMe, go, orList, qs, toast, upload } from '../lib.js';
+import { api, getCatalog, getMe, go, orList, placeToggle, qs, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear } from '../places.js';
 import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, videoDuration } from '../video.js';
@@ -214,7 +214,7 @@ export default class extends Page {
       }),
       // chi cerco
       seekAreas: cat.areas.map(a => { const mine = a === p.background_area; const on = p.seeking_backgrounds.includes(a); return { t: a, on, off: mine, desc: mine ? 'È il tuo background' : '', control: mine ? 'none' : 'check', aria: on ? 'true' : 'false', fn: () => !mine && this.set({ seeking_backgrounds: toggleIn(p.seeking_backgrounds, a, 2) }) }; }),
-      locOpts: opts(cat.seekingLocation), loc: p.seeking_location, locProps: { onSelect: v => this.set({ seeking_location: v || null }) },
+      ...placeToggle(p, patch => this.set(patch)),
       // interessi
       sectorCount: `${p.sectors.length} / 5`,
       sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : p.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, 5) }) }; }),

@@ -47,6 +47,8 @@ export function arrivedText(p) {
 // Already back in Italy: where they live is where they wanted to be, so
 // "Dove vorresti vivere" isn't asked and follows the city they live in (updateProfile, db.js)
 export const isBack = p => p.lives_in === 'italy';
+// The member's own city: where they live once back, else where they'd like to move (lib.js myPlace)
+export const myPlace = p => (p.lives_in === 'italy' ? p.lives_in_city || null : p.desired_unknown ? null : orList(p.desired_comuni || []) || null);
 
 const EDITABLE = {
   lives_in: v => oneOf(v, ['italy', 'abroad'], 'Dove vivi'),
@@ -329,7 +331,8 @@ export function publicProfile(db, viewer, targetId, { asMember = false } = {}) {
     years_experience: label(YEARS, p.years_experience),
     bio: p.bio, achievement: p.achievement, misses_italy: p.misses_italy,
     sectors: p.sectors,
-    seeking: { backgrounds: p.seeking_backgrounds, description: p.seeking_description, location: label(SEEKING_LOCATION, p.seeking_location) },
+    // "a Palermo": the member's own city, when they look only there
+    seeking: { backgrounds: p.seeking_backgrounds, description: p.seeking_description, location: p.seeking_location === 'same_city' && myPlace(p) ? `a ${myPlace(p)}` : null },
     education: education(db, targetId),
     experiences: experiences(db, targetId),
     photo_url: fileUrl(p.photo_file_id),

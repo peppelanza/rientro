@@ -36,6 +36,8 @@ export function openDb(file = config.dbPath) {
   migrateIdeaStages(db);
   migrateAreas(db);
   migrateSectors(db);
+  // "In Italia" is no longer offered: indifferent
+  db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'");
   migrateChecks(db);
   migrateNoReview(db);
   desiredFollowsHome(db);
