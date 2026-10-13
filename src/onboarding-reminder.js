@@ -1,11 +1,11 @@
-// Who started the profile and left it halfway gets one email, a day after their last change, inviting
+// Who started the profile and left it halfway gets one email, an hour after their last change, inviting
 // them back to finish it. Once per account (users.onboarding_reminded_at), never while they're still
 // at it. Runs every minute from server.js, a small batch at a time.
 import { canSendEmail, onboardingReminderEmail, sendEmail } from './mail.js';
 import { getCommunicationPreferences } from './preferences.js';
 import { now } from './db.js';
 
-export const REMINDER_AFTER_HOURS = 24;
+export const REMINDER_AFTER_HOURS = 1;
 const BATCH = 20;
 
 export async function sendOnboardingReminders(db, { send = sendEmail, at = Date.now() } = {}) {

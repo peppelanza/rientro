@@ -73,7 +73,7 @@ export function welcomeEmail({ launched = isLaunched() } = {}) {
 
 export const sendWelcomeEmail = (email, opts) => sendEmail({ to: email, ...welcomeEmail(opts) });
 
-// --- Profile left halfway (onboarding-reminder.js): once, a day after the last change ------------
+// --- Profile left halfway (onboarding-reminder.js): once, an hour after the last change ------------
 
 export function onboardingReminderEmail({ firstName = null, launched = isLaunched() } = {}) {
   const date = launchDate();
