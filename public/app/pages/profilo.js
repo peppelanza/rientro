@@ -225,6 +225,16 @@ export default class extends Page {
       sectors: cat.sectors.map(l => { const on = p.sectors.includes(l); return { l: on ? `✓ ${l}` : l, tone: on ? 'tint' : p.sectors.length >= 5 ? 'off' : 'default', aria: on ? 'true' : 'false', fn: () => this.set({ sectors: toggleIn(p.sectors, l, 5) }) }; }),
       // preview (right column)
       pvName: [p.first_name, p.last_name].filter(Boolean).join(' '), pvRole: [p.current_role, p.current_company].filter(Boolean).join(' · '),
+      // The card as others see it in Scopri chi torna (same as the server's profiles.js card())
+      pvPerson: {
+        id: me.user.id, name: [p.first_name, p.last_name].filter(Boolean).join(' '), first_name: p.first_name,
+        role: [p.current_role, p.current_company].filter(Boolean).join(' · '), from: p.lives_in_city ?? '',
+        back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',
+        to: orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : ''),
+        idea: p.primary_intent === 'has_idea', intent: p.primary_intent, idea_title: p.idea_title,
+        seeks: p.seeking_backgrounds.join(', '), tags: p.sectors.slice(0, 3).join(' · '), comp: null,
+        photo_url: p.photo_url, connection: null,
+      },
       pvPlaces: [p.lives_in_city, orList(p.desired_comuni)].filter(Boolean), pvFrom: p.lives_in_city ?? '', pvTo: orList(p.desired_comuni), hasTo: p.desired_comuni.length > 0 && p.lives_in !== 'italy',
       previewHref: status === 'approved' ? `/persone/${me.user.id}?anteprima=1` : '/onboarding?passo=anteprima',
     };
