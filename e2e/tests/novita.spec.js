@@ -45,7 +45,7 @@ test('Connessioni: "Invita" apre il tuo link', async ({ page }) => {
   await page.goto('/connessioni');
   await page.getByRole('button', { name: 'Invita' }).first().click();
   await expect(page.getByRole('heading', { name: 'Invita chi vuoi' })).toBeVisible();
-  await expect(page.locator('.invite-link')).toContainText(/\?[a-z]{1,4}\d{4}/);
+  await expect(page.locator('.invite-dialog-link')).toContainText(/\?[a-z]{1,4}\d{4}/);
 });
 
 test('un post si modifica dal menu ···', async ({ page }) => {

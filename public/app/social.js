@@ -140,7 +140,7 @@ export async function block(person) {
 const INVITE = `
 <div style="width:500px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 30px 80px rgba(26,23,38,.3);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
 <div style="display:flex;gap:14px;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:6px;flex:1"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.03em">Invita chi vuoi</h2><span style="font-size:15px;line-height:1.5;color:#4A4560">Manda il tuo link a chi sta pensando di tornare: iscrivendosi potrà chiederti subito di connettervi.</span></div>${CLOSE}</div>
-<div class="invite-link" aria-label="Il tuo link d’invito">{{ short }}</div>
+<div class="invite-dialog-link" aria-label="Il tuo link d’invito">{{ short }}</div>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Button" label="{{ copyLabel }}" variant="accent" on-click="{{ copy }}"></dc-import><sc-if value="{{ canShare }}"><dc-import name="UI Button" label="Condividi" variant="secondary" on-click="{{ share }}"></dc-import></sc-if></div>
 </div>`;
 

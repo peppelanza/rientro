@@ -1155,7 +1155,7 @@ html.search-sheet-open { overflow: hidden; }
 /* Connessioni: "Invita", a coloured pill (social.js invite) */
 .invite-pill { height: 40px; padding: 0 18px; border: none; border-radius: 999px; background: linear-gradient(120deg, #6C4DF5, #D94E8F 60%, #F29A4A); color: #FFFFFF; font: 600 14px 'Geist', sans-serif; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 8px 22px rgba(108,77,245,.30); white-space: nowrap; }
 .invite-pill:hover { filter: brightness(1.06); }
-.invite-link { padding: 14px 18px; border-radius: 18px; background: #F1EFF8; font: 500 15px 'Geist Mono', monospace; color: #1A1726; user-select: all; overflow-wrap: anywhere; }
+.invite-dialog-link { padding: 14px 18px; border-radius: 18px; background: #F1EFF8; font: 500 15px 'Geist Mono', monospace; color: #1A1726; user-select: all; overflow-wrap: anywhere; }
 /* Links written in a chat message, a post, a comment (lib.js linkParts) */
 .text-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
 /* Gruppi: editing your own post or comment in place (gruppo.html) */
