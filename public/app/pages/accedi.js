@@ -125,7 +125,7 @@ export default class extends Page {
       panelText: s.launchDate ? `Assicura il tuo posto prima del lancio di Rientro il ${s.launchDate}.` : '',
       postcard: s.postcard?.src ?? null,
       postcardAlt: s.postcard ? `Cartolina da ${s.postcard.name}` : '',
-      expired: !!qs().get('next'),
+      expired: !!qs().get('scaduta'), // only who had a session that ran out (lib.js), not every visitor
       linkedin: oauth('linkedin', 'LinkedIn'), google: oauth('google', 'Google'), oauthNote: s.oauthNote,
       toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; warmUpTurnstile(this.state.launch?.turnstile); this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
       toChoose: () => { this.state.step = 'choose'; this.__rerender(); },

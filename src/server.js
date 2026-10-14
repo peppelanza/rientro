@@ -755,7 +755,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (req.method !== 'GET' && req.headers['x-requested-with'] !== 'rientro') throw new HttpError(403, 'csrf', 'Richiesta non valida.');
 
       const user = r.public ? null : auth.userForSession(db, cookies[SESSION_COOKIE]);
-      if (!r.public && !user) throw new HttpError(401, 'unauthenticated', 'Accedi per continuare.');
+      // "expired": a session cookie that no longer works (the sign-in page says so); none at all is just "sign in"
+      if (!r.public && !user) throw new HttpError(401, cookies[SESSION_COOKIE] ? 'expired' : 'unauthenticated', 'Accedi per continuare.');
       if (user?.status === 'suspended' && !r.allowSuspended) throw new HttpError(403, 'suspended', 'Questo account è sospeso.');
       if (r.admin && user.role !== 'admin') throw new HttpError(403, 'forbidden');
 

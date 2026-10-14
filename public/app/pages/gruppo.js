@@ -31,7 +31,7 @@ const skeletonState = s => {
   return {
     member: s.member ?? true, id: s.id || 'sk', groups: s.groups || [],
     group: { name: 'Nome del gruppo', description: 'Una riga che racconta il gruppo.', posts: 3, following: false, ...known },
-    feed: { items: [FAKE_POST(0)], page: 1, pages: 1, total: 1 },
+    feed: { items: [FAKE_POST(0)], page: 1, pages: 1, total: 1 }, drafts: {}, open: {}, images: [],
   };
 };
 
@@ -210,11 +210,11 @@ export default class extends Page {
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
       hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
       comments: p.comments.map(c => comment(p, c)),
-      more: !s.open[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
+      more: !s.open?.[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),
       canDelete: p.mine || admin, del: () => this.remove(p), canReport: !p.mine, hasMenu: s.member,
       doReport: async () => { this.setState({ menuFor: null }); await report({ id: p.author.id, name: p.author.name }, { postId: p.id }); },
-      replyField: `reply-${p.id}`, draft: s.drafts[p.id] || '',
+      replyField: `reply-${p.id}`, draft: s.drafts?.[p.id] || '',
       // Invio sends on a computer (Shift+Invio: a new line); on a phone the keyboard's Invio is a new
       // line and "Invia" sends
       draftProps: { onInput: v => { s.drafts[p.id] = v; }, ...(phone ? {} : { onEnter: () => this.comment(p) }) },

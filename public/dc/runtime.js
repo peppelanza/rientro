@@ -137,6 +137,9 @@ function compile(template) {
   // Inline style attributes would trip a strict CSP while parsing; carry them in a data
   // attribute and apply them through the CSSOM (el.style.cssText), which CSP allows.
   html = html.replace(/(\s)style(=|-hover=)/g, (_, sp, rest) => `${sp}data-dc-style${rest === '=' ? '=' : '-hover='}`);
+  // The same for event attributes (onClick="{{ fn }}"): parsed as inline handlers they'd break the
+  // CSP's script-src; as data-dc-on-click they're plain data, bound with addEventListener below.
+  html = html.replace(/(\s)on([a-z]+)=/gi, (_, sp, ev) => `${sp}data-dc-on-${ev.toLowerCase()}=`);
   const doc = parser.parseFromString(`<!doctype html><body>${html}`, 'text/html');
   return walkChildren(doc.body);
 }
@@ -277,7 +280,7 @@ function walkElement(el) {
     if (name.startsWith('hint-')) continue;
     if (name === 'data-dc-style-hover') { hover = compileAttr(value); continue; }
     if (name === 'data-dc-style') { attrs.push(['style', compileAttr(value)]); continue; }
-    if (name.startsWith('on') && name.length > 2) { events.push([name.slice(2), compileAttr(value)]); continue; }
+    if (name.startsWith('data-dc-on-')) { events.push([name.slice(11), compileAttr(value)]); continue; }
     attrs.push([name, compileAttr(value)]);
   }
   const kids = walkChildren(el);

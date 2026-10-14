@@ -19,7 +19,7 @@ export async function api(method, path, body, { raw = false } = {}) {
     throw new Error('updating');
   }
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
-    location.href = `/accedi?next=${encodeURIComponent(location.pathname + location.search)}`;
+    location.href = `/accedi?next=${encodeURIComponent(location.pathname + location.search)}${data?.error === 'expired' ? '&scaduta=1' : ''}`;
     throw new Error('unauthenticated');
   }
   if (!res.ok) throw Object.assign(new Error(data?.message || 'Qualcosa è andato storto. Riprova.'), { status: res.status, code: data?.error });

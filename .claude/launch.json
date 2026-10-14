@@ -1,7 +1,37 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "rientro", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 },
-    { "name": "rientro-prelancio", "runtimeExecutable": "env", "runtimeArgs": ["PORT=3012", "ADMIN_EMAILS=admin@rientro.local", "node", "--experimental-sqlite", "--no-warnings=ExperimentalWarning", "src/server.js"], "port": 3012 }
+    {
+      "name": "rientro",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "rientro-prelancio",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3012",
+        "ADMIN_EMAILS=admin@rientro.local",
+        "node",
+        "--experimental-sqlite",
+        "--no-warnings=ExperimentalWarning",
+        "src/server.js"
+      ],
+      "port": 3012
+    },
+    {
+      "name": "rientro-e2e",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--experimental-sqlite",
+        "--no-warnings=ExperimentalWarning",
+        "e2e/server.js"
+      ],
+      "port": 3020
+    }
   ]
 }

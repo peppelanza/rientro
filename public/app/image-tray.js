@@ -46,7 +46,7 @@ export const trayBusy = page => page.state.images.some(i => !i.id);
 export const trayIds = page => page.state.images.map(i => i.id);
 
 export function trayVals(page, { endpoint, max }) {
-  const images = page.state.images;
+  const images = page.state.images || []; // none yet while the page is a skeleton
   return {
     // (a copy: emptying the field, so the same picture can be picked again, empties its list too)
     pick: e => { const files = [...e.target.files]; e.target.value = ''; if (files.length) { warmUpNsfwCheck(); add(page, files, { endpoint, max }); } },
