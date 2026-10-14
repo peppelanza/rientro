@@ -86,3 +86,18 @@ test('onboarding completo di chi vive all’estero, fino a Pubblica', async ({ p
   expect(me.profile.sectors).toHaveLength(5);
   expect(errors).toEqual([]);
 });
+
+test('onboarding: il tasto indietro torna al passo prima, Continua disabilitato dice cosa manca', async ({ page }) => {
+  await signIn(page.request, uniqueEmail('back'));
+  await page.goto('/onboarding');
+  await page.getByRole('button', { name: 'Iniziamo' }).click();
+  await heading(page, 'Dove vivi attualmente?');
+  await page.getByRole('button', { name: /^Continua$/ }).last().click({ force: true }); // disabled: nothing chosen yet
+  await expect(page.getByText('Scegli dove vivi').last()).toBeVisible();
+  await page.getByRole('radio', { name: /Vivo fuori/ }).click();
+  await next(page);
+  await expect(page.getByPlaceholder('Cerca il paese')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('radio', { name: /Vivo fuori/ })).toBeVisible();
+  await expect(page).toHaveURL(/passo=luogo/);
+});

@@ -79,7 +79,8 @@ export default class extends Page {
       const r = await api('POST', '/api/auth/verify-code', { email: this.state.email.trim(), code });
       if (r.restored) flash('Bentornato! Il tuo account è stato ripristinato e l’eliminazione annullata.');
       const next = qs().get('next');
-      location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : r.next;
+      // only a path on this site ("//host" and "/\\host" would be another one)
+      location.href = next && /^\/(?![/\\])/.test(next) && !/[\\\x00-\x1f]/.test(next) ? next : r.next;
       return;
     } catch (err) {
       this.state.codeError = err.code === 'invalid_code' ? 'Codice non valido. Controlla l’ultima email ricevuta.' : err.message;

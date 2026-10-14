@@ -174,6 +174,15 @@ export function updateProfile(db, user, body) {
   if (body.lives_in === 'italy') live.lives_in_country = 'Italia';
   const after = { ...current, ...live };
   if (isBack(after) && after.lives_in_city) Object.assign(live, { desired_comuni: JSON.stringify([after.lives_in_city]), desired_unknown: 0 });
+  // A profile already online keeps what onboarding asked for: it can change, not be emptied
+  if (user.status !== 'onboarding') {
+    const REQUIRED = { first_name: 'Il nome', last_name: 'Il cognome', lives_in: 'Dove vivi', lives_in_city: 'La città dove vivi', primary_intent: 'L’obiettivo', background_area: 'Il background' };
+    for (const [k, what] of Object.entries(REQUIRED)) if (k in live && live[k] == null) throw bad('invalid_field', `${what} non può restare vuoto.`);
+    if ('seeking_backgrounds' in live && !JSON.parse(live.seeking_backgrounds || '[]').length) throw bad('invalid_field', 'Scegli chi stai cercando.');
+    const desired = 'desired_comuni' in live ? JSON.parse(live.desired_comuni || '[]') : null;
+    const unknown = 'desired_unknown' in live ? live.desired_unknown : current.desired_unknown;
+    if (desired && !desired.length && !unknown) throw bad('invalid_field', 'Scegli dove vorresti vivere, oppure “Non lo so ancora”.');
+  }
   const keys = Object.keys(live);
   if (!keys.length) return effectiveProfile(db, user.id);
   const params = { $user_id: user.id, $ts: now() };
@@ -222,6 +231,10 @@ export function saveExperience(db, userId, body, id = null) {
   const start = month(body.start_month, 'Inizio');
   const end = body.current ? null : month(body.end_month, 'Fine');
   for (const m of [start, end]) if (m && !MONTH_RE.test(m)) throw bad('invalid_field', 'Usa il formato AAAA-MM');
+  // as the page checks them (entries.js): not after this month, the end not before the start
+  const d = new Date(), thisMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  if ((start && start > thisMonth) || (end && end > thisMonth)) throw bad('invalid_field', 'Le date non possono essere nel futuro.');
+  if (start && end && end < start) throw bad('invalid_field', 'La fine viene prima dell’inizio.');
   const current = body.current === true ? 1 : 0;
   if (id) {
     const r = db.prepare('UPDATE experiences SET company = ?, role = ?, city = ?, start_month = ?, end_month = ?, current = ? WHERE id = ? AND user_id = ?')

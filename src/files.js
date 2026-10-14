@@ -17,6 +17,39 @@ function sniff(buf) {
   return null;
 }
 
+// A JPEG without its APP1 (Exif, XMP: GPS position, camera) and APP13 (IPTC) segments, a PNG
+// without its eXIf and text chunks; null when there was nothing to take out (or the file can't be read)
+export function stripImageMeta(buf, mime) {
+  try {
+    const parts = [];
+    let dropped = false;
+    if (mime === 'image/jpeg') {
+      let i = 2;
+      parts.push(buf.subarray(0, 2));
+      while (i + 4 <= buf.length && buf[i] === 0xff) {
+        const marker = buf[i + 1];
+        if (marker === 0xda) break; // start of the picture data: the rest as it is
+        const len = buf.readUInt16BE(i + 2);
+        if (marker === 0xe1 || marker === 0xed) dropped = true;
+        else parts.push(buf.subarray(i, i + 2 + len));
+        i += 2 + len;
+      }
+      parts.push(buf.subarray(i));
+    } else {
+      let i = 8;
+      parts.push(buf.subarray(0, 8));
+      while (i + 12 <= buf.length) {
+        const len = buf.readUInt32BE(i);
+        const type = buf.toString('ascii', i + 4, i + 8);
+        if (['eXIf', 'tEXt', 'iTXt', 'zTXt'].includes(type)) dropped = true;
+        else parts.push(buf.subarray(i, i + 12 + len));
+        i += 12 + len;
+      }
+    }
+    return dropped ? Buffer.concat(parts) : null;
+  } catch { return null; }
+}
+
 const diskPath = key => path.join(config.uploadDir, key);
 const LIMITS = { profile_photo: config.maxPhotoBytes, profile_video: config.maxVideoBytes, group_image: config.maxPhotoBytes, support_image: config.maxPhotoBytes };
 const TYPES = { profile_photo: /^image\//, profile_video: /^video\//, group_image: /^image\//, support_image: /^image\// };
@@ -55,9 +88,18 @@ export function receiveUpload(req, kind) {
       if (failed) return;
       out.end(() => {
         const mime = sniff(head);
-        if (!size) return fail(new HttpError(400, 'empty_file'));
+        if (!size) return fail(new HttpError(400, 'empty_file', 'Il file è vuoto. Scegli un’altra foto.'));
         if (!mime || !TYPES[kind].test(mime)) {
           return fail(new HttpError(415, 'unsupported_type', kind === 'profile_video' ? 'Formato non supportato. Usa MP4, MOV o WebM.' : 'Usa una foto JPG, PNG o WebP.'));
+        }
+        // Pictures keep nothing of what the camera wrote in them (where it was taken, the device):
+        // the browser redraws them already (face.js), this is in case it couldn't
+        if (/^image\/(jpeg|png)$/.test(mime)) {
+          const clean = stripImageMeta(fs.readFileSync(file), mime);
+          if (clean) {
+            fs.writeFileSync(file, clean, { mode: 0o600 });
+            return resolve({ key, mime, size: clean.length, sha256: crypto.createHash('sha256').update(clean).digest('hex') });
+          }
         }
         resolve({ key, mime, size, sha256: hash.digest('hex') });
       });

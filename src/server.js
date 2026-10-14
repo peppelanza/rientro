@@ -106,7 +106,8 @@ const showCodeOnPage = () => !config.production || (!!config.previewPassword && 
 function cookie(name, value, maxAgeSeconds, { path = '/', httpOnly = true } = {}) {
   return [`${name}=${value}`, `Path=${path}`, ...(httpOnly ? ['HttpOnly'] : []), 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(config.production ? ['Secure'] : [])].join('; ');
 }
-const safeNext = n => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : null);
+// Only a path on this site: "/x", never "//host" or "/\\host" (browsers read both as another site)
+const safeNext = n => (typeof n === 'string' && /^\/(?![/\\])/.test(n) && !/[\\\x00-\x1f]/.test(n) ? n : null);
 // Admins are members too: the portal treats them like everyone else (the panel is on its own host)
 const homeFor = user => (user.status === 'onboarding' ? '/onboarding' : '/scopri');
 

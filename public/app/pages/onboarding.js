@@ -64,6 +64,14 @@ export default class extends Page {
     });
     // The preview is the real profile page, as others will see it (persona.js), with Pubblica on top
     if (this.state.step === 'anteprima') return go(previewHref(me));
+    // A step from the address that doesn't apply (no inviter, not back yet…) or comes after one
+    // still unanswered: the first step that needs an answer instead (not an empty page)
+    const keys = this.steps.map(x => x[0]);
+    if (this.state.step !== 'benvenuto') {
+      const at = keys.indexOf(this.state.step);
+      const open = keys.findIndex(k => this.blocker(k));
+      if (at < 0 || (open >= 0 && open < at)) this.state.step = open >= 0 ? keys[open] : keys[0];
+    }
     // Each step is a place in the history: the phone's back (or the browser's) goes to the step
     // before, not out of the onboarding (goTo adds them)
     history.replaceState(null, '', `/onboarding?passo=${this.state.step}`);

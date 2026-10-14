@@ -96,7 +96,14 @@ export default class extends Page {
     this.state.self = me.user.id === this.props.params.id;
     this.__rerender(); // the top bar for real, the profile still a skeleton
     if (this.state.self && !new URLSearchParams(location.search).has('anteprima')) return go('/profilo');
-    this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
+    // Still in onboarding: the others' profiles open once yours is online
+    if (!this.state.self && me.user.status === 'onboarding') return go('/onboarding');
+    try {
+      this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
+    } catch (err) {
+      if (err.status === 404 || err.status === 403) return; // "Profilo non disponibile", without a toast too
+      throw err;
+    }
     document.title = `${this.state.p.first_name} ${this.state.p.last_name} · Rientro`;
   }
 

@@ -63,20 +63,33 @@ async function check(file) {
     bitmap = await createImageBitmap(file);
   } catch (err) {
     console.warn('[face] check skipped:', err);
-    return { file, flag: 'unchecked' };
+    // never the original as it is (its metadata: where it was taken), redrawn if the browser can
+    try { bitmap = bitmap || await createImageBitmap(file); return { file: await plain(bitmap, file.name), flag: 'unchecked' }; } catch { return { file, flag: 'unchecked' }; } finally { bitmap?.close(); }
   }
   try {
     const W = bitmap.width, H = bitmap.height;
     const faces = d.detect(bitmap).detections.map(f => f.boundingBox).sort((a, b) => b.width * b.height - a.width * a.height);
     const size = f => f.width * f.height;
     // No face (or one the short-range model can't see, far from the camera): the photo as it is
-    if (!faces.length) return { file, flag: 'no_face' };
+    // (redrawn all the same: smaller, and without its metadata, like where it was taken)
+    if (!faces.length) return { file: await plain(bitmap, file.name), flag: 'no_face' };
     const flag = Math.min(W, H) < MIN_SIDE ? 'low_res'
       : size(faces[0]) / (W * H) < 0.015 ? 'small_face'
       // Someone else next to you, about as big
       : faces.filter(f => size(f) >= size(faces[0]) * 0.35).length > 1 ? 'multiple_faces' : null;
     return { file: await frame(bitmap, faces[0], file.name), flag };
   } finally { bitmap.close(); }
+}
+
+// A photo kept whole (no face to frame): redrawn, at most 1600 px on its longer side, as a JPEG.
+// What the camera wrote in the file (the GPS position above all) stays out.
+async function plain(bitmap, name) {
+  const k = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bitmap.width * k); c.height = Math.round(bitmap.height * k);
+  c.getContext('2d').drawImage(bitmap, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+  return new File([blob], name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
 }
 
 // Resolution: photos show up to about 400 px wide, so 800 px keeps them sharp on retina screens.

@@ -28,6 +28,8 @@ export function text(value, field, { max = 200, nullable = true } = {}) {
   }
   if (typeof value !== 'string') throw bad('invalid_field', `${field} deve essere testo`);
   const v = value.trim();
+  // only spaces is nothing written
+  if (!v) { if (nullable) return null; throw bad('invalid_field', `${field} è obbligatorio`); }
   if (v.length > max) throw bad('invalid_field', `${field} supera ${max} caratteri`);
   return v;
 }
@@ -56,11 +58,13 @@ export function httpsUrl(value, field) {
   if (v == null) return v;
   let u;
   try {
-    u = new URL(v.startsWith('http') ? v : `https://${v}`);
+    // "Https://…" from a phone's capital letter, "http://…" made https, a bare "sito.it" too
+    const scheme = v.match(/^([a-z][a-z0-9+.-]*):/i)?.[1].toLowerCase();
+    if (scheme && scheme !== 'http' && scheme !== 'https') throw new Error('scheme');
+    u = new URL(scheme ? v.replace(/^[a-z]+:/i, 'https:') : `https://${v}`);
   } catch {
     throw bad('invalid_field', `${field} non è un link valido`);
   }
-  if (u.protocol !== 'https:') throw bad('invalid_field', `${field} deve usare https`);
   // a host without a dot ("https://martalopresti/") leads nowhere
   if (!u.hostname.includes('.')) throw bad('invalid_field', `${field} non è un link valido`);
   return u.toString();
