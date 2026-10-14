@@ -23,6 +23,7 @@ import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
 import { disconnect as liveDisconnect, subscribe } from './live.js';
 import { clientIp as clientIpOf, forwardingHeaders } from './client-ip.js';
+import { inviteImage, invitePage } from './invite-card.js';
 import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, myInviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
@@ -704,8 +705,26 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         // An invite link (rientro.it/?gius2839, invites.js): remembered for the sign-up, then straight to it
         const invite = url.search.slice(1).toLowerCase();
         if (INVITE_CODE.test(invite) && !path.extname(p)) {
-          res.writeHead(302, { Location: '/accedi', 'Set-Cookie': cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400), 'Cache-Control': 'no-store' });
+          const setInvite = cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400);
+          // a page with its own preview ("Giuseppe ti ha invitato su Rientro", invite-card.js) that
+          // goes on to /accedi; a code of nobody online: straight there
+          const page = req.method === 'GET' ? invitePage(db, invite) : null;
+          if (page) {
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Set-Cookie': setInvite, 'Cache-Control': 'no-store' });
+            res.end(page);
+            return;
+          }
+          res.writeHead(302, { Location: '/accedi', 'Set-Cookie': setInvite, 'Cache-Control': 'no-store' });
           res.end();
+          return;
+        }
+        // The invite preview's picture (invite-card.js)
+        const og = /^\/og\/invito\/([a-z0-9]{1,12})\.jpg$/.exec(p);
+        if (og) {
+          const file = await inviteImage(db, og[1]);
+          if (!file) throw new HttpError(404, 'not_found');
+          res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' });
+          res.end(req.method === 'HEAD' ? undefined : fs.readFileSync(file));
           return;
         }
         const appPage = file => serveFile(res, path.join(config.publicDir, file));

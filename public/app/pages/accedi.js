@@ -124,7 +124,7 @@ export default class extends Page {
     const error = !!s.codeError;
     return {
       // Came through someone's invite link (invites.js)
-      invitedBy: !!s.inviter, inviterName: s.inviter?.name ?? '', inviterPhoto: s.inviter?.photo_url ?? null,
+      invitedBy: !!s.inviter, inviterName: s.inviter?.first_name || s.inviter?.name || '', // the first name only, as in the link's preview inviterPhoto: s.inviter?.photo_url ?? null,
       inviterIni: s.inviter ? `${(s.inviter.first_name || '?')[0]}${(s.inviter.last_name || '')[0] || ''}`.toUpperCase() : '',
       stepChoose: s.step === 'choose', stepEmail: s.step === 'email', stepCode: s.step === 'code',
       // One way in: a new email creates the account, a known one signs in

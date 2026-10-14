@@ -24,10 +24,10 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   assert.match(code, /^gius[0-9]{4}$/);
   assert.equal((await giuseppe.get('/api/me')).body.invite.url, url, 'always the same link');
 
-  // Opening the link: remembered in a cookie, then the page without the code
+  // Opening the link: remembered in a cookie, a page with its own preview, then on to /accedi
   const open = await fetch(`${t.base}/?${code}`, { redirect: 'manual' });
-  assert.equal(open.status, 302);
-  assert.equal(open.headers.get('location'), '/accedi');
+  assert.equal(open.status, 200);
+  assert.match(await open.clone().text(), /url=\/accedi/);
   assert.match(open.headers.get('set-cookie'), new RegExp(`rientro_invite=${code}`));
   assert.equal((await (await fetch(`${t.base}/api/public/invite`, { headers: { cookie: `rientro_invite=${code}` } })).json()).inviter.first_name, 'Giuseppe');
 
@@ -59,4 +59,27 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   // A code that isn't anyone's, or someone saying no: nothing
   const bea = await loginWith('zzzz0000', 'bea@x.it');
   assert.equal((await bea.get('/api/me')).body.invite.invited_by, null);
+});
+
+test('an invite link has its own preview: "<first name> ti ha invitato su Rientro", the picture, then /accedi', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('anteprima-invito@x.it', { first_name: 'Rosalia', last_name: 'Cognomelungo' });
+    const url = (await a.get('/api/me')).body.invite.url;
+    const code = url.split('?')[1];
+    const r = await fetch(`${t.base}/?${code}`, { redirect: 'manual' });
+    assert.equal(r.status, 200);
+    assert.match(r.headers.get('set-cookie'), new RegExp(`rientro_invite=${code}`));
+    const html = await r.text();
+    assert.match(html, /<meta property="og:title" content="Rosalia ti ha invitato su Rientro">/);
+    assert.ok(!html.includes('Cognomelungo'), 'the first name only');
+    assert.match(html, new RegExp(`og:image" content="[^"]*/og/invito/${code}\\.jpg"`));
+    assert.match(html, /http-equiv="refresh" content="0;url=\/accedi"/);
+    const img = await fetch(`${t.base}/og/invito/${code}.jpg`);
+    assert.equal(img.status, 200);
+    assert.equal(img.headers.get('content-type'), 'image/jpeg');
+    // nobody behind the code: straight to /accedi, no picture
+    assert.equal((await fetch(`${t.base}/?zzzz0000`, { redirect: 'manual' })).status, 302);
+    assert.equal((await fetch(`${t.base}/og/invito/zzzz0000.jpg`)).status, 404);
+  } finally { t.close(); }
 });
