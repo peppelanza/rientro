@@ -23,3 +23,19 @@ test('chi non è entrato e apre /scopri va ad accedi senza "sessione scaduta"', 
   await expect(page).toHaveURL(/\/accedi/);
   await expect(page.getByText('La sessione è scaduta')).toHaveCount(0);
 });
+
+test('link d’invito: la pagina di accesso mostra nome e foto di chi invita', async ({ page, browser }) => {
+  const { member: mk, BASE } = await import('../helpers.js');
+  const ctx = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
+  const inviter = await ctx.newPage();
+  await mk(inviter.request, { first: 'Invitante', last: 'Confoto' });
+  const url = (await (await inviter.request.get('/api/me')).json()).invite.url;
+  await page.goto(url.replace(/^https?:\/\/[^/]+/, ''));
+  await expect(page).toHaveURL(/\/accedi/);
+  const card = page.locator('.invite-card');
+  await expect(card).toContainText('Invitante');
+  await expect(card).not.toContainText('Confoto');
+  await expect(card.locator('img')).toHaveAttribute('src', /invite-photo/);
+  await expect.poll(() => card.locator('img').evaluate(i => i.complete && i.naturalWidth > 0)).toBeTruthy();
+  await ctx.close();
+});
