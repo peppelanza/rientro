@@ -11,7 +11,8 @@
     "purge": "node --experimental-sqlite --no-warnings=ExperimentalWarning scripts/purge.js",
     "dev": "ADMIN_EMAILS=admin@rientro.local LAUNCHED=1 node --experimental-sqlite --no-warnings=ExperimentalWarning --watch src/server.js",
     "build:design": "node scripts/build-design.js",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:turnstile": "E2E_PORT=3021 TURNSTILE_SITE_KEY=1x00000000000000000000BB TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA playwright test turnstile"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0"

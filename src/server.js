@@ -22,6 +22,7 @@ import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
 import { subscribe } from './live.js';
+import { clientIp as clientIpOf, forwardingHeaders } from './client-ip.js';
 import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, myInviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
@@ -66,16 +67,9 @@ function parseCookies(header = '') {
   return Object.fromEntries(header.split(';').map(c => c.trim().split('=')).filter(([k]) => k).map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
 }
 
-// Behind Render's proxy every connection comes from the proxy; the visitor is the first
-// X-Forwarded-For entry. A forged header only dodges the per-IP limit: the per-email limit and
-// the per-code attempt limit still apply.
-function clientIp(req) {
-  if (config.trustProxy) {
-    const first = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-    if (first) return first;
-  }
-  return req.socket.remoteAddress;
-}
+// The visitor's IP for the rate limits: the rule and what is (not yet) known of the proxies in
+// front of the app are in client-ip.js
+const clientIp = req => clientIpOf(req.headers, req.socket.remoteAddress, { trustProxy: config.trustProxy });
 
 // Preview gate (HTTP Basic auth, any username). Constant-time compare of the password.
 function previewAllowed(req) {
@@ -395,6 +389,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { ...pub, raw: true });
   // Live updates for the member's open pages (live.js)
   route('GET', '/api/live', ({ user, req, res }) => subscribe(req, res, user.id), { raw: true, allowSuspended: false });
+  // The forwarding headers of your own request and the IP the limits would use (client-ip.js):
+  // to document the proxy chain on each host before choosing a stricter rule
+  route('GET', '/api/me/rete', ({ req }) => ({ ...forwardingHeaders(req), limits_key: clientIp(req), trust_proxy: config.trustProxy }));
   route('GET', '/api/me/inviter-photo', ({ user, req, res }) => {
     const id = myInviterPhotoId(db, user);
     if (!id) throw new HttpError(404, 'not_found');

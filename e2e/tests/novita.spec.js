@@ -1,10 +1,10 @@
 // What was added after the first round of tests: read-only chat once disconnected, Invita, editing
 // posts, links you can click, badges that update by themselves, Back through filters and sign-in
 import { expect, test } from '@playwright/test';
-import { api, member, signIn, uniqueEmail } from '../helpers.js';
+import { BASE, api, member, signIn, uniqueEmail } from '../helpers.js';
 
 const second = async browser => {
-  const ctx = await browser.newContext({ baseURL: 'http://localhost:3020', extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
+  const ctx = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
   return { ctx, page: await ctx.newPage() };
 };
 
@@ -73,7 +73,7 @@ test('Indietro: toglie l’ultimo filtro in Scopri; torna al passo prima nell’
   await expect(page).toHaveURL(/\/scopri\?lives=italy$/);
 
   const ctxPage = await page.context().browser().newPage();
-  await ctxPage.goto('http://localhost:3020/accedi');
+  await ctxPage.goto(`${BASE}/accedi`);
   await ctxPage.getByRole('button', { name: 'Continua con email' }).click();
   await expect(ctxPage.getByPlaceholder('nome@esempio.it')).toBeVisible();
   await ctxPage.goBack();

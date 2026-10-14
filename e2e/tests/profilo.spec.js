@@ -1,6 +1,6 @@
 // Il tuo profilo (Impostazioni): the preview card is what Scopri shows, "Altro" can't be saved empty
 import { expect, test } from '@playwright/test';
-import { api, member } from '../helpers.js';
+import { BASE, api, member } from '../helpers.js';
 
 test('anteprima "come ti vedono" = la tessera di Scopri vista da un altro', async ({ page, browser }, info) => {
   test.skip(info.project.name === 'telefono', 'sul telefono la colonna con l’anteprima non c’è (r-hide-md)');
@@ -12,7 +12,7 @@ test('anteprima "come ti vedono" = la tessera di Scopri vista da un altro', asyn
   const flat = t => t.replace(/\u2060/g, '').replace(/\s+/g, ' ');
   const mine = flat(await preview.innerText());
 
-  const other = await browser.newContext({ baseURL: 'http://localhost:3020', extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
+  const other = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
   const op = await other.newPage();
   await member(op.request, { first: 'Osservatore' });
   await op.goto('/cerca?q=Anteprima');

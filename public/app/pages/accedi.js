@@ -65,11 +65,13 @@ export default class extends Page {
     e?.preventDefault?.();
     const email = this.state.email.trim();
     if (!/^\S+@\S+\.\S{2,}$/.test(email)) { this.state.emailError = 'Inserisci un indirizzo email valido.'; this.__rerender(); return; }
+    if (this.state.busy) return; // a double click sends one request (and spends one token)
     this.state.busy = true; this.state.emailError = null; this.__rerender();
     try {
       // Bot check (Cloudflare Turnstile), when it's on
       let token = null;
-      try { token = await turnstileToken(this.state.launch?.turnstile); } catch { throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Ricarica la pagina e riprova.'); }
+      // (a new token at every try: after an error, an expiry or a refusal, "Invia codice" again is enough)
+      try { token = await turnstileToken(this.state.launch?.turnstile); } catch { throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Riprova.'); }
       const r = await api('POST', '/api/auth/request-code', { email, marketing_opt_in: this.state.marketing, ...(token ? { turnstile_token: token } : {}) });
       if (this.state.step !== 'code') history.pushState({ step: 'code' }, '', location.href); // Back: the email again
       Object.assign(this.state, { step: 'code', devCode: r.dev_code ?? null, code: ['', '', '', '', '', ''], codeError: null, resendAt: Date.now() + 45_000 });

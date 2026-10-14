@@ -3,13 +3,14 @@
 import zlib from 'node:zlib';
 import { expect } from '@playwright/test';
 
-export const BASE = 'http://localhost:3020';
+export const BASE = `http://localhost:${process.env.E2E_PORT || '3020'}`;
 let n = 0;
 export const uniqueEmail = (tag = 'utente') => `e2e.${tag}.${Date.now().toString(36)}${(n++).toString(36)}${Math.random().toString(36).slice(2, 6)}@esempio.it`;
 
 // Signs in through the API: the browser context gets the session cookie
 export async function signIn(request, email) {
-  const r = await request.post('/api/auth/request-code', { data: { email } });
+  // Cloudflare's dummy token: ignored when Turnstile is off, accepted by its test secret (npm run e2e:turnstile)
+  const r = await request.post('/api/auth/request-code', { data: { email, turnstile_token: 'XXXX.DUMMY.TOKEN.XXXX' } });
   expect(r.ok(), await r.text()).toBeTruthy();
   const { dev_code: code } = await r.json();
   const v = await request.post('/api/auth/verify-code', { data: { email, code } });

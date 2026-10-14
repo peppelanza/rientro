@@ -1,12 +1,12 @@
 // Two people: one asks to connect, the other accepts, they write to each other
 import { expect, test } from '@playwright/test';
-import { member } from '../helpers.js';
+import { BASE, member } from '../helpers.js';
 
 test('Connettiti → Accetta → Apri chat → the message arrives', async ({ page, browser }) => {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   const a = await member(page.request, { first: 'Anna', last: 'Richiedente' });
-  const ctxB = await browser.newContext({ baseURL: 'http://localhost:3020', extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
+  const ctxB = await browser.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-requested-with': 'rientro' } });
   const pageB = await ctxB.newPage();
   pageB.on('pageerror', e => errors.push(e.message));
   const b = await member(pageB.request, { first: 'Bruno', last: 'Destinatario' });
