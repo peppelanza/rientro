@@ -690,3 +690,17 @@ test('names: invisible and direction-turning characters out, at least a letter',
   assert.equal((await a.patch('/api/me/profile', { first_name: 'ㅤ' })).status, 400);
   assert.equal((await a.patch('/api/me/profile', { first_name: '1234' })).status, 400);
 });
+
+test('before launch nobody sees anyone: profiles, connections (also an invite request waiting), chats', async () => {
+  const { config } = await import('../src/config.js');
+  const a = await t.approved('prelancio-a@x.it');
+  const b = await t.approved('prelancio-b@x.it');
+  const was = { force: config.forceLaunched, at: config.launchAt };
+  Object.assign(config, { forceLaunched: false, launchAt: '2999-01-01T00:00:00Z' });
+  try {
+    for (const path of ['/api/profiles', `/api/profiles/${b.id}`, '/api/connections', '/api/connections?tab=received', '/api/threads', `/api/threads/${b.id}`, '/api/groups']) {
+      assert.equal((await a.get(path)).status, 403, path);
+    }
+    assert.equal((await a.get(`/api/profiles/${a.id}?anteprima=1`)).status, 200, 'your own preview, yes');
+  } finally { Object.assign(config, { forceLaunched: was.force, launchAt: was.at }); }
+});

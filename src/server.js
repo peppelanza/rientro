@@ -531,7 +531,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   });
   route('GET', '/api/comuni/counts', () => profiles.comuneCounts(db));
 
-  route('GET', '/api/connections', ({ user, url }) => social.listConnections(db, user, url.searchParams));
+  // Before launch nobody sees anyone (requireLaunched): not even the requests waiting from an invite
+  route('GET', '/api/connections', ({ user, url }) => { social.requireLaunched(user); return social.listConnections(db, user, url.searchParams); });
   route('POST', '/api/connections', async ({ user, req }) => social.requestConnection(db, user, await readJson(req)));
   route('GET', '/api/connections/:id', ({ user, params }) => social.getRequest(db, user, params.id));
   route('POST', '/api/connections/:id/:action', ({ user, params }) => {
@@ -540,8 +541,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return social.respondConnection(db, user, params.id, params.action);
   });
 
-  route('GET', '/api/threads', ({ user, url }) => social.listThreads(db, user, url.searchParams));
-  route('GET', '/api/threads/:id', ({ user, params, url }) => social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' }));
+  route('GET', '/api/threads', ({ user, url }) => { social.requireLaunched(user); return social.listThreads(db, user, url.searchParams); });
+  route('GET', '/api/threads/:id', ({ user, params, url }) => (social.requireLaunched(user), social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' })));
   route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.setReaction(db, user, params.id, params.msg, await readJson(req)));
   route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
 
