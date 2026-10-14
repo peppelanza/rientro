@@ -177,3 +177,24 @@ test('groups search: an index kept up to date: new posts and comments found at o
     assert.equal((await find('frantoio')).items.length, 0, 'a deleted post is gone');
   } finally { t.close(); }
 });
+
+test('posts and comments: their author can edit them (marked "modificato", found by the new words); nobody else', async () => {
+  const t = await startApp();
+  try {
+    const a = await t.approved('gr-edit-a@example.com');
+    const b = await t.approved('gr-edit-b@example.com');
+    const post = (await a.post('/api/groups/generale/posts', { body: 'Cerco un socio a Bari' })).body;
+    const c = (await b.post(`/api/groups/generale/posts/${post.id}/comments`, { body: 'Io ci sono' })).body;
+    assert.equal((await b.patch(`/api/groups/generale/posts/${post.id}`, { body: 'no' })).status, 403);
+    assert.equal((await a.patch(`/api/groups/generale/posts/${post.id}/comments/${c.id}`, { body: 'no' })).status, 403);
+    const edited = (await a.patch(`/api/groups/generale/posts/${post.id}`, { body: 'Cerco un socio a Lecce' })).body;
+    assert.equal(edited.body, 'Cerco un socio a Lecce');
+    assert.equal(edited.edited, true);
+    assert.equal((await a.patch(`/api/groups/generale/posts/${post.id}`, { body: '  ' })).status, 400, 'not emptied');
+    const ce = (await b.patch(`/api/groups/generale/posts/${post.id}/comments/${c.id}`, { body: 'Io ci sono, scrivimi' })).body;
+    assert.equal(ce.edited, true);
+    const hits = (await b.get('/api/groups/search?q=Lecce')).body.items;
+    assert.ok(hits.some(h => h.post_id === post.id), 'the new words are searchable');
+    assert.ok(!(await b.get('/api/groups/search?q=Bari')).body.items.some(h => h.post_id === post.id), 'the old ones not');
+  } finally { await t.close(); }
+});

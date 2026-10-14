@@ -40,6 +40,10 @@ export default class extends Page {
       inGroup: here.get('gruppo') || null, page: Math.max(1, Number(here.get('page')) || 1),
       moreFilters: moreOpenAtStart(f), showFilters: false, moreBg: false, moreSectors: false, comuneCounts: {},
     });
+    addEventListener('popstate', () => {
+      const back = new URLSearchParams(location.search);
+      this.change({ f: readFilters(back), tab: back.get('tab') === 'gruppi' ? 'gruppi' : 'persone', inGroup: back.get('gruppo') || null, page: Math.max(1, Number(back.get('page')) || 1) }, { push: false });
+    });
     api('GET', '/api/comuni/counts').then(c => { this.state.comuneCounts = c; this.__rerender(); }).catch(() => {});
     if (this.state.q) document.title = `${this.state.q} · Cerca · Rientro`;
     this.__rerender(); // the top bar and the tabs for real, the results still a skeleton
@@ -64,7 +68,7 @@ export default class extends Page {
   }
 
   // Another tab, filters, group or page: in the address too
-  change(patch, { scroll = false } = {}) {
+  change(patch, { scroll = false, push = true } = {}) {
     return this.latest(async current => {
       Object.assign(this.state, patch);
       const s = this.state;
@@ -72,7 +76,8 @@ export default class extends Page {
       for (const [k, v] of toQuery(s.f)) p.set(k, v);
       if (s.tab === 'gruppi') { p.set('tab', 'gruppi'); if (s.inGroup) p.set('gruppo', s.inGroup); }
       else if (s.page > 1) p.set('page', String(s.page));
-      history.replaceState(null, '', `/cerca?${p}`);
+      // a step in the history, as in Scopri: Back undoes the last filter, tab or page
+      if (push && `/cerca?${p}` !== location.pathname + location.search) history.pushState(null, '', `/cerca?${p}`);
       await this.fetch(current);
       if (scroll && current()) scrollTo({ top: 0, behavior: 'smooth' });
     })();

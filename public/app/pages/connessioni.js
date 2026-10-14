@@ -1,5 +1,6 @@
 // Connections (design 04 · 32a connessioni, 32b inviate, 33a stato vuoto).
 import { api, debounce, fmtShort, getMe, go, qs, routeOf, timeAgo, toast } from '../lib.js';
+import { invite } from '../social.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Connessioni';
@@ -21,6 +22,8 @@ const skeletonState = s => {
 
 export default class extends Page {
   async load() {
+    // a request arrives, is withdrawn, accepted (live.js): the tabs and their numbers follow
+    addEventListener('rientro:connections', async () => { await this.fetch().catch(() => {}); this.__rerender(); });
     const me = await getMe();
     if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
     this.state.me = me;
@@ -100,6 +103,8 @@ export default class extends Page {
       sent: (s.tab === 'inviate' ? items : []).map(c => ({ ...card(c), aria: `Richiesta a ${c.name}`, withdraw: () => this.respond(c, 'withdraw') })),
       noSent: s.tab === 'inviate' && !items.length, noSentLabel: none || 'Nessuna richiesta inviata in attesa.',
       discover: () => go('/scopri'),
+      // after launch, your invite link (before it, it's on Benvenuto)
+      canInvite: !!s.me?.launched && !!s.me?.invite?.url, openInvite: () => invite(s.me.invite.url),
     };
   }
 }

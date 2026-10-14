@@ -39,6 +39,11 @@ export default class extends Page {
     if (me.user.status !== 'approved') return go('/onboarding');
     if (!me.launched && me.user.role !== 'admin') return go('/benvenuto');
     const f = readFilters();
+    addEventListener('popstate', () => {
+      const here = new URLSearchParams(location.search);
+      this.state.moreFilters = this.state.moreFilters || moreOpenAtStart(readFilters());
+      this.apply(readFilters(), { page: Math.max(1, Number(here.get('page')) || 1), push: false, scroll: true });
+    });
     // "Tutti i filtri" starts open when one of them is in use (e.g. a bookmarked search) or when you
     // left it open (coming back from a profile)
     Object.assign(this.state, { me, cat, f, moreFilters: moreOpenAtStart(f), page: Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1), sort: readSort(), showFilters: false, moreBg: false, moreSectors: false, counts: {} });
@@ -65,13 +70,15 @@ export default class extends Page {
   }
 
   // New filters or a new order start again from page 1
-  apply(f, { page = 1, scroll = false } = {}) {
+  // Each choice is a step in the history: Back undoes the last filter (or page), not Scopri itself
+  apply(f, { page = 1, scroll = false, push = true } = {}) {
     return this.latest(async current => {
       this.state.f = f;
       this.state.page = page;
       const q = toQuery(f);
       if (page > 1) q.set('page', String(page));
-      history.replaceState(null, '', `/scopri${q.toString() ? `?${q}` : ''}`);
+      const url = `/scopri${q.toString() ? `?${q}` : ''}`;
+      if (push && url !== location.pathname + location.search) history.pushState(null, '', url);
       this.__rerender(); // the filter shows as chosen at once
       const res = await api('GET', `/api/profiles?${this.listQuery(f)}`);
       if (!current()) return; // a newer choice is on its way

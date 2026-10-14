@@ -19,7 +19,7 @@ test('anteprima "come ti vedono" = la tessera di Scopri vista da un altro', asyn
   await op.goto('/scopri?q=Carla');
   const r = await op.request.get('/api/profiles?q=Carla%20Anteprima');
   const card = (await r.json()).people.find(p => p.id === me.id);
-  expect(card.job).toBe('Medica da Ospedale di Londra');
+  expect(card.job).toBe('Medica presso Ospedale di Londra');
   expect(card.background.replace(/[\u2060]/g, '').replace(/\u00a0/g, ' ')).toBe('Salute e benessere · 8–12 anni');
   for (const bit of [card.name, card.job, card.background, card.from, card.to]) expect(mine).toContain(flat(bit));
   // the Profilo button of the preview opens the full preview

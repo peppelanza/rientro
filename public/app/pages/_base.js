@@ -1,6 +1,6 @@
 import { DCLogic } from '../../dc/runtime.js';
 import { measureCover } from '../anchor-offset.js';
-import { getMe, toastError } from '../lib.js';
+import { getMe, startLive, toastError } from '../lib.js';
 
 // Base for pages: runs async load() after the first render, then re-renders.
 export class Page extends DCLogic {
@@ -31,6 +31,11 @@ export class Page extends DCLogic {
     }
     this.state.ready = true;
     this.__rerender();
+    // A member's page: the badges and the bell follow what happens, live (lib.js startLive)
+    if (this.state.me?.user?.status === 'approved') {
+      startLive();
+      addEventListener('rientro:me', e => { if (this.state.me) { this.state.me = e.detail; this.__rerender(); } });
+    }
     // Links like /#domande: the section only exists once the page has rendered its content
     if (location.hash.length > 1) setTimeout(() => { measureCover(); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); });
   }

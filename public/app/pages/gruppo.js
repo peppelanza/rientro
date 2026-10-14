@@ -5,7 +5,7 @@
 // the authors' names and photos, and an invitation to sign up (the server writes it into the HTML too).
 import { EMOJI } from '../emoji.js';
 import { clearTray, trayBusy, trayIds, trayVals } from '../image-tray.js';
-import { api, go, overlayClosing, setMe, timeAgo, toast, toastError } from '../lib.js';
+import { api, go, linkParts, overlayClosing, setMe, timeAgo, toast, toastError } from '../lib.js';
 import { photoViewer } from '../photo-viewer.js';
 import { report } from '../social.js';
 import { stickSide } from '../sticky-side.js';
@@ -197,6 +197,17 @@ export default class extends Page {
     } catch (err) { toastError(err); }
   }
 
+  // Your post or comment edited: saved, then shown as it is now ("modificato")
+  async saveEdit(url, apply) {
+    const s = this.state;
+    try {
+      const fresh = await api('PATCH', url, { body: s.editing.text });
+      apply(fresh);
+      s.editing = null;
+      this.__rerender();
+    } catch (err) { toastError(err); }
+  }
+
   renderVals() {
     const s = this.state;
     if ((!s.me && !s.group) || (s.id && !s.group)) return this.skeleton(skeletonState(s));
@@ -204,11 +215,21 @@ export default class extends Page {
     const admin = s.me?.user.role === 'admin';
     // Outside Rientro the author is just a name and a photo; the profile is behind sign-up
     const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role || '', href: s.member ? `/persone/${a.id}` : '/accedi' });
-    const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
+    // Editing your own post or comment, in place (one at a time)
+    const ed = s.editing;
+    const editing = (kind, id) => ed?.kind === kind && ed.id === id;
+    const editVals = (kind, x, save) => ({
+      editing: editing(kind, x.id), notEditing: !editing(kind, x.id), editField: `edit-${kind}-${x.id}`, editText: editing(kind, x.id) ? ed.text : '',
+      editProps: { onInput: v => { ed.text = v; } }, cancelEdit: () => this.setState({ editing: null }), saveEdit: save,
+      canEdit: !!x.mine && s.member, edit: () => { this.setState({ editing: { kind, id: x.id, text: x.body }, menuFor: null }); requestAnimationFrame(() => document.querySelector(`[data-key="edit-${kind}-${x.id}"]`)?.focus()); },
+    });
+    const comment = (p, c) => ({ ...c, parts: linkParts(c.body), who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c),
+      ...editVals('c', c, () => this.saveEdit(`/api/groups/${s.id}/posts/${p.id}/comments/${c.id}`, fresh => Object.assign(c, fresh))) });
     const phone = matchMedia('(max-width: 900px)').matches;
     const posts = (s.feed?.items || []).map(p => ({
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
-      hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
+      hasBody: !!p.body, showBody: !!p.body && !editing('p', p.id), parts: linkParts(p.body),
+      ...editVals('p', p, () => this.saveEdit(`/api/groups/${s.id}/posts/${p.id}`, fresh => { p.body = fresh.body; p.edited = fresh.edited; })), images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
       comments: p.comments.map(c => comment(p, c)),
       more: !s.open?.[p.id] && p.comments_count > p.comments.length, moreLabel: `Vedi tutti i ${p.comments_count} commenti`, showMore: () => this.allComments(p),
       menuOpen: s.menuFor === p.id, toggleMenu: () => this.setState({ menuFor: s.menuFor === p.id ? null : p.id }),

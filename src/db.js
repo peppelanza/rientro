@@ -66,6 +66,10 @@ function migrateUserColumns(db) {
   // Invite links (invites.js): each member's own code, and who invited whom
   if (!have.has('invite_code')) db.exec('ALTER TABLE users ADD COLUMN invite_code TEXT; CREATE UNIQUE INDEX IF NOT EXISTS users_invite_code ON users(invite_code);');
   if (!have.has('invited_by')) db.exec('ALTER TABLE users ADD COLUMN invited_by TEXT REFERENCES users(id) ON DELETE SET NULL');
+  // Posts and comments in the groups can be edited by their author: when, shown as "modificato"
+  for (const t of ['group_posts', 'group_comments']) {
+    if (!db.prepare(`PRAGMA table_info(${t})`).all().some(c => c.name === 'edited_at')) db.exec(`ALTER TABLE ${t} ADD COLUMN edited_at TEXT`);
+  }
   const connCols = new Set(db.prepare('PRAGMA table_info(connections)').all().map(c => c.name));
   if (!connCols.has('via_invite')) db.exec('ALTER TABLE connections ADD COLUMN via_invite INTEGER NOT NULL DEFAULT 0');
   const notifCols = new Set(db.prepare('PRAGMA table_info(notifications)').all().map(c => c.name));

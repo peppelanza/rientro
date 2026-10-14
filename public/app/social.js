@@ -92,7 +92,7 @@ export async function report(person, { postId } = {}) {
 const REMOVE = `
 <div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Rimuovere la connessione con {{ first }}?</h2>
-<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· La chat si chiude: se vi riconnettete ritrovate i messaggi già scambiati.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· I messaggi già scambiati restano: potrete rileggerli, ma per scrivervi dovrete riconnettervi.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
 <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Rimuovi connessione" variant="destructive" on-click="{{ confirm }}"></dc-import></div>
 </div>`;
 
@@ -131,4 +131,34 @@ export async function block(person) {
   await api('POST', `/api/blocks/${person.id}`);
   toast(`Hai bloccato ${first}.`);
   return true;
+}
+
+// "Invita" (Connessioni, after launch): your link (invites.js), to copy or share. Whoever signs up
+// with it can connect with you in their onboarding.
+const INVITE = `
+<div style="width:500px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 30px 80px rgba(26,23,38,.3);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;gap:14px;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:6px;flex:1"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.03em">Invita chi vuoi</h2><span style="font-size:15px;line-height:1.5;color:#4A4560">Manda il tuo link a chi sta pensando di tornare: iscrivendosi potrà chiederti subito di connettervi.</span></div>${CLOSE}</div>
+<div class="invite-link" aria-label="Il tuo link d’invito">{{ short }}</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><dc-import name="UI Button" label="{{ copyLabel }}" variant="accent" on-click="{{ copy }}"></dc-import><sc-if value="{{ canShare }}"><dc-import name="UI Button" label="Condividi" variant="secondary" on-click="{{ share }}"></dc-import></sc-if></div>
+</div>`;
+
+export function invite(url) {
+  return openModal({
+    template: INVITE,
+    Logic: class extends DCLogic {
+      state = { copied: false };
+      renderVals() {
+        return {
+          short: url.replace(/^https?:\/\/(www\.)?/, ''), canShare: !!navigator.share,
+          copyLabel: this.state.copied ? 'Copiato ✓' : 'Copia link',
+          copy: async () => {
+            try { await navigator.clipboard.writeText(url); } catch { toast('Non riusciamo a copiarlo: selezionalo e copialo a mano.', { tone: 'err' }); return; }
+            this.setState({ copied: true });
+          },
+          share: () => navigator.share({ title: 'Rientro', text: 'Ti invito su Rientro, la community di chi torna in Italia o al Sud per costruire qualcosa.', url }).catch(() => {}),
+          cancel: () => this.close(),
+        };
+      }
+    },
+  });
 }

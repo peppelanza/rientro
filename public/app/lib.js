@@ -313,3 +313,37 @@ export function debounce(fn, ms = 300) {
 }
 
 // "Napoli", "Napoli o Torino", "Napoli, Torino o Palermo"; past max: "…, Palermo o altre 2 città"
+
+// A text with its links (https://…, www.…) to click: [{ t, href }] for the templates, the rest plain
+// text as it is. Only http(s) links; punctuation right after one stays out of it.
+const LINK_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']*[^\s<>"'.,;:!?)\]}»”’]/gi;
+export function linkParts(text) {
+  const out = [];
+  let at = 0;
+  for (const m of String(text ?? '').matchAll(LINK_RE)) {
+    let href = null;
+    try { const u = new URL(/^www\./i.test(m[0]) ? `https://${m[0]}` : m[0]); if (u.protocol === 'https:' || u.protocol === 'http:') href = u.href; } catch {}
+    if (!href) continue;
+    if (m.index > at) out.push({ t: text.slice(at, m.index), plain: true });
+    out.push({ t: m[0], href });
+    at = m.index + m[0].length;
+  }
+  if (at < String(text ?? '').length) out.push({ t: text.slice(at), plain: true });
+  return out;
+}
+
+// Live updates (src/live.js): one connection per page; what changed arrives as a window event —
+// "rientro:me" with fresh counts (badges, bell), "rientro:message" ({ from }), "rientro:connections".
+// The pages listen to what concerns them (pages/_base.js, messaggi.js, connessioni.js, persona.js).
+let live = null;
+export function startLive() {
+  if (live || !window.EventSource) return;
+  live = new EventSource('/api/live');
+  const fresh = debounce(async () => {
+    const me = await getMe(true).catch(() => null);
+    if (me) dispatchEvent(new CustomEvent('rientro:me', { detail: me }));
+  }, 300);
+  live.addEventListener('counts', fresh);
+  live.addEventListener('message', e => { fresh(); dispatchEvent(new CustomEvent('rientro:message', { detail: JSON.parse(e.data || '{}') })); });
+  live.addEventListener('connections', () => { fresh(); dispatchEvent(new CustomEvent('rientro:connections')); });
+}

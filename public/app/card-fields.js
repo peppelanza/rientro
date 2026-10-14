@@ -16,7 +16,7 @@ export function cardFields(p, years, { places = p.desired_comuni, sectors = p.se
     name: [p.first_name, p.last_name].filter(Boolean).join(' '),
     first_name: p.first_name,
     // under the name: the job marked "Lavoro ancora qui" (kept in current_role / current_company)
-    job: p.current_role ? [p.current_role, p.current_company].filter(Boolean).join(' da ') : '',
+    job: p.current_role ? [p.current_role, p.current_company].filter(Boolean).join(' presso ') : '',
     from: p.lives_in_city ?? '',
     // already back in Italy: where from ("Londra → Catania" instead of where they'd like to go)
     back_from: p.lives_in === 'italy' ? (p.arrived_from_city || p.arrived_from_country || '') : '',

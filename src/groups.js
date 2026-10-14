@@ -105,12 +105,12 @@ function postView(db, viewer, p) {
   const comments = db.prepare(`SELECT * FROM group_comments WHERE post_id = $post AND author_id NOT IN ${HIDDEN} ORDER BY id`)
     .all({ $post: p.id, $viewer: viewer.id });
   return {
-    id: p.id, body: p.body, images: imagesOf(db, p.id), created_at: p.created_at, author: author(db, p.author_id), mine: p.author_id === viewer.id,
+    id: p.id, body: p.body, images: imagesOf(db, p.id), created_at: p.created_at, edited: !!p.edited_at, author: author(db, p.author_id), mine: p.author_id === viewer.id,
     comments_count: comments.length,
     comments: comments.slice(-COMMENTS_SHOWN).map(c => commentView(db, viewer, c)),
   };
 }
-const commentView = (db, viewer, c) => ({ id: c.id, body: c.body, created_at: c.created_at, author: author(db, c.author_id), mine: c.author_id === viewer.id });
+const commentView = (db, viewer, c) => ({ id: c.id, body: c.body, created_at: c.created_at, edited: !!c.edited_at, author: author(db, c.author_id), mine: c.author_id === viewer.id });
 
 // Newest first, 20 per page
 export function listPosts(db, viewer, id, query = new URLSearchParams()) {
@@ -303,6 +303,30 @@ function notifyComment(db, viewer, p) {
       AND json_extract(data, '$.post_id') = ?`).run(userId, viewer.id, p.id);
     notify(db, userId, 'group_comment', viewer.id, { group_id: p.group_id, group_name: g?.name, post_id: p.id, own: userId === p.author_id });
   }
+}
+
+// Your own post's text (the pictures stay as they are); a post with pictures can be left without text
+export function updatePost(db, viewer, id, postId, body) {
+  requireMemberArea(viewer);
+  const p = postOr404(db, viewer, id, postId);
+  if (p.author_id !== viewer.id) throw new HttpError(403, 'forbidden', 'Puoi modificare solo i tuoi post.');
+  only(body, ['body']);
+  const msg = (text(body.body, 'Post', { max: 4000 }) ?? '').trim();
+  if (!msg && !imagesOf(db, p.id).length) throw bad('body', 'Scrivi qualcosa: un post senza foto non può restare vuoto.');
+  if (msg !== p.body) db.prepare('UPDATE group_posts SET body = ?, edited_at = ? WHERE id = ?').run(msg, now(), p.id);
+  return postView(db, viewer, db.prepare('SELECT * FROM group_posts WHERE id = ?').get(p.id));
+}
+
+export function updateComment(db, viewer, id, postId, commentId, body) {
+  requireMemberArea(viewer);
+  const p = postOr404(db, viewer, id, postId);
+  const c = db.prepare('SELECT * FROM group_comments WHERE id = ? AND post_id = ?').get(Number(commentId), p.id);
+  if (!c) throw new HttpError(404, 'not_found', 'Commento non trovato.');
+  if (c.author_id !== viewer.id) throw new HttpError(403, 'forbidden', 'Puoi modificare solo i tuoi commenti.');
+  only(body, ['body']);
+  const msg = text(body.body, 'Commento', { max: 2000, nullable: false });
+  if (msg !== c.body) db.prepare('UPDATE group_comments SET body = ?, edited_at = ? WHERE id = ?').run(msg, now(), c.id);
+  return commentView(db, viewer, db.prepare('SELECT * FROM group_comments WHERE id = ?').get(c.id));
 }
 
 // Your own posts and comments; admins any (moderation)

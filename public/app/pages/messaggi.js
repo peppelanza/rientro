@@ -1,7 +1,7 @@
 // Messages (design 04 · 35a inbox + chat, 34a inbox vuota, 35b/35c mobile).
-// New messages arrive by polling (every 5 s in an open chat, 20 s for the list).
-import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, INTENT_BADGE, orList, overlayClosing, routeOf, threadTime, toast, toastError } from '../lib.js';
-import { block, report } from '../social.js';
+// New messages arrive live (lib.js startLive), with a slow poll as a fallback (20 s).
+import { api, debounce, fmtDate, fmtTime, getMe, go, haptic, INTENT_BADGE, linkParts, orList, overlayClosing, routeOf, threadTime, toast, toastError } from '../lib.js';
+import { block, connect, report } from '../social.js';
 import { EMOJI, QUICK_REACTIONS, isEmojiOnly } from '../emoji.js';
 import { homeFor, Page } from './_base.js';
 
@@ -96,7 +96,8 @@ export default class extends Page {
     // Opened from Connessioni (?da=connessioni): the back arrow goes back there, not to the list
     this.from = new URLSearchParams(location.search).get('da');
     if (id) await this.openThread(id);
-    this.timer = setInterval(() => this.poll(), 5000);
+    // new messages and reactions come live (rientro:message below); this is only a fallback
+    this.timer = setInterval(() => this.poll(), 20000);
     // Reaction bar, emoji pickers and the "···" menu close on a click elsewhere or Escape
     this.closePopups = e => {
       const s = this.state;
@@ -111,6 +112,8 @@ export default class extends Page {
     // the chat box is redrawn often: listen at the document (scroll events don't bubble, so capture)
     document.addEventListener('scroll', this.onChatScroll, true);
     this.listTimer = setInterval(() => this.refreshList(), 20000);
+    // a message arrives (live.js): the open chat and the list at once, without waiting for the timers
+    addEventListener('rientro:message', e => { if (e.detail.from === this.state.active) this.poll(); this.refreshList(); });
     window.addEventListener('popstate', () => { if (!overlayClosing()) location.reload(); });
   }
 
@@ -152,6 +155,13 @@ export default class extends Page {
     });
     if (!r) return;
     s.reactAt = r.at;
+    // the connection removed (or made again) while the chat is open: the box goes (or comes back)
+    if (s.thread && r.connected !== s.thread.connected) {
+      s.thread.connected = r.connected;
+      if (!r.connected) s.draft = '';
+      s.person = await api('GET', `/api/profiles/${s.active}`).catch(() => s.person);
+      this.__rerender();
+    }
     let changed = false;
     // Reactions added or removed meanwhile (by the other person, or by me in another tab)
     for (const c of r.reactions_changed || []) {
@@ -193,7 +203,7 @@ export default class extends Page {
     if (e.target.closest('button')) return;
     clearTimeout(this.pressTimer);
     this.pressed = false;
-    this.pressTimer = setTimeout(() => { this.pressed = true; haptic(); this.setState({ barFor: m.mine ? null : m.id, menuFor: m.id, pickerFor: null }); }, 450);
+    this.pressTimer = setTimeout(() => { this.pressed = true; haptic(); this.setState({ barFor: m.mine || !s.thread?.connected ? null : m.id, menuFor: m.id, pickerFor: null }); }, 450);
   }
   tapUp(e, m) {
     clearTimeout(this.pressTimer);
@@ -434,7 +444,7 @@ export default class extends Page {
       const reaction = (m.reactions || [])[0];
       const big = isEmojiOnly(m.body);
       items.push({
-        msg: true, from: m.mine ? 'me' : 'them', text: m.body, big, normal: !big,
+        msg: true, from: m.mine ? 'me' : 'them', text: m.body, parts: linkParts(m.body), big, normal: !big,
         // the pointed corner only on the last of a run of messages from the same person (same day)
         tail: !next || next.mine !== m.mine || dayKey(next.created_at) !== k ? '1' : '', isNew: this.known && !this.known.has(m.id) ? '1' : '',
         // the time sits inside the bubble; under my last message, once read, "Letto · hh:mm"
@@ -481,6 +491,10 @@ export default class extends Page {
       pagerProps: { onPage: n => this.listChange({ page: n }) },
       hasOlder: !!s.hasOlder && !!s.messages?.length, loadingOlder: !!s.loadingOlder,
       hasActive: !!s.active && !!p, noActive: !s.active && !s.composing, closed: !!s.closed,
+      // no longer connected: the conversation to read, no box to write (Connettiti to start again)
+      canWrite: !!s.thread?.connected, notConnected: !!s.thread && !s.thread.connected,
+      canReconnect: p?.connection?.status === 'none', reconnectSent: p?.connection?.status === 'pending_sent',
+      reconnect: async () => { if (await connect({ ...p, id: s.active, name: [p.first_name, p.last_name].filter(Boolean).join(' ') })) { s.person = await api('GET', `/api/profiles/${s.active}`); this.__rerender(); } },
       // the right column (the person) only with a chat open; it fades in and out (app.css)
       ...(side => ({ sideCls: side.cls, sideDelay: side.delay }))(this.sideClass(!!s.active && !!p)),
       listClass: s.active || s.composing ? 'r-hide-sm' : '', chatClass: s.active || s.composing ? '' : 'r-hide-sm',

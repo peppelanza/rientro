@@ -1,4 +1,5 @@
 import { config, isLaunched } from './config.js';
+import { publish } from './live.js';
 import { newId, now, tx } from './db.js';
 import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
@@ -37,6 +38,10 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
   }
   db.prepare('INSERT INTO notifications (user_id, kind, actor_id, data, created_at) VALUES (?, ?, ?, ?, ?)')
     .run(userId, kind, actorId, JSON.stringify(data), now());
+  // their open pages hear it at once (live.js): the bell and the badges, the chat, Connessioni
+  publish(userId, 'counts');
+  if (kind === 'message') publish(userId, 'message', { from: actorId });
+  if (kind.startsWith('connection_')) publish(userId, 'connections');
   // TODO: email channel (notify_*_email) once a transactional email provider is configured.
 }
 
@@ -64,9 +69,8 @@ export function markNotificationsRead(db, user) {
 export function badgeCounts(db, user) {
   return {
     received: db.prepare("SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'").get(user.id).n,
-    // only from whom a chat is open with (connected, not blocked, not leaving): as the Messaggi list
+    // as the Messaggi list: not from someone blocked or leaving
     unread_messages: db.prepare(`SELECT COUNT(DISTINCT m.sender_id) AS n FROM messages m WHERE m.recipient_id = ? AND m.read_at IS NULL
-      AND EXISTS (SELECT 1 FROM connections c WHERE c.status = 'accepted' AND ((c.requester_id = m.sender_id AND c.addressee_id = m.recipient_id) OR (c.requester_id = m.recipient_id AND c.addressee_id = m.sender_id)))
       AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = m.sender_id AND b.blocked_id = m.recipient_id) OR (b.blocker_id = m.recipient_id AND b.blocked_id = m.sender_id))
       AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = m.sender_id AND u.deletion_requested_at IS NOT NULL)`).get(user.id).n,
     notifications: db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n,
@@ -105,6 +109,7 @@ export function respondConnection(db, viewer, id, action) {
     if (c.requester_id !== viewer.id) throw new HttpError(404, 'not_found');
     db.prepare("UPDATE connections SET status = 'withdrawn', responded_at = ? WHERE id = ?").run(now(), id);
     db.prepare("DELETE FROM notifications WHERE kind = 'connection_request' AND user_id = ? AND actor_id = ?").run(c.addressee_id, viewer.id);
+    publish(c.addressee_id, 'counts'); publish(c.addressee_id, 'connections');
     return { status: 'none' };
   }
   if (c.addressee_id !== viewer.id) throw new HttpError(404, 'not_found');
@@ -122,16 +127,20 @@ export function respondConnection(db, viewer, id, action) {
   // notification goes, it would lead to nothing
   db.prepare("UPDATE connections SET status = 'declined', responded_at = ? WHERE id = ?").run(now(), id);
   db.prepare("DELETE FROM notifications WHERE kind = 'connection_request' AND user_id = ? AND actor_id = ?").run(viewer.id, c.requester_id);
+  publish(c.requester_id, 'connections'); // their Inviate (nothing is said to them)
   return { status: 'none' };
 }
 
 // Removing a connection (either of the two, from the other's profile): silent, like declining. It
 // ends as 'withdrawn' (the table's statuses): you're no longer connected, links and chat close, and
-// either can ask again later. Past messages are kept, closed: connecting again brings them back.
+// either can ask again later. The chat stays, to read: writing waits for a new connection.
 export function removeConnection(db, viewer, id) {
   const c = db.prepare('SELECT * FROM connections WHERE id = ?').get(id);
   if (!c || c.status !== 'accepted' || (c.requester_id !== viewer.id && c.addressee_id !== viewer.id)) throw new HttpError(404, 'not_found', 'Connessione non più disponibile.');
   db.prepare("UPDATE connections SET status = 'withdrawn', responded_at = ? WHERE id = ?").run(now(), id);
+  // the other's open chat with you turns read-only, their Connessioni loses you
+  const other = c.requester_id === viewer.id ? c.addressee_id : c.requester_id;
+  publish(other, 'connections'); publish(other, 'message', { from: viewer.id });
   return { status: 'none' };
 }
 
@@ -180,15 +189,33 @@ export function getRequest(db, viewer, id) {
 
 function requireConnected(db, a, b) {
   const c = connectionBetween(db, a, b);
-  if (!c || c.status !== 'accepted' || isBlocked(db, a, b)) throw new HttpError(403, 'not_connected', 'Potete scrivervi solo quando siete connessi.');
+  if (!c || c.status !== 'accepted' || isBlocked(db, a, b)) throw new HttpError(403, 'not_connected', 'Non siete connessi: potete scrivervi di nuovo quando vi riconnettete.');
   return c;
+}
+
+const PAIR = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
+// A conversation stays readable after the connection is removed (not after a block, nor once
+// either is leaving): the messages are there, writing waits for a new connection
+function canRead(db, a, b) {
+  if (isBlocked(db, a, b)) return false;
+  const c = connectionBetween(db, a, b);
+  if (c?.status === 'accepted') return true;
+  return !!db.prepare(`SELECT 1 FROM messages WHERE ${PAIR} LIMIT 1`).get(a, b, b, a);
 }
 
 // Conversations (with at least one message), latest first, 30 per page; searchable (?q=, src/search.js) by the other person's name
 // and by what was written: a conversation found by its messages shows the latest one that says it
 // instead of the last one
 export function listThreads(db, viewer, query = new URLSearchParams()) {
-  const { connected } = allConnections(db, viewer);
+  const { connected: now_ } = allConnections(db, viewer);
+  // and who you're no longer connected with but wrote to (the chat stays, read-only)
+  const viewerP = rawProfile(db, viewer.id);
+  const known = new Set(now_.map(c => c.id));
+  const past = db.prepare(`SELECT DISTINCT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other FROM messages WHERE sender_id = ? OR recipient_id = ?`)
+    .all(viewer.id, viewer.id, viewer.id).map(r => r.other)
+    .filter(id => !known.has(id) && !isBlocked(db, viewer.id, id) && rawProfile(db, id))
+    .map(id => ({ ...card(db, viewer, rawProfile(db, id), viewerP), not_connected: true }));
+  const connected = [...now_, ...past];
   const pp = pageParams(query, 30);
   const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
   const lastOf = c => db.prepare(`SELECT * FROM messages WHERE ${pair} ORDER BY id DESC LIMIT 1`).get(viewer.id, c.id, c.id, viewer.id);
@@ -216,7 +243,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
     return {
       id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, back_from: c.back_from, photo_url: c.photo_url,
       last: `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}`,
-      time: last.created_at, unread: unread > 0, found_in_messages: !!said, best,
+      time: last.created_at, unread: unread > 0, found_in_messages: !!said, best, connected: !c.not_connected,
     };
   }).sort((a, b) => b.best - a.best || (b.time || '').localeCompare(a.time || '')); // more of the words first
   return { ...paginate(threads, pp), fuzzy: !!found.fuzzy };
@@ -236,7 +263,12 @@ function reactionsFor(db, viewer, ids) {
 
 // since (ISO time, from the previous answer's `at`): reactions changed meanwhile, for an open chat
 export function getThread(db, viewer, otherId, { after = 0, before = 0, since = '' } = {}) {
-  const c = requireConnected(db, viewer.id, otherId);
+  if (!canRead(db, viewer.id, otherId)) requireConnected(db, viewer.id, otherId); // the 403
+  const live = connectionBetween(db, viewer.id, otherId);
+  const connected = live?.status === 'accepted';
+  // the connection the chat began with (the note, "Connessi …"), still there once removed
+  const c = connected ? live : db.prepare(`SELECT * FROM connections WHERE ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))
+    AND responded_at IS NOT NULL AND status != 'declined' ORDER BY created_at DESC LIMIT 1`).get(viewer.id, otherId, otherId, viewer.id) || {};
   db.prepare('UPDATE messages SET read_at = ? WHERE sender_id = ? AND recipient_id = ? AND read_at IS NULL').run(now(), otherId, viewer.id);
   db.prepare("UPDATE notifications SET read_at = ? WHERE user_id = ? AND kind = 'message' AND actor_id = ? AND read_at IS NULL").run(now(), viewer.id, otherId);
   const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
@@ -257,7 +289,7 @@ export function getThread(db, viewer, otherId, { after = 0, before = 0, since = 
     const map = reactionsFor(db, viewer, ids);
     changed = ids.map(id => ({ id, reactions: map.get(id) }));
   }
-  return { connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder, at, ...(changed ? { reactions_changed: changed } : {}) };
+  return { connected, connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder, at, ...(changed ? { reactions_changed: changed } : {}) };
 }
 
 // React to one of the other person's messages: an emoji replaces your previous one, null removes it
@@ -274,6 +306,7 @@ export function setReaction(db, viewer, otherId, messageId, body) {
   }
   db.prepare(`INSERT INTO message_reactions (message_id, user_id, emoji, updated_at) VALUES (?, ?, ?, ?)
     ON CONFLICT(message_id, user_id) DO UPDATE SET emoji = excluded.emoji, updated_at = excluded.updated_at`).run(m.id, viewer.id, emoji, now());
+  publish(otherId, 'message', { from: viewer.id }); // their open chat shows it at once
   return { id: m.id, reactions: reactionsFor(db, viewer, [m.id]).get(m.id) };
 }
 
@@ -309,6 +342,7 @@ export function block(db, viewer, targetId) {
     db.prepare('INSERT OR IGNORE INTO blocks (blocker_id, blocked_id, created_at) VALUES (?, ?, ?)').run(viewer.id, targetId, now());
     // what either was told about the other goes from the bell too (name, photo, unread count)
     db.prepare('DELETE FROM notifications WHERE (user_id = ? AND actor_id = ?) OR (user_id = ? AND actor_id = ?)').run(viewer.id, targetId, targetId, viewer.id);
+    publish(targetId, 'counts'); publish(targetId, 'connections'); publish(targetId, 'message', { from: viewer.id });
     // "La connessione e la chat vengono chiuse." Blocked person gets no notification.
     db.prepare(
       `UPDATE connections SET status = 'withdrawn', responded_at = ?

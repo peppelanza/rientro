@@ -12,7 +12,7 @@ test('Scopri: the test people as cards, a filter narrows them, a card opens the 
   expect(await cards.count()).toBeGreaterThan(3);
   // the card: name, job, from → to, Background
   const giulia = cards.filter({ hasText: 'Giulia Ferrara' });
-  await expect(giulia).toContainText('Senior Product Manager da Deliveroo');
+  await expect(giulia).toContainText('Senior Product Manager presso Deliveroo');
   await expect(giulia).toContainText('Background');
   await giulia.getByRole('link', { name: 'Profilo' }).click();
   await expect(page).toHaveURL(/\/persone\//);

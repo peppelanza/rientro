@@ -547,6 +547,7 @@ test('either of two connected members can remove the connection: silent, chat cl
   assert.equal((await a.get('/api/notifications')).body.items.length, before, 'no notification');
   assert.equal((await a.post(`/api/threads/${b.id}`, { body: 'Ciao?' })).status, 403, 'no more messages');
   assert.equal((await a.post(`/api/connections/${id}/remove`)).status, 404, 'already gone');
+  assert.equal((await a.get(`/api/threads/${b.id}`)).status, 403, 'no chat to read when nobody wrote');
   await t.connect(a, b);
   assert.equal((await a.get(`/api/profiles/${b.id}`)).body.connection.status, 'connected', 'and they can connect again');
 });
@@ -615,4 +616,21 @@ test('Quando è stato il rientro and Quando vuoi trasferirti stay as answered (t
   assert.equal((await viewer.get(`/api/profiles/${away.id}`)).body.move, 'tra 0–3 mesi');
   const backs = (await viewer.get('/api/profiles?move=back')).body.people;
   assert.ok(backs.some(p => p.id === back.id) && !backs.some(p => p.id === away.id));
+});
+
+test('a removed connection leaves the chat to read, not to write; a block takes it away', async () => {
+  const a = await t.approved('chat-resta-a@x.it');
+  const b = await t.approved('chat-resta-b@x.it');
+  const id = await t.connect(a, b);
+  await a.post(`/api/threads/${b.id}`, { body: 'Ci vediamo a Palermo' });
+  await b.post(`/api/connections/${id}/remove`);
+  const thread = (await a.get(`/api/threads/${b.id}`)).body;
+  assert.equal(thread.connected, false);
+  assert.equal(thread.messages[0].body, 'Ci vediamo a Palermo');
+  assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'ciao' })).status, 403);
+  const list = (await b.get('/api/threads')).body.items;
+  assert.equal(list.find(x => x.id === a.id)?.connected, false, 'still in Messaggi');
+  assert.equal((await a.post(`/api/blocks/${b.id}`)).status, 200);
+  assert.equal((await a.get(`/api/threads/${b.id}`)).status, 403, 'blocked: gone');
+  assert.ok(!(await b.get('/api/threads')).body.items.some(x => x.id === a.id));
 });

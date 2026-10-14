@@ -21,6 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
+import { subscribe } from './live.js';
 import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, myInviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
@@ -392,6 +393,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     if (!id) throw new HttpError(404, 'not_found');
     streamFile(req, res, fileOnDisk(db, id));
   }, { ...pub, raw: true });
+  // Live updates for the member's open pages (live.js)
+  route('GET', '/api/live', ({ user, req, res }) => subscribe(req, res, user.id), { raw: true, allowSuspended: false });
   route('GET', '/api/me/inviter-photo', ({ user, req, res }) => {
     const id = myInviterPhotoId(db, user);
     if (!id) throw new HttpError(404, 'not_found');
@@ -565,6 +568,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/groups/:id/posts', ({ user, params, url }) => groups.listPosts(db, user, params.id, url.searchParams));
   route('POST', '/api/groups/:id/posts', async ({ user, params, req }) => groups.createPost(db, user, params.id, await readJson(req)));
   route('DELETE', '/api/groups/:id/posts/:post', ({ user, params }) => groups.deletePost(db, user, params.id, params.post));
+  route('PATCH', '/api/groups/:id/posts/:post', async ({ user, params, req }) => groups.updatePost(db, user, params.id, params.post, await readJson(req)));
+  route('PATCH', '/api/groups/:id/posts/:post/comments/:comment', async ({ user, params, req }) => groups.updateComment(db, user, params.id, params.post, params.comment, await readJson(req)));
   route('GET', '/api/groups/:id/posts/:post/comments', ({ user, params }) => groups.listComments(db, user, params.id, params.post));
   route('POST', '/api/groups/:id/posts/:post/comments', async ({ user, params, req }) => groups.createComment(db, user, params.id, params.post, await readJson(req)));
   route('DELETE', '/api/groups/:id/posts/:post/comments/:comment', ({ user, params }) => groups.deleteComment(db, user, params.id, params.post, params.comment));

@@ -27,6 +27,13 @@ export default class extends Page {
       emailError: null, busy: false, devCode: null, oauthNote: null, resendAt: 0,
     });
     this.timer = setInterval(() => { if (this.state.step === 'code') this.__rerender?.(); }, 1000);
+    addEventListener('popstate', () => {
+      const step = history.state?.step || 'choose';
+      // forward to the code only if one was sent
+      this.state.step = step === 'code' && !this.state.resendAt ? 'email' : step;
+      this.__rerender();
+      if (this.state.step === 'email') document.querySelector('[data-key="email"]')?.focus();
+    });
   }
 
   async load() {
@@ -64,6 +71,7 @@ export default class extends Page {
       let token = null;
       try { token = await turnstileToken(this.state.launch?.turnstile); } catch { throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Ricarica la pagina e riprova.'); }
       const r = await api('POST', '/api/auth/request-code', { email, marketing_opt_in: this.state.marketing, ...(token ? { turnstile_token: token } : {}) });
+      if (this.state.step !== 'code') history.pushState({ step: 'code' }, '', location.href); // Back: the email again
       Object.assign(this.state, { step: 'code', devCode: r.dev_code ?? null, code: ['', '', '', '', '', ''], codeError: null, resendAt: Date.now() + 45_000 });
     } catch (err) { this.state.emailError = err.message; }
     this.state.busy = false;
@@ -128,8 +136,12 @@ export default class extends Page {
       postcardAlt: s.postcard ? `Cartolina da ${s.postcard.name}` : '',
       expired: !!qs().get('scaduta'), // only who had a session that ran out (lib.js), not every visitor
       linkedin: oauth('linkedin', 'LinkedIn'), google: oauth('google', 'Google'), oauthNote: s.oauthNote,
-      toEmail: () => { this.state.step = 'email'; this.state.oauthNote = null; warmUpTurnstile(this.state.launch?.turnstile); this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
-      toChoose: () => { this.state.step = 'choose'; this.__rerender(); },
+      // the steps (methods → email → code) are steps in the history too: the phone's Back goes one back
+      toEmail: () => {
+        if (this.state.step === 'code' && history.state?.step === 'code') return history.back();
+        if (this.state.step === 'choose') history.pushState({ step: 'email' }, '', location.href);
+        this.state.step = 'email'; this.state.oauthNote = null; warmUpTurnstile(this.state.launch?.turnstile); this.__rerender(); document.querySelector('[data-key="email"]')?.focus(); },
+      toChoose: () => { if (history.state?.step === 'email') return history.back(); this.state.step = 'choose'; this.__rerender(); },
       email: s.email, emailError: s.emailError,
       emailProps: { onInput: v => { this.state.email = v; }, onEnter: () => this.sendCode() },
       marketing: s.marketing, mBorder: s.marketing ? 'none' : '1.5px solid #CFC8E8', mBg: s.marketing ? '#6C4DF5' : '#FFFFFF', mMark: s.marketing ? '✓' : '',

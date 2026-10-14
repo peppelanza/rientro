@@ -96,6 +96,8 @@ export default class extends Page {
     this.state.self = me.user.id === this.props.params.id;
     this.__rerender(); // the top bar for real, the profile still a skeleton
     if (this.state.self && !new URLSearchParams(location.search).has('anteprima')) return go('/profilo');
+    // a request accepted or answered while the page is open (live.js): the buttons follow
+    if (!this.state.self) addEventListener('rientro:connections', () => this.refresh().catch(() => {}));
     // Still in onboarding: the others' profiles open once yours is online
     if (!this.state.self && me.user.status === 'onboarding') return go('/onboarding');
     try {
@@ -129,7 +131,7 @@ export default class extends Page {
     const fromFull = [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ');
     const moveSub = [fromFull && `da ${fromFull}`, p.move && (p.move === 'non lo sa ancora' ? 'non so ancora quando' : p.move)].filter(Boolean).join(' · ');
     const move = p.back
-      ? { title: 'Il mio rientro', where: p.lives_in_city || '—', sub: p.arrived ? p.arrived.replace(/^Da /, 'da ') : '' }
+      ? { title: 'Sono rientrato/a a', where: p.lives_in_city || '—', sub: p.arrived ? p.arrived.replace(/^Da /, 'da ') : '' }
       : !p.desired_unknown && p.desired_comuni.length ? { title: 'Vorrei trasferirmi a', where: p.places, sub: moveSub }
       : { title: 'Vorrei trasferirmi', where: 'Non so ancora dove', sub: moveSub };
     const unlocked = showLinks ? [
