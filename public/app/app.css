@@ -1126,6 +1126,7 @@ html.search-sheet-open { overflow: hidden; }
 /* Scopri cards: Profilo and Connettiti / Messaggi, with an icon */
 .pc-btn { height: 44px; width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box; padding: 0 12px; border: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px 'Geist', sans-serif; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .pc-btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.pc-btn svg { flex: none; } /* the icon keeps its size when the button is narrow */
 .pc-btn-primary { background: #1A1726; color: #FFFFFF; }
 .pc-btn-secondary { background: #F1EFF8; color: #1A1726; }
 .pc-btn-accent { background: #6C4DF5; color: #FFFFFF; box-shadow: 0 8px 20px rgba(108,77,245,.28); }
@@ -1162,3 +1163,5 @@ html.search-sheet-open { overflow: hidden; }
 .group-edit-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .chat-ended > span:first-child { flex: 1; min-width: 0; }
 .chat-ended > [data-sc-name] { flex: none; }
+/* Tablets (phone layout): the profile photo card-sized, not the whole first screen */
+@media (min-width: 560px) and (max-width: 900px) { .persona-photo { max-width: 420px; width: 100%; margin: 0 auto; } }

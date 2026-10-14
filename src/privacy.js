@@ -4,6 +4,7 @@ import { deleteFilesOf } from './files.js';
 import { getCommunicationPreferences, getJobPreferences, preferenceHistory } from './preferences.js';
 import { ERASED_DOMAIN, getOwnProfile } from './profiles.js';
 import { announceGone } from './social.js';
+import { disconnect } from './live.js';
 import { quarantineFilesOf } from './moderation.js';
 import { HttpError, only, text } from './validate.js';
 
@@ -78,6 +79,7 @@ export function deleteAccount(db, user, body) {
   tx(db, () => {
     db.prepare('UPDATE users SET deletion_requested_at = ?, deletion_reason = ? WHERE id = ?').run(at, reason, user.id);
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+    disconnect(user.id); // its open pages too
     // for the others: away until erased (chats read-only "Account disattivato"); all back if restored
     announceGone(db, user.id);
   });

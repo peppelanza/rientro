@@ -41,7 +41,7 @@ test('who lives in Italy says where from and when; "ho sempre vissuto in Italia"
   assert.equal(r.status, 200);
   assert.equal(r.body.arrived_when, '3_12m');
   const viewer = await t.approved('guarda@x.it');
-  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived, 'Da Londra, Regno Unito · 3–12 mesi fa');
+  assert.equal((await viewer.get(`/api/profiles/${a.id}`)).body.arrived.replace(/\u2060/g, '').replace(/\u00a0/g, ' '), 'Da Londra, Regno Unito · 3–12 mesi fa'); // (kept on one line: word joiners, no-break spaces)
 
   // Stored as dates: the span moves with time, and re-saving the same answer keeps them
   const { arrived_after, arrived_before } = t.app.db.prepare('SELECT arrived_after, arrived_before FROM profiles WHERE user_id = ?').get(a.id);
@@ -681,4 +681,12 @@ test('admin: "Elimina account definitivamente" only after a suspension, with the
   assert.equal((await b.post(`/api/threads/${item.id}`, { body: 'x' })).status, 403);
   assert.ok(!(await admin.get('/api/admin/users')).body.items?.some?.(u => u.id === item.id), 'the placeholder is nobody in the admin');
   assert.equal((await admin.post(`/api/admin/users/${admin.id}/erase`, { confirm_email: 'admin@rientro.test' })).status, 400, 'never yourself');
+});
+
+test('names: invisible and direction-turning characters out, at least a letter', async () => {
+  const a = await t.approved('nome-strano@x.it');
+  assert.equal((await a.patch('/api/me/profile', { first_name: '‮Anna' })).body.first_name, 'Anna');
+  assert.equal((await a.patch('/api/me/profile', { first_name: '​​' })).status, 400);
+  assert.equal((await a.patch('/api/me/profile', { first_name: 'ㅤ' })).status, 400);
+  assert.equal((await a.patch('/api/me/profile', { first_name: '1234' })).status, 400);
 });

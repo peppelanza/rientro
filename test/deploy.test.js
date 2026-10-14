@@ -65,7 +65,7 @@ test('updated Terms/Privacy never block anything: an approved member with old ve
   const a = await t.approved('approvato-legal@x.it');
   t.app.db.prepare("UPDATE legal_acknowledgements SET version = 'old' WHERE user_id = ?").run(a.id);
   assert.deepEqual((await a.get('/api/me')).body.legal.needs, ['terms', 'privacy'], 'the app is told, to ask in its dialog');
-  assert.equal((await a.patch('/api/me/profile', { bio: 'Ciao' })).status, 200);
+  assert.equal((await a.patch('/api/me/profile', { bio: 'Ciao, una presentazione aggiornata.' })).status, 200);
   const photo = await fetch(`${t.base}/api/me/photo`, { method: 'POST', headers: { cookie: a.cookie, 'x-requested-with': 'rientro', 'content-type': 'image/png' }, body: PNG });
   assert.equal(photo.status, 200, 'a photo uploads too');
   assert.equal((await a.post('/api/me/legal', { accept: true })).status, 200);

@@ -21,7 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
-import { subscribe } from './live.js';
+import { disconnect as liveDisconnect, subscribe } from './live.js';
 import { clientIp as clientIpOf, forwardingHeaders } from './client-ip.js';
 import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, myInviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
@@ -358,12 +358,15 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/auth/logout', ({ res, cookies }) => {
     const impersonatorId = auth.impersonatorOf(db, cookies[SESSION_COOKIE]);
     if (impersonatorId) return stopImpersonation(res, cookies, impersonatorId);
+    const who = auth.userForSession(db, cookies[SESSION_COOKIE]);
     auth.logout(db, cookies[SESSION_COOKIE]);
+    if (who) liveDisconnect(who.id); // its live pages close (other devices reconnect with their sessions)
     send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true, allowSuspended: true });
 
   route('POST', '/api/auth/logout-all', ({ user, res }) => {
     auth.logoutEverywhere(db, user.id);
+    liveDisconnect(user.id);
     send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie('', 0) });
   }, { raw: true });
 

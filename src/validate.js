@@ -65,8 +65,12 @@ export function httpsUrl(value, field) {
   } catch {
     throw bad('invalid_field', `${field} non è un link valido`);
   }
-  // a host without a dot ("https://martalopresti/") leads nowhere
-  if (!u.hostname.includes('.')) throw bad('invalid_field', `${field} non è un link valido`);
+  // a real site: a name with a dot and a 2+ letter ending ("https://martalopresti/", "https://.",
+  // an IP address, a user:password@ in front are not)
+  const host = u.hostname;
+  if (u.username || u.password || !/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(host) || host.split('.').some(l => !l || l.startsWith('-') || l.endsWith('-'))) {
+    throw bad('invalid_field', `${field} non è un link valido`);
+  }
   return u.toString();
 }
 
@@ -75,11 +79,14 @@ export function linkedinUrl(value, field) {
   const v = text(value, field, { max: 300 });
   if (v == null) return v;
   if (/^[A-Za-z0-9-]{3,100}$/.test(v)) return `https://www.linkedin.com/in/${v}`;
-  return httpsUrl(v, field);
+  const url = httpsUrl(v, field);
+  const u = new URL(url);
+  if (!/(^|\.)linkedin\.com$/i.test(u.hostname)) throw bad('invalid_field', `${field}: incolla il link del tuo profilo LinkedIn.`);
+  return `${u.origin}${u.pathname}`; // without the tracking of a shared link (?utm_…)
 }
 
 export function handle(value, field) {
-  const v = text(value, field, { max: 40 });
+  const v = text(value, field, { max: 200 });
   if (v == null) return v;
   // the profile's link pasted whole ("https://x.com/martalp", "instagram.com/martalp/") is fine too
   const h = v.replace(/^(https?:\/\/)?(www\.)?(x|twitter|instagram)\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@/, '');

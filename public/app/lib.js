@@ -142,7 +142,7 @@ export function jobLine(p) {
 }
 
 // Every capped choice says the same when you try one more: "Massimo 5 settori"
-export const limitNote = (n, noun) => toast(`Massimo ${n} ${noun}: togline uno per sceglierne un altro.`, { tone: 'info' });
+export const limitNote = (n, noun) => toast(`Massimo ${n} ${noun}: toglierne uno per sceglierne un altro.`, { tone: 'info' });
 
 // Settori: up to five; a sixth isn't added (nothing greyed out), a note says why
 export const SECTORS_MAX = 5;
@@ -198,6 +198,11 @@ export const fullName = p => [p?.first_name, p?.last_name].filter(Boolean).join(
 
 // --- Toasts (design 00 "Feedback · Toast") --------------------------------------------------
 
+// The warnings showing (not the confirmations): gone, e.g. on a new onboarding step
+export function clearToasts() {
+  for (const el of document.querySelectorAll('#toasts .toast')) if (!el.querySelector('.toast-icon.ok')) el.remove();
+}
+
 export function toast(message, { tone = 'ok', action, onAction, ms = 4000 } = {}) {
   let host = document.getElementById('toasts');
   if (!host) {
@@ -208,6 +213,8 @@ export function toast(message, { tone = 'ok', action, onAction, ms = 4000 } = {}
   }
   // the same note already showing (a second tap on a full list): not twice
   if ([...host.children].some(c => c.dataset.msg === message)) return;
+  // a warning replaces the one before (they'd pile up over the page), confirmations stay
+  if (tone !== 'ok') clearToasts();
   const el = document.createElement('div');
   el.className = 'toast';
   el.dataset.msg = message;
@@ -316,17 +323,29 @@ export function debounce(fn, ms = 300) {
 
 // A text with its links (https://…, www.…) to click: [{ t, href }] for the templates, the rest plain
 // text as it is. Only http(s) links; punctuation right after one stays out of it.
-const LINK_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']*[^\s<>"'.,;:!?)\]}»”’]/gi;
+// (a closing bracket stays in the link when it closes one opened inside it: "…/Roma_(città)")
+const LINK_RE = /(?<![\p{L}\p{N}])(?:https?:\/\/|www\.)[^\s<>"']+/giu;
+const trimLink = raw => {
+  let t = raw;
+  for (;;) {
+    const last = t.at(-1);
+    if (/[.,;:!?»”’'"]/.test(last)) { t = t.slice(0, -1); continue; }
+    const pair = { ')': '(', ']': '[', '}': '{' }[last];
+    if (pair && t.split(pair).length <= t.split(last).length - 1) { t = t.slice(0, -1); continue; }
+    return t;
+  }
+};
 export function linkParts(text) {
   const out = [];
   let at = 0;
   for (const m of String(text ?? '').matchAll(LINK_RE)) {
+    const t = trimLink(m[0]);
     let href = null;
-    try { const u = new URL(/^www\./i.test(m[0]) ? `https://${m[0]}` : m[0]); if (u.protocol === 'https:' || u.protocol === 'http:') href = u.href; } catch {}
-    if (!href) continue;
+    try { const u = new URL(/^www\./i.test(t) ? `https://${t}` : t); if (u.protocol === 'https:' || u.protocol === 'http:') href = u.href; } catch {}
+    if (!href || !t) continue;
     if (m.index > at) out.push({ t: text.slice(at, m.index), plain: true });
-    out.push({ t: m[0], href });
-    at = m.index + m[0].length;
+    out.push({ t, href });
+    at = m.index + t.length;
   }
   if (at < String(text ?? '').length) out.push({ t: text.slice(at), plain: true });
   return out;

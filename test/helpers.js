@@ -18,6 +18,9 @@ export const COMPLETE_PROFILE = {
   first_name: 'Test', last_name: 'Utente', birth_year: 1988, bio: 'x'.repeat(160),
   background_area: 'Tecnologia e ingegneria', current_role: 'Product Manager', seeking_backgrounds: ['Business, finanza e diritto'],
   sectors: ['AI, Software & SaaS', 'Finanza & Assicurazioni'],
+  // everything onboarding needs (profiles.js missingForSubmit)
+  idea_title: 'Un’idea di prova', idea_description: 'Una descrizione dell’idea di prova.', idea_stage: 'idea',
+  years_experience: '4-7', seeking_description: 'Una persona con cui costruire.', misses_italy: 'Il mare', source: 'LinkedIn', move_when: '0_3m',
 };
 
 export async function startApp(opts = {}) {

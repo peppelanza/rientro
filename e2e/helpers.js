@@ -32,7 +32,7 @@ export async function member(request, { email = uniqueEmail(), first = 'Test', l
     lives_in: 'abroad', lives_in_country: 'Regno Unito', lives_in_city: 'Londra', desired_comuni: ['Palermo', 'Catania'], move_when: '0_3m',
     primary_intent: 'networking', first_name: first, last_name: last, birth_year: 1990, bio: 'Profilo creato dai test automatici.',
     background_area: 'Tecnologia e ingegneria', years_experience: '4-7', sectors: ['Turismo & Ospitalità'], seeking_backgrounds: ['Design, arte e cultura'],
-    misses_italy: 'Il mare', source: 'Passaparola, un amico o collega', ...extra,
+    misses_italy: 'Il mare', source: 'Passaparola, un amico o collega', seeking_description: 'Una persona con cui costruire.', ...extra,
   });
   await uploadPhoto(request);
   const me = await api(request, 'POST', '/api/me/submit');

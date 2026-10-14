@@ -17,8 +17,9 @@ function sniff(buf) {
   return null;
 }
 
-// A JPEG without its APP1 (Exif, XMP: GPS position, camera) and APP13 (IPTC) segments, a PNG
-// without its eXIf and text chunks; null when there was nothing to take out (or the file can't be read)
+// A JPEG without its APP1 (Exif, XMP: GPS position, camera) and APP13 (IPTC) segments nor anything
+// after its end, a PNG without its eXIf and text chunks, a WebP without its EXIF and XMP chunks; null
+// when there was nothing to take out (or the file can't be read)
 export function stripImageMeta(buf, mime) {
   try {
     const parts = [];
@@ -34,7 +35,27 @@ export function stripImageMeta(buf, mime) {
         else parts.push(buf.subarray(i, i + 2 + len));
         i += 2 + len;
       }
-      parts.push(buf.subarray(i));
+      // the picture data up to its end marker (FFD9 can't appear inside it): anything after it —
+      // a second picture with its own Exif, as some cameras add — stays out
+      const end = buf.indexOf(Buffer.from([0xff, 0xd9]), i);
+      if (end >= 0 && end + 2 < buf.length) { parts.push(buf.subarray(i, end + 2)); dropped = true; } else parts.push(buf.subarray(i));
+    } else if (mime === 'image/webp') {
+      // RIFF chunks: EXIF and "XMP " out, and their flags in VP8X cleared
+      let i = 12;
+      const keep = [];
+      while (i + 8 <= buf.length) {
+        const type = buf.toString('ascii', i, i + 4);
+        const len = buf.readUInt32LE(i + 4);
+        const chunk = Buffer.from(buf.subarray(i, i + 8 + len + (len % 2)));
+        if (type === 'EXIF' || type === 'XMP ') dropped = true;
+        else { if (type === 'VP8X') chunk[8] &= ~0x0c; keep.push(chunk); }
+        i += 8 + len + (len % 2);
+      }
+      if (!dropped) return null;
+      const body = Buffer.concat(keep);
+      const head = Buffer.alloc(12);
+      head.write('RIFF', 0, 'ascii'); head.writeUInt32LE(body.length + 4, 4); head.write('WEBP', 8, 'ascii');
+      return Buffer.concat([head, body]);
     } else {
       let i = 8;
       parts.push(buf.subarray(0, 8));
@@ -94,7 +115,7 @@ export function receiveUpload(req, kind) {
         }
         // Pictures keep nothing of what the camera wrote in them (where it was taken, the device):
         // the browser redraws them already (face.js), this is in case it couldn't
-        if (/^image\/(jpeg|png)$/.test(mime)) {
+        if (/^image\/(jpeg|png|webp)$/.test(mime)) {
           const clean = stripImageMeta(fs.readFileSync(file), mime);
           if (clean) {
             fs.writeFileSync(file, clean, { mode: 0o600 });

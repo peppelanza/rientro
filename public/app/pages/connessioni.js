@@ -79,7 +79,8 @@ export default class extends Page {
     const empty = !counts.connected && !counts.received && !counts.sent;
     // a person's card, the same in the three tabs
     const card = c => ({
-      name: c.name, role: [c.role.split(' · ')[0], routeOf(c)].filter(Boolean).join(' · '),
+      // the job as on the Scopri card ("Ruolo presso Azienda"), then where from and to
+      name: c.name, role: [c.job, routeOf(c)].filter(Boolean).join(' · '),
       photo: c.photo_url, ini: ini(c.name), href: `/persone/${c.id}?da=${s.tab}`, note: c.note ? `“${c.note}”` : '', when: timeAgo(c.created_at).toUpperCase(),
     });
     const none = s.q ? `Nessun risultato per “${s.q}”.` : '';

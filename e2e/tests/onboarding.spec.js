@@ -55,6 +55,7 @@ test('onboarding completo di chi vive all’estero, fino a Pubblica', async ({ p
   await skip(page);
   await heading(page, 'Qual è il tuo background?');
   await page.getByRole('radiogroup', { name: 'Background' }).getByRole('radio').first().click();
+  await page.getByRole('radio', { name: /^4.7$/ }).click(); // anni di esperienza
   await next(page);
   await heading(page, 'Formazione');
   await skip(page);
@@ -70,8 +71,13 @@ test('onboarding completo di chi vive all’estero, fino a Pubblica', async ({ p
   await next(page);
   await heading(page, 'Chi stai cercando?');
   await page.getByRole('checkbox').first().click();
+  await page.getByRole('button', { name: /^Continua$/ }).last().click({ force: true }); // the description is needed too
+  await expect(page.getByText('Descrivi la persona che cerchi').last()).toBeVisible();
+  await page.getByLabel('Descrivi la persona che cerchi').fill('Una persona che conosca il turismo.');
   await next(page);
-  await skip(page); // cosa ti manca di casa
+  await expect(page.getByRole('button', { name: /^Salta$/ })).toHaveCount(0); // cosa ti manca di casa: needed
+  await page.getByPlaceholder('Le cene che finiscono all\'una…').fill('Il mare d’inverno');
+  await next(page);
   if (await page.getByRole('heading', { level: 2, name: /Vuoi connetterti/ }).isVisible().catch(() => false)) await skip(page);
   await heading(page, 'Come hai conosciuto Rientro?');
   await page.getByRole('radiogroup', { name: 'Come hai conosciuto Rientro' }).getByRole('radio').first().click();

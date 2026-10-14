@@ -17,6 +17,10 @@ export function expBody(e) {
   };
   if (start === undefined) { toast(why(e.start_month, 'Inizio'), { tone: 'err' }); return null; }
   if (end === undefined) { toast(why(e.end_month, 'Fine'), { tone: 'err' }); return null; }
+  // later than this month (also this year or the next one, which the format allows)
+  const d = new Date(), now = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  if (start && start > now) { toast('Inizio: la data non può essere nel futuro.', { tone: 'err' }); return null; }
+  if (end && end > now) { toast('Fine: la data non può essere nel futuro.', { tone: 'err' }); return null; }
   if (start && end && end < start) { toast('La fine viene prima dell’inizio.', { tone: 'err' }); return null; }
   return { company: e.company.trim(), role: nz(e.role), city: nz(e.city), start_month: start, end_month: end, current: !!e.current };
 }

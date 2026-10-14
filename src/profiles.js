@@ -50,7 +50,8 @@ export function arrivedWhen(p, now = thisMonth()) {
 // "Da Londra, Regno Unito · 3–12 mesi fa", or null
 export function arrivedText(p) {
   const where = [p.arrived_from_city, p.arrived_from_country].filter(Boolean).join(', ');
-  const when = ARRIVED_WHEN.find(x => x[0] === arrivedWhen(p))?.[1].toLowerCase();
+  // ("1–2 anni fa" never split over two lines)
+  const when = ARRIVED_WHEN.find(x => x[0] === arrivedWhen(p))?.[1].toLowerCase().replace('–', '\u2060–\u2060').replace(/ (anni|mesi) fa$/, '\u00a0$1\u00a0fa');
   return where ? [`Da ${where}`, when].filter(Boolean).join(' · ') : null;
 }
 
@@ -59,6 +60,17 @@ export function arrivedText(p) {
 export const isBack = p => p.lives_in === 'italy';
 // The member's own city: where they live once back, else where they'd like to move (lib.js myPlace)
 export const myPlace = p => (p.lives_in === 'italy' ? p.lives_in_city || null : p.desired_unknown ? null : orList(p.desired_comuni || []) || null);
+
+// A name as people write it: invisible characters (zero-width, fillers) and the ones that turn the
+// direction of the text around (they'd reverse what follows the name: chat, Cerca) taken out; at
+// least one letter left
+const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\u115F\u1160\u3164\uFFA0\u00AD]/g;
+function personName(v, field) {
+  const t = typeof v === 'string' ? v.replace(INVISIBLE, '').replace(/\s+/g, ' ') : v;
+  const out = text(t, field, { max: 60 });
+  if (out && !/\p{L}/u.test(out)) throw bad('invalid_field', `${field}: scrivi un nome con delle lettere.`);
+  return out;
+}
 
 const EDITABLE = {
   lives_in: v => oneOf(v, ['italy', 'abroad'], 'Dove vivi'),
@@ -74,8 +86,8 @@ const EDITABLE = {
   idea_title: v => text(v, 'Titolo dell’idea', { max: 140 }),
   idea_description: v => text(v, 'Descrivi la tua idea', { max: 1000 }),
   idea_stage: v => oneOf(v, values(IDEA_STAGES), 'A che punto sei'),
-  first_name: v => text(v, 'Nome', { max: 60 }),
-  last_name: v => text(v, 'Cognome', { max: 60 }),
+  first_name: v => personName(v, 'Nome'),
+  last_name: v => personName(v, 'Cognome'),
   birth_year: v => {
     if (v === undefined || v === null || v === '') return v === '' ? null : v;
     const y = new Date().getFullYear();
@@ -176,12 +188,20 @@ export function updateProfile(db, user, body) {
   if (isBack(after) && after.lives_in_city) Object.assign(live, { desired_comuni: JSON.stringify([after.lives_in_city]), desired_unknown: 0 });
   // A profile already online keeps what onboarding asked for: it can change, not be emptied
   if (user.status !== 'onboarding') {
-    const REQUIRED = { first_name: 'Il nome', last_name: 'Il cognome', lives_in: 'Dove vivi', lives_in_city: 'La città dove vivi', primary_intent: 'L’obiettivo', background_area: 'Il background' };
-    for (const [k, what] of Object.entries(REQUIRED)) if (k in live && live[k] == null) throw bad('invalid_field', `${what} non può restare vuoto.`);
+    const REQUIRED = { first_name: 'Indica il tuo nome.', last_name: 'Indica il tuo cognome.', lives_in: 'Indica dove vivi.', lives_in_city: 'Indica la città dove vivi.', primary_intent: 'Scegli il tuo obiettivo.', background_area: 'Scegli il tuo background.' };
+    for (const [k, say] of Object.entries(REQUIRED)) if (k in live && live[k] == null) throw bad('invalid_field', say);
     if ('seeking_backgrounds' in live && !JSON.parse(live.seeking_backgrounds || '[]').length) throw bad('invalid_field', 'Scegli chi stai cercando.');
     const desired = 'desired_comuni' in live ? JSON.parse(live.desired_comuni || '[]') : null;
     const unknown = 'desired_unknown' in live ? live.desired_unknown : current.desired_unknown;
     if (desired && !desired.length && !unknown) throw bad('invalid_field', 'Scegli dove vorresti vivere, oppure “Non lo so ancora”.');
+    const NEEDED = { bio: 'Scrivi qualcosa su di te.', years_experience: 'Indica gli anni di esperienza.', misses_italy: 'Scrivi cosa ti manca di casa.', seeking_description: 'Descrivi la persona che cerchi.' };
+    for (const [k, say] of Object.entries(NEEDED)) if (k in live && live[k] == null) throw bad('invalid_field', say);
+    if ('bio' in live && live.bio.trim().length < MIN_BIO) throw bad('invalid_field', `Su di me: scrivi almeno ${MIN_BIO} caratteri.`);
+    if ('sectors' in live && !JSON.parse(live.sectors || '[]').length) throw bad('invalid_field', 'Scegli almeno un interesse.');
+    const intent = live.primary_intent ?? current.primary_intent;
+    if (intent === 'has_idea') for (const [k, say] of [['idea_title', 'Dai un titolo alla tua idea.'], ['idea_description', 'Descrivi la tua idea.'], ['idea_stage', 'Indica a che punto è la tua idea.']]) {
+      if ((k in live ? live[k] : current[k]) == null) throw bad('invalid_field', say);
+    }
   }
   const keys = Object.keys(live);
   if (!keys.length) return effectiveProfile(db, user.id);
@@ -268,16 +288,26 @@ export function deleteRow(db, table, userId, id) {
 
 // --- Submission --------------------------------------------------------------------------
 
+// Everything onboarding asks is needed to go online, except the video, Formazione, Esperienze, the
+// links (Dove trovarti) and the result you're proud of
+export const MIN_BIO = 20;
 export function missingForSubmit(p) {
   const missing = [];
+  const has = v => typeof v === 'string' ? !!v.trim() : v != null;
   if (!p.lives_in || !p.lives_in_city) missing.push('Dove vivi');
-  if (!p.desired_comuni.length && !p.desired_unknown) missing.push('Dove vorresti vivere');
+  if (p.lives_in === 'abroad' && !p.desired_comuni.length && !p.desired_unknown) missing.push('Dove vorresti vivere');
+  if (p.lives_in === 'abroad' && !p.move_when) missing.push('Quando vorresti trasferirti');
   if (!p.primary_intent) missing.push('Obiettivo');
+  if (p.primary_intent === 'has_idea' && (!has(p.idea_title) || !has(p.idea_description) || !p.idea_stage)) missing.push('La tua idea');
   if (!p.photo_url) missing.push('Foto');
   if (!p.first_name || !p.last_name) missing.push('Nome e cognome');
   if (!p.birth_year) missing.push('Anno di nascita');
-  if (!p.background_area) missing.push('Background');
-  if (!p.seeking_backgrounds.length) missing.push('Chi stai cercando');
+  if ((p.bio || '').trim().length < MIN_BIO) missing.push('Su di me');
+  if (!p.background_area || !p.years_experience) missing.push('Background');
+  if (!p.sectors.length) missing.push('Interessi');
+  if (!p.seeking_backgrounds.length || !has(p.seeking_description)) missing.push('Chi stai cercando');
+  if (!has(p.misses_italy)) missing.push('Cosa ti manca di casa');
+  if (!p.source) missing.push('Come hai conosciuto Rientro');
   return missing;
 }
 
@@ -479,6 +509,8 @@ const SEARCH_PARTS = [
   ['', 10, p => [p.first_name, p.last_name]],
   ['', 6, p => [p.current_role, p.current_company]],
   ['', 5, p => [p.lives_in_city, p.lives_in_country, ...p.desired_comuni]],
+  // where they came back from (the card shows it: "Zurigo → Catania")
+  ['', 5, p => (p.lives_in === 'italy' ? [p.arrived_from_city, p.arrived_from_country] : [])],
   [p => (p.primary_intent === 'has_idea' ? 'cosa vuole costruire' : 'cosa vorrebbe costruire'), 4, p => [p.idea_title, p.idea_description]],
   ['esperienza', 3, p => (p.exp || []).flatMap(e => [e.company, e.role, e.city])],
   ['interessi', 3, p => p.sectors],

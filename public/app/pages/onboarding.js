@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, jobLine, limitNote, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
+import { api, clearToasts, jobLine, limitNote, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -48,6 +48,8 @@ const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 // Already back in Italy: where they live is where they wanted to be (profiles.js isBack)
 const isBack = p => p?.lives_in === 'italy';
 
+// "Su di me": at least this much (the same on the server, src/profiles.js)
+const MIN_BIO = 20;
 export const previewHref = me => `/persone/${me.user.id}?anteprima=1`;
 
 export default class extends Page {
@@ -122,6 +124,7 @@ export default class extends Page {
   goTo(step, { push = true } = {}) {
     if (push && step !== this.state.step) history.pushState({ from: this.state.step }, '', `/onboarding?passo=${step}`);
     this.state.step = step;
+    clearToasts(); // what was missing on the step before isn't news here
     this.__rerender();
     window.scrollTo(0, 0);
     document.querySelector('h1, h2')?.focus?.();
@@ -143,10 +146,13 @@ export default class extends Page {
       case 'dove': return !(p.desired_comuni.length || p.desired_unknown) ? 'Scegli almeno un comune' : !p.move_when ? 'Indica quando vorresti trasferirti' : null;
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'invito': return p.invite_connect === null || p.invite_connect === undefined ? 'Scegli una delle due opzioni' : null;
-      case 'idea': return p.primary_intent === 'has_idea' && !nz(p.idea_title) ? 'Descrivi l’idea in una frase' : null;
-      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido (almeno 18 anni)' : null;
-      case 'background': return p.background_area ? null : this.state.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area';
-      case 'chi': return p.seeking_backgrounds.length ? null : 'Scegli almeno un’area';
+      case 'idea': return p.primary_intent !== 'has_idea' ? null : !nz(p.idea_title) ? 'Dai un titolo alla tua idea' : !nz(p.idea_description) ? 'Descrivi la tua idea' : !p.idea_stage ? 'Indica a che punto sei' : null;
+      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido, di 4 cifre (almeno 18 anni)' : (p.bio || '').trim().length < MIN_BIO ? `Scrivi qualcosa su di te (almeno ${MIN_BIO} caratteri)` : null;
+      case 'background': return !p.background_area ? (this.state.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area') : !p.years_experience ? 'Indica gli anni di esperienza' : null;
+      case 'settori': return p.sectors.length ? null : 'Scegli almeno un interesse';
+      case 'manca': return nz(p.misses_italy) ? null : 'Scrivi cosa ti manca di casa';
+      case 'fonte': return p.source ? null : 'Scegli come hai conosciuto Rientro';
+      case 'chi': return !p.seeking_backgrounds.length ? 'Scegli almeno un’area' : !nz(p.seeking_description) ? 'Descrivi la persona che cerchi' : null;
       default: return null;
     }
   }
@@ -318,7 +324,9 @@ export default class extends Page {
     const toggleIn = (list, v, max) => (list.includes(v) ? list.filter(x => x !== v) : list.length >= max ? list : [...list, v]);
     const dark = false;
     const narrow = matchMedia('(max-width: 600px)').matches;
-    const optional = ['formazione', 'esperienze', 'risultato', 'video', 'settori', 'manca', 'link', 'fonte'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
+    // what can be skipped: the video, Formazione, Esperienze, the links and the result (the rest is
+    // needed to go online: src/profiles.js missingForSubmit)
+    const optional = ['formazione', 'esperienze', 'risultato', 'video', 'link'].includes(s.step) || (is('idea') && p.primary_intent !== 'has_idea');
     const up = s.up;
     const pct = up && up.total ? Math.round((up.loaded / up.total) * 100) : 0;
     const secs = up ? Math.max(0, Math.round(((Date.now() - up.started) / 1000) * (up.total / Math.max(up.loaded, 1) - 1))) : 0;
@@ -422,7 +430,7 @@ export default class extends Page {
       ideaHint: p.primary_intent === 'has_idea' ? '' : 'Facoltativo. Un ambito, un problema che ti sta a cuore, un tipo di azienda.',
       ideaTitle: p.idea_title ?? '', ideaDesc: p.idea_description ?? '',
       ideaTitleProps: { onInput: v => { p.idea_title = v; this.touch(); } },
-      ideaDescProps: { onInput: v => { p.idea_description = v; } },
+      ideaDescProps: { onInput: v => { p.idea_description = v; this.touch(); } },
       stageOpts: opts(cat.ideaStages), stage: p.idea_stage,
 
       // 11a
@@ -435,7 +443,7 @@ export default class extends Page {
       firstName: p.first_name ?? '', lastName: p.last_name ?? '', bio: p.bio ?? '',
       firstProps: { onInput: v => { p.first_name = v; this.touch(); } },
       lastProps: { onInput: v => { p.last_name = v; this.touch(); } },
-      bioProps: { onInput: v => { p.bio = v; } },
+      bioProps: { onInput: v => { p.bio = v; this.touch(); } },
 
       // 12a
       // "Altro": the member's own words, in the same field (see catalog.js AREAS)
@@ -469,14 +477,14 @@ export default class extends Page {
       // 18a
       // every area can be chosen, your own too; or Indifferente (lib.js seekCards)
       seekAreas: seekCards(cat.areas, p.seeking_backgrounds, patch => this.set(patch)),
-      seekDesc: p.seeking_description ?? '', seekDescProps: { onInput: v => { p.seeking_description = v; } },
+      seekDesc: p.seeking_description ?? '', seekDescProps: { onInput: v => { p.seeking_description = v; this.touch(); } },
       ...placeToggle(p, patch => this.set(patch)),
       moveOpts: opts(cat.moveWhen), move: p.move_when, moveProps: { onSelect: v => this.set({ move_when: v || null }) },
 
       // 19a
 
       // 20a
-      misses: p.misses_italy ?? '', missesInput: e => { p.misses_italy = e.target.value; },
+      misses: p.misses_italy ?? '', missesInput: e => { p.misses_italy = e.target.value; this.touch(); },
 
       // 21a
       linkedin: p.linkedin_url ?? '', website: p.website_url ?? '', instagram: p.instagram_handle ?? '', xh: p.x_handle ?? '', calendar: p.calendar_url ?? '',

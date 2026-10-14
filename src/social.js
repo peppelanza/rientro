@@ -348,7 +348,8 @@ export function block(db, viewer, targetId) {
     db.prepare('INSERT OR IGNORE INTO blocks (blocker_id, blocked_id, created_at) VALUES (?, ?, ?)').run(viewer.id, targetId, now());
     // what either was told about the other goes from the bell too (name, photo, unread count)
     db.prepare('DELETE FROM notifications WHERE (user_id = ? AND actor_id = ?) OR (user_id = ? AND actor_id = ?)').run(viewer.id, targetId, targetId, viewer.id);
-    publish(targetId, 'counts'); publish(targetId, 'connections'); publish(targetId, 'message', { from: viewer.id });
+    // (who blocked is never said: the event carries no name)
+    publish(targetId, 'counts'); publish(targetId, 'connections'); publish(targetId, 'message');
     // "La connessione e la chat vengono chiuse." Blocked person gets no notification.
     db.prepare(
       `UPDATE connections SET status = 'withdrawn', responded_at = ?

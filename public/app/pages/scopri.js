@@ -128,7 +128,7 @@ export default class extends Page {
     const filters = filterPanel(this, res.counts);
     return {
       loading: false, loaded: true, me: s.me, f, ...filters, filterUi: filters,
-      total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'} con questi filtri`,
+      total: res.total, totalLabel: `${res.total} ${res.total === 1 ? 'persona' : 'persone'}${activeFilters(s.f, s.cat).length ? ' con questi filtri' : ''}`,
       // results
       sortLabel: s.sort === 'match' ? 'Ordina: Più affini ▾' : 'Ordina: Più recenti ▾',
       toggleSort: () => { const sort = s.sort === 'match' ? 'recent' : 'match'; saveSort(sort); s.sort = sort; this.apply(f); },

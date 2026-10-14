@@ -45,7 +45,7 @@ const HIDDEN = `(SELECT blocked_id FROM blocks WHERE blocker_id = $viewer UNION 
 
 function author(db, id) {
   const p = rawProfile(db, id);
-  return { id, name: nameOf(db, id) || 'Membro', photo_url: fileUrl(p?.photo_file_id), role: [p?.current_role, p?.current_company].filter(Boolean).join(' · ') };
+  return { id, name: nameOf(db, id) || 'Membro', photo_url: fileUrl(p?.photo_file_id), role: p?.current_role ? [p.current_role, p.current_company].filter(Boolean).join(' presso ') : '' }; // as on the Scopri card
 }
 
 // The cover over the group: a region's is its Territori picture; Generale's its own (when it's there)

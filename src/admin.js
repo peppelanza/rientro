@@ -9,6 +9,7 @@ import { getJobPreferences, preferenceHistory } from './preferences.js';
 import { removePost } from './groups.js';
 import { eraseAccount } from './privacy.js';
 import { announceGone } from './social.js';
+import { disconnect } from './live.js';
 import { effectiveProfile, ERASED_DOMAIN, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
@@ -175,6 +176,7 @@ export function review(db, admin, userId, body) {
     } else if (action === 'suspend') {
       setStatus('suspended');
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
+      disconnect(userId); // its open pages too
       // for the others: away while suspended (chats read-only "Account disattivato"); all back on unsuspend
       announceGone(db, userId);
     } else {

@@ -392,9 +392,12 @@ def('App Field', String.raw`
         // mask="month": mm/aaaa, the slash added while typing the digits
         if (p.mask === 'month' && !String(e.inputType || '').startsWith('delete')) {
           // "3/2019" → 03/2019 (a one-digit month with its slash); "2019" stays as typed (not a month)
+          // digits alone (an iPhone's number pad has no "/"): "3" then "2019" → 03/2019, "1" then "3…" → 01/3…
           const one = e.target.value.match(/^(\d)\s*[/.\- ](.*)$/);
-          const d = (one ? `0${one[1]}${one[2]}` : e.target.value).replace(/\D/g, '').slice(0, 6);
-          e.target.value = +d.slice(0, 2) > 12 || d.startsWith('00') ? d : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d.length === 2 ? `${d}/` : d;
+          let d = (one ? `0${one[1]}${one[2]}` : e.target.value).replace(/\D/g, '');
+          if (!one && !e.target.value.includes('/') && (d[0] > '1' || (d[0] === '1' && d.length > 1 && d[1] > '2'))) d = `0${d}`;
+          d = d.slice(0, 6);
+          e.target.value = d.startsWith('00') ? d : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d.length === 2 ? `${d}/` : d;
         }
         p.onInput?.(e.target.value);
         if (counter) { this.state.v = e.target.value; this.__rerender(); }
@@ -749,7 +752,7 @@ if (typeof window !== 'undefined') {
 
 def('App People Filters', String.raw`
 <aside aria-label="Filtri" class="{{ filterClass }}" style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
-<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Reset</button></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Azzera</button></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Destinazione"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" dc-props="{{ desiredProps }}"></dc-import>
 <sc-if value="{{ hasDesired }}"><dc-import name="UI Checkbox" label="Includi chi ha scelto “Non lo so ancora”" checked="{{ includeUnknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ includeUnknown }}"></dc-import></sc-if></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Residenza"></dc-import><dc-import name="App Segmented" label="Residenza" options="{{ livesOpts }}" value="{{ lives }}" onWhite="{{ true }}" dc-props="{{ livesProps }}"></dc-import></div>
@@ -1041,8 +1044,9 @@ def('App Person Card', String.raw`
 <a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
 <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1">
 <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3></div><sc-if value="{{ p.job }}"><span style="font-size:13px;color:#6B6680">{{ p.job }}</span></sc-if></div>
-<sc-if value="{{ goingTo }}"><div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.from }}</span><sc-if value="{{ p.to }}"><span style="color:#6C4DF5" aria-label="verso">→</span><span style="font-weight:500">{{ p.to }}</span></sc-if></div></sc-if>
-<sc-if value="{{ p.back_from }}"><div style="display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.back_from }}</span><span style="color:#6C4DF5" aria-label="rientrato a">→</span><span style="font-weight:500">{{ p.from }}</span></div></sc-if>
+<!-- the arrow goes with where it points: the destination wraps with it, never the arrow alone -->
+<sc-if value="{{ goingTo }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.from }}</span><sc-if value="{{ p.to }}"><span><span style="color:#6C4DF5" aria-label="verso">→</span>&nbsp;<span style="font-weight:500">{{ p.to }}</span></span></sc-if></div></sc-if>
+<sc-if value="{{ p.back_from }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.back_from }}</span><span><span style="color:#6C4DF5" aria-label="rientrato a">→</span>&nbsp;<span style="font-weight:500">{{ p.from }}</span></span></div></sc-if>
 <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><sc-if value="{{ p.idea_line }}"><span style="color:#8C84AE">Idea</span><span style="font-weight:600">{{ p.idea_line }}</span></sc-if><sc-if value="{{ p.move }}"><span style="color:#8C84AE">Trasferimento</span><span>{{ p.move }}</span></sc-if><sc-if value="{{ p.background }}"><span style="color:#8C84AE">Background</span><span>{{ p.background }}</span></sc-if></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>

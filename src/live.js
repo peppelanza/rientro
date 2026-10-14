@@ -36,3 +36,12 @@ export const liveCount = () => [...clients.values()].reduce((n, s) => n + s.size
 setInterval(() => {
   for (const set of clients.values()) for (const res of set) res.write(': ping\n\n');
 }, 25_000).unref();
+
+// Signed out (one device or all of them): its open pages stop hearing anything. The other devices,
+// still signed in, reconnect by themselves (EventSource retries with their own session).
+export function disconnect(userId) {
+  const set = clients.get(userId);
+  if (!set) return;
+  for (const res of set) res.end();
+  clients.delete(userId);
+}
