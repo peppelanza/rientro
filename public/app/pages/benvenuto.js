@@ -1,6 +1,7 @@
 // Before launch: where a member lands once their profile is online. A big "your profile is ready"
 // box with a countdown to launch, and a small preview of their profile that opens the editor (/profilo).
-import { api, getMe, go, orList, toast } from '../lib.js';
+import { cardFields } from '../card-fields.js';
+import { api, getMe, go, toast } from '../lib.js';
 import { homeFor, Page } from './_base.js';
 
 export const title = 'Il tuo profilo è pronto';
@@ -46,13 +47,16 @@ export default class extends Page {
     const s = this.state;
     if (!s.me) return { loading: true, me: {} };
     const p = s.me.profile || {};
-    const places = p.desired_unknown ? 'Non lo so ancora' : orList(p.desired_comuni || [], 3);
+    // as on the Scopri card (card-fields.js): back already "Sofia → Catania", else "Londra → Palermo o Catania"
+    const job = (p.experiences || []).find(x => x.current);
+    const c = cardFields({ ...p, desired_comuni: p.desired_comuni || [], sectors: [], current_role: job?.role ?? p.current_role, current_company: job?.company ?? p.current_company }, []);
+    const route = c.back_from ? [c.back_from, c.from] : [c.from, c.to];
     return {
       loading: false, me: s.me,
       cd: parts(s.at) ?? [], hasCountdown: !!parts(s.at), cdLabel: s.date ? `Mancano al lancio di Rientro, il ${s.date}` : 'Mancano al lancio di Rientro',
       name: [p.first_name, p.last_name].filter(Boolean).join(' '), photo: p.photo_url, ini: ini(p.first_name, p.last_name),
-      role: [p.current_role, p.current_company].filter(Boolean).join(' · '),
-      from: p.lives_in_city || p.lives_in_country || '', to: places, hasRoute: !!((p.lives_in_city || p.lives_in_country) && places),
+      role: c.job,
+      from: route[0], to: route[1], hasRoute: !!(route[0] && route[1]),
       open: () => go('/profilo'),
       // The member's invite link (invites.js)
       inviteUrl: s.me.invite?.url, inviteShort: (s.me.invite?.url || '').replace(/^https?:\/\/(www\.)?/, ''),
