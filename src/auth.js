@@ -47,14 +47,16 @@ export function verifyCode(db, body, userAgent) {
     const claimed = db.prepare('UPDATE login_codes SET used_at = ? WHERE id = ? AND used_at IS NULL').run(now(), row.id);
     if (!claimed.changes) throw invalid;
 
-    return startSession(db, email, { userAgent, marketing: !!row.marketing_opt_in });
+    return startSession(db, email, { userAgent, marketing: !!row.marketing_opt_in, method: 'email' });
   });
 }
 
 // Signs a verified email in (code by email, or LinkedIn): creates the account the first time,
 // cancels a pending deletion request, records an optional marketing opt-in, opens a session.
 // Call inside a transaction.
-export function startSession(db, email, { userAgent = '', marketing = false } = {}) {
+// method: how they signed in ('email' with the code, 'google', 'linkedin'): the first one is kept
+// as the sign-up's, the latest as the last one (shown in the admin)
+export function startSession(db, email, { userAgent = '', marketing = false, method = null } = {}) {
   let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
   const isNew = !user;
   if (isNew) {
@@ -67,6 +69,7 @@ export function startSession(db, email, { userAgent = '', marketing = false } = 
     // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
     acknowledge(db, user.id);
   }
+  if (method) db.prepare('UPDATE users SET signup_method = COALESCE(signup_method, ?), last_login_method = ? WHERE id = ?').run(isNew ? method : null, method, user.id);
   // Signing in within 30 days of a deletion request cancels it: the account comes back as it was
   const restored = !isNew && !!user.deletion_requested_at;
   if (restored) {

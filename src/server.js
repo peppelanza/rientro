@@ -321,7 +321,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       try { email = auth.normaliseEmail(profile.email); } catch { return back(res, `${p}_email`); }
       if (!profile.emailVerified) return back(res, `${p}_email`);
       const { sessionToken, user, restored, isNew } = tx(db, () => {
-        const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'] });
+        const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'], method: p });
         // Fill in the name from the provider only where the profile has none yet
         db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
         // The account's photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)

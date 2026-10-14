@@ -65,6 +65,9 @@ function migrateUserColumns(db) {
   if (!have.has('onboarding_reminded_at')) db.exec('ALTER TABLE users ADD COLUMN onboarding_reminded_at TEXT');
   // Invite links (invites.js): each member's own code, and who invited whom
   if (!have.has('invite_code')) db.exec('ALTER TABLE users ADD COLUMN invite_code TEXT; CREATE UNIQUE INDEX IF NOT EXISTS users_invite_code ON users(invite_code);');
+  // How they signed up and last signed in: 'email', 'google', 'linkedin' (auth.startSession)
+  if (!have.has('signup_method')) db.exec('ALTER TABLE users ADD COLUMN signup_method TEXT');
+  if (!have.has('last_login_method')) db.exec('ALTER TABLE users ADD COLUMN last_login_method TEXT');
   if (!have.has('invited_by')) db.exec('ALTER TABLE users ADD COLUMN invited_by TEXT REFERENCES users(id) ON DELETE SET NULL');
   // Posts and comments in the groups can be edited by their author: when, shown as "modificato"
   for (const t of ['group_posts', 'group_comments']) {

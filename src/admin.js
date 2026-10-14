@@ -10,7 +10,7 @@ import { removePost } from './groups.js';
 import { eraseAccount } from './privacy.js';
 import { announceGone } from './social.js';
 import { disconnect } from './live.js';
-import { effectiveProfile, ERASED_DOMAIN, rawProfile } from './profiles.js';
+import { arrivedText, effectiveProfile, ERASED_DOMAIN, missingForSubmit, moveLabel, myPlace, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
@@ -119,7 +119,7 @@ export function listUsers(db, admin, query) {
 }
 
 export function getUser(db, admin, userId) {
-  const user = db.prepare('SELECT id, email, role, status, created_at, last_seen_at FROM users WHERE id = ?').get(userId);
+  const user = db.prepare('SELECT id, email, role, status, created_at, last_seen_at, signup_method, last_login_method FROM users WHERE id = ?').get(userId);
   if (!user) throw new HttpError(404, 'not_found');
   audit(db, admin.id, 'user.view', userId);
   const p = effectiveProfile(db, userId);
@@ -144,6 +144,14 @@ export function getUser(db, admin, userId) {
     reports: db.prepare('SELECT id, reason, details, status, created_at FROM reports WHERE reported_id = ? ORDER BY created_at DESC').all(userId),
     labels: {
       intent: INTENT[p.primary_intent] ?? null,
+      // what the member chose, worded as the site shows it (profiles.js)
+      arrived: p.lives_in === 'italy' ? arrivedText(p) : null,
+      move: moveLabel(p),
+      seeking_where: p.seeking_location === 'same_city' && myPlace(p) ? `a ${myPlace(p)}` : 'Indifferente',
+      invited_by: db.prepare("SELECT TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS name, i.email FROM users u JOIN users i ON i.id = u.invited_by LEFT JOIN profiles p ON p.user_id = i.id WHERE u.id = ?").get(userId) ?? null,
+      invite_code: db.prepare('SELECT invite_code FROM users WHERE id = ?').get(userId)?.invite_code ?? null,
+      // still in onboarding: what's left before it can go online
+      missing: user.status === 'onboarding' ? missingForSubmit(p) : [],
     },
   };
 }

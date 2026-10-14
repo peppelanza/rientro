@@ -43,15 +43,40 @@ export default class extends AdminPage {
     const u = d.user;
     const name = [p.first_name, p.last_name].filter(Boolean).join(' ') || u.email;
     const lab = (pairs, v) => pairs.find(x => x[0] === v)?.[1];
+    // Everything onboarding asks, in its order, worded as the site shows it
+    const L = d.labels;
+    const STEP = { benvenuto: 'Benvenuto', luogo: 'Dove vivi', residenza: 'Dove vivi (città)', arrivo: 'Dove vivevi prima', dove: 'Dove vorresti vivere', obiettivo: 'Obiettivo', idea: 'Idea', presentati: 'Presentati', video: 'Video', background: 'Background', formazione: 'Formazione', esperienze: 'Esperienze', link: 'Link', risultato: 'Risultato', settori: 'Interessi', chi: 'Chi stai cercando', manca: 'Cosa ti manca di casa', invito: 'Invito', fonte: 'Come hai conosciuto Rientro', anteprima: 'Anteprima' };
+    const back = p.lives_in === 'italy';
+    const years = e => [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join('–');
     const rows = [
+      ['Accesso', (() => { const M = { email: 'Email e codice', google: 'Google', linkedin: 'LinkedIn' }; const a = M[u.signup_method], b = M[u.last_login_method]; return !a && !b ? 'Non registrato (iscritto prima che lo salvassimo)' : a && b && a !== b ? `Iscritto con ${a}, ultimo accesso con ${b}` : `${a || b}`; })()],
+      ['Fermo al passo', u.status === 'onboarding' ? STEP[p.onboarding_step] ?? p.onboarding_step ?? 'Benvenuto' : ''],
+      ['Manca', (L.missing || []).join(', ')],
+      ['Situazione', p.lives_in ? (back ? 'Già rientrato/a' : 'Vive fuori') : ''],
       ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
-      ['Vuole vivere a', p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')],
-      ['Intento', d.labels.intent], ['Idea', p.idea_title],
+      ['Rientrato/a da', back ? L.arrived : ''],
+      ['Vuole vivere a', back ? '' : p.desired_comuni.join(', ') || (p.desired_unknown ? 'Non lo sa ancora' : '')],
+      ['Si trasferisce', back ? '' : L.move],
+      ['Obiettivo', L.intent],
+      ['Idea', p.primary_intent === 'has_idea' ? [p.idea_title, lab(cat.ideaStages, p.idea_stage)].filter(Boolean).join(' · ') : ''],
+      ['Descrizione idea', p.primary_intent === 'has_idea' ? p.idea_description : ''],
+      ['Su di me', p.bio],
+      ['Video', p.video_url ? 'Caricato' : ''],
       ['Background', [p.background_area, lab(cat.years, p.years_experience) && `${lab(cat.years, p.years_experience)} anni`].filter(Boolean).join(' · ')],
-      ['Ruolo', [p.current_role, p.current_company].filter(Boolean).join(' · ')],
-      ['Cerca', p.seeking_backgrounds.join(', ')], ['Settori', p.sectors.join(', ')],
-      ['Fonte', p.source],
-      ['LinkedIn', p.linkedin_url], ['Su di me', p.bio],
+      ['Lavoro attuale', [p.current_role, p.current_company].filter(Boolean).join(' presso ')],
+      ['Esperienze', (p.experiences || []).map(e => [[e.role, e.company].filter(Boolean).join(' presso '), e.city, years(e)].filter(Boolean).join(' · ')).join('\n')],
+      ['Formazione', (p.education || []).map(e => [e.school, e.degree, e.years].filter(Boolean).join(' · ')).join('\n')],
+      ['LinkedIn', p.linkedin_url], ['Sito', p.website_url], ['Instagram', p.instagram_handle], ['X', p.x_handle], ['Calendario', p.calendar_url],
+      ['Risultato', p.achievement],
+      ['Interessi', p.sectors.join(', ')],
+      ['Cerca', p.seeking_backgrounds.length ? (p.seeking_backgrounds.length >= cat.areas.length ? 'Indifferente' : p.seeking_backgrounds.join(', ')) : ''],
+      ['Descrizione di chi cerca', p.seeking_description],
+      ['Dove dovrebbe vivere', p.seeking_backgrounds.length ? L.seeking_where : ''],
+      ['Cosa gli manca di casa', p.misses_italy],
+      ['Invitato da', L.invited_by ? `${L.invited_by.name || L.invited_by.email}${p.invite_connect ? ' · ha chiesto di connettersi' : p.invite_connect === false ? ' · non vuole connettersi' : ''}` : ''],
+      ['Nota per chi l’ha invitato', p.invite_note],
+      ['Il suo link d’invito', L.invite_code ? `?${L.invite_code}` : ''],
+      ['Come ha conosciuto Rientro', p.source],
     ].filter(([, v]) => v).map(([k, v], i) => ({ k, v, bt: i ? '1px solid #ECE8F7' : 'none' }));
     const tab = k => ({ tone: s.tab === k ? 'selected' : 'default', on: s.tab === k ? 'true' : 'false', fn: () => this.setState({ tab: k }) });
     const st = u.status;

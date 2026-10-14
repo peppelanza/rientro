@@ -704,3 +704,18 @@ test('before launch nobody sees anyone: profiles, connections (also an invite re
     assert.equal((await a.get(`/api/profiles/${a.id}?anteprima=1`)).status, 200, 'your own preview, yes');
   } finally { Object.assign(config, { forceLaunched: was.force, launchAt: was.at }); }
 });
+
+test('admin user page: every onboarding answer, how they sign in, where onboarding stopped', async () => {
+  const admin = await t.asAdmin();
+  const a = await t.approved('scheda-completa@x.it', { lives_in: 'italy', lives_in_city: 'Palermo', arrived_from_country: 'Italia', arrived_from_city: 'Milano', arrived_when: '1_2y', primary_intent: 'networking' });
+  const d = (await admin.get(`/api/admin/users/${a.id}`)).body;
+  assert.equal(d.user.signup_method, 'email');
+  assert.equal(d.user.last_login_method, 'email');
+  assert.match(d.labels.arrived, /^Da Milano, Italia/);
+  assert.deepEqual(d.labels.missing, [], 'online: nothing missing');
+  const half = await t.login('scheda-meta@x.it');
+  await half.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Bulgaria', lives_in_city: 'Sofia', onboarding_step: 'chi' });
+  const h = (await admin.get(`/api/admin/users/${half.id}`)).body;
+  assert.equal(h.profile.onboarding_step, 'chi');
+  assert.ok(h.labels.missing.includes('Chi stai cercando') && h.labels.missing.includes('Foto'));
+});

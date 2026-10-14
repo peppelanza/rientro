@@ -199,7 +199,8 @@ export function updateProfile(db, user, body) {
     if ('bio' in live && live.bio.trim().length < MIN_BIO) throw bad('invalid_field', `Su di me: scrivi almeno ${MIN_BIO} caratteri.`);
     if ('sectors' in live && !JSON.parse(live.sectors || '[]').length) throw bad('invalid_field', 'Scegli almeno un interesse.');
     const intent = live.primary_intent ?? current.primary_intent;
-    if (intent === 'has_idea') for (const [k, say] of [['idea_title', 'Dai un titolo alla tua idea.'], ['idea_description', 'Descrivi la tua idea.'], ['idea_stage', 'Indica a che punto è la tua idea.']]) {
+    // (only when the idea or the goal is what's being saved: other sections save as they are)
+    if (intent === 'has_idea' && ['idea_title', 'idea_description', 'idea_stage', 'primary_intent'].some(k => k in live)) for (const [k, say] of [['idea_title', 'Dai un titolo alla tua idea.'], ['idea_description', 'Descrivi la tua idea.'], ['idea_stage', 'Indica a che punto è la tua idea.']]) {
       if ((k in live ? live[k] : current[k]) == null) throw bad('invalid_field', say);
     }
   }
