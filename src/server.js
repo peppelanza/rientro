@@ -623,6 +623,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   }, { ...adm, raw: true });
   route('POST', '/api/admin/users/:id/notes', async ({ user, params, req }) => admin.addNote(db, user, params.id, await readJson(req)), adm);
   route('POST', '/api/admin/users/:id/review', async ({ user, params, req }) => admin.review(db, user, params.id, await readJson(req)), adm);
+  route('POST', '/api/admin/users/:id/erase', async ({ user, params, req }) => admin.eraseSuspended(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/blocked', ({ user, url }) => moderation.listBlocked(db, user, url.searchParams), adm);
   route('GET', '/api/admin/blocked/:id/image', ({ user, params, res }) => {
     const { mime, buf } = moderation.blockedImage(db, user, params.id);

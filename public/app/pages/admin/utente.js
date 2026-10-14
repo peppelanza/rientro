@@ -74,7 +74,16 @@ export default class extends AdminPage {
       // Hiding takes the profile out of Discover and profile pages; the account keeps working
       canHide: p.visible !== false && st === 'approved', canShow: p.visible === false, hidden: p.visible === false,
       hide: () => this.review('hide'), show: () => this.review('show'),
-      suspend: () => this.review('suspend'), unsuspend: () => this.review('unsuspend'), viewAsMember: () => go(`/persone/${u.id}`),
+      suspend: () => this.review('suspend'), unsuspend: () => this.review('unsuspend'),
+      // a suspended account erased for good: the admin types its email to confirm
+      erase: this.act(async () => {
+        const typed = prompt(`Eliminare per sempre l’account ${u.email}? Profilo, connessioni, messaggi, post e file vengono cancellati subito e non si possono recuperare.\n\nPer confermare scrivi l’email dell’account:`);
+        if (typed === null) return;
+        await api('POST', `/api/admin/users/${u.id}/erase`, { confirm_email: typed });
+        toast('Account eliminato definitivamente.');
+        await this.refreshCounts();
+        go('/admin/utenti');
+      }), viewAsMember: () => go(`/persone/${u.id}`),
     };
   }
 }

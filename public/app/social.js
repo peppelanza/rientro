@@ -40,6 +40,8 @@ export async function connect(person) {
     },
   });
   if (!result) return undefined;
+  // they had asked you already: asking back connects you at once (nothing to undo)
+  if (result.status === 'connected') { toast(`Tu e ${first} ora siete connessi.`); person.onChange?.(); return result; }
   // 30b: confirmation with undo
   toast(`Richiesta inviata a ${first}`, {
     action: 'Annulla', ms: 6000,
@@ -92,7 +94,7 @@ export async function report(person, { postId } = {}) {
 const REMOVE = `
 <div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Rimuovere la connessione con {{ first }}?</h2>
-<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· I messaggi già scambiati restano: potrete rileggerli, ma per scrivervi dovrete riconnettervi.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Finché non vi riconnettete non potrete scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· I messaggi già scambiati restano: potrete rileggerli, ma per scrivervi dovrete riconnettervi.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
 <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Rimuovi connessione" variant="destructive" on-click="{{ confirm }}"></dc-import></div>
 </div>`;
 
@@ -115,7 +117,7 @@ const BLOCK = `
 <div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Bloccare {{ first }}?</h2>
 <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non vedrà più il tuo profilo e tu non vedrai il suo.</span><span>· La connessione e la chat vengono chiuse.</span><span>· Non riceverà alcuna notifica.</span></div>
-<span style="font-size:13px;color:#8C84AE">Puoi sbloccarlo da <a href="/impostazioni/bloccati" style="color:#8C84AE">Impostazioni → Privacy</a>.</span>
+<span style="font-size:13px;color:#8C84AE">Puoi sbloccare questa persona da <a href="/impostazioni/bloccati" style="color:#8C84AE">Impostazioni → Privacy</a>.</span>
 <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Blocca" variant="destructive" on-click="{{ confirm }}"></dc-import></div>
 </div>`;
 

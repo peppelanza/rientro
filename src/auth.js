@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { config, LEGAL_VERSIONS } from './config.js';
 import { newId, now, sha256, subjectRef, tx } from './db.js';
 import { HttpError, bad, only } from './validate.js';
+import { announceGone } from './social.js';
 
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
 const inMinutes = m => new Date(Date.now() + m * 60_000).toISOString();
@@ -71,6 +72,7 @@ export function startSession(db, email, { userAgent = '', marketing = false } = 
   if (restored) {
     db.prepare('UPDATE users SET deletion_requested_at = NULL, deletion_reason = NULL WHERE id = ?').run(user.id);
     user = { ...user, deletion_requested_at: null, deletion_reason: null };
+    announceGone(db, user.id); // back: the others' pages show them again at once
   }
   if (marketing) {
     db.prepare(

@@ -297,8 +297,19 @@ export function publishProfile(db, user) {
 
 // --- Relationships -----------------------------------------------------------------------
 
+// An account no longer there for the others: suspended, waiting to be deleted, or erased (then only
+// an anonymous placeholder is left, which keeps the messages it exchanged: privacy.js eraseAccount).
+// Its conversations stay to read, as "Account disattivato", nobody can write to it (social.js).
+export const ERASED_DOMAIN = 'account-eliminato.invalid';
+export function isGone(db, id) {
+  const u = db.prepare('SELECT status, deletion_requested_at FROM users WHERE id = ?').get(id);
+  return !u || u.status === 'suspended' || !!u.deletion_requested_at;
+}
+// Only a block between the two (not an account gone)
+export const blockedBetween = (db, a, b) => !!db.prepare('SELECT 1 FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)').get(a, b, b, a);
+
 // Also true when either account is waiting to be deleted: for the other members it is as if it
-// were already gone (profile, requests, connections, chats), until it is restored or erased.
+// were already gone (profile, requests, connections), until it is restored or erased.
 export function isBlocked(db, a, b) {
   return !!db.prepare('SELECT 1 FROM blocks WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)').get(a, b, b, a)
     || !!db.prepare('SELECT 1 FROM users WHERE id IN (?, ?) AND deletion_requested_at IS NOT NULL').get(a, b);

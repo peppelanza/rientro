@@ -634,3 +634,51 @@ test('a removed connection leaves the chat to read, not to write; a block takes 
   assert.equal((await a.get(`/api/threads/${b.id}`)).status, 403, 'blocked: gone');
   assert.ok(!(await b.get('/api/threads')).body.items.some(x => x.id === a.id));
 });
+
+test('an account suspended: away for the others (chat to read, "Account disattivato", no writing), all back when reactivated', async () => {
+  const admin = await t.asAdmin();
+  const a = await t.approved('sospeso-a@x.it');
+  const b = await t.approved('resta-b@x.it');
+  await t.connect(a, b);
+  await a.post(`/api/threads/${b.id}`, { body: 'Ciao B' });
+  assert.equal((await admin.post(`/api/admin/users/${a.id}/review`, { action: 'suspend' })).status, 200);
+  assert.equal((await b.get('/api/connections')).body.counts.connected, 0, 'not among the connections');
+  const th = (await b.get(`/api/threads/${a.id}`)).body;
+  assert.equal(th.deactivated, true);
+  assert.equal(th.messages[0].body, 'Ciao B', 'the conversation stays to read');
+  const send = await b.post(`/api/threads/${a.id}`, { body: 'ci sei?' });
+  assert.equal(send.status, 403);
+  assert.equal(send.body.error, 'deactivated');
+  const item = (await b.get('/api/threads')).body.items.find(x => x.id === a.id);
+  assert.equal(item.deactivated, true);
+  assert.equal(item.name, 'Account disattivato');
+  assert.equal((await b.get('/api/notifications')).body.items.filter(n => n.actor?.id === a.id).length, 0, 'their notifications out of sight');
+  // reactivated: everything as it was
+  assert.equal((await admin.post(`/api/admin/users/${a.id}/review`, { action: 'unsuspend' })).status, 200);
+  assert.equal((await b.get('/api/connections')).body.counts.connected, 1, 'connection back');
+  assert.equal((await b.post(`/api/threads/${a.id}`, { body: 'bentornato' })).status, 200);
+});
+
+test('admin: "Elimina account definitivamente" only after a suspension, with the email typed; the chat stays for the others as "Account disattivato"', async () => {
+  const admin = await t.asAdmin();
+  const a = await t.approved('da-eliminare@x.it');
+  const b = await t.approved('testimone@x.it');
+  await t.connect(a, b);
+  await a.post(`/api/threads/${b.id}`, { body: 'Un messaggio che resta' });
+  assert.equal((await admin.post(`/api/admin/users/${a.id}/erase`, { confirm_email: 'da-eliminare@x.it' })).status, 400, 'not suspended yet');
+  await admin.post(`/api/admin/users/${a.id}/review`, { action: 'suspend' });
+  assert.equal((await admin.post(`/api/admin/users/${a.id}/erase`, { confirm_email: 'altro@x.it' })).status, 400, 'wrong email');
+  assert.equal((await admin.post(`/api/admin/users/${a.id}/erase`, { confirm_email: 'Da-Eliminare@x.it ' })).status, 200);
+  const db = t.app.db;
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users WHERE email = ?').get('da-eliminare@x.it').n, 0, 'the account is gone');
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM profiles WHERE user_id = ?').get(a.id).n, 0);
+  const item = (await b.get('/api/threads')).body.items.find(x => x.name === 'Account disattivato');
+  assert.ok(item, 'the conversation is still in Messaggi');
+  const th = (await b.get(`/api/threads/${item.id}`)).body;
+  assert.equal(th.deactivated, true);
+  assert.equal(th.messages[0].body, 'Un messaggio che resta');
+  assert.equal((await b.get(`/api/profiles/${item.id}`)).status, 404, 'no profile behind it');
+  assert.equal((await b.post(`/api/threads/${item.id}`, { body: 'x' })).status, 403);
+  assert.ok(!(await admin.get('/api/admin/users')).body.items?.some?.(u => u.id === item.id), 'the placeholder is nobody in the admin');
+  assert.equal((await admin.post(`/api/admin/users/${admin.id}/erase`, { confirm_email: 'admin@rientro.test' })).status, 400, 'never yourself');
+});

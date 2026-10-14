@@ -1,7 +1,7 @@
 import { config, isLaunched } from './config.js';
 import { publish } from './live.js';
 import { newId, now, tx } from './db.js';
-import { card, connectionBetween, isBlocked, rawProfile } from './profiles.js';
+import { blockedBetween, card, connectionBetween, isBlocked, isGone, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { fixedWords, forgiving, hits, terms, wordsOf } from './search.js';
@@ -48,17 +48,18 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
 // Newest first, 20 per page (the bell asks for ?per_page=5)
 export function listNotifications(db, user, query = new URLSearchParams()) {
   const perPage = Math.min(50, Math.max(1, Math.floor(Number(query.get('per_page')) || 20)));
-  const total = db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ?').get(user.id).n;
+  // (from an account away — suspended, waiting to be deleted — they wait out of sight)
+  const total = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n;
   const pages = Math.max(1, Math.ceil(total / perPage));
   const page = Math.min(pages, Math.max(1, Math.floor(Number(query.get('page')) || 1)));
-  const items = db.prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?').all(user.id, perPage, (page - 1) * perPage).map(n => {
+  const items = db.prepare(`SELECT * FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL)) ORDER BY id DESC LIMIT ? OFFSET ?`).all(user.id, perPage, (page - 1) * perPage).map(n => {
     const actor = n.actor_id ? rawProfile(db, n.actor_id) : null;
     return {
       id: n.id, kind: n.kind, created_at: n.created_at, read: !!n.read_at, data: JSON.parse(n.data),
       actor: actor && { id: n.actor_id, name: nameOf(db, n.actor_id), first_name: actor.first_name, photo_url: actor.photo_file_id ? `/api/files/${actor.photo_file_id}` : null },
     };
   });
-  const unread = db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n;
+  const unread = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n;
   return { items, total, page, pages, per_page: perPage, unread };
 }
 
@@ -68,12 +69,13 @@ export function markNotificationsRead(db, user) {
 
 export function badgeCounts(db, user) {
   return {
-    received: db.prepare("SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'").get(user.id).n,
-    // as the Messaggi list: not from someone blocked or leaving
+    received: db.prepare(`SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'
+      AND requester_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL)`).get(user.id).n,
+    // as the Messaggi list: not from someone blocked
     unread_messages: db.prepare(`SELECT COUNT(DISTINCT m.sender_id) AS n FROM messages m WHERE m.recipient_id = ? AND m.read_at IS NULL
       AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = m.sender_id AND b.blocked_id = m.recipient_id) OR (b.blocker_id = m.recipient_id AND b.blocked_id = m.sender_id))
-      AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = m.sender_id AND u.deletion_requested_at IS NOT NULL)`).get(user.id).n,
-    notifications: db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n,
+`).get(user.id).n,
+    notifications: db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n,
     // tickets with an answer from the team not read yet ("Non letto" by Supporto in the account menu)
     support_unread: db.prepare(`SELECT COUNT(*) AS n FROM support_tickets t WHERE t.user_id = ? AND EXISTS (SELECT 1 FROM support_messages m
       WHERE m.ticket_id = t.id AND m.from_team = 1 AND (t.user_read_at IS NULL OR m.created_at > t.user_read_at))`).get(user.id).n,
@@ -127,7 +129,7 @@ export function respondConnection(db, viewer, id, action) {
   // notification goes, it would lead to nothing
   db.prepare("UPDATE connections SET status = 'declined', responded_at = ? WHERE id = ?").run(now(), id);
   db.prepare("DELETE FROM notifications WHERE kind = 'connection_request' AND user_id = ? AND actor_id = ?").run(viewer.id, c.requester_id);
-  publish(c.requester_id, 'connections'); // their Inviate (nothing is said to them)
+  // (nothing reaches the person who asked: declining is silent — their pages find out on their own)
   return { status: 'none' };
 }
 
@@ -152,7 +154,7 @@ function allConnections(db, viewer) {
   };
   const rows = db.prepare(
     `SELECT * FROM connections WHERE (requester_id = ? OR addressee_id = ?) AND status IN ('pending', 'accepted') ORDER BY COALESCE(responded_at, created_at) DESC`,
-  ).all(viewer.id, viewer.id).filter(c => !isBlocked(db, c.requester_id, c.addressee_id));
+  ).all(viewer.id, viewer.id).filter(c => !isBlocked(db, c.requester_id, c.addressee_id) && !isGone(db, c.requester_id === viewer.id ? c.addressee_id : c.requester_id));
   // One place per person: connected wins over a request, a received one over a sent one
   const other = c => (c.requester_id === viewer.id ? c.addressee_id : c.requester_id);
   const rank = c => (c.status === 'accepted' ? 0 : c.addressee_id === viewer.id ? 1 : 2);
@@ -188,16 +190,18 @@ export function getRequest(db, viewer, id) {
 // --- Messages (35a) -----------------------------------------------------------------------
 
 function requireConnected(db, a, b) {
+  if (isGone(db, b) && !blockedBetween(db, a, b)) throw new HttpError(403, 'deactivated', 'Questo account è stato disattivato: non potete più scrivervi.');
   const c = connectionBetween(db, a, b);
   if (!c || c.status !== 'accepted' || isBlocked(db, a, b)) throw new HttpError(403, 'not_connected', 'Non siete connessi: potete scrivervi di nuovo quando vi riconnettete.');
   return c;
 }
 
 const PAIR = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
-// A conversation stays readable after the connection is removed (not after a block, nor once
-// either is leaving): the messages are there, writing waits for a new connection
+// A conversation stays readable after the connection is removed and once the other account is
+// gone (suspended, deleted: "Account disattivato"), not after a block: the messages are there,
+// writing waits for a new connection (never, with an account gone)
 function canRead(db, a, b) {
-  if (isBlocked(db, a, b)) return false;
+  if (blockedBetween(db, a, b)) return false;
   const c = connectionBetween(db, a, b);
   if (c?.status === 'accepted') return true;
   return !!db.prepare(`SELECT 1 FROM messages WHERE ${PAIR} LIMIT 1`).get(a, b, b, a);
@@ -213,8 +217,10 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   const known = new Set(now_.map(c => c.id));
   const past = db.prepare(`SELECT DISTINCT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other FROM messages WHERE sender_id = ? OR recipient_id = ?`)
     .all(viewer.id, viewer.id, viewer.id).map(r => r.other)
-    .filter(id => !known.has(id) && !isBlocked(db, viewer.id, id) && rawProfile(db, id))
-    .map(id => ({ ...card(db, viewer, rawProfile(db, id), viewerP), not_connected: true }));
+    .filter(id => !known.has(id) && !blockedBetween(db, viewer.id, id))
+    .map(id => (isGone(db, id) || !rawProfile(db, id)
+      ? { id, name: 'Account disattivato', role: '', from: '', to: '', back_from: '', photo_url: null, not_connected: true, deactivated: true }
+      : { ...card(db, viewer, rawProfile(db, id), viewerP), not_connected: true }));
   const connected = [...now_, ...past];
   const pp = pageParams(query, 30);
   const pair = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
@@ -243,7 +249,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
     return {
       id: c.id, name: c.name, role: c.role, from: c.from, to: c.to, back_from: c.back_from, photo_url: c.photo_url,
       last: `${last.sender_id === viewer.id ? 'Tu: ' : ''}${last.body}`,
-      time: last.created_at, unread: unread > 0, found_in_messages: !!said, best, connected: !c.not_connected,
+      time: last.created_at, unread: unread > 0, found_in_messages: !!said, best, connected: !c.not_connected, deactivated: !!c.deactivated,
     };
   }).sort((a, b) => b.best - a.best || (b.time || '').localeCompare(a.time || '')); // more of the words first
   return { ...paginate(threads, pp), fuzzy: !!found.fuzzy };
@@ -289,7 +295,7 @@ export function getThread(db, viewer, otherId, { after = 0, before = 0, since = 
     const map = reactionsFor(db, viewer, ids);
     changed = ids.map(id => ({ id, reactions: map.get(id) }));
   }
-  return { connected, connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder, at, ...(changed ? { reactions_changed: changed } : {}) };
+  return { connected, deactivated: isGone(db, otherId), connection: { id: c.id, since: c.responded_at, note: c.note, note_from_me: c.requester_id === viewer.id }, messages, has_older: hasOlder, at, ...(changed ? { reactions_changed: changed } : {}) };
 }
 
 // React to one of the other person's messages: an emoji replaces your previous one, null removes it
@@ -382,4 +388,16 @@ export function report(db, viewer, body) {
     .run(id, viewer.id, targetId, reason, details, now(), postId);
   if (alsoBlock) block(db, viewer, targetId);
   return { id };
+}
+
+// An account suspended or waiting to be deleted (admin.js, privacy.js): nothing is removed — its
+// connections, requests and notifications are only out of sight while it's away (allConnections,
+// listNotifications, badgeCounts skip gone accounts), and come back as they were if it returns.
+// The others' open pages hear it at once: the chat turns "Account disattivato", Connessioni and the
+// bell lose it.
+export function announceGone(db, userId) {
+  const others = db.prepare(`SELECT CASE WHEN requester_id = ? THEN addressee_id ELSE requester_id END AS other FROM connections
+    WHERE (requester_id = ? OR addressee_id = ?) AND status IN ('pending', 'accepted')`).all(userId, userId, userId).map(r => r.other);
+  const talked = db.prepare('SELECT DISTINCT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other FROM messages WHERE sender_id = ? OR recipient_id = ?').all(userId, userId, userId).map(r => r.other);
+  for (const other of new Set([...others, ...talked])) { publish(other, 'counts'); publish(other, 'connections'); publish(other, 'message', { from: userId }); }
 }

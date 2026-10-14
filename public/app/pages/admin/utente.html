@@ -26,6 +26,7 @@
 <sc-if value="{{ canShow }}"><span style="font-size:13px;color:#7A4E00;background:#FFF4DC;border-radius:14px;padding:8px 12px">Profilo nascosto: non compare in Scopri né nella sua pagina.</span><dc-import name="UI Button" label="Mostra di nuovo il profilo" variant="secondary" full="{{ true }}" on-click="{{ show }}"></dc-import></sc-if>
 <sc-if value="{{ canSuspend }}"><dc-import name="UI Button" label="Sospendi account" variant="danger" full="{{ true }}" on-click="{{ suspend }}"></dc-import></sc-if>
 <sc-if value="{{ canUnsuspend }}"><dc-import name="UI Button" label="Riattiva account" variant="secondary" full="{{ true }}" on-click="{{ unsuspend }}"></dc-import></sc-if>
+<sc-if value="{{ canUnsuspend }}"><dc-import name="UI Button" label="Elimina account definitivamente" variant="danger" full="{{ true }}" on-click="{{ erase }}"></dc-import><span style="font-size:12px;color:#8C84AE;line-height:1.4">Cancella subito tutto: profilo, connessioni, messaggi, post, file. Non si può annullare.</span></sc-if>
 </div>
 </div></div>
 </sc-if>

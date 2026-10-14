@@ -1,8 +1,9 @@
 import { config, LEGAL_VERSIONS } from './config.js';
-import { now, subjectRef, tx } from './db.js';
+import { newId, now, subjectRef, tx } from './db.js';
 import { deleteFilesOf } from './files.js';
 import { getCommunicationPreferences, getJobPreferences, preferenceHistory } from './preferences.js';
-import { getOwnProfile } from './profiles.js';
+import { ERASED_DOMAIN, getOwnProfile } from './profiles.js';
+import { announceGone } from './social.js';
 import { quarantineFilesOf } from './moderation.js';
 import { HttpError, only, text } from './validate.js';
 
@@ -77,6 +78,8 @@ export function deleteAccount(db, user, body) {
   tx(db, () => {
     db.prepare('UPDATE users SET deletion_requested_at = ?, deletion_reason = ? WHERE id = ?').run(at, reason, user.id);
     db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+    // for the others: away until erased (chats read-only "Account disattivato"); all back if restored
+    announceGone(db, user.id);
   });
   const erase_on = new Date(Date.parse(at) + config.retention.deletionGraceDays * 86_400_000).toISOString();
   return { deleted: true, erase_on };
@@ -93,8 +96,17 @@ export function eraseAccount(db, user, reason = null) {
     db.prepare('UPDATE preference_events SET user_id = NULL, purge_after = ? WHERE user_id = ?').run(purgeAfter.toISOString(), user.id);
     db.prepare('UPDATE admin_audit_log SET target_user_id = NULL WHERE target_user_id = ?').run(user.id);
     db.prepare('DELETE FROM login_codes WHERE email = ?').run(user.email);
+    announceGone(db, user.id);
+    // The conversations stay for the people on the other side, as "Account disattivato": the
+    // messages move to an anonymous placeholder (no email, no name, no profile, can't sign in)
+    if (db.prepare('SELECT 1 FROM messages WHERE sender_id = ? OR recipient_id = ? LIMIT 1').get(user.id, user.id)) {
+      const gone = newId();
+      db.prepare(`INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, 'member', 'suspended', ?, ?)`).run(gone, `${gone}@${ERASED_DOMAIN}`, now(), now());
+      db.prepare('UPDATE messages SET sender_id = ? WHERE sender_id = ?').run(gone, user.id);
+      db.prepare('UPDATE messages SET recipient_id = ? WHERE recipient_id = ?').run(gone, user.id);
+    }
     // Cascades: profile, education, experiences, job prefs, communication prefs, sessions,
-    // connections, messages (both directions), notifications, blocks, files, acknowledgements,
+    // connections, reactions, notifications, blocks, files, acknowledgements,
     // admin notes, review events, reports about this user. Reports this user made keep the
     // report but lose the reporter (reporter_id → NULL).
     db.prepare('DELETE FROM users WHERE id = ?').run(user.id);

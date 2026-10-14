@@ -335,15 +335,30 @@ export function linkParts(text) {
 // Live updates (src/live.js): one connection per page; what changed arrives as a window event —
 // "rientro:me" with fresh counts (badges, bell), "rientro:message" ({ from }), "rientro:connections".
 // The pages listen to what concerns them (pages/_base.js, messaggi.js, connessioni.js, persona.js).
-let live = null;
+let live = null, liveOn = false;
+// Only the tab in view keeps its connection: a browser allows few per site (6 over HTTP/1.1), and
+// tabs in the background would use them up. Back in view, it reconnects and catches up at once.
 export function startLive() {
-  if (live || !window.EventSource) return;
-  live = new EventSource('/api/live');
+  if (liveOn || !window.EventSource) return;
+  liveOn = true;
   const fresh = debounce(async () => {
     const me = await getMe(true).catch(() => null);
     if (me) dispatchEvent(new CustomEvent('rientro:me', { detail: me }));
   }, 300);
-  live.addEventListener('counts', fresh);
-  live.addEventListener('message', e => { fresh(); dispatchEvent(new CustomEvent('rientro:message', { detail: JSON.parse(e.data || '{}') })); });
-  live.addEventListener('connections', () => { fresh(); dispatchEvent(new CustomEvent('rientro:connections')); });
+  const open = () => {
+    if (live || document.hidden) return;
+    live = new EventSource('/api/live');
+    live.addEventListener('counts', fresh);
+    live.addEventListener('message', e => { fresh(); dispatchEvent(new CustomEvent('rientro:message', { detail: JSON.parse(e.data || '{}') })); });
+    live.addEventListener('connections', () => { fresh(); dispatchEvent(new CustomEvent('rientro:connections')); });
+  };
+  const close = () => { live?.close(); live = null; };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return close();
+    open();
+    // what happened while away: counts, and the pages listening catch up
+    fresh(); dispatchEvent(new CustomEvent('rientro:connections')); dispatchEvent(new CustomEvent('rientro:message', { detail: {} }));
+  });
+  addEventListener('pagehide', close);
+  open();
 }

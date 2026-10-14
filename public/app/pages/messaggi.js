@@ -83,6 +83,13 @@ const FAKE_THREADS = Array.from({ length: 1 }, (_, i) => ({
 const TO_HINT = 'Cerca tra le tue connessioni'; // the new message's "A:"
 const SIDE_MS = 280; // app.css .chat-grid side-in / side-out
 
+// Who's on the other side of a chat once their account is gone (suspended, deleted): no name, no
+// photo, no profile — "Account disattivato"
+const GONE = id => ({
+  id, first_name: 'Account', last_name: 'disattivato', deactivated: true, photo_url: null, lives_in_city: '', lives_in_country: '',
+  desired_comuni: [], desired_unknown: false, sectors: [], seeking: { label: '' }, links: { locked: true }, connection: { status: 'gone' },
+});
+
 export default class extends Page {
   async load() {
     const me = await getMe();
@@ -113,14 +120,16 @@ export default class extends Page {
     document.addEventListener('scroll', this.onChatScroll, true);
     this.listTimer = setInterval(() => this.refreshList(), 20000);
     // a message arrives (live.js): the open chat and the list at once, without waiting for the timers
-    addEventListener('rientro:message', e => { if (e.detail.from === this.state.active) this.poll(); this.refreshList(); });
+    addEventListener('rientro:message', e => { if (!e.detail.from || e.detail.from === this.state.active) this.poll(); this.refreshList(); });
     window.addEventListener('popstate', () => { if (!overlayClosing()) location.reload(); });
   }
 
   async openThread(id) {
     const s = this.state;
     try {
-      const [thread, person] = await Promise.all([api('GET', `/api/threads/${id}`), api('GET', `/api/profiles/${id}`)]);
+      // an account gone (suspended, deleted): its profile is no longer there, the chat is, read-only
+      const [thread, found] = await Promise.all([api('GET', `/api/threads/${id}`), api('GET', `/api/profiles/${id}`).catch(() => null)]);
+      const person = found && !thread.deactivated ? found : GONE(id);
       Object.assign(s, { active: id, thread, person, messages: thread.messages, draft: '', replyTo: null, menuOpen: false, closed: false, reactAt: thread.at, barFor: null, menuFor: null, pickerFor: null, composePicker: false });
       this.known = new Set(thread.messages.map(m => m.id));
       const t = s.threads.find(x => x.id === id);
@@ -156,10 +165,12 @@ export default class extends Page {
     if (!r) return;
     s.reactAt = r.at;
     // the connection removed (or made again) while the chat is open: the box goes (or comes back)
-    if (s.thread && r.connected !== s.thread.connected) {
+    if (s.thread && (r.connected !== s.thread.connected || !!r.deactivated !== !!s.thread.deactivated)) {
       s.thread.connected = r.connected;
+      s.thread.deactivated = r.deactivated;
+      if (r.deactivated) s.person = GONE(s.active);
       if (!r.connected) s.draft = '';
-      s.person = await api('GET', `/api/profiles/${s.active}`).catch(() => s.person);
+      if (!r.deactivated) s.person = await api('GET', `/api/profiles/${s.active}`).catch(() => s.person);
       this.__rerender();
     }
     let changed = false;
@@ -492,9 +503,13 @@ export default class extends Page {
       hasOlder: !!s.hasOlder && !!s.messages?.length, loadingOlder: !!s.loadingOlder,
       hasActive: !!s.active && !!p, noActive: !s.active && !s.composing, closed: !!s.closed,
       // no longer connected: the conversation to read, no box to write (Connettiti to start again)
-      canWrite: !!s.thread?.connected, notConnected: !!s.thread && !s.thread.connected,
+      canWrite: !!s.thread?.connected && !s.thread.deactivated, notConnected: !!s.thread && !s.thread.connected && !s.thread.deactivated,
+      deactivated: !!s.thread?.deactivated,
       canReconnect: p?.connection?.status === 'none', reconnectSent: p?.connection?.status === 'pending_sent',
-      reconnect: async () => { if (await connect({ ...p, id: s.active, name: [p.first_name, p.last_name].filter(Boolean).join(' ') })) { s.person = await api('GET', `/api/profiles/${s.active}`); this.__rerender(); } },
+      // they asked to connect again meanwhile: Accetta, right here
+      reconnectAsked: p?.connection?.status === 'pending_received', reconnectNote: p?.connection?.note || '',
+      acceptAgain: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/accept`); s.person = await api('GET', `/api/profiles/${s.active}`); await this.poll(); }),
+      reconnect: async () => { if (await connect({ ...p, id: s.active, name: [p.first_name, p.last_name].filter(Boolean).join(' ') })) { s.person = await api('GET', `/api/profiles/${s.active}`); await this.poll(); this.__rerender(); } },
       // the right column (the person) only with a chat open; it fades in and out (app.css)
       ...(side => ({ sideCls: side.cls, sideDelay: side.delay }))(this.sideClass(!!s.active && !!p)),
       listClass: s.active || s.composing ? 'r-hide-sm' : '', chatClass: s.active || s.composing ? '' : 'r-hide-sm',
@@ -516,7 +531,8 @@ export default class extends Page {
       // as on the Scopri card: "Zurigo → Bologna" back already, "Londra → Palermo o Catania", "→ Non lo sa ancora"
       sub: !p ? '' : p.back ? [p.back_from, p.lives_in_city].filter(Boolean).join(' → ')
         : [p.lives_in_city, orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : '')].filter(Boolean).join(' → '),
-      profileHref: p ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => go(`/persone/${p.id}?da=messaggi`),
+      // an account gone has no profile to open
+      profileHref: p && !p.deactivated ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => { if (!p?.deactivated) go(`/persone/${p.id}?da=messaggi`); },
       back: () => {
         if (this.from === 'connessioni') return go('/connessioni');
         history.pushState(null, '', '/messaggi'); s.active = null; this.__rerender();
@@ -542,7 +558,7 @@ export default class extends Page {
       send: this.send,
       seeks: p?.seeking.label || '—', links, hasLinks: links.length > 0,
       // the summary on the right, as on the Scopri card
-      sideBadge: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0] : '', sideBadgeKind: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1] : 'neutral',
+      sideBadge: p && !p.deactivated ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0] : '', sideBadgeKind: p ? (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1] : 'neutral',
       sideRole: p?.job || '', sideBackFrom: p?.back_from || '',
       sideFrom: p ? [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', ') : '',
       sideTo: p && !p.back ? (p.desired_unknown ? 'Non lo sa ancora' : p.places || '') : '', sideBack: !!p?.back,

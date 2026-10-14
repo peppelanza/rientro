@@ -7,7 +7,9 @@ import { config } from './config.js';
 import { now, subjectRef, tx } from './db.js';
 import { getJobPreferences, preferenceHistory } from './preferences.js';
 import { removePost } from './groups.js';
-import { effectiveProfile, rawProfile } from './profiles.js';
+import { eraseAccount } from './privacy.js';
+import { announceGone } from './social.js';
+import { effectiveProfile, ERASED_DOMAIN, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
@@ -26,8 +28,9 @@ const fmt = n => n.toLocaleString('it-IT');
 const hoursAgo = iso => (iso ? Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 3600_000)) : 0);
 const name = p => [p?.first_name, p?.last_name].filter(Boolean).join(' ');
 
+// (the anonymous placeholders of erased accounts, which only keep their messages, are nobody)
 function allProfiles(db, where = '1 = 1', params = []) {
-  return db.prepare(`SELECT u.id, u.email, u.status, u.created_at, u.last_seen_at, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE ${where}`)
+  return db.prepare(`SELECT u.id, u.email, u.status, u.created_at, u.last_seen_at, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.email NOT LIKE '%@${ERASED_DOMAIN}' AND (${where})`)
     .all(...params).map(r => ({ ...r, desired_comuni: JSON.parse(r.desired_comuni || '[]'), sectors: JSON.parse(r.sectors || '[]'), seeking_backgrounds: JSON.parse(r.seeking_backgrounds || '[]'), pending_changes: JSON.parse(r.pending_changes || '{}') }));
 }
 
@@ -172,14 +175,33 @@ export function review(db, admin, userId, body) {
     } else if (action === 'suspend') {
       setStatus('suspended');
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
+      // for the others: away while suspended (chats read-only "Account disattivato"); all back on unsuspend
+      announceGone(db, userId);
     } else {
       if (user.status !== 'suspended') throw bad('not_suspended');
       setStatus(live.approved_at ? 'approved' : 'onboarding');
+      announceGone(db, userId); // (back: the others' pages show it again at once)
     }
     db.prepare('INSERT INTO review_events (user_id, admin_id, action, note, created_at) VALUES (?, ?, ?, ?, ?)').run(userId, admin.id, action, note, now());
   });
   audit(db, admin.id, `user.${action}`, userId, { from: user.status });
   return { status: db.prepare('SELECT status FROM users WHERE id = ?').get(userId).status };
+}
+
+// A suspended account erased for good, at once (no 30 days to change one's mind as when members
+// delete their own): profile, connections, messages, posts, files, sessions. Only after a
+// suspension, never your own, and the admin types the account's email to confirm. The audit log
+// keeps the action with the pseudonymous reference only (privacy.js eraseAccount).
+export function eraseSuspended(db, admin, userId, body) {
+  only(body, ['confirm_email']);
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) throw new HttpError(404, 'not_found');
+  if (user.id === admin.id) throw bad('self_erase', 'Non puoi eliminare il tuo account da qui.');
+  if (user.status !== 'suspended') throw bad('not_suspended', 'Prima sospendi l’account, poi puoi eliminarlo.');
+  if (String(body.confirm_email || '').trim().toLowerCase() !== user.email.toLowerCase()) throw bad('confirm_email', 'Scrivi l’email dell’account per confermare.');
+  audit(db, admin.id, 'user.erase', userId, { by: 'admin' });
+  eraseAccount(db, user);
+  return { ok: true };
 }
 
 // Automatic checks shown on the member's admin page
@@ -361,7 +383,7 @@ export function recentExports(db) {
 
 export function sidebarCounts(db) {
   return {
-    users: db.prepare('SELECT COUNT(*) AS n FROM users').get().n,
+    users: db.prepare(`SELECT COUNT(*) AS n FROM users WHERE email NOT LIKE '%@${ERASED_DOMAIN}'`).get().n,
     reports: db.prepare("SELECT COUNT(*) AS n FROM reports WHERE status = 'open'").get().n,
     support: waitingCount(db),
     blocked: db.prepare('SELECT COUNT(*) AS n FROM blocked_uploads WHERE resolved_at IS NULL').get().n,

@@ -73,7 +73,8 @@ export const DOCS = {
       ['Per quanto tempo conserviamo i dati', [
         'Conserviamo i dati solo per il tempo necessario alle finalità per cui li raccogliamo. Le cancellazioni indicate qui sotto avvengono automaticamente, ogni giorno:',
         '• Account e profilo: finché non cancelli l’account, che puoi fare in qualsiasi momento da Impostazioni. Dalla richiesta il tuo profilo non è più visibile a nessuno e vieni disconnesso; per 30 giorni puoi ripensarci semplicemente accedendo di nuovo, e ritrovi tutto com’era. Trascorsi i 30 giorni cancelliamo definitivamente l’account e tutti i dati collegati. Se preferisci la cancellazione immediata, scrivici a privacy@rientro.it.',
-        '• Messaggi e connessioni: finché l’account di uno dei due partecipanti non viene cancellato definitivamente.',
+        '• Connessioni: finché uno dei due account non viene cancellato definitivamente. Mentre un account è sospeso o in attesa di cancellazione non è raggiungibile; se torna, ritrova tutto com’era.',
+        '• Messaggi: se il tuo account viene cancellato, la conversazione resta leggibile all’altra persona come “Account disattivato”, senza il tuo nome, la tua foto né il tuo profilo; i messaggi si cancellano del tutto quando viene cancellato anche l’altro account.',
         '• Chi ti ha invitato: finché uno dei due account non viene cancellato definitivamente.',
         '• Post e commenti nei gruppi, con le loro foto: finché non li elimini tu o finché il tuo account non viene cancellato definitivamente. Dalla richiesta di cancellazione non sono più visibili a nessuno. Le foto caricate per un post mai pubblicato vengono cancellate il giorno dopo.',
         '• Codici di accesso: 10 minuti. Sessioni di accesso: 30 giorni dall’ultimo accesso, poi scadono e vengono cancellate.',
