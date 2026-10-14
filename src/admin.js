@@ -125,7 +125,7 @@ export function getUser(db, admin, userId) {
   const p = effectiveProfile(db, userId);
   const count = (sql, ...a) => db.prepare(sql).get(...a).n;
   return {
-    user: { ...user, status_label: STATUS_LABEL[user.status] },
+    user: { ...user, status_label: STATUS_LABEL[user.status], login_methods: db.prepare('SELECT method, first_used_at, last_used_at FROM login_methods WHERE user_id = ? ORDER BY last_used_at DESC').all(userId) },
     profile: p,
     job_seeking: getJobPreferences(db, userId),
     preference_history: preferenceHistory(db, userId),

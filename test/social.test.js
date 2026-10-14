@@ -711,6 +711,8 @@ test('admin user page: every onboarding answer, how they sign in, where onboardi
   const d = (await admin.get(`/api/admin/users/${a.id}`)).body;
   assert.equal(d.user.signup_method, 'email');
   assert.equal(d.user.last_login_method, 'email');
+  assert.deepEqual(d.user.login_methods.map(m => m.method), ['email'], 'each method used, with its last time');
+  assert.equal((await a.get('/api/me')).body.user.login_methods[0].method, 'email', 'the member sees it too');
   assert.match(d.labels.arrived, /^Da Milano, Italia/);
   assert.deepEqual(d.labels.missing, [], 'online: nothing missing');
   const half = await t.login('scheda-meta@x.it');

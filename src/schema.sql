@@ -537,3 +537,13 @@ CREATE TRIGGER IF NOT EXISTS gs_posts_del AFTER DELETE ON group_posts BEGIN INSE
 CREATE TRIGGER IF NOT EXISTS gs_comments_ins AFTER INSERT ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', NEW.id); END;
 CREATE TRIGGER IF NOT EXISTS gs_comments_upd AFTER UPDATE ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', NEW.id); END;
 CREATE TRIGGER IF NOT EXISTS gs_comments_del AFTER DELETE ON group_comments BEGIN INSERT INTO gsearch_dirty (kind, item_id) VALUES ('c', OLD.id); END;
+
+-- How each member signs in: every method used (email with the code, google, linkedin), when first
+-- and last (auth.startSession). Shown to them in Impostazioni and in the admin.
+CREATE TABLE IF NOT EXISTS login_methods (
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  method        TEXT NOT NULL CHECK (method IN ('email', 'google', 'linkedin')),
+  first_used_at TEXT NOT NULL,
+  last_used_at  TEXT NOT NULL,
+  PRIMARY KEY (user_id, method)
+);

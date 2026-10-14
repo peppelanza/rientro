@@ -1,5 +1,5 @@
 // Settings · account (design 05 · 38a account, 39b mobile).
-import { api, getMe, go } from '../lib.js';
+import { api, fmtDate, getMe, go } from '../lib.js';
 import { Page } from './_base.js';
 import { openDeleteAccount, settingsMenu } from './_settings.js';
 
@@ -30,6 +30,12 @@ export default class extends Page {
       ...nav,
       // Email, LinkedIn and Google all sign in with the account's email: any of them opens the same account
       hasLinkedin: !!s.linkedin, hasGoogle: !!s.google,
+      // the one you used last time (saved since 14 Oct 2026), the others there to use too
+      // each way in: linked to the account once used, with when it was used last (saved from 14 Oct 2026)
+      methods: [['email', 'Email con codice', true], ['linkedin', 'LinkedIn', s.linkedin], ['google', 'Google', s.google]].filter(([, , on]) => on).map(([k, l]) => {
+        const used = (s.me.user.login_methods || []).find(m => m.method === k);
+        return { l, t: used ? `collegato · ultimo uso ${fmtDate(used.last_used_at)}` : 'disponibile', c: used ? '#1F7A4F' : '#8C84AE' };
+      }),
       loading: false, me: s.me, menu: settingsMenu, email: s.me.user.email,
       logout: this.logout,
       startDelete: () => openDeleteAccount({ onExport: () => go('/impostazioni/dati') }),

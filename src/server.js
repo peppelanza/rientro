@@ -410,7 +410,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // ---- me
   const me = (user, cookies, imp = !!auth.impersonatorOf(db, cookies[SESSION_COOKIE])) => ({
-    user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at },
+    user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at, last_login_method: user.last_login_method ?? null, login_methods: auth.loginMethods(db, user.id) },
     legal: auth.legalStatus(db, user.id),
     profile: profiles.effectiveProfile(db, user.id),
     missing: profiles.missingForSubmit(profiles.effectiveProfile(db, user.id)),

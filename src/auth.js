@@ -69,7 +69,11 @@ export function startSession(db, email, { userAgent = '', marketing = false, met
     // Design 2a: "Continuando accetti i Termini e confermi di aver letto la Privacy Policy."
     acknowledge(db, user.id);
   }
-  if (method) db.prepare('UPDATE users SET signup_method = COALESCE(signup_method, ?), last_login_method = ? WHERE id = ?').run(isNew ? method : null, method, user.id);
+  if (method) {
+    db.prepare('UPDATE users SET signup_method = COALESCE(signup_method, ?), last_login_method = ? WHERE id = ?').run(isNew ? method : null, method, user.id);
+    db.prepare(`INSERT INTO login_methods (user_id, method, first_used_at, last_used_at) VALUES (?, ?, ?, ?)
+      ON CONFLICT(user_id, method) DO UPDATE SET last_used_at = excluded.last_used_at`).run(user.id, method, now(), now());
+  }
   // Signing in within 30 days of a deletion request cancels it: the account comes back as it was
   const restored = !isNew && !!user.deletion_requested_at;
   if (restored) {
@@ -169,3 +173,6 @@ export function acknowledgeLegal(db, userId, body) {
   return legalStatus(db, userId);
 }
 
+
+// The ways a member has signed in, each with its last time (Impostazioni, the admin)
+export const loginMethods = (db, userId) => db.prepare('SELECT method, first_used_at, last_used_at FROM login_methods WHERE user_id = ? ORDER BY last_used_at DESC').all(userId);

@@ -49,7 +49,11 @@ export default class extends AdminPage {
     const back = p.lives_in === 'italy';
     const years = e => [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join('–');
     const rows = [
-      ['Accesso', (() => { const M = { email: 'Email e codice', google: 'Google', linkedin: 'LinkedIn' }; const a = M[u.signup_method], b = M[u.last_login_method]; return !a && !b ? 'Non registrato (iscritto prima che lo salvassimo)' : a && b && a !== b ? `Iscritto con ${a}, ultimo accesso con ${b}` : `${a || b}`; })()],
+      ['Accesso', (() => {
+        const M = { email: 'Email e codice', google: 'Google', linkedin: 'LinkedIn' };
+        const used = (u.login_methods || []).map(m => `${M[m.method] ?? m.method} · ultimo uso ${fmtDate(m.last_used_at)}`);
+        return used.length ? [...(u.signup_method ? [`Iscritto con ${M[u.signup_method]}`] : []), ...used].join('\n') : 'Non registrato (iscritto prima che lo salvassimo)';
+      })()],
       ['Fermo al passo', u.status === 'onboarding' ? STEP[p.onboarding_step] ?? p.onboarding_step ?? 'Benvenuto' : ''],
       ['Manca', (L.missing || []).join(', ')],
       ['Situazione', p.lives_in ? (back ? 'Già rientrato/a' : 'Vive fuori') : ''],
