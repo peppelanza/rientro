@@ -536,7 +536,13 @@ body { padding-top: var(--lb, 0px); }
 .persona-mini-name { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; color: #1A1726; }
 body.persona-head-away .persona-mini { grid-template-rows: 1fr; margin-top: 0; opacity: 1; visibility: visible; transition-delay: 0s; }
 @media (max-width: 720px) { .persona-mini { display: none; } }
-@media (prefers-reduced-motion: reduce) { .persona-mini { transition: none; } }
+/* The link buttons under Connettiti fade in with the short name, once the big one has scrolled away
+   (a phone has no short name: they stay) */
+@media (min-width: 721px) {
+  .persona-aside .pf-links, .persona-aside .pf-links-note { opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s; }
+  body.persona-head-away .persona-aside .pf-links, body.persona-head-away .persona-aside .pf-links-note { opacity: 1; visibility: visible; }
+}
+@media (prefers-reduced-motion: reduce) { .persona-mini, .persona-aside .pf-links, .persona-aside .pf-links-note { transition: none; } }
 
 /* Profile preview (pages/persona, ?anteprima): what others can click is shown, but inactive */
 .preview-off { opacity: .55; pointer-events: none; cursor: default; }
