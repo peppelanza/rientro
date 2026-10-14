@@ -1056,7 +1056,7 @@ def('App Person Card', String.raw`
       none: { l: 'Connettiti', v: 'primary', isConnect: true, fn: () => this.props.onConnect?.(p), off: false },
       pending_sent: { l: 'In attesa', v: 'secondary', isWait: true, fn: go('/connessioni?tab=inviate'), off: false }, // to your sent requests
       pending_received: { l: 'Rispondi', v: 'accent', isReply: true, fn: go('/connessioni?tab=ricevute'), off: false }, // to the requests you received
-      connected: { l: 'Messaggi', v: 'primary', isChat: true, fn: go(`/messaggi/${p.id}`), off: false },
+      connected: { l: 'Apri chat', v: 'primary', isChat: true, fn: go(`/messaggi/${p.id}`), off: false },
     }[c] ?? { l: 'Connettiti', v: 'primary', isConnect: true, fn: null, off: true };
     return {
       // da: where the profile's back link goes (persona.js); noactions: just the card, no buttons

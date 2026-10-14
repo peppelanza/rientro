@@ -113,10 +113,11 @@ export default class extends Page {
     // The box under the name: where they'd like to move, from where and when; or, back already, where to
     // and from where (Il mio rientro). Who doesn't know where or when yet says so.
     const fromFull = [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ');
+    const moveSub = [fromFull && `da ${fromFull}`, p.move && (p.move === 'non lo sa ancora' ? 'non so ancora quando' : p.move)].filter(Boolean).join(' · ');
     const move = p.back
       ? { title: 'Il mio rientro', where: p.lives_in_city || '—', sub: p.arrived ? p.arrived.replace(/^Da /, 'da ') : '' }
-      : { title: 'Vorrei trasferirmi', where: !p.desired_unknown && p.desired_comuni.length ? p.places : 'Non so ancora dove',
-        sub: [fromFull && `da ${fromFull}`, p.move && (p.move === 'non lo sa ancora' ? 'non so ancora quando' : p.move)].filter(Boolean).join(' · ') };
+      : !p.desired_unknown && p.desired_comuni.length ? { title: 'Vorrei trasferirmi a', where: p.places, sub: moveSub }
+      : { title: 'Vorrei trasferirmi', where: 'Non so ancora dove', sub: moveSub };
     const unlocked = showLinks ? [
       ['LinkedIn', li && `${li} ↗`, L.linkedin_url], ['Sito', L.website_url && `${L.website_url.replace(/^https:\/\//, '')} ↗`, L.website_url],
       ['Instagram', L.instagram_handle && `${L.instagram_handle} ↗`, handleUrl('https://instagram.com/', L.instagram_handle)],
@@ -173,7 +174,7 @@ export default class extends Page {
       hasSeekSection: !!(p.seeking.description || p.seeking.backgrounds.length),
       seekText: p.seeking.description || p.seeking.label,
       career: p.experiences.map(e => ({ y: e.current && !e.start_month ? 'attuale' : [e.start_month?.slice(0, 4), e.current ? 'oggi' : e.end_month?.slice(0, 4)].filter(Boolean).join(' – '), r: e.role || e.company, o: [e.role ? e.company : null, e.city].filter(Boolean).join(' · ') })),
-      hasCareer: p.experiences.length > 0,
+      hasCareer: p.experiences.length > 0, hasWork: p.experiences.length > 0 || p.education.length > 0,
       // as Lavoro: the years on the left, the school and the degree on the right
       edu: p.education.map(e => ({ y: e.years || '', s: e.school, d: e.degree || '' })), hasEdu: p.education.length > 0,
       sectors: p.sectors.map(l => ({ l })), hasSectors: p.sectors.length > 0,
