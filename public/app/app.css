@@ -82,7 +82,7 @@ button { font: inherit; }
 .toast-icon.err { background: #D92D20; }
 .toast-icon.info { background: #6C4DF5; }
 /* Phones: above the bottom bars (onboarding's Indietro/Continua, the tab bar), as wide as the screen */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   #toasts { left: 16px; right: 16px; transform: none; bottom: calc(96px + env(safe-area-inset-bottom)); }
   .toast { width: 100%; max-width: none; box-sizing: border-box; border-radius: 18px; padding: 12px 14px 12px 12px; line-height: 1.35; }
 }
@@ -91,7 +91,7 @@ button { font: inherit; }
 /* Modals */
 .modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
 .modal-box { max-width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; border-radius: 32px; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .modal-overlay { align-items: flex-end; padding: 0; overflow: visible; }
   .modal-box { width: 100%; max-height: 92%; border-radius: 32px 32px 0 0; }
   /* the dialog's own white box (the template's root) and older ones wrapped once more: square at the
@@ -116,7 +116,7 @@ button { font: inherit; }
   .r-hide-md { display: none !important; }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   body.has-tabbar { padding-bottom: 96px; }
   .r-show-sm { display: block !important; }
   .r-hide-sm { display: none !important; }
@@ -143,7 +143,7 @@ button { font: inherit; }
 .sc-host[data-sc-name="UI Button"] { display: flex; }
 
 /* Chat fills the viewport; on phones it sits above the tab bar */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   /* dvh: the screen that's actually visible (on iPhone 100vh is taller, under Safari's bars) */
   .chat-page { height: calc(100vh - 96px) !important; height: calc(100dvh - 96px) !important; }
   .chat-grid { padding: 12px var(--gutter) !important; }
@@ -154,7 +154,7 @@ button { font: inherit; }
 .admin-main { flex: 1; min-width: 0; padding: 28px var(--gutter) 28px 16px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
 .admin-table { overflow-x: auto; }
 .admin-table > .admin-row, .admin-table > div > .admin-row { min-width: 880px; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .admin-layout { flex-direction: column; }
   .admin-main { padding: 16px var(--gutter); }
 }
@@ -189,7 +189,7 @@ button { font: inherit; }
   .place-plane { offset-distance: 60%; }
   .place-ripple { opacity: 0; }
 }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .place-art svg { height: 140px; }
   .place-text { padding: 14px 20px 20px; }
   .place-title { font-size: 18px; }
@@ -212,7 +212,7 @@ button { font: inherit; }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item summary::after { content: '+'; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #F1EFF8; color: #6C4DF5; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; transition: transform .2s ease; }
 .faq-item[open] summary::after { transform: rotate(45deg); }
-.faq-item p { margin: 0; padding: 0 24px 22px; font-size: 16px; line-height: 1.6; color: #4A4560; max-width: 720px; }
+.faq-item p { margin: 0; padding: 0 24px 22px; font-size: 16px; line-height: 1.6; color: #4A4560; max-width: 900px; }
 
 /* Homepage "Per chi è" cards, illustrated like the onboarding location cards */
 .who-card { display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #FFFFFF; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(80,60,160,.06); }
@@ -225,7 +225,7 @@ button { font: inherit; }
 .who-heart { transform-box: fill-box; transform-origin: center; animation: who-beat 1.8s ease-in-out infinite; }
 @keyframes who-dot { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
 @keyframes who-beat { 0%, 100% { scale: 1; } 15% { scale: 1.18; } 30% { scale: 1; } 45% { scale: 1.1; } }
-@media (max-width: 720px) { .who-art svg { height: 130px; } }
+@media (max-width: 900px) { .who-art svg { height: 130px; } }
 
 /* Home · Tre modi di iniziare: tall cards with an illustration on top, same style as "Per chi è" */
 .way-card { display: flex; flex-direction: column; min-height: 520px; background: linear-gradient(180deg, #FFFFFF, #F6F4FC); border-radius: 28px; overflow: hidden; box-shadow: 0 14px 40px rgba(80,60,160,.10); }
@@ -266,7 +266,7 @@ button { font: inherit; }
 .rec-btn-main:disabled { background: #CFC8E8; box-shadow: none; cursor: default; }
 .rec-btn-ghost { background: #F1EFF8; color: #1A1726; }
 /* The frame stays landscape on phones too: it's what gets recorded (video.js) */
-@media (max-width: 720px) { .rec-actions .rec-btn { flex: 1; } }
+@media (max-width: 900px) { .rec-actions .rec-btn { flex: 1; } }
 
 /* "Rientro dei cervelli" article: in-article ads for Rientro. They sit outside the article's
    sections (own colours, full card) so readers don't mistake them for content. */
@@ -279,7 +279,7 @@ button { font: inherit; }
 .ad-dark { background: radial-gradient(circle at 85% 90%, #3A3160, transparent 60%), #1A1726; color: #FFFFFF; }
 .ad-light { background: linear-gradient(135deg, #FFFFFF, #EFEBFF); color: #1A1726; border: 1.5px solid #CFC5FF; }
 .ad-sunset { background: linear-gradient(135deg, #6C4DF5 0%, #3E2BA8 55%, #1A1726 100%); color: #FFFFFF; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .ad-banner { grid-template-columns: 1fr; padding: 22px; gap: 14px; }
   .ad-banner .ad-art { order: -1; max-width: 220px; }
   .ad-banner .ad-title { font-size: 21px; }
@@ -329,7 +329,7 @@ body { padding-top: var(--lb, 0px); }
 .launch-bar b { font-weight: 600; }
 .launch-bar .live-dot { flex: none; background: #8E7FE0; }
 .launch-bar .lb-note { color: #C9C0F0; }
-@media (max-width: 720px) { .launch-bar .lb-note { display: none; } }
+@media (max-width: 900px) { .launch-bar .lb-note { display: none; } }
 
 /* Home hero: "Scopri chi rientra a [città]" (App City Jump) */
 .city-jump { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; font-family: 'Geist', sans-serif; font-size: 26px; letter-spacing: -.01em; color: #4A4560; }
@@ -356,7 +356,7 @@ body { padding-top: var(--lb, 0px); }
 .cj-opt { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 14px; cursor: pointer; }
 .cj-meta { font-size: 13px; color: #8C84AE; white-space: nowrap; }
 /* Small screens: text and picker stay on one line */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .city-jump { flex-wrap: nowrap; gap: 8px; font-size: 17px; }
   .cj-lead { flex: none; white-space: nowrap; }
   .cj-box { flex: 1; min-width: 0; width: auto; height: 48px; padding: 0 10px 0 14px; border-width: 1.5px; }
@@ -366,7 +366,7 @@ body { padding-top: var(--lb, 0px); }
 }
 
 /* Public header (App Site Header): on phones it stays on top while scrolling */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .site-header { position: sticky; top: var(--lb, 0px); z-index: 40; display: block; }
   .site-header header { padding-top: 10px !important; padding-bottom: 6px; }
   .site-header header > div { gap: 12px !important; padding-left: 20px !important; min-width: 0; }
@@ -446,7 +446,7 @@ body { padding-top: var(--lb, 0px); }
 .legal-card-t { font-weight: 600; font-size: 15px; }
 .legal-card-grid { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; font-size: 13.5px; color: #4A4560; }
 .legal-card-k { color: #8C84AE; }
-@media (max-width: 720px) { .legal-card-grid { grid-template-columns: 1fr; gap: 2px; } .legal-card-k { margin-top: 6px; } }
+@media (max-width: 900px) { .legal-card-grid { grid-template-columns: 1fr; gap: 2px; } .legal-card-k { margin-top: 6px; } }
 
 /* One-time dialog after Terms/Privacy are updated (main.js) */
 .legal-update { width: min(460px, calc(100vw - 32px)); box-sizing: border-box; background: #FFFFFF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px; font-family: 'Geist', sans-serif; color: #1A1726; }
@@ -489,7 +489,7 @@ body { padding-top: var(--lb, 0px); }
 .imp-box b { font-weight: 600; }
 .imp-box button { flex: none; border: none; border-radius: 999px; padding: 8px 16px; background: #FFFFFF; color: #B42318; font: inherit; font-weight: 600; cursor: pointer; }
 .imp-box button:disabled { opacity: .6; cursor: default; }
-@media (max-width: 720px) { body.has-tabbar .imp-box { bottom: 104px; } }
+@media (max-width: 900px) { body.has-tabbar .imp-box { bottom: 104px; } }
 
 /* Bell dropdown (App Nav) */
 .bell-panel { width: 380px; max-width: calc(100vw - 2 * var(--gutter)); max-height: calc(100vh - 110px); overflow-y: auto; z-index: 25; }
@@ -500,7 +500,7 @@ body { padding-top: var(--lb, 0px); }
 @keyframes bell-out { to { opacity: 0; transform: translateY(-6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) { .bell-in, .bell-out { animation: none; } }
 .bell-backdrop { display: none; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   /* reaches well below the screen: iPhone Safari shows what's under its bottom bar through it */
   .bell-backdrop { display: block; position: fixed; left: 0; right: 0; top: 0; bottom: -50vh; z-index: 35; background: linear-gradient(rgba(26, 23, 38, 0), rgba(26, 23, 38, .45) 200px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   .bell-backdrop.on { opacity: 1; pointer-events: auto; } /* only in the page while it shows (components.js) */
@@ -524,7 +524,7 @@ body { padding-top: var(--lb, 0px); }
 .welcome-text { margin: 0; max-width: 620px; font-size: clamp(17px, 2vw, 21px); line-height: 1.5; color: rgba(255, 255, 255, .88); }
 
 /* Profile (pages/persona): photo and connection box stay in view while the right column scrolls */
-@media (min-width: 721px) {
+@media (min-width: 901px) {
   .persona-aside { position: sticky; top: calc(var(--lb, 0px) + 20px); align-self: start; }
 }
 /* The photo gets shorter as you scroll, 4:5 → 1:1, cropped at the centre (persona.js) */
@@ -535,12 +535,13 @@ body { padding-top: var(--lb, 0px); }
 .persona-mini-in { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 4px 4px 2px; }
 .persona-mini-name { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; color: #1A1726; }
 body.persona-head-away .persona-mini { grid-template-rows: 1fr; margin-top: 0; opacity: 1; visibility: visible; transition-delay: 0s; }
-@media (max-width: 720px) { .persona-mini { display: none; } }
+@media (max-width: 900px) { .persona-mini { display: none; } }
 /* The link buttons under Connettiti fade in with the short name, once the big one has scrolled away
    (a phone has no short name: they stay) */
-@media (min-width: 721px) {
+@media (min-width: 901px) {
   .persona-aside .pf-links, .persona-aside .pf-links-note { opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility .3s; }
-  body.persona-head-away .persona-aside .pf-links, body.persona-head-away .persona-aside .pf-links-note { opacity: 1; visibility: visible; }
+  body.persona-head-away .persona-aside .pf-links, body.persona-head-away .persona-aside .pf-links-note,
+  body.persona-short .persona-aside .pf-links, body.persona-short .persona-aside .pf-links-note { opacity: 1; visibility: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .persona-mini, .persona-aside .pf-links, .persona-aside .pf-links-note { transition: none; } }
 
@@ -624,7 +625,7 @@ body:not(.chat-user-scroll) #chat-scroll { scrollbar-width: none; }
 body:not(.chat-user-scroll) #chat-scroll::-webkit-scrollbar { display: none; }
 
 /* Phone: an open chat is full screen, like a messaging app; the ← in its header goes back to the list */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   body.chat-open { padding-bottom: 0 !important; overflow: hidden; }
   body.chat-open .chat-page > .sc-host:first-child, body.chat-open .tabbar, body.chat-open .launch-bar { display: none !important; }
   /* Sized to the visible part of the screen (--vv-top/--vv-h, messaggi.js): with the keyboard open the
@@ -644,12 +645,12 @@ body.tabbar-away .tabbar { opacity: 0; transform: translateY(24px); pointer-even
 @media (prefers-reduced-motion: reduce) { .tabbar { transition: none; } }
 
 /* Phones have emoji on the keyboard: no emoji button in the chat there */
-@media (max-width: 720px) { .emoji-toggle, .emoji-picker-compose { display: none !important; } }
+@media (max-width: 900px) { .emoji-toggle, .emoji-picker-compose { display: none !important; } }
 
 /* Discover filters on a computer: "Dove vuole vivere", then the rest behind "Tutti i filtri" (scopri.js) */
 .filters-more { display: flex; flex-direction: column; gap: 22px; }
 .filters-more-toggle { display: none; }
-@media (min-width: 721px) {
+@media (min-width: 901px) {
   .filters-more:not(.open) { display: none; }
   .filters-more.opening { animation: filters-open .2s ease-out; }
   .filters-more-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -6px 0; padding: 4px 0; border: none; background: none; font: 500 14px 'Geist', sans-serif; color: #1A1726; cursor: pointer; }
@@ -676,7 +677,7 @@ body.home-bar-on .home-bar { opacity: 1; transform: none; visibility: visible; p
    picker fades in at the same spot (and back the other way) */
 .site-enter-wrap { position: relative; display: flex; align-items: center; }
 .site-jump { display: none; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .home-bar { display: none; }
   /* exactly over "Accedi a Rientro", same size */
   .site-jump { display: block; position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity; transition: opacity .2s ease; }
@@ -711,14 +712,14 @@ body.pull-dragging .pull-spinner { transition: none; }
 @keyframes pull-spin { to { transform: rotate(360deg); } }
 
 /* Benvenuto on phones: "Apri profilo" on the right */
-@media (max-width: 720px) { .welcome-open { justify-content: flex-end; } }
+@media (max-width: 900px) { .welcome-open { justify-content: flex-end; } }
 
 /* Gruppi (pages/gruppo): side menu as in "Il tuo profilo", the open group on the right */
 .groups-layout { display: grid; grid-template-columns: 250px minmax(0, 720px); gap: 28px; padding: 28px var(--gutter) 0; box-sizing: border-box; }
 .groups-layout.solo { grid-template-columns: minmax(0, 720px); justify-content: center; } /* visitors: just the group */
 .groups-aside { align-self: start; } /* stays in view while scrolling: sticky-side.js */
 .groups-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-@media (max-width: 720px) { .groups-layout { grid-template-columns: minmax(0, 1fr); padding-top: 18px; } }
+@media (max-width: 900px) { .groups-layout { grid-template-columns: minmax(0, 1fr); padding-top: 18px; } }
 /* The bar that shows once the group's header and post box have scrolled away (gruppo.js) */
 /* sticky and 0 high at the top of the group's column (so the bar is as wide as the column); the gap
    it would add is taken back */
@@ -730,10 +731,10 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 /* One post on its own (from the search): the same bar, there from the start and stuck to the top */
 .group-bar-fixed { position: sticky; top: calc(var(--lb, 0px) + 16px); z-index: 45; }
 .group-post-found { box-shadow: 0 0 0 2px #6C4DF5 !important; }
-@media (max-width: 720px) { .group-bar { top: 10px; } .group-bar-fixed { top: calc(var(--lb, 0px) + 10px); } .group-bar-in { height: 58px; } }
+@media (max-width: 900px) { .group-bar { top: 10px; } .group-bar-fixed { top: calc(var(--lb, 0px) + 10px); } .group-bar-in { height: 58px; } }
 @media (prefers-reduced-motion: reduce) { .group-bar { transition: none; } }
 .group-cover { display: block; width: calc(100% + 32px); margin: -16px -16px 4px; aspect-ratio: 3 / 1; object-fit: cover; border-radius: 20px; background: #F1EFF8; }
-@media (max-width: 720px) { .group-cover { aspect-ratio: 2 / 1; } }
+@media (max-width: 900px) { .group-cover { aspect-ratio: 2 / 1; } }
 /* Post box tools: emoji (computer only, as in the chat), pictures; pictures waiting to be posted */
 .group-tools { position: relative; display: flex; align-items: center; gap: 8px; }
 .group-tool { flex: none; width: 40px; height: 40px; border: none; border-radius: 50%; background: #F1EFF8; color: #6B6680; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: none; }
@@ -780,8 +781,8 @@ body.group-bar-on .group-bar { opacity: 1; transform: none; visibility: visible;
 /* (written for search engines and link previews; on screen the page draws itself over it, so it
    never shows: a flash of plain text otherwise) */
 /* A public page's text written by the server for search engines (seo.js): the app draws over it */
-.ssr-page { visibility: hidden; max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
-.ssr-group { visibility: hidden; max-width: 720px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
+.ssr-page { visibility: hidden; max-width: 900px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
+.ssr-group { visibility: hidden; max-width: 900px; margin: 0 auto; padding: 24px 16px; font-family: 'Geist', sans-serif; color: #1A1726; }
 .ssr-group h1 { font-family: 'Unbounded', sans-serif; }
 .ssr-group .ssr-body { white-space: pre-wrap; }
 .ssr-group img { max-width: 100%; }
@@ -803,7 +804,7 @@ html.pv-open { overflow: hidden; }
 .pv-prev { left: 24px; }
 .pv-next { right: 24px; }
 .pv-count { position: absolute; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); color: rgba(255, 255, 255, .8); font: 500 14px 'Geist', sans-serif; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .pv-img { max-width: 100%; max-height: calc(100% - 140px); border-radius: 0; }
   .pv-nav { display: none; } /* swipe instead */
 }
@@ -839,7 +840,7 @@ html.pv-open { overflow: hidden; }
    scroll stops with a card in the middle of the screen (the one before and after peeking in, at the
    usual spacing) and can't skip one. The top of the page is a stop too; past the last card the scroll
    is free (scopri.js sets html.scopri-snap, and .scopri-snap-free while the end of the list shows). */
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   html.scopri-snap:not(.scopri-snap-free):not(.scopri-snap-before) { scroll-snap-type: y mandatory; }
   /* not while pulling to refresh: the page slides down, the stops with it, and the browser would
      scroll to meet them, ending the pull before the data is back */
@@ -859,7 +860,7 @@ html.pv-open { overflow: hidden; }
 /* Phones: the magnifying glass in the top bar (left of the bell) and the search it opens over the
    whole screen (search-history.js openSearchSheet) */
 .nav-search-btn { display: none; width: 44px; height: 44px; margin-left: 8px; border: none; padding: 0; border-radius: 50%; background: transparent; color: #1A1726; align-items: center; justify-content: center; flex: none; cursor: pointer; }
-@media (max-width: 720px) { .nav-search-btn { display: flex; } }
+@media (max-width: 900px) { .nav-search-btn { display: flex; } }
 html.search-sheet-open { overflow: hidden; }
 .search-sheet { position: fixed; inset: 0; z-index: 210; display: flex; flex-direction: column; background: #FFFFFF; font-family: 'Geist', sans-serif; animation: bell-in .16s ease-out; }
 .search-sheet-top { flex: none; display: flex; align-items: center; gap: 8px; padding: max(12px, env(safe-area-inset-top)) 12px 12px; border-bottom: 1px solid #ECE8F7; }
@@ -901,7 +902,7 @@ html.search-sheet-open { overflow: hidden; }
 .conn-actions { flex: none; display: flex; gap: 8px; align-items: center; }
 .conn-waiting { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: #FFF4DC; color: #7A4E00; font: 500 13px 'Geist', sans-serif; }
 .conn-waiting > span { width: 7px; height: 7px; border-radius: 50%; background: #C9922E; }
-@media (max-width: 720px) { .conn-card { flex-wrap: wrap; } .conn-actions { width: 100%; justify-content: flex-end; } }
+@media (max-width: 900px) { .conn-card { flex-wrap: wrap; } .conn-actions { width: 100%; justify-content: flex-end; } }
 
 /* Messaggi: the pencil by the title, and the new message's "who to" (messaggi.js startNew) */
 .new-msg-btn { flex: none; width: 36px; height: 36px; border: none; border-radius: 50%; background: #F1EFF8; color: #1A1726; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -942,7 +943,7 @@ html.search-sheet-open { overflow: hidden; }
 .modal-overlay.closing > .modal-box { animation: modal-pop .18s ease-in reverse forwards; }
 @keyframes modal-fade { from { opacity: 0; } }
 @keyframes modal-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .modal-overlay > .modal-box { animation: modal-up .32s cubic-bezier(.2, .8, .2, 1); }
   .modal-overlay.closing > .modal-box { animation: modal-up .2s ease-in reverse forwards; }
 }
@@ -986,7 +987,7 @@ html.search-sheet-open { overflow: hidden; }
 .support-compose { display: flex; gap: 10px; align-items: flex-end; }
 .support-compose > .sc-host:first-child { flex: none; }
 .support-compose > .sc-host:nth-child(2) { flex: 1; min-width: 0; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .support-row { grid-template-columns: minmax(0, 1fr) auto; } .support-row .support-code { grid-column: 1 / -1; }
   /* a ticket on a phone: code and status on top, the subject under them, room for the chat */
   .support-card { padding: 16px; gap: 12px; border-radius: 24px; }
@@ -1044,7 +1045,7 @@ html.search-sheet-open { overflow: hidden; }
 .press-status { flex: none; min-height: 46px; padding: 6px 10px 6px 18px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(26,23,38,.07); font-size: 12px; color: #6B6680; }
 .press-status span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .press-get { height: 32px; padding: 0 14px; border: none; border-radius: 999px; background: #1A1726; color: #FFFFFF; font: 500 13px 'Geist', sans-serif; cursor: pointer; }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .press-bar { height: 58px; padding: 0 8px 0 20px; gap: 10px; }
   .press-bar .enter-btn { height: 42px; padding: 0 16px; }
   .press-desk { padding: 16px; border-radius: 28px; min-height: calc(100vh - var(--lb, 0px) - 18px - 60px - 18px - 18px); }
@@ -1059,7 +1060,7 @@ html.search-sheet-open { overflow: hidden; }
 .cd-cell { min-width: 84px; padding: 14px 10px 12px; box-sizing: border-box; border-radius: 22px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .cd-cell b { font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .cd-cell > span { font: 500 11px 'Geist Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.78); }
-@media (max-width: 720px) { .countdown { gap: 8px; } .cd-cell { min-width: 0; flex: 1; padding: 12px 6px 10px; } }
+@media (max-width: 900px) { .countdown { gap: 8px; } .cd-cell { min-width: 0; flex: 1; padding: 12px 6px 10px; } }
 
 /* The bell dropdown while its notifications load (components.js, App Nav): placeholder rows as
    shining bars, as the page skeletons */
@@ -1078,7 +1079,7 @@ html.search-sheet-open { overflow: hidden; }
 /* The profile preview's bar (persona.html): "Torna all'editor" as a button, clear of the bar's edge */
 .preview-back { flex: none; height: 36px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,.12); color: #FFFFFF; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; }
 .preview-back:hover { background: rgba(255,255,255,.2); }
-@media (max-width: 720px) { .preview-back { align-self: flex-start; } }
+@media (max-width: 900px) { .preview-back { align-self: flex-start; } }
 
 /* Invite links (invites.js): who invited you, in onboarding; requests from your link, in Ricevute;
    your link, on the welcome page */
@@ -1123,7 +1124,7 @@ html.search-sheet-open { overflow: hidden; }
 .video-actions button > span { flex: none; }
 
 /* Scopri cards: Profilo and Connettiti / Messaggi, with an icon */
-.pc-btn { height: 44px; width: 100%; box-sizing: border-box; padding: 0 14px; border: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px 'Geist', sans-serif; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.pc-btn { height: 44px; width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box; padding: 0 12px; border: none; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px 'Geist', sans-serif; text-decoration: none; cursor: pointer; white-space: nowrap; }
 .pc-btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .pc-btn-primary { background: #1A1726; color: #FFFFFF; }
 .pc-btn-secondary { background: #F1EFF8; color: #1A1726; }
@@ -1141,3 +1142,8 @@ html.search-sheet-open { overflow: hidden; }
 .pf-link { width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; color: #1A1726; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(80,60,160,.10); text-decoration: none; }
 .pf-link:hover { color: #6C4DF5; }
 .pf-links-note { display: block; text-align: center; font-size: 13px; color: #8C84AE; margin-top: 2px; }
+/* Scopri: as many cards as fit a row (scopri.html); one alone (a narrow computer window) stays card-sized */
+@media (min-width: 901px) { .scopri-cards > * { max-width: 400px; } }
+/* Chat: the note sent with the connection request, on the side of who wrote it (messaggi.html) */
+.chat-note { display: flex; }
+.chat-note.mine { justify-content: flex-end; }

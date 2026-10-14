@@ -21,7 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
-import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, recordInvite } from './invites.js';
+import { CODE as INVITE_CODE, connectInviter, INVITE_COOKIE, INVITE_COOKIE_DAYS, inviteInfo, inviterForCode, inviterPhotoId, myInviterPhotoId, recordInvite } from './invites.js';
 import { runRetention } from './retention.js';
 import { checkOauthState, oauthEnabled, oauthProfile, PROVIDERS, startOauth } from './oauth.js';
 import { pageHtml, seoFor, sitemapPaths } from './seo.js';
@@ -391,6 +391,11 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     if (!id) throw new HttpError(404, 'not_found');
     streamFile(req, res, fileOnDisk(db, id));
   }, { ...pub, raw: true });
+  route('GET', '/api/me/inviter-photo', ({ user, req, res }) => {
+    const id = myInviterPhotoId(db, user);
+    if (!id) throw new HttpError(404, 'not_found');
+    streamFile(req, res, fileOnDisk(db, id));
+  }, { raw: true });
   route('GET', '/api/public/launch', () => ({ launched: isLaunched(), launch_at: config.launchAt, linkedin: oauthEnabled('linkedin'), google: oauthEnabled('google'), turnstile: turnstileEnabled() ? config.turnstileSiteKey : null }), pub);
   route('GET', '/api/public/territory/:name', ({ params }) => {
     const t = territory(db, decodeURIComponent(params.name));

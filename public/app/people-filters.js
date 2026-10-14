@@ -9,7 +9,8 @@ export const INTENT = { has_idea: "Ha già un'idea", seeking_idea: "Cerca un'ide
 
 export function readFilters(params = new URLSearchParams(location.search)) {
   const f = { lives: params.get('lives') || '', include_unknown: params.get('include_unknown') === '1' };
-  for (const k of LIST_KEYS) f[k] = params.get(k) ? params.get(k).split(',').filter(Boolean) : [];
+  // joined by "|" (a background or a sector can have a comma); older addresses by "," (the server knows)
+  for (const k of LIST_KEYS) f[k] = params.get(k) ? params.get(k).split(params.get(k).includes('|') ? '|' : /,(?! )/).filter(Boolean) : [];
   return f;
 }
 export const emptyFilters = () => ({ lives: '', include_unknown: false, intent: [], move: [], backgrounds: [], sectors: [], desired: [] });
@@ -20,7 +21,7 @@ export const hiddenFilters = f => f.intent.length + f.move.length + f.background
 // For the address
 export function toQuery(f) {
   const q = new URLSearchParams();
-  for (const k of LIST_KEYS) if (f[k].length) q.set(k, f[k].join(','));
+  for (const k of LIST_KEYS) if (f[k].length) q.set(k, f[k].join('|'));
   if (f.lives) q.set('lives', f.lives);
   if (f.include_unknown && f.desired.length) q.set('include_unknown', '1');
   return q;

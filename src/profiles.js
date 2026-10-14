@@ -3,7 +3,7 @@ import { newId, now, tx } from './db.js';
 import { cardFields } from '../public/app/card-fields.js';
 import { paginate } from './paging.js';
 import { hit, terms, wordsOf } from './search.js';
-import { HttpError, bad, handle, httpsUrl, list, oneOf, only, text } from './validate.js';
+import { HttpError, bad, handle, httpsUrl, linkedinUrl, list, oneOf, only, text } from './validate.js';
 
 // A: has an idea, B: looking for one with others, C: networking only (no idea step)
 const INTENTS = ['has_idea', 'seeking_idea', 'networking'];
@@ -97,7 +97,7 @@ const EDITABLE = {
   seeking_description: v => text(v, 'Descrivi la persona che cerchi', { max: 400 }),
   seeking_location: v => oneOf(v, values(SEEKING_LOCATION), 'Dove dovrebbe vivere'),
   misses_italy: v => text(v, 'Cosa ti manca di casa', { max: 200 }),
-  linkedin_url: v => httpsUrl(v, 'LinkedIn'),
+  linkedin_url: v => linkedinUrl(v, 'LinkedIn'),
   website_url: v => httpsUrl(v, 'Sito'),
   instagram_handle: v => handle(v, 'Instagram'),
   x_handle: v => handle(v, 'X'),
@@ -484,12 +484,20 @@ export function searchHit(p, ts, fuzzy = false) {
 }
 
 export function parseDiscoverQuery(q) {
-  const arr = k => (q.get(k) ? q.get(k).split(',').map(s => s.trim()).filter(Boolean).slice(0, 20) : []);
+  // Lists are joined by "|": backgrounds and sectors have commas in them ("Business, finanza e
+  // diritto"). Older addresses joined by ",": read that way when a part isn't a value as it is.
+  const arr = (k, known = x => !x.includes(',')) => {
+    const raw = q.get(k);
+    if (!raw) return [];
+    let list = raw.split('|').map(s => s.trim()).filter(Boolean);
+    if (!raw.includes('|') && !known(raw.trim())) list = raw.split(/,(?! )/).map(s => s.trim()).filter(Boolean);
+    return list.slice(0, 20);
+  };
   return {
     lives: ['italy', 'abroad'].includes(q.get('lives')) ? q.get('lives') : '',
     intent: arr('intent').filter(x => INTENTS.includes(x)),
-    backgrounds: arr('backgrounds').filter(x => AREAS.includes(x) || x === AREA_OTHER),
-    sectors: arr('sectors').filter(x => SECTORS.includes(x)),
+    backgrounds: arr('backgrounds', x => AREAS.includes(x)).filter(x => AREAS.includes(x) || x === AREA_OTHER),
+    sectors: arr('sectors', x => SECTORS.includes(x)).filter(x => SECTORS.includes(x)),
     move: arr('move').filter(x => x === 'back' || MOVE_WHEN.some(m => m[0] === x)),
     desired: arr('desired'),
     include_unknown: q.get('include_unknown') === '1',

@@ -5,7 +5,8 @@
 
 export function orList(items, max = Infinity) {
   const list = items.filter(Boolean);
-  if (list.length > max) return `${list.slice(0, max).join(', ')} o altre ${list.length - max} città`;
+  // one more than fits is just named ("o altre 1 città" reads wrong)
+  if (list.length > max + 1) return `${list.slice(0, max).join(', ')} o altre ${list.length - max} città`;
   return list.length > 1 ? `${list.slice(0, -1).join(', ')} o ${list.at(-1)}` : (list[0] ?? '');
 }
 
@@ -25,6 +26,7 @@ export function cardFields(p, years, { places = p.desired_comuni, sectors = p.se
     idea_title: p.idea_title,
     tags: sectors.slice(0, 3).join(' · '),
     // "Tecnologia e ingegneria · 8–12 anni"
-    background: [p.background_area, yearsLabel && `${yearsLabel} anni`].filter(Boolean).join(' · '),
+    // ("8–12 anni" never split over two lines: word joiners around the dash, a no-break space)
+    background: [p.background_area, yearsLabel && `${yearsLabel.replace('–', '\u2060–\u2060')}\u00a0anni`].filter(Boolean).join(' · '),
   };
 }

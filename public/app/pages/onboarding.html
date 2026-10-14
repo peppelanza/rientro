@@ -91,7 +91,7 @@
 <sc-if value="{{ hasIdea }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">A che punto sei?</span><dc-import name="App Segmented" label="A che punto sei" options="{{ stageOpts }}" value="{{ stage }}" dc-props="{{ stageProps }}"></dc-import></div></sc-if>
 </div></sc-if>
 
-<sc-if value="{{ is_presentati }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:20px">
+<sc-if value="{{ is_presentati }}"><div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:20px">
 <h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Presentati</h2>
 <div class="r-grid-1" style="display:grid;grid-template-columns:160px 1fr;gap:28px">
 <div style="display:flex;flex-direction:column;gap:10px;align-items:center"><label style="display:flex;flex-direction:column;gap:10px;align-items:center;cursor:pointer"><input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" onChange="{{ pickPhoto }}" aria-label="Carica foto profilo">
@@ -108,7 +108,7 @@
 </div></div>
 </div></sc-if>
 
-<sc-if value="{{ is_background }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:20px">
+<sc-if value="{{ is_background }}"><div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:20px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Qual è il tuo background?</h2><span style="font-size:16px;color:#6B6680">Scegli l'area principale. Serve agli altri per capire cosa porti.</span></div>
 <div role="radiogroup" aria-label="Background" class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ areas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" selected="{{ a.on }}" control="none" size="sm" layout="row" on-click="{{ a.fn }}" host-role="radio" host-aria-checked="{{ a.aria }}"></dc-import></sc-for></div>
 <sc-if value="{{ bgOther }}"><div style="max-width:480px"><dc-import name="App Field" label="Il tuo background" field="background-other" maxlength="{{ bgMax }}" value="{{ bgText }}" placeholder="Es. Architettura" dc-props="{{ bgTextProps }}"></dc-import></div></sc-if>
@@ -151,21 +151,21 @@
 <span style="font-size:13px;color:#8C84AE;line-height:1.5">Da 15 a 60 secondi. Facoltativo.</span></div>
 </div></sc-if>
 
-<sc-if value="{{ is_settori }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:18px">
+<sc-if value="{{ is_settori }}"><div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:18px">
 <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Quali settori ti interessano?</h2><span style="font-size:16px;color:#6B6680">Fino a 5.</span></div><span role="status" style="font-family:'Geist Mono',monospace;font-size:13px;padding:6px 12px;border-radius:999px;background:#EFEBFF;color:#3E2BA8;flex:none">{{ sectorCount }}</span></div>
 <dc-import name="App Field" placeholder="Cerca un settore" search="{{ true }}" field="sector-search" value="{{ sectorQuery }}" dc-props="{{ sectorSearchProps }}"></dc-import>
 <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ sectors }}" as="s"><dc-import name="UI Chip" label="{{ s.l }}" tone="{{ s.tone }}" on-click="{{ s.fn }}" host-role="checkbox" host-aria-checked="{{ s.aria }}"></dc-import></sc-for></div>
 <sc-if value="{{ noSectors }}"><span style="font-size:14px;color:#8C84AE">Nessun settore trovato.</span></sc-if>
 </div></sc-if>
 
-<sc-if value="{{ is_chi }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:18px">
+<sc-if value="{{ is_chi }}"><div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:18px">
 <div style="display:flex;flex-direction:column;gap:10px"><h2 class="r-h2" tabindex="-1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.05em">Chi stai cercando?</h2><span style="font-size:16px;color:#6B6680">Le competenze che completerebbero le tue. Fino a 3.</span></div>
 <div class="r-grid-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><sc-for list="{{ seekAreas }}" as="a"><dc-import name="UI Option Card" title="{{ a.t }}" desc="{{ a.desc }}" selected="{{ a.on }}" disabled="{{ a.off }}" control="{{ a.control }}" size="sm" layout="row" on-click="{{ a.fn }}" host-role="checkbox" host-aria-checked="{{ a.aria }}" host-aria-disabled="{{ a.dis }}"></dc-import></sc-for></div>
 <dc-import name="App Field" label="Descrivi la persona che cerchi" optional="{{ true }}" rows="3" field="seek-desc" value="{{ seekDesc }}" maxlength="400" placeholder="Es. Un CTO che abbia già costruito un marketplace." dc-props="{{ seekDescProps }}"></dc-import>
 <sc-if value="{{ hasMyPlace }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:500">Dove dovrebbe vivere?</span><div class="r-full" style="max-width:480px"><dc-import name="App Segmented" label="Dove dovrebbe vivere" options="{{ locOpts }}" value="{{ loc }}" dc-props="{{ locProps }}"></dc-import></div></div></sc-if>
 </div></sc-if>
 
-<sc-if value="{{ is_manca }}"><div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:24px;padding-top:20px">
+<sc-if value="{{ is_manca }}"><div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:24px;padding-top:20px">
 <h2 class="r-hero" tabindex="-1" style="margin:0;font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px;line-height:1;letter-spacing:-.02em"><label for="misses">Cosa ti manca di casa?</label></h2>
 <div class="dc-field" style="border-radius:24px;background:#FFFFFF;border:1px solid #E4E0F2;padding:20px 24px"><textarea id="misses" data-key="misses" class="bare-input" rows="3" maxlength="200" value="{{ misses }}" onInput="{{ missesInput }}" placeholder="Le cene che finiscono all'una…" style="font-size:22px;line-height:1.45;resize:none;color:#1A1726"></textarea></div>
 <span style="font-size:14px;color:#6B6680">Una riga o due. Comparirà sul tuo profilo.</span>

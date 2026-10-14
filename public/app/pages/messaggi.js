@@ -21,7 +21,7 @@ function dayLabel(iso) {
 function fitCompose(ta) {
   if (!ta) return;
   const line = parseFloat(getComputedStyle(ta).lineHeight) || 22;
-  const max = line * (innerWidth <= 720 ? 3 : 5);
+  const max = line * (innerWidth <= 900 ? 3 : 5);
   ta.style.height = 'auto';
   ta.style.height = `${Math.min(ta.scrollHeight, max)}px`;
   ta.style.overflowY = ta.scrollHeight > max ? 'auto' : 'hidden';
@@ -140,7 +140,16 @@ export default class extends Page {
     if (!s.active || s.closed || document.hidden) return;
     const last = s.messages.at(-1)?.id ?? 0;
     const since = s.reactAt ? `&since=${encodeURIComponent(s.reactAt)}` : '';
-    const r = await api('GET', `/api/threads/${s.active}?after=${last}${since}`).catch(() => null);
+    const r = await api('GET', `/api/threads/${s.active}?after=${last}${since}`).catch(err => {
+      // the connection was removed (or a block) while the chat was open: it closes here too
+      if (err.status === 403 || err.status === 404) {
+        Object.assign(s, { closed: true, thread: null, person: null, messages: [], draft: '' });
+        s.threads = s.threads.filter(t => t.id !== s.active);
+        this.syncCounts();
+        this.__rerender();
+      }
+      return null;
+    });
     if (!r) return;
     s.reactAt = r.at;
     let changed = false;
@@ -295,21 +304,33 @@ export default class extends Page {
     if (e.target.id === 'chat-scroll' && e.target.scrollTop < 300) this.loadOlder();
   };
 
-  send = this.act(async () => {
+  // Each Enter sends what's written at that moment: the box empties at once and the messages go out
+  // one after the other, in order (typing fast loses none, nor what is being typed meanwhile)
+  send = () => {
     const s = this.state;
     const body = s.draft.trim();
     if (!body) return;
-    const m = await api('POST', `/api/threads/${s.active}`, { body, ...(s.replyTo ? { reply_to: s.replyTo.id } : {}) });
-    s.messages.push(m);
+    const thread = s.active, replyTo = s.replyTo;
     s.draft = '';
     s.replyTo = null;
-    this.smooth = true;
-    const t = s.threads.find(x => x.id === s.active);
-    if (t) { t.last = `Tu: ${body}`; t.time = m.created_at; }
-    else { await this.fetchList(); s.anyThreads = true; } // the first message: the conversation joins the list
-    this.scrollDown = true;
+    this.__rerender();
     requestAnimationFrame(() => document.querySelector('[data-key="compose"]')?.focus());
-  });
+    this.sending = (this.sending || Promise.resolve()).then(async () => {
+      const m = await api('POST', `/api/threads/${thread}`, { body, ...(replyTo ? { reply_to: replyTo.id } : {}) });
+      if (s.active === thread) s.messages.push(m);
+      this.smooth = true;
+      const t = s.threads.find(x => x.id === thread);
+      if (t) { t.last = `Tu: ${body}`; t.time = m.created_at; }
+      else { await this.fetchList(); s.anyThreads = true; } // the first message: the conversation joins the list
+      this.scrollDown = true;
+      this.__rerender();
+    }).catch(err => {
+      // not sent: the text comes back in the box (unless something new is being written)
+      toastError(err);
+      if (s.active === thread && !s.draft.trim()) s.draft = body;
+      this.__rerender();
+    });
+  };
 
   // The right column, with or without a person: the change plays a fade (side-in / side-out). The
   // page is redrawn anew meanwhile (new elements), so each redraw carries on from where it was
@@ -478,7 +499,9 @@ export default class extends Page {
       cancelNew: () => { s.composing = false; this.__rerender(); },
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
       // under the name: where they live → where they want to go (no job title), as in the list
-      sub: p ? [p.lives_in_city, orList(p.desired_comuni, 3)].filter(Boolean).join(' → ') : '',
+      // as on the Scopri card: "Zurigo → Bologna" back already, "Londra → Palermo o Catania", "→ Non lo sa ancora"
+      sub: !p ? '' : p.back ? [p.back_from, p.lives_in_city].filter(Boolean).join(' → ')
+        : [p.lives_in_city, orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : '')].filter(Boolean).join(' → '),
       profileHref: p ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => go(`/persone/${p.id}?da=messaggi`),
       back: () => {
         if (this.from === 'connessioni') return go('/connessioni');
@@ -488,7 +511,8 @@ export default class extends Page {
         window.scrollTo(0, 0);
       },
       noteHeader: since ? `CONNESSI ${dayLabel(since) === 'OGGI' || dayLabel(since) === 'IERI' ? dayLabel(since) : `${WEEKDAYS[new Date(since).getDay()].toUpperCase()} ${fmtDate(since).toUpperCase()}`}` : '',
-      note: s.thread?.connection.note, items, empty: s.messages && !s.messages.length,
+      // the note sent with the request: on the right when it was yours, as your messages
+      note: s.thread?.connection.note, noteCls: s.thread?.connection.note_from_me ? 'chat-note mine' : 'chat-note', items, empty: s.messages && !s.messages.length,
       draft: s.draft, placeholder: p ? `Scrivi a ${p.first_name}…` : '',
       // the chat opens with the cursor in the box: its hint only once you've left it (it would flash);
       // set on the box itself, not by redrawing (the click that took the focus may be on a message)

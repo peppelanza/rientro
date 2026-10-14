@@ -23,7 +23,7 @@ const SECTIONS = [
   ['chi-cerco', 'Chi cerco', ['seeking_backgrounds', 'seeking_description', 'seeking_location']],
   ['interessi', 'Interessi', ['sectors']],
   ['italia', "Cosa mi manca di casa", ['misses_italy']],
-  ['link', 'Links', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
+  ['link', 'Link', ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']],
 ];
 const nz = v => (typeof v === 'string' && !v.trim() ? null : v);
 const opts = pairs => pairs.map(([v, l]) => ({ v, l }));
@@ -43,6 +43,8 @@ export default class extends Page {
   async load() {
     const [me, cat, paesi] = await Promise.all([getMe(true), getCatalog(), loadPaesi()]);
     if (me.user.status === 'onboarding') return go('/onboarding');
+    // Leaving with changes not saved (the phone's "← Il tuo profilo", the tab bar, back): the browser asks
+    addEventListener('beforeunload', e => { if (this.state.dirty) { e.preventDefault(); e.returnValue = ''; } });
     const want = qs().get('sezione') || location.hash.slice(1);
     Object.assign(this.state, {
       // No section in the address: on phones the page is just the menu (on a computer, the first section)
@@ -161,7 +163,7 @@ export default class extends Page {
     for (const k of ['first_name', 'last_name', 'lives_in_country', 'lives_in_city', 'bio', 'achievement', 'idea_title', 'idea_description', 'seeking_description', 'misses_italy', 'linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']) t[k] = text(k);
     return {
       loading: false, me, cat, t,
-      menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 720px)').matches) return; e.preventDefault(); this.goSection(k); } })),
+      menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 900px)').matches) return; e.preventDefault(); this.goSection(k); } })),
       isIndex: s.index, mainCls: s.index ? 'r-hide-sm' : '',
       activeLabel: this.sec[1], heading: this.sec[1],
       notPublished: status !== 'approved', // (published: no label)

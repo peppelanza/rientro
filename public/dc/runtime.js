@@ -242,6 +242,8 @@ function walkComponent(el) {
     if (styleGet) host.style.cssText = hostStyle(styleGet(vals));
     for (const [a, g] of hostAttrs) {
       const v = g(vals);
+      // aria states say "false" out loud (an unticked checkbox is aria-checked="false", not unknown)
+      if (v === false && (a === 'aria-checked' || a === 'aria-pressed' || a === 'aria-expanded' || a === 'aria-selected')) { host.setAttribute(a, 'false'); continue; }
       if (v === false || v == null) continue;
       host.setAttribute(a, v === true ? 'true' : String(v));
     }

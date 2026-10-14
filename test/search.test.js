@@ -81,3 +81,13 @@ test('affinity: a score orders "Più affini" and the strongest reason shows in w
     assert.equal((await me.get(`/api/profiles/${ideaId}`)).body.complement, null);
   } finally { t2.close(); }
 });
+
+test('filters with a comma in the name (backgrounds, sectors) work, old comma-joined addresses too', async () => {
+  const { parseDiscoverQuery } = await import('../src/profiles.js');
+  const q = s => parseDiscoverQuery(new URLSearchParams(s));
+  assert.deepEqual(q('backgrounds=Business%2C+finanza+e+diritto').backgrounds, ['Business, finanza e diritto']);
+  assert.deepEqual(q('backgrounds=Business%2C+finanza+e+diritto|Design%2C+arte+e+cultura').backgrounds, ['Business, finanza e diritto', 'Design, arte e cultura']);
+  assert.deepEqual(q('sectors=AI%2C+Software+%26+SaaS').sectors, ['AI, Software & SaaS']);
+  assert.deepEqual(q('desired=Palermo,Catania').desired, ['Palermo', 'Catania']);
+  assert.deepEqual(q('desired=Palermo|Catania').desired, ['Palermo', 'Catania']);
+});

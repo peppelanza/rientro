@@ -64,6 +64,13 @@ export default class extends Page {
     });
     // The preview is the real profile page, as others will see it (persona.js), with Pubblica on top
     if (this.state.step === 'anteprima') return go(previewHref(me));
+    // Each step is a place in the history: the phone's back (or the browser's) goes to the step
+    // before, not out of the onboarding (goTo adds them)
+    history.replaceState(null, '', `/onboarding?passo=${this.state.step}`);
+    addEventListener('popstate', () => {
+      const back = new URLSearchParams(location.search).get('passo');
+      if (STEPS.some(x => x[0] === back) || back === 'benvenuto') this.goTo(back, { push: false });
+    });
     if (p.lives_in === 'abroad' && p.lives_in_country) this.loadCities();
     if (p.arrived_from_country) this.loadFromCities();
   }
@@ -104,7 +111,8 @@ export default class extends Page {
       && (k !== 'invito' || !!this.state.me?.invite?.invited_by));
   }
 
-  goTo(step) {
+  goTo(step, { push = true } = {}) {
+    if (push && step !== this.state.step) history.pushState({ from: this.state.step }, '', `/onboarding?passo=${step}`);
     this.state.step = step;
     this.__rerender();
     window.scrollTo(0, 0);
@@ -141,8 +149,13 @@ export default class extends Page {
     for (const k of Object.keys(body)) body[k] = nz(body[k]);
     if ((step === 'luogo' || step === 'residenza') && s.p.lives_in === 'italy') delete body.lives_in_country;
     body.onboarding_step = nextStep;
+    // What was written on other steps and not saved yet (Indietro, then Continua here) stays as written
+    const shown = this.lastSaved || s.me.profile;
+    const unsaved = Object.keys(s.p).filter(k => !(k in body) && JSON.stringify(s.p[k]) !== JSON.stringify(shown[k]));
+    const keep = Object.fromEntries(unsaved.map(k => [k, s.p[k]]));
     const saved = await api('PATCH', '/api/me/profile', body);
-    Object.assign(s.p, saved);
+    this.lastSaved = structuredClone(saved);
+    Object.assign(s.p, saved, keep);
     s.savedAt = new Date().toISOString();
   }
 
@@ -152,6 +165,13 @@ export default class extends Page {
       const keys = this.steps.map(x => x[0]);
       const i = keys.indexOf(s.step);
       if (!skip && this.blocker(s.step)) return;
+      // a Formazione / Esperienze entry still open with something written: never thrown away silently
+      const open = s.edu || s.exp;
+      if (open && Object.entries(open).some(([k, v]) => k !== 'id' && typeof v === 'string' && v.trim())) {
+        toast(s.edu ? 'Salva o annulla la formazione che stai scrivendo.' : 'Salva o annulla l’esperienza che stai scrivendo.', { tone: 'info' });
+        document.querySelector('[data-key^="edu-"], [data-key^="exp-"]')?.focus();
+        return;
+      }
       const nextStep = keys[i + 1] ?? 'anteprima';
       if (skip) {
         // "Salta" keeps what was already saved but doesn't send half-typed answers
@@ -168,7 +188,10 @@ export default class extends Page {
   back() {
     const keys = this.steps.map(x => x[0]);
     const i = keys.indexOf(this.state.step);
-    this.goTo(i > 0 ? keys[i - 1] : 'benvenuto');
+    const prev = i > 0 ? keys[i - 1] : 'benvenuto';
+    // came here from that step: the same as the phone's back (no step piling up in the history)
+    if (history.state?.from === prev) history.back();
+    else this.goTo(prev);
   }
 
   // Signed in with LinkedIn (or Google): their photo becomes the first profile photo, but only if it
@@ -322,7 +345,7 @@ export default class extends Page {
       is_manca: is('manca'), is_link: is('link'), is_fonte: is('fonte'), is_invito: is('invito'),
 
       // Callback bundles for app components (functions reach components as props via dc-props)
-      footProps: { onNext: () => this.next(), onSkip: () => this.next(true), onBack: () => this.back() },
+      footProps: { onNext: () => this.next(), onSkip: () => this.next(true), onBack: () => this.back(), onBlocked: () => { const b = this.blocker(s.step); if (b) toast(b, { tone: 'info' }); } },
       cityPickerProps: { onChange: list => this.set({ lives_in_city: list.at(-1) ?? null }) },
       desiredProps: { onChange: list => this.set({ desired_comuni: list, desired_unknown: list.length ? false : p.desired_unknown }) },
       stageProps: { onSelect: v => this.set({ idea_stage: v || null }) },

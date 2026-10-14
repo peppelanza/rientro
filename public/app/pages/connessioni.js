@@ -60,8 +60,10 @@ export default class extends Page {
   respond(c, action) {
     return this.act(async () => {
       await api('POST', `/api/connections/${c.connection_id}/${action}`);
-      if (action === 'accept') toast(`Ora sei connesso con ${c.first_name}.`, { action: 'Apri chat', onAction: () => go(`/messaggi/${c.id}`) });
-      await this.fetch();
+      if (action === 'accept') toast(`Tu e ${c.first_name} ora siete connessi.`, { action: 'Apri chat', onAction: () => go(`/messaggi/${c.id}`) });
+      // the numbers in the nav (Connessioni's badge) follow at once
+      const [fresh] = await Promise.all([getMe(true).catch(() => null), this.fetch()]);
+      if (fresh) this.state.me = fresh;
     })();
   }
 

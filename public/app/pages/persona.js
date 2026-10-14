@@ -32,7 +32,7 @@ function shrinkPhoto() {
   const aside = document.querySelector('.persona-aside');
   const wrap = aside?.querySelector('.persona-photo');
   if (!wrap) return;
-  if (innerWidth <= 720) { wrap.style.removeProperty('--pr'); return; }
+  if (innerWidth <= 900) { wrap.style.removeProperty('--pr'); return; }
   const grid = aside.parentElement;
   const stuckAt = grid.getBoundingClientRect().top + scrollY + parseFloat(getComputedStyle(grid).paddingTop) - (parseFloat(getComputedStyle(aside).top) || 0);
   const w = wrap.offsetWidth;
@@ -81,6 +81,13 @@ export default class extends Page {
     if (!head) return;
     this.headWatch = new IntersectionObserver(([e]) => document.body.classList.toggle('persona-head-away', !e.isIntersecting && e.boundingClientRect.top < 0));
     this.headWatch.observe(head);
+    // A profile too short to scroll the name away: the links (that fade in with the short name,
+    // app.css) are there from the start, or they'd never show
+    const short = () => document.body.classList.toggle('persona-short', document.documentElement.scrollHeight - innerHeight < head.getBoundingClientRect().bottom + scrollY);
+    short();
+    this.shortWatch?.disconnect();
+    this.shortWatch = new ResizeObserver(short);
+    this.shortWatch.observe(document.body);
   }
 
   async load() {
@@ -146,8 +153,8 @@ export default class extends Page {
       // In the preview the buttons are there, as others see them, but do nothing
       preview: !!s.self, previewClass: s.self ? 'preview-off' : '',
       // Still in onboarding: this is the last step, Pubblica il profilo here (what's missing first)
-      onboardingPreview: !!s.self && s.me.user.status === 'onboarding', donePreview: !!s.self && s.me.user.status !== 'onboarding',
-      missing: (s.me.missing || []).join(', '), hasMissing: (s.me.missing || []).length > 0,
+      onboardingPreview: !!s.self && s.me?.user.status === 'onboarding', donePreview: !!s.self && s.me?.user.status !== 'onboarding',
+      missing: (s.me?.missing || []).join(', '), hasMissing: (s.me?.missing || []).length > 0,
       publish: this.act(async () => { const me = await api('POST', '/api/me/submit'); setMe(me); go(homeFor(me)); toast('Il tuo profilo è online.'); }),
       connect: async () => { if (s.self) return; if (await connect({ ...person, onChange: () => this.refresh() })) this.refresh(); },
       withdraw: this.act(async () => { await api('POST', `/api/connections/${p.connection.id}/withdraw`); toast('Richiesta annullata.'); await this.refresh(); }),

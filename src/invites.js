@@ -64,7 +64,14 @@ export function inviteInfo(db, user) {
   const row = db.prepare('SELECT invited_by FROM users WHERE id = ?').get(user.id);
   const by = row?.invited_by && !isBlocked(db, user.id, row.invited_by)
     && db.prepare("SELECT 1 FROM users WHERE id = ? AND status = 'approved'").get(row.invited_by) ? person(db, row.invited_by) : null;
-  return { url: user.status === 'approved' ? inviteUrl(inviteCode(db, user.id)) : null, invited_by: by };
+  // their photo through /api/me/inviter-photo: /api/files is for members, and you may still be in onboarding
+  return { url: user.status === 'approved' ? inviteUrl(inviteCode(db, user.id)) : null, invited_by: by && { ...by, photo_url: by.photo_url ? '/api/me/inviter-photo' : null } };
+}
+
+// The photo of who invited you (inviteInfo), while they'd show there
+export function myInviterPhotoId(db, user) {
+  const by = inviteInfo(db, user).invited_by;
+  return by ? db.prepare('SELECT photo_file_id FROM profiles WHERE user_id = ?').get(by.id)?.photo_file_id ?? null : null;
 }
 
 // The profile went online: the request chosen in onboarding goes to the inviter

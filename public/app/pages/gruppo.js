@@ -205,7 +205,7 @@ export default class extends Page {
     // Outside Rientro the author is just a name and a photo; the profile is behind sign-up
     const person = a => ({ name: a.name, photo: a.photo_url, ini: ini(a.name), role: a.role || '', href: s.member ? `/persone/${a.id}` : '/accedi' });
     const comment = (p, c) => ({ ...c, who: person(c.author), when: timeAgo(c.created_at), canDelete: c.mine || admin, del: () => this.remove(p, c) });
-    const phone = matchMedia('(max-width: 720px)').matches;
+    const phone = matchMedia('(max-width: 900px)').matches;
     const posts = (s.feed?.items || []).map(p => ({
       ...p, anchor: `post-${p.id}`, who: person(p.author), when: timeAgo(p.created_at),
       hasBody: !!p.body, images: (p.images || []).map(src => ({ src })), hasImages: !!p.images?.length, gridCls: `group-images n${Math.min(p.images?.length || 0, 5)}`,
@@ -242,7 +242,7 @@ export default class extends Page {
       // the top of the page; on a phone just far enough for the box to reach the top of the screen
       toComposer: () => {
         const box = document.querySelector('[data-key="group-post"]');
-        const phone = matchMedia('(max-width: 720px)').matches;
+        const phone = matchMedia('(max-width: 900px)').matches;
         const top = phone && box ? box.closest('.group-compose').getBoundingClientRect().top + scrollY - 12 : 0;
         scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         box?.focus({ preventScroll: true });

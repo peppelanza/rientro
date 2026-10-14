@@ -7,7 +7,7 @@ const PULL = 64; // px of (damped) pull that triggers a refresh; the page waits 
 const MIN_SPIN = 1000; // ms the wheel turns at least, even when the data is back sooner
 
 export function pullToRefresh(page) {
-  if (!matchMedia('(max-width: 720px)').matches) return;
+  if (!matchMedia('(max-width: 900px)').matches) return;
   const root = document.documentElement;
   root.style.overscrollBehaviorY = 'none';
   const spinner = Object.assign(document.createElement('div'), { className: 'pull-spinner' });

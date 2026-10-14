@@ -14,7 +14,7 @@ export function stickSide(aside) {
   if (!aside) return;
   lastY = scrollY;
   const reset = () => {
-    Object.assign(aside.style, { position: innerWidth <= 720 ? '' : 'sticky', top: `${SIDE_MARGIN}px`, marginTop: '' });
+    Object.assign(aside.style, { position: innerWidth <= 900 ? '' : 'sticky', top: `${SIDE_MARGIN}px`, marginTop: '' });
     placeSide(0);
   };
   reset();
@@ -24,7 +24,7 @@ export function stickSide(aside) {
 
 function placeSide(dy) {
   const aside = sideAside;
-  if (!aside?.isConnected || innerWidth <= 720) return;
+  if (!aside?.isConnected || innerWidth <= 900) return;
   const m = SIDE_MARGIN;
   const r = aside.getBoundingClientRect();
   const bottomPin = innerHeight - r.height - SIDE_BOTTOM; // the top that puts its bottom at the screen's

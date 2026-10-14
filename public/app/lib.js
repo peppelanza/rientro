@@ -255,7 +255,7 @@ export function openModal({ template, Logic, props = {}, backdrop = 'rgba(26,23,
       overlay.style.bottom = 'auto';
       overlay.style.height = `${vv.height}px`;
     };
-    const phone = vv && matchMedia('(max-width: 720px)').matches;
+    const phone = vv && matchMedia('(max-width: 900px)').matches;
     if (phone) { fit(); vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
     // closing plays the opening backwards (app.css .modal-overlay.closing), then it goes
     const close = result => {

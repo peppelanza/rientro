@@ -56,7 +56,7 @@ def('App Nav', String.raw`
 <div style="height:64px;padding:0 10px 0 26px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid #FFFFFF;box-shadow:0 8px 30px rgba(80,60,160,.10);box-sizing:border-box;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:500;color:#1A1726">
 <a href="{{ home }}" aria-label="Rientro, home" style="display:flex;align-items:baseline;gap:3px;font-family:'Instrument Serif',serif;font-style:italic;font-size:28px;line-height:1;margin-right:22px;color:#1A1726;text-decoration:none">Rientro<span style="width:7px;height:7px;border-radius:50%;background:#6C4DF5;display:inline-block"></span></a>
 <sc-for list="{{ items }}" as="it">
-<a href="{{ it.href }}" class="r-hide-sm" aria-current="{{ it.current }}" style="height:42px;padding:0 16px;border-radius:999px;background:{{ it.bg }};color:{{ it.fg }};display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#6C4DF5;color:#FFFFFF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.count }}</span></sc-if></a>
+<a href="{{ it.href }}" class="r-hide-sm" aria-current="{{ it.current }}" style="height:42px;padding:0 16px;border-radius:999px;background:{{ it.bg }};color:{{ it.fg }};display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;white-space:nowrap">{{ it.label }}<sc-if value="{{ it.hasCount }}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#6C4DF5;color:#FFFFFF;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ it.count }}</span></sc-if></a>
 </sc-for>
 <sc-if value="{{ pendingNote }}"><a href="/onboarding" class="r-hide-sm" style="height:42px;padding:0 16px;border-radius:999px;background:#FFF3D6;color:#8A5A00;display:flex;align-items:center;gap:8px;text-decoration:none"><span style="width:7px;height:7px;border-radius:50%;background:#D49A1A"></span>{{ pendingNote }}</a></sc-if>
 <div style="flex:1"></div>
@@ -330,7 +330,7 @@ def('App Step Footer', String.raw`
 <div style="flex:1"></div>
 <sc-if value="{{ hasStatus }}"><span role="status" class="r-hide-sm" style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:{{ statusColor }}">{{ status }}</span></sc-if>
 <sc-if value="{{ hasSkip }}"><dc-import name="UI Button" label="{{ skip }}" variant="ghost" on-click="{{ skipFn }}"></dc-import></sc-if>
-<dc-import name="UI Button" label="{{ primary }}" variant="{{ primaryVariant }}" on-click="{{ next }}" host-aria-disabled="{{ disabled }}"></dc-import>
+<div onClick="{{ blockedTap }}"><dc-import name="UI Button" label="{{ primary }}" variant="{{ primaryVariant }}" on-click="{{ next }}" host-aria-disabled="{{ disabled }}"></dc-import></div>
 </div>`, class extends DCLogic {
   renderVals() {
     const p = this.props;
@@ -341,6 +341,8 @@ def('App Step Footer', String.raw`
       status: p.status, hasStatus: !!p.status, statusColor: b(p.error) ? '#B42318' : (dark ? '#B7B0D4' : '#8C84AE'),
       skip: p.skip, hasSkip: !!p.skip, skipFn: p.onSkip,
       primary: p.primary ?? 'Continua', next: p.onNext, disabled,
+      // a tap on the disabled button says what's missing (on a phone the status beside it is hidden)
+      blockedTap: () => { if (disabled) p.onBlocked?.(); },
       primaryVariant: disabled ? 'secondary' : (b(p.accent) ? 'accent' : (dark ? 'light' : 'primary')),
     };
   }
@@ -389,8 +391,10 @@ def('App Field', String.raw`
         if (grow) { e.target.style.height = 'auto'; e.target.style.height = `${e.target.scrollHeight}px`; }
         // mask="month": mm/aaaa, the slash added while typing the digits
         if (p.mask === 'month' && !String(e.inputType || '').startsWith('delete')) {
-          const d = e.target.value.replace(/\D/g, '').slice(0, 6);
-          e.target.value = d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d.length === 2 ? `${d}/` : d;
+          // "3/2019" → 03/2019 (a one-digit month with its slash); "2019" stays as typed (not a month)
+          const one = e.target.value.match(/^(\d)\s*[/.\- ](.*)$/);
+          const d = (one ? `0${one[1]}${one[2]}` : e.target.value).replace(/\D/g, '').slice(0, 6);
+          e.target.value = +d.slice(0, 2) > 12 || d.startsWith('00') ? d : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d.length === 2 ? `${d}/` : d;
         }
         p.onInput?.(e.target.value);
         if (counter) { this.state.v = e.target.value; this.__rerender(); }
@@ -571,7 +575,7 @@ def('App City Jump', String.raw`
   // opens it (read-only, so it never raises the keyboard itself). The sheet has the search field
   // at the top and the list below, sized to the visible viewport so the keyboard never covers
   // it; the phone's back button closes it.
-  get phone() { return matchMedia('(max-width: 720px)').matches; }
+  get phone() { return matchMedia('(max-width: 900px)').matches; }
   // compact: a copy in a top bar (the home's), which opens where it is; uid: its element ids
   get compact() { return b(this.props.compact); }
   openSheet() {
@@ -950,7 +954,7 @@ def('App Comune Picker', String.raw`
         const a = h.f.at[h.pos];
         const z = h.f.at[h.pos + h.len];
         const c = h.c;
-        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} persone` : (c[2]?.toUpperCase() ?? '') };
+        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} ${counts[c[0]] === 1 ? "persona" : "persone"}` : (c[2]?.toUpperCase() ?? '') };
       }),
       ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
     ];
@@ -1042,7 +1046,7 @@ def('App Person Card', String.raw`
 <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><sc-if value="{{ p.idea_line }}"><span style="color:#8C84AE">Idea</span><span style="font-weight:600">{{ p.idea_line }}</span></sc-if><sc-if value="{{ p.move }}"><span style="color:#8C84AE">Trasferimento</span><span>{{ p.move }}</span></sc-if><sc-if value="{{ p.background }}"><span style="color:#8C84AE">Background</span><span>{{ p.background }}</span></sc-if></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>
-<sc-if value="{{ showActions }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<sc-if value="{{ showActions }}"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:8px">
 <a href="{{ href }}" class="pc-btn pc-btn-secondary"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>{{ secondaryLabel }}</a>
 <button type="button" class="pc-btn pc-btn-{{ action.v }}" onClick="{{ action.fn }}" aria-disabled="{{ action.off }}"><sc-if value="{{ action.isConnect }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3.1-7 7-7 1.4 0 2.7.4 3.8 1"/><path d="M18 14v6M15 17h6"/></svg></sc-if><sc-if value="{{ action.isChat }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></sc-if><sc-if value="{{ action.isWait }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></sc-if><sc-if value="{{ action.isReply }}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v5"/></svg></sc-if>{{ action.l }}</button>
 </div></sc-if>

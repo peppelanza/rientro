@@ -3,7 +3,7 @@
 <dc-import name="App Admin Sidebar" active="{{ side.active }}" counts="{{ side.counts }}" email="{{ side.email }}" site="{{ side.site }}"></dc-import>
 <main class="admin-main">
 <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.05em">Foto da controllare</h1>
-<span style="font-size:14px;color:#6B6680;line-height:1.5;max-width:720px">Foto profilo che non hanno superato il controllo automatico del volto. Nessuno viene bloccato: l'iscrizione prosegue e la foto si controlla qui. Se va bene, confermala; se no, apri il profilo e chiedi di cambiarla.</span></div>
+<span style="font-size:14px;color:#6B6680;line-height:1.5;max-width:900px">Foto profilo che non hanno superato il controllo automatico del volto. Nessuno viene bloccato: l'iscrizione prosegue e la foto si controlla qui. Se va bene, confermala; se no, apri il profilo e chiedi di cambiarla.</span></div>
 <div style="max-width:420px"><dc-import name="App Field" search="{{ true }}" field="photos-q" value="{{ q }}" placeholder="Cerca per nome o email" dc-props="{{ searchProps }}"></dc-import></div>
 <sc-if value="{{ empty }}"><div style="background:#FFFFFF;border-radius:24px;padding:28px;font-size:14px;color:#6B6680">{{ emptyText }}</div></sc-if>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">

@@ -36,7 +36,7 @@ export default class extends Page {
       fetch('/api/public/invite').then(r => r.json()).catch(() => null),
     ]);
     this.state.inviter = invite?.inviter || null;
-    const date = launch && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
+    const date = launch && !launch.launched && new Date(launch.launch_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Rome' }).replace(/^1 /, '1°\u00a0');
     const city = (qs().get('citta') ?? '').trim().slice(0, 80);
     Object.assign(this.state, { launch, launchDate: date, city });
     // From a territory (the home's picker, a territory page): its name, and its photo as a postcard

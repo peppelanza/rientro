@@ -109,7 +109,7 @@ export default class extends Page {
       messages: (t?.messages || []).map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, hasBody: !!m.body, who: m.from_team ? 'Team Rientro' : 'Tu', at: fmtTime(m.created_at), align: m.mine ? 'flex-end' : 'flex-start', ...messageImages(m.images || []) })),
       tray: trayVals(this, TRAY),
       // a phone's box is narrow: the short hint
-      writeHint: matchMedia('(max-width: 720px)').matches ? 'Scrivi…' : 'Scrivi al supporto',
+      writeHint: matchMedia('(max-width: 900px)').matches ? 'Scrivi…' : 'Scrivi al supporto',
       write: this.write, writeProps: { onInput: v => { s.draft = v; } },
       onError: toastError,
     };

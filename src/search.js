@@ -14,7 +14,9 @@ export const norm = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '')
 const split = s => norm(s).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 
 // The words of a query: distinct, at most 8
-export const terms = q => [...new Set(split(q))].slice(0, 8);
+// (one-letter words, like the "d" of "D'Agostino", would match nearly everyone: left out, unless
+// they're all that was typed)
+export const terms = q => { const all = [...new Set(split(q))]; const long = all.filter(w => w.length > 1); return (long.length ? long : all).slice(0, 8); };
 
 // The distinct words of a text
 export const wordsOf = text => [...new Set(split(text))];

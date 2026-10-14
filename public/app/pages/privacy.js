@@ -50,8 +50,8 @@ export default class extends Page {
     return {
       loading: false, me, menu: settingsMenu, cat,
       // what others see, as profiles.js publicProfile gives it: every link only to connections
-      publicFields: ['Nome e foto', 'Luoghi', 'Percorso', 'Formazione', 'Idea', 'Video', 'Interessi', 'Cosa ti manca'],
-      privateFields: ['LinkedIn', 'Sito', 'Instagram', 'X / Twitter', 'Link calendario', 'Chat'],
+      publicFields: ['Nome e foto', 'Luoghi', 'Lavoro', 'Formazione', 'Idea', 'Video', 'Interessi', 'Cosa mi manca di casa'],
+      privateFields: ['LinkedIn', 'Sito', 'Instagram', 'X', 'Link calendario', 'Chat'],
       blockedLabel: n ? `${n} ${n === 1 ? 'persona' : 'persone'}` : 'nessuna',
       showBlockSearch: n > 5, bq: s.bq, blockSearchProps: { onInput: v => this.searchBlocks(v) },
       blocked: bl.items.map((b, i) => ({ n: b.name, d: `Bloccato il ${fmtDate(b.since)}`, bt: i ? '1px solid #ECE8F7' : 'none', unblock: () => this.unblock(b) })),

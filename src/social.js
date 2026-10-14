@@ -64,7 +64,11 @@ export function markNotificationsRead(db, user) {
 export function badgeCounts(db, user) {
   return {
     received: db.prepare("SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'").get(user.id).n,
-    unread_messages: db.prepare('SELECT COUNT(DISTINCT sender_id) AS n FROM messages WHERE recipient_id = ? AND read_at IS NULL').get(user.id).n,
+    // only from whom a chat is open with (connected, not blocked, not leaving): as the Messaggi list
+    unread_messages: db.prepare(`SELECT COUNT(DISTINCT m.sender_id) AS n FROM messages m WHERE m.recipient_id = ? AND m.read_at IS NULL
+      AND EXISTS (SELECT 1 FROM connections c WHERE c.status = 'accepted' AND ((c.requester_id = m.sender_id AND c.addressee_id = m.recipient_id) OR (c.requester_id = m.recipient_id AND c.addressee_id = m.sender_id)))
+      AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = m.sender_id AND b.blocked_id = m.recipient_id) OR (b.blocker_id = m.recipient_id AND b.blocked_id = m.sender_id))
+      AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = m.sender_id AND u.deletion_requested_at IS NOT NULL)`).get(user.id).n,
     notifications: db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(user.id).n,
     // tickets with an answer from the team not read yet ("Non letto" by Supporto in the account menu)
     support_unread: db.prepare(`SELECT COUNT(*) AS n FROM support_tickets t WHERE t.user_id = ? AND EXISTS (SELECT 1 FROM support_messages m
@@ -114,14 +118,16 @@ export function respondConnection(db, viewer, id, action) {
     notify(db, c.requester_id, 'connection_accepted', viewer.id, { connection_id: id });
     return { status: 'connected', other_id: c.requester_id };
   }
-  // Declining is silent (design 31a: "Se rifiuti, Marco non riceve alcuna notifica.")
+  // Declining is silent (design 31a: "Se rifiuti, Marco non riceve alcuna notifica."); the request's
+  // notification goes, it would lead to nothing
   db.prepare("UPDATE connections SET status = 'declined', responded_at = ? WHERE id = ?").run(now(), id);
+  db.prepare("DELETE FROM notifications WHERE kind = 'connection_request' AND user_id = ? AND actor_id = ?").run(viewer.id, c.requester_id);
   return { status: 'none' };
 }
 
 // Removing a connection (either of the two, from the other's profile): silent, like declining. It
 // ends as 'withdrawn' (the table's statuses): you're no longer connected, links and chat close, and
-// either can ask again later. Past messages stay.
+// either can ask again later. Past messages are kept, closed: connecting again brings them back.
 export function removeConnection(db, viewer, id) {
   const c = db.prepare('SELECT * FROM connections WHERE id = ?').get(id);
   if (!c || c.status !== 'accepted' || (c.requester_id !== viewer.id && c.addressee_id !== viewer.id)) throw new HttpError(404, 'not_found', 'Connessione non più disponibile.');
@@ -174,7 +180,7 @@ export function getRequest(db, viewer, id) {
 
 function requireConnected(db, a, b) {
   const c = connectionBetween(db, a, b);
-  if (!c || c.status !== 'accepted' || isBlocked(db, a, b)) throw new HttpError(403, 'not_connected', 'Potete scrivervi solo dopo che la connessione è stata accettata.');
+  if (!c || c.status !== 'accepted' || isBlocked(db, a, b)) throw new HttpError(403, 'not_connected', 'Potete scrivervi solo quando siete connessi.');
   return c;
 }
 
@@ -301,6 +307,8 @@ export function block(db, viewer, targetId) {
   if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(targetId)) throw new HttpError(404, 'not_found');
   tx(db, () => {
     db.prepare('INSERT OR IGNORE INTO blocks (blocker_id, blocked_id, created_at) VALUES (?, ?, ?)').run(viewer.id, targetId, now());
+    // what either was told about the other goes from the bell too (name, photo, unread count)
+    db.prepare('DELETE FROM notifications WHERE (user_id = ? AND actor_id = ?) OR (user_id = ? AND actor_id = ?)').run(viewer.id, targetId, targetId, viewer.id);
     // "La connessione e la chat vengono chiuse." Blocked person gets no notification.
     db.prepare(
       `UPDATE connections SET status = 'withdrawn', responded_at = ?

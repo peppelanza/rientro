@@ -72,7 +72,7 @@ export default class extends AdminPage {
         opened: `${fmtShort(t.created_at)} ${fmtTime(t.created_at)}`, closed: t.status === 'closed', open: t.status === 'open',
         messages: t.messages.map(m => ({ from: m.mine ? 'me' : 'them', body: m.body, hasBody: !!m.body, who: m.from_team ? 'Team Rientro' : (t.user.name || 'Membro'), at: `${fmtShort(m.created_at)} ${fmtTime(m.created_at)}`, align: m.mine ? 'flex-end' : 'flex-start', ...messageImages(m.images || []) })),
         tray: trayVals(this, TRAY),
-        replyHint: matchMedia('(max-width: 720px)').matches ? 'Rispondi…' : 'Rispondi come Team Rientro',
+        replyHint: matchMedia('(max-width: 900px)').matches ? 'Rispondi…' : 'Rispondi come Team Rientro',
         draft: s.draft, draftProps: { onInput: v => { s.draft = v; } }, reply: this.reply,
         close: () => this.setStatus('closed'), reopen: () => this.setStatus('open'),
       };

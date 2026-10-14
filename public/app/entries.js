@@ -10,7 +10,13 @@ export function expBody(e) {
   if (!nz(e.company)) { toast('Indica l’azienda.', { tone: 'err' }); return null; }
   const start = textToMonth(e.start_month);
   const end = e.current ? null : textToMonth(e.end_month);
-  if (start === undefined || end === undefined) { toast('Scrivi le date come mm/aaaa, per esempio 03/2021.', { tone: 'err' }); return null; }
+  // which date, and why: the format, or a month that hasn't come yet
+  const why = (t, label) => {
+    const m = String(t ?? '').trim().match(/^(\d{1,2})\s*[/.\- ]\s*(\d{4})$/);
+    return m && +m[1] >= 1 && +m[1] <= 12 && +m[2] > new Date().getFullYear() ? `${label}: la data non può essere nel futuro.` : `${label}: scrivi la data come mm/aaaa, per esempio 03/2021.`;
+  };
+  if (start === undefined) { toast(why(e.start_month, 'Inizio'), { tone: 'err' }); return null; }
+  if (end === undefined) { toast(why(e.end_month, 'Fine'), { tone: 'err' }); return null; }
   if (start && end && end < start) { toast('La fine viene prima dell’inizio.', { tone: 'err' }); return null; }
   return { company: e.company.trim(), role: nz(e.role), city: nz(e.city), start_month: start, end_month: end, current: !!e.current };
 }

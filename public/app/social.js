@@ -24,7 +24,7 @@ export async function connect(person) {
           first, photo: person.photo_url, ini: (person.name || first).split(' ').map(w => w[0]).join('').slice(0, 2),
           sub: [person.role?.split(' · ')[0], person.back_from ? routeOf(person) : person.from && person.to ? `${person.from} → ${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
           // two lines on phones (the keyboard takes half the screen), four on a computer
-          noteRows: matchMedia('(max-width: 720px)').matches ? 2 : 4,
+          noteRows: matchMedia('(max-width: 900px)').matches ? 2 : 4,
           note: this.state.note, noteProps: { onInput: v => { this.state.note = v; } },
           busy: this.state.busy, sendLabel: this.state.busy ? 'Invio…' : 'Invia richiesta',
           cancel: () => this.close(),
@@ -92,7 +92,7 @@ export async function report(person, { postId } = {}) {
 const REMOVE = `
 <div style="width:440px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:28px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;letter-spacing:-.04em">Rimuovere la connessione con {{ first }}?</h2>
-<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· I messaggi già scambiati restano.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:#4A4560"><span>· Non potrete più scrivervi e i link riservati alle connessioni non saranno più visibili.</span><span>· La chat si chiude: se vi riconnettete ritrovate i messaggi già scambiati.</span><span>· Non riceverà alcuna notifica e potrete riconnettervi quando volete.</span></div>
 <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px"><dc-import name="UI Button" label="Annulla" variant="ghost" on-click="{{ cancel }}"></dc-import><dc-import name="UI Button" label="Rimuovi connessione" variant="destructive" on-click="{{ confirm }}"></dc-import></div>
 </div>`;
 

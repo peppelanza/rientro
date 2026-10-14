@@ -61,13 +61,24 @@ export function httpsUrl(value, field) {
     throw bad('invalid_field', `${field} non è un link valido`);
   }
   if (u.protocol !== 'https:') throw bad('invalid_field', `${field} deve usare https`);
+  // a host without a dot ("https://martalopresti/") leads nowhere
+  if (!u.hostname.includes('.')) throw bad('invalid_field', `${field} non è un link valido`);
   return u.toString();
+}
+
+// LinkedIn: the whole link, or just the name in it ("martalopresti" → linkedin.com/in/martalopresti)
+export function linkedinUrl(value, field) {
+  const v = text(value, field, { max: 300 });
+  if (v == null) return v;
+  if (/^[A-Za-z0-9-]{3,100}$/.test(v)) return `https://www.linkedin.com/in/${v}`;
+  return httpsUrl(v, field);
 }
 
 export function handle(value, field) {
   const v = text(value, field, { max: 40 });
   if (v == null) return v;
-  const h = v.replace(/^@/, '');
+  // the profile's link pasted whole ("https://x.com/martalp", "instagram.com/martalp/") is fine too
+  const h = v.replace(/^(https?:\/\/)?(www\.)?(x|twitter|instagram)\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@/, '');
   if (!/^[A-Za-z0-9._]{1,30}$/.test(h)) throw bad('invalid_field', `${field} non valido`);
   return `@${h}`;
 }
