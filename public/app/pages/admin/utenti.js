@@ -5,7 +5,12 @@ import { AdminPage, STATUS_KIND, initials } from './_admin.js';
 export const title = 'Utenti · Admin';
 const KEYS = ['q', 'status', 'intent', 'place', 'source', 'page'];
 const two = n => String(n).padStart(2, '0');
-const short = iso => { const d = new Date(iso); return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`; };
+// signed up today: the time ("14:32"), otherwise the date ("15/10/26")
+const short = iso => {
+  const d = new Date(iso);
+  if (d.toDateString() === new Date().toDateString()) return `${two(d.getHours())}:${two(d.getMinutes())}`;
+  return `${two(d.getDate())}/${two(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)}`;
+};
 
 export default class extends AdminPage {
   async loadAdmin() {
