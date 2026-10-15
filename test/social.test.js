@@ -719,5 +719,5 @@ test('admin user page: every onboarding answer, how they sign in, where onboardi
   await half.patch('/api/me/profile', { lives_in: 'abroad', lives_in_country: 'Bulgaria', lives_in_city: 'Sofia', onboarding_step: 'chi' });
   const h = (await admin.get(`/api/admin/users/${half.id}`)).body;
   assert.equal(h.profile.onboarding_step, 'chi');
-  assert.ok(h.labels.missing.includes('Chi stai cercando') && h.labels.missing.includes('Foto'));
+  assert.ok(h.labels.missing.includes('Foto') && !h.labels.missing.includes('Chi stai cercando'), 'onboarding ends with Presentati');
 });

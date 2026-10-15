@@ -56,6 +56,7 @@ export default class extends AdminPage {
       })()],
       ['Fermo al passo', u.status === 'onboarding' ? STEP[p.onboarding_step] ?? p.onboarding_step ?? 'Benvenuto' : ''],
       ['Manca', (L.missing || []).join(', ')],
+      ['Da completare', (L.gaps || []).join('\n')],
       ['Situazione', p.lives_in ? (back ? 'Già rientrato/a' : 'Vive fuori') : ''],
       ['Vive a', [p.lives_in_city, p.lives_in_country].filter(Boolean).join(', ')],
       ['Rientrato/a da', back ? L.arrived : ''],

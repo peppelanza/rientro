@@ -5,6 +5,8 @@
 
 <!-- (only once loaded: before, the filters would sit under the loading space and then jump up) -->
 <sc-if value="{{ loaded }}"><div class="r-page">
+<!-- what's still empty in your own profile: one line to Il tuo profilo (components.js App Complete Profile) -->
+<sc-if value="{{ hasGaps }}"><div style="padding:20px var(--gutter) 0"><dc-import name="App Complete Profile" gaps="{{ gaps }}" compact="{{ true }}"></dc-import></div></sc-if>
 <!-- Phones: title and count, then Filtri and Ordina on one row, then the filters chosen; the panel opens under them -->
 <div class="r-show-sm" style="padding:18px var(--gutter) 0"><div style="display:flex;flex-direction:column;gap:14px">
 <div style="display:flex;flex-direction:column;gap:8px"><h1 class="r-h2" style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:48px;letter-spacing:-.045em;line-height:1">Scopri chi torna</h1><span role="status" style="font-size:15px;color:#6B6680">{{ totalLabel }}</span></div>

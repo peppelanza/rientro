@@ -58,6 +58,8 @@ export default class extends Page {
       role: c.job,
       from: route[0], to: route[1], hasRoute: !!(route[0] && route[1]),
       open: () => go('/profilo'),
+      // what's left to fill in now that the profile is online (components.js App Complete Profile)
+      gaps: s.me.gaps || [], completeProps: { onChange: async () => { s.me = await getMe(true); this.__rerender(); } },
       // The member's invite link (invites.js)
       inviteUrl: s.me.invite?.url, inviteShort: (s.me.invite?.url || '').replace(/^https?:\/\/(www\.)?/, ''),
       copyLabel: s.copied ? 'Copiato ✓' : 'Copia link', canShare: !!navigator.share,

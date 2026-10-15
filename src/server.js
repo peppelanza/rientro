@@ -21,6 +21,7 @@ import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelco
 import { sendNotificationDigests } from './email-digest.js';
 import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
+import { sendProfileReminders } from './profile-reminder.js';
 import { disconnect as liveDisconnect, subscribe } from './live.js';
 import { clientIp as clientIpOf, forwardingHeaders } from './client-ip.js';
 import { inviteImage, invitePage } from './invite-card.js';
@@ -414,6 +415,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     legal: auth.legalStatus(db, user.id),
     profile: profiles.effectiveProfile(db, user.id),
     missing: profiles.missingForSubmit(profiles.effectiveProfile(db, user.id)),
+    // what's left to fill in once online ("Completa il tuo profilo")
+    gaps: profiles.profileGaps(profiles.effectiveProfile(db, user.id), { invitedBy: inviteInfo(db, user).invited_by?.first_name ?? null }),
     job_seeking: prefs.getJobPreferences(db, user.id),
     communication: prefs.getCommunicationPreferences(db, user.id),
     job_seeking_notice: { text: JOB_SEEKING_NOTICE_TEXT, version: LEGAL_VERSIONS.job_seeking_notice },
@@ -438,7 +441,13 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   // Updated Terms/Privacy never block anything here: the member pages ask for them in a dialog
   // (main.js askLegalUpdate), so a bug there can't stop anyone from using Rientro.
-  route('PATCH', '/api/me/profile', async ({ user, req }) => { return profiles.updateProfile(db, user, await readJson(req)); });
+  route('PATCH', '/api/me/profile', async ({ user, req }) => {
+    const body = await readJson(req);
+    const out = profiles.updateProfile(db, user, body);
+    // "Vuoi connetterti con …?" answered from Completa il tuo profilo, once online: the request goes now
+    if (body.invite_connect === true && user.status === 'approved') connectInviter(db, user);
+    return out;
+  });
   route('POST', '/api/me/education', async ({ user, req }) => { return profiles.saveEducation(db, user.id, await readJson(req)); });
   route('PATCH', '/api/me/education/:id', async ({ user, req, params }) => profiles.saveEducation(db, user.id, await readJson(req), params.id));
   route('DELETE', '/api/me/education/:id', ({ user, params }) => profiles.deleteRow(db, 'education', user.id, params.id));
@@ -839,6 +848,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     // Terms / Privacy updated: the members told by email, a batch a minute (legal-notice.js)
     try { await sendLegalNotices(db); } catch (err) { console.error('[legal notice]', err); }
     // Profile left halfway for a day: one email inviting to finish it (onboarding-reminder.js)
-    try { await sendOnboardingReminders(db); } catch (err) { console.error('[onboarding reminder]', err); } finally { digesting = false; }
+    try { await sendOnboardingReminders(db); } catch (err) { console.error('[onboarding reminder]', err); }
+    // Online but not complete, 24 hours after signing up: one email listing what's left (profile-reminder.js)
+    try { await sendProfileReminders(db); } catch (err) { console.error('[profile reminder]', err); } finally { digesting = false; }
   }, 60_000).unref();
 }

@@ -2,7 +2,7 @@
 // design/UI *.dc.html file; the only changes are real links, live data instead of the
 // design's hard-coded placeholders (counts, "AR", "Chiara M."), and real form controls.
 import { DCLogic, register } from '../dc/runtime.js';
-import { api, getCatalog, INTENT_BADGE, knownMe, limitNote, monthToText, timeAgo } from './lib.js';
+import { api, getCatalog, INTENT_BADGE, knownMe, limitNote, monthToText, timeAgo, toast } from './lib.js';
 import { describeNotification, notificationInitials } from './notifications.js';
 import { openSearchSheet, searchUrl } from './search-history.js';
 
@@ -1039,14 +1039,57 @@ def('App Photo', String.raw`
 // App Person Card — from UI Person Card (+ real photo, profile link, connection-aware action).
 // Props: person (profiles.card shape), compact, ratio, onConnect(person), href (the profile's link: the preview's own)
 
+// ---------------------------------------------------------------------------------------------
+// App Complete Profile — "Completa il tuo profilo": what's still empty once the profile is online
+// (src/profiles.js profileGaps, in /api/me as gaps). Each item opens its section of Il tuo profilo;
+// "Come hai conosciuto Rientro" and "Vuoi connetterti con …?" are answered right here.
+// Props: gaps, compact (one line with a link, for Scopri), onChange() after an answer here
+def('App Complete Profile', String.raw`
+<sc-if value="{{ allDone }}"><p class="complete-done">✓ Il tuo profilo è completo.</p></sc-if>
+<sc-if value="{{ show }}"><sc-if value="{{ full }}"><section class="{{ boxCls }}" aria-label="Completa il tuo profilo">
+<div class="complete-head"><sc-if value="{{ withTitle }}"><h2>Completa il tuo profilo</h2></sc-if><span class="complete-count">{{ countLabel }}</span></div>
+<p>Il tuo profilo è già online. Aggiungi queste cose quando vuoi: aiutano le persone giuste a trovarti.</p>
+<div class="complete-bar" aria-hidden="true"><span style="width:{{ pct }}%"></span></div>
+<ul class="complete-list">
+<sc-for list="{{ items }}" as="it"><li>
+<sc-if value="{{ it.isLink }}"><a href="{{ it.href }}" class="complete-item"><span>{{ it.label }}</span><span class="complete-go">Aggiungi →</span></a></sc-if>
+<sc-if value="{{ it.isFonte }}"><div class="complete-item complete-inline"><span>{{ it.label }}</span><div class="complete-chips"><sc-for list="{{ sources }}" as="o"><dc-import name="UI Chip" label="{{ o.l }}" size="sm" on-click="{{ o.pick }}"></dc-import></sc-for></div></div></sc-if>
+<sc-if value="{{ it.isInvito }}"><div class="complete-item complete-inline"><span>{{ it.label }}</span><div class="complete-chips"><dc-import name="UI Button" label="Sì, connettimi" variant="accent" size="sm" on-click="{{ inviteYes }}"></dc-import><dc-import name="UI Button" label="No, grazie" variant="ghost" size="sm" on-click="{{ inviteNo }}"></dc-import></div></div></sc-if>
+</li></sc-for>
+</ul>
+</section></sc-if>
+<sc-if value="{{ compact }}"><a href="/profilo?sezione=completa" class="complete-strip"><span><b>Completa il tuo profilo</b> · {{ countLabel }}</span><span class="complete-go">Continua →</span></a></sc-if></sc-if>`, class extends DCLogic {
+  state = { sources: [] };
+  async answer(patch) {
+    try { await api('PATCH', '/api/me/profile', patch); this.props.onChange?.(); } catch (err) { toast(err.message, { tone: 'err' }); }
+  }
+  renderVals() {
+    // the options of "Come hai conosciuto Rientro", from the catalog (once)
+    if (!this.askedSources) { this.askedSources = true; getCatalog().then(cat => { this.state.sources = cat.sources || []; this.__rerender(); }).catch(() => {}); }
+    const gaps = this.props.gaps || [];
+    const TOTAL = 10; // the items profileGaps can list
+    const n = gaps.length;
+    return {
+      show: n > 0, full: !b(this.props.compact), compact: b(this.props.compact), allDone: !n && b(this.props.bare),
+      // bare: inside Il tuo profilo's own white box, under its title
+      boxCls: b(this.props.bare) ? 'complete-box bare' : 'complete-box', withTitle: !b(this.props.bare),
+      countLabel: n === 1 ? 'manca 1 cosa' : `mancano ${n} cose`,
+      pct: Math.round(((TOTAL - n) / TOTAL) * 100),
+      items: gaps.map(g => ({ label: g.label, isLink: !!g.section, href: `/profilo?sezione=${g.section}`, isFonte: g.key === 'fonte', isInvito: g.key === 'invito' })),
+      sources: this.state.sources.map(l => ({ l, pick: () => this.answer({ source: l }) })),
+      inviteYes: () => this.answer({ invite_connect: true }), inviteNo: () => this.answer({ invite_connect: false }),
+    };
+  }
+});
+
 def('App Person Card', String.raw`
 <article style="height:100%;box-sizing:border-box;background:linear-gradient(180deg,#FFFFFF,#F6F4FC);border:1px solid #FFFFFF;border-radius:28px;padding:10px;box-shadow:0 14px 40px rgba(80,60,160,.12);display:flex;flex-direction:column;gap:14px;font-family:'Geist',sans-serif;color:#1A1726">
 <a href="{{ href }}" tabindex="-1" aria-hidden="true"><dc-import name="App Photo" ratio="{{ ratio }}" label="FOTO PROFILO" src="{{ p.photo_url }}" alt="" badge="{{ badge }}" badge-kind="{{ badgeKind }}"></dc-import></a>
 <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:12px;flex:1">
 <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="margin:0;font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.03em"><a href="{{ href }}" style="color:inherit;text-decoration:none">{{ p.name }}</a></h3></div><sc-if value="{{ p.job }}"><span style="font-size:13px;color:#6B6680">{{ p.job }}</span></sc-if></div>
 <!-- the arrow goes with where it points: the destination wraps with it, never the arrow alone -->
-<sc-if value="{{ goingTo }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.from }}</span><sc-if value="{{ p.to }}"><span><span style="color:#6C4DF5" aria-label="verso">→</span>&nbsp;<span style="font-weight:500">{{ p.to }}</span></span></sc-if></div></sc-if>
-<sc-if value="{{ p.back_from }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.back_from }}</span><span><span style="color:#6C4DF5" aria-label="rientrato a">→</span>&nbsp;<span style="font-weight:500">{{ p.from }}</span></span></div></sc-if>
+<sc-if value="{{ goingTo }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.from }}</span><sc-if value="{{ p.to }}"><span><span style="color:#6C4DF5" aria-label="verso">→</span> <span style="font-weight:500">{{ p.to }}</span></span></sc-if></div></sc-if>
+<sc-if value="{{ p.back_from }}"><div style="display:flex;align-items:baseline;column-gap:8px;font-size:14px;flex-wrap:wrap"><span style="color:#6B6680">{{ p.back_from }}</span><span><span style="color:#6C4DF5" aria-label="rientrato a">→</span> <span style="font-weight:500">{{ p.from }}</span></span></div></sc-if>
 <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;padding-top:12px;border-top:1px solid #ECE8F7"><sc-if value="{{ p.idea_line }}"><span style="color:#8C84AE">Idea</span><span style="font-weight:600">{{ p.idea_line }}</span></sc-if><sc-if value="{{ p.move }}"><span style="color:#8C84AE">Trasferimento</span><span>{{ p.move }}</span></sc-if><sc-if value="{{ p.background }}"><span style="color:#8C84AE">Background</span><span>{{ p.background }}</span></sc-if></div>
 <sc-if value="{{ hasComp }}"><div style="display:flex;gap:8px;align-items:flex-start;padding:10px 14px;border-radius:16px;background:#EFEBFF;color:#3E2BA8;font-size:13px;line-height:1.4"><span style="width:6px;height:6px;border-radius:50%;background:#6C4DF5;margin-top:6px;flex:none"></span>{{ p.comp }}</div></sc-if>
 <div style="flex:1"></div>

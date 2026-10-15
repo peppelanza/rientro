@@ -289,12 +289,13 @@ export function deleteRow(db, table, userId, id) {
 
 // --- Submission --------------------------------------------------------------------------
 
-// Everything onboarding asks is needed to go online, except the video, Formazione, Esperienze, the
-// links (Dove trovarti) and the result you're proud of
+// Onboarding ends with Presentati: where you live (and came back from, or would like to go, and
+// when), your goal (the idea, if you have one), photo, name, birth year and a few words about you.
+// That's what's needed to go online; the rest is "Completa il tuo profilo" (profileGaps).
 export const MIN_BIO = 20;
+const has = v => (typeof v === 'string' ? !!v.trim() : v != null);
 export function missingForSubmit(p) {
   const missing = [];
-  const has = v => typeof v === 'string' ? !!v.trim() : v != null;
   if (!p.lives_in || !p.lives_in_city) missing.push('Dove vivi');
   if (p.lives_in === 'abroad' && !p.desired_comuni.length && !p.desired_unknown) missing.push('Dove vorresti vivere');
   if (p.lives_in === 'abroad' && !p.move_when) missing.push('Quando vorresti trasferirti');
@@ -304,12 +305,26 @@ export function missingForSubmit(p) {
   if (!p.first_name || !p.last_name) missing.push('Nome e cognome');
   if (!p.birth_year) missing.push('Anno di nascita');
   if ((p.bio || '').trim().length < MIN_BIO) missing.push('Su di me');
-  if (!p.background_area || !p.years_experience) missing.push('Background');
-  if (!p.sectors.length) missing.push('Interessi');
-  if (!p.seeking_backgrounds.length || !has(p.seeking_description)) missing.push('Chi stai cercando');
-  if (!has(p.misses_italy)) missing.push('Cosa ti manca di casa');
-  if (!p.source) missing.push('Come hai conosciuto Rientro');
   return missing;
+}
+
+// "Completa il tuo profilo": what's still empty once online, each with where to fill it in (a
+// section of Il tuo profilo, or "fonte" / "invito" answered right in the list). invitedBy: the
+// inviter's first name, when they came through a link and haven't said whether to connect.
+export function profileGaps(p, { invitedBy = null } = {}) {
+  const LINKS = ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url'];
+  return [
+    [!p.background_area || !p.years_experience, 'background', 'Il tuo background e gli anni di esperienza', 'percorso'],
+    [!(p.experiences || []).length && !(p.education || []).length, 'lavoro', 'Dove hai lavorato e studiato', 'percorso'],
+    [!(p.sectors || []).length, 'interessi', 'I settori che ti interessano', 'interessi'],
+    [!(p.seeking_backgrounds || []).length || !has(p.seeking_description), 'chi', 'Chi stai cercando', 'chi-cerco'],
+    [!has(p.misses_italy), 'manca', 'Cosa ti manca di casa', 'italia'],
+    [!LINKS.some(k => has(p[k])), 'link', 'Dove trovarti: LinkedIn, sito, social', 'link'],
+    [!has(p.achievement), 'risultato', 'Un risultato di cui vai fiero/a', 'su-di-me'],
+    [!p.video_url, 'video', 'Un video di presentazione', 'su-di-me'],
+    [!p.source, 'fonte', 'Come hai conosciuto Rientro', null],
+    [!!invitedBy && p.invite_connect == null, 'invito', `Vuoi connetterti con ${invitedBy}?`, null],
+  ].filter(([missing]) => missing).map(([, key, label, section]) => ({ key, label, section }));
 }
 
 // End of onboarding: the profile goes online straight away (no review; moderation acts afterwards:

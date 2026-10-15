@@ -147,7 +147,8 @@ export default class extends Page {
       from: [p.lives_in_city, p.back ? null : p.lives_in_country].filter(Boolean).join(', '),
       places: p.places, hasPlaces: !p.back && !p.desired_unknown && p.desired_comuni.length > 0, unknownPlaces: !p.back && p.desired_unknown, isBack: !!p.back,
       badgeKind: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[1], badgeLabel: (INTENT_BADGE[p.primary_intent] ?? INTENT_BADGE.seeking_idea)[0],
-      seeks: p.seeking.label || '—', seeksEyebrow: 'Chi cerco',
+      // (not filled in yet — "Completa il tuo profilo" — the box isn't there)
+      seeks: p.seeking.label || '—', seeksEyebrow: 'Chi cerco', hasSeeks: !!p.seeking.backgrounds?.length,
       // their background, with the years (the box next to what they look for)
       bgArea: p.background_area || '', bgYears: p.years_experience ? `${p.years_experience} anni di esperienza` : '',
       viewerBg: p.viewer_background ?? '', hasViewerBg: !!p.viewer_background,

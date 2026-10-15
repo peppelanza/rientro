@@ -1,7 +1,7 @@
 // Onboarding (design 02 · 6a–23a). One page, one step at a time. Each "Continua" saves the
 // step's answers and the resume point (profiles.onboarding_step), so members can leave and
 // come back.
-import { api, clearToasts, jobLine, limitNote, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
+import { api, clearToasts, flash, jobLine, limitNote, pickSector, fmtTime, getCatalog, getMe, go, orList, placeToggle, seekCards, seeksText, setMe, toast, upload } from '../lib.js';
 import { entryVals, expBody } from '../entries.js';
 import { flagBurst } from '../flags.js';
 import { ARRIVED_WHEN, loadCitta, loadPaesi, parseBirthYear, validBirthYear } from '../places.js';
@@ -13,11 +13,12 @@ import { homeFor, Page } from './_base.js';
 export const title = 'Il tuo profilo';
 
 
+// Onboarding ends with Presentati: then the preview and Pubblica. The rest (video, background, work
+// and studies, links, result, interests, who you look for, what you miss, invite, source) is
+// "Completa il tuo profilo", once online (Benvenuto, Il tuo profilo: src/profiles.js profileGaps).
 const STEPS = [
   ['luogo', 'Luogo'], ['residenza', 'Luogo'], ['arrivo', 'Luogo'], ['dove', 'Luogo'], ['obiettivo', 'Obiettivo'], ['idea', 'Obiettivo'],
-  ['presentati', 'Su di te'], ['video', 'Su di te'], ['background', 'Su di te'], ['formazione', 'Su di te'], ['esperienze', 'Su di te'],
-  ['link', 'Su di te'], ['risultato', 'Su di te'], ['settori', 'Cosa cerchi'], ['chi', 'Cosa cerchi'],
-  ['manca', 'Ultimi dettagli'], ['invito', 'Ultimi dettagli'], ['fonte', 'Ultimi dettagli'],
+  ['presentati', 'Su di te'],
 ];
 
 // Profile fields saved by each step
@@ -65,13 +66,16 @@ export default class extends Page {
       edu: null, exp: null, up: null, paesi, citta: [], cittaFrom: [],
     });
     // The preview is the real profile page, as others will see it (persona.js), with Pubblica on top
-    if (this.state.step === 'anteprima') return go(previewHref(me));
+    if (this.state.step === 'anteprima') this.state.step = 'presentati'; // (no preview any more: Presentati publishes)
     // A step from the address that doesn't apply (no inviter, not back yet…) or comes after one
     // still unanswered: the first step that needs an answer instead (not an empty page)
     const keys = this.steps.map(x => x[0]);
     if (this.state.step !== 'benvenuto') {
       const at = keys.indexOf(this.state.step);
       const open = keys.findIndex(k => this.blocker(k));
+      // (a step that's no longer in the onboarding, from before it ended with Presentati: the first
+      // one still unanswered, or the preview when everything is)
+      if (at < 0 && open < 0 && this.state.step !== 'benvenuto') this.state.step = 'presentati';
       if (at < 0 || (open >= 0 && open < at)) this.state.step = open >= 0 ? keys[open] : keys[0];
     }
     // Each step is a place in the history: the phone's back (or the browser's) goes to the step
@@ -194,7 +198,14 @@ export default class extends Page {
       // Leaving the video step with a video: that's the take, the server converts it now
       if (s.step === 'video' && s.p.video_url) confirmVideo();
       s.edu = null; s.exp = null;
-      if (nextStep === 'anteprima') return go(previewHref(s.me));
+      // Presentati was the last step: the profile goes online now (no preview), then Benvenuto
+      // before launch, Scopri after it ("Completa il tuo profilo" there for the rest)
+      if (nextStep === 'anteprima') {
+        const me = await api('POST', '/api/me/submit');
+        setMe(me);
+        flash('Il tuo profilo è online.');
+        return go(homeFor(me));
+      }
       this.goTo(nextStep);
     })();
   }
@@ -354,7 +365,7 @@ export default class extends Page {
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       // phones: short labels, so Indietro, Salta and the main button fit on one line
       footDisabled: !!blocker, footSkip: optional ? ((!narrow && { video: 'Lo aggiungo dopo' }[s.step]) || 'Salta') : null,
-      footPrimary: is('fonte') ? (narrow ? 'Anteprima →' : 'Vedi l’anteprima del profilo →') : 'Continua', footAccent: is('fonte'),
+      footPrimary: is('presentati') ? 'Pubblica il profilo' : 'Continua', footAccent: is('presentati'),
       is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'),

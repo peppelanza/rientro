@@ -63,6 +63,8 @@ function migrateUserColumns(db) {
   if (!have.has('deletion_reason')) db.exec('ALTER TABLE users ADD COLUMN deletion_reason TEXT');
   if (have.has('inactivity_notice_at')) db.exec('ALTER TABLE users DROP COLUMN inactivity_notice_at');
   if (!have.has('onboarding_reminded_at')) db.exec('ALTER TABLE users ADD COLUMN onboarding_reminded_at TEXT');
+  // "Completa il tuo profilo": sent once, 24 hours after signing up (profile-reminder.js)
+  if (!have.has('profile_reminded_at')) db.exec('ALTER TABLE users ADD COLUMN profile_reminded_at TEXT');
   // Invite links (invites.js): each member's own code, and who invited whom
   if (!have.has('invite_code')) db.exec('ALTER TABLE users ADD COLUMN invite_code TEXT; CREATE UNIQUE INDEX IF NOT EXISTS users_invite_code ON users(invite_code);');
   // How they signed up and last signed in: 'email', 'google', 'linkedin' (auth.startSession)

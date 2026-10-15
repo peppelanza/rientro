@@ -16,6 +16,8 @@ const currentJob = p => { const e = (p.experiences || []).find(x => x.current); 
 export const tabbar = true;
 
 const SECTIONS = [
+  // what's still empty (components.js App Complete Profile): in the menu only while something is
+  ['completa', 'Completa il profilo', []],
   ['intestazione', 'Intestazione', ['first_name', 'last_name', 'birth_year', 'lives_in', 'lives_in_country', 'lives_in_city', 'arrived_from_country', 'arrived_from_city', 'arrived_when', 'desired_comuni', 'desired_unknown', 'move_when']],
   ['su-di-me', 'Su di me e video', ['bio', 'achievement']],
   ['obiettivo', 'Obiettivo e idea', ['primary_intent', 'idea_title', 'idea_description', 'idea_stage']],
@@ -163,8 +165,10 @@ export default class extends Page {
     for (const k of ['first_name', 'last_name', 'lives_in_country', 'lives_in_city', 'bio', 'achievement', 'idea_title', 'idea_description', 'seeking_description', 'misses_italy', 'linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url']) t[k] = text(k);
     return {
       loading: false, me, cat, t,
-      menu: SECTIONS.map(([k, l]) => ({ l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 900px)').matches) return; e.preventDefault(); this.goSection(k); } })),
+      menu: SECTIONS.filter(([k]) => k !== 'completa' || (me.gaps || []).length).map(([k, l]) => ({ l: k === 'completa' ? `${l} · ${me.gaps.length}` : l, href: `/profilo?sezione=${k}`, click: e => { if (s.index && matchMedia('(max-width: 900px)').matches) return; e.preventDefault(); this.goSection(k); } })),
       isIndex: s.index, mainCls: s.index ? 'r-hide-sm' : '',
+      isCompleta: is('completa'), notCompleta: !is('completa'), gaps: me.gaps || [],
+      completeProps: { onChange: async () => { s.me = await getMe(true); this.__rerender(); } },
       activeLabel: this.sec[1], heading: this.sec[1],
       notPublished: status !== 'approved', // (published: no label)
       dirty: s.dirty, saveVariant: s.dirty ? 'primary' : 'secondary', save: this.save, cancel: () => this.cancel(),

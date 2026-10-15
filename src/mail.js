@@ -93,6 +93,23 @@ export function onboardingReminderEmail({ firstName = null } = {}) {
   };
 }
 
+// --- Profile online but not complete (profile-reminder.js): once, 24 hours after signing up -------
+
+export function profileReminderEmail({ firstName = null, gaps = [] } = {}) {
+  const hello = `Ciao${firstName ? ` ${firstName}` : ''}, il tuo profilo su Rientro è online.`;
+  const next = 'Ti mancano ancora queste cose: aggiungerle aiuta le persone giuste a trovarti.';
+  const cta = ['Completa il profilo', url('/profilo?sezione=completa')];
+  const list = gaps.map(g => g.label);
+  return {
+    subject: 'Completa il tuo profilo su Rientro',
+    text: `${hello}\n\n${next}\n${list.map(l => `- ${l}`).join('\n')}\n\n${cta[0]}: ${cta[1]}${textFooter}`,
+    html: layout({
+      preheader: 'Bastano pochi minuti per completare il profilo.',
+      body: h1('Completa il tuo profilo') + p(esc(hello)) + p(esc(next)) + p(list.map(l => `· ${esc(l)}`).join('<br>')) + button(...cta),
+    }),
+  };
+}
+
 // --- Notifications digest (email-digest.js): new requests and unread messages, grouped -------
 
 // requests: [{ name, note }], messages: [{ name, count, preview, id }]

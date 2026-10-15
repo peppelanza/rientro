@@ -10,7 +10,7 @@ import { removePost } from './groups.js';
 import { eraseAccount } from './privacy.js';
 import { announceGone } from './social.js';
 import { disconnect } from './live.js';
-import { arrivedText, effectiveProfile, ERASED_DOMAIN, missingForSubmit, moveLabel, myPlace, rawProfile } from './profiles.js';
+import { arrivedText, effectiveProfile, ERASED_DOMAIN, missingForSubmit, moveLabel, myPlace, profileGaps, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
@@ -111,12 +111,21 @@ export function listUsers(db, admin, query) {
     total: rows.length, page, pages: Math.max(1, Math.ceil(rows.length / perPage)),
     users: slice.map(u => ({
       id: u.id, name: name(u) || '—', email: u.email, photo_url: u.photo_file_id ? `/api/files/${u.photo_file_id}` : null,
-      from: u.lives_in_city || '—', to: orList(u.desired_comuni, 3) || (u.desired_unknown ? 'Non lo sa' : '—'),
+      // where from → where to: back already, the city left → the one they came back to; else where
+      // they live → where they'd like to go
+      ...(u.lives_in === 'italy'
+        ? { from: u.arrived_from_city || u.arrived_from_country || '—', to: u.lives_in_city || '—', back: true }
+        : { from: u.lives_in_city || '—', to: orList(u.desired_comuni, 3) || (u.desired_unknown ? 'Non lo sa' : '—'), back: false }),
+      // still in onboarding: the step they stopped at
+      step: u.status === 'onboarding' ? (ONBOARDING_STEPS[u.onboarding_step] ?? 'Inizio') : null,
       intent: INTENT[u.primary_intent] ?? '—',
       status: u.status, status_label: STATUS_LABEL[u.status], joined: u.created_at,
     })),
   };
 }
+
+// The onboarding's steps as the admin reads them (public/app/pages/onboarding.js STEPS)
+const ONBOARDING_STEPS = { benvenuto: 'Inizio', luogo: 'Dove vivi', residenza: 'Dove vivi (città)', arrivo: 'Dove vivevi prima', dove: 'Dove vorresti vivere', obiettivo: 'Obiettivo', idea: 'Idea', presentati: 'Presentati', anteprima: 'Anteprima' };
 
 export function getUser(db, admin, userId) {
   const user = db.prepare('SELECT id, email, role, status, created_at, last_seen_at, signup_method, last_login_method FROM users WHERE id = ?').get(userId);
@@ -152,6 +161,8 @@ export function getUser(db, admin, userId) {
       invite_code: db.prepare('SELECT invite_code FROM users WHERE id = ?').get(userId)?.invite_code ?? null,
       // still in onboarding: what's left before it can go online
       missing: user.status === 'onboarding' ? missingForSubmit(p) : [],
+      // online, and still to fill in ("Completa il tuo profilo")
+      gaps: user.status === 'approved' ? profileGaps(p).map(g => g.label) : [],
     },
   };
 }
