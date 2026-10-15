@@ -1,5 +1,6 @@
 import { api, flash, qs } from '../lib.js';
 import { turnstileToken, warmUpTurnstile } from '../turnstile.js';
+import { reportError } from '../error-report.js';
 import { Page } from './_base.js';
 
 // Coming back from LinkedIn or Google with a problem (see /api/auth/<provider>/callback)
@@ -71,7 +72,7 @@ export default class extends Page {
       // Bot check (Cloudflare Turnstile), when it's on
       let token = null;
       // (a new token at every try: after an error, an expiry or a refusal, "Invia codice" again is enough)
-      try { token = await turnstileToken(this.state.launch?.turnstile); } catch { throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Riprova.'); }
+      try { token = await turnstileToken(this.state.launch?.turnstile); } catch (err) { reportError('turnstile', `Verifica anti-robot non riuscita nel browser: ${err.message}`); throw new Error('Non siamo riusciti a verificare che tu non sia un robot. Riprova.'); }
       const r = await api('POST', '/api/auth/request-code', { email, marketing_opt_in: this.state.marketing, ...(token ? { turnstile_token: token } : {}) });
       if (this.state.step !== 'code') history.pushState({ step: 'code' }, '', location.href); // Back: the email again
       Object.assign(this.state, { step: 'code', devCode: r.dev_code ?? null, code: ['', '', '', '', '', ''], codeError: null, resendAt: Date.now() + 45_000 });

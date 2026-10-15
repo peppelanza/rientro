@@ -22,7 +22,7 @@ export async function connect(person) {
       renderVals() {
         return {
           first, photo: person.photo_url, ini: (person.name || first).split(' ').map(w => w[0]).join('').slice(0, 2),
-          sub: [person.job || person.role?.split(' · ')[0], person.back_from ? routeOf(person) : person.from && person.to ? `${person.from} → ${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
+          sub: [person.job || person.role?.split(' · ')[0], person.back_from ? routeOf(person) : person.from && person.to ? `${person.from} →\u00a0${person.to.split(',')[0]}` : person.from].filter(Boolean).join(' · '),
           // two lines on phones (the keyboard takes half the screen), four on a computer
           noteRows: matchMedia('(max-width: 900px)').matches ? 2 : 4,
           note: this.state.note, noteProps: { onInput: v => { this.state.note = v; } },

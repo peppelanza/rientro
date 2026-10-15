@@ -1,5 +1,6 @@
 // App entry: registers the design components, then routes the URL to a page module.
 // Each page is pages/<name>.js (Logic) + pages/<name>.html (template copied from design/).
+import './error-report.js'; // first: errors while the rest loads are reported too
 import '../dc/gen/components.js';
 import './components.js';
 import { DCLogic, mountPage } from '../dc/runtime.js';
@@ -47,6 +48,7 @@ const ROUTES = [
   [/^\/admin\/analytics$/, 'admin/analytics'],
   [/^\/admin\/esportazioni$/, 'admin/esportazioni'],
   [/^\/admin\/registro$/, 'admin/registro'],
+  [/^\/admin\/errori$/, 'admin/errori'],
 ];
 
 async function boot() {

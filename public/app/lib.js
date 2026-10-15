@@ -1,4 +1,5 @@
 // Shared client helpers: API calls, session, catalog, formatting, toasts and modals.
+import { reportError } from './error-report.js';
 import { mountPage } from '../dc/runtime.js';
 import { orList } from './card-fields.js'; // the same as the server's
 
@@ -9,7 +10,12 @@ export async function api(method, path, body, { raw = false } = {}) {
   let payload;
   if (body instanceof Blob || body instanceof ArrayBuffer) payload = body;
   else if (body !== undefined) { headers['content-type'] = 'application/json'; payload = JSON.stringify(body); }
-  const res = await fetch(path, { method, headers, body: payload });
+  let res;
+  try { res = await fetch(path, { method, headers, body: payload }); } catch (err) {
+    // offline, or the connection dropped: said to the member, and to Admin › Errori
+    reportError('network', `${method} ${path.split('?')[0]}: ${err.message}`);
+    throw Object.assign(new Error('Connessione assente o instabile. Riprova.'), { status: 0, code: 'network' });
+  }
   if (raw && res.ok) return res;
   const data = (res.headers.get('content-type') || '').includes('json') ? await res.json() : null;
   // The server restarting for a deploy (Render's own error page, not ours): reloading shows
@@ -22,6 +28,7 @@ export async function api(method, path, body, { raw = false } = {}) {
     location.href = `/accedi?next=${encodeURIComponent(location.pathname + location.search)}${data?.error === 'expired' ? '&scaduta=1' : ''}`;
     throw new Error('unauthenticated');
   }
+  if (res.status >= 500 && data) reportError('api', `${method} ${path.split('?')[0]}: ${res.status} ${data.error || ''} ${data.message || ''}`.trim());
   if (!res.ok) throw Object.assign(new Error(data?.message || 'Qualcosa è andato storto. Riprova.'), { status: res.status, code: data?.error });
   return data;
 }
@@ -191,7 +198,7 @@ export function threadTime(iso) {
 
 // Where a person is going, in a line: "Berlino → Napoli"; already back in Italy, where they came
 // back from: "Berlino → Bologna" (profiles.js card back_from)
-export const routeOf = p => (p.back_from ? `${p.back_from} → ${p.from}` : p.from && p.to ? `${p.from} → ${p.to}` : p.from || '');
+export const routeOf = p => (p.back_from ? `${p.back_from} →\u00a0${p.from}` : p.from && p.to ? `${p.from} →\u00a0${p.to}` : p.from || '');
 
 export const initials = (first, last) => `${(first || '?')[0]}${(last || '')[0] || ''}`.toUpperCase();
 export const fullName = p => [p?.first_name, p?.last_name].filter(Boolean).join(' ');

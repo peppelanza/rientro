@@ -409,6 +409,8 @@ export function sidebarCounts(db) {
     support: waitingCount(db),
     blocked: db.prepare('SELECT COUNT(*) AS n FROM blocked_uploads WHERE resolved_at IS NULL').get().n,
     photos: db.prepare('SELECT COUNT(*) AS n FROM users u JOIN profiles p ON p.user_id = u.id WHERE p.photo_check IS NOT NULL AND u.deletion_requested_at IS NULL').get().n,
+    // errors in the last 24 hours (error-log.js)
+    errors: db.prepare("SELECT coalesce(SUM(count), 0) AS n FROM error_log WHERE level = 'error' AND last_at >= ?").get(new Date(Date.now() - 86400_000).toISOString()).n,
   };
 }
 

@@ -162,7 +162,8 @@ function walk(node) {
 function walkText(node) {
   const txt = node.nodeValue ?? '';
   if (!txt.includes('{{')) {
-    if (!txt.trim() && !txt.includes(' ')) return null;
+    // (only the indentation between tags goes: a space, or a non-breaking one, stays)
+    if (!txt.trim() && !/[ \u00a0]/.test(txt)) return null;
     return () => document.createTextNode(txt);
   }
   const parts = txt.split(/\{\{([\s\S]+?)\}\}/g);

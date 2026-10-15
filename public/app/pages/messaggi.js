@@ -529,8 +529,8 @@ export default class extends Page {
       name, first: p?.first_name, photo: p?.photo_url, ini: ini(name),
       // under the name: where they live → where they want to go (no job title), as in the list
       // as on the Scopri card: "Zurigo → Bologna" back already, "Londra → Palermo o Catania", "→ Non lo sa ancora"
-      sub: !p ? '' : p.back ? [p.back_from, p.lives_in_city].filter(Boolean).join(' → ')
-        : [p.lives_in_city, orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : '')].filter(Boolean).join(' → '),
+      sub: !p ? '' : p.back ? [p.back_from, p.lives_in_city].filter(Boolean).join(' →\u00a0')
+        : [p.lives_in_city, orList(p.desired_comuni, 3) || (p.desired_unknown ? 'Non lo sa ancora' : '')].filter(Boolean).join(' →\u00a0'),
       // an account gone has no profile to open
       profileHref: p && !p.deactivated ? `/persone/${p.id}?da=messaggi` : '#', goProfile: () => { if (!p?.deactivated) go(`/persone/${p.id}?da=messaggi`); },
       back: () => {

@@ -278,7 +278,7 @@ def('App Admin Sidebar', String.raw`
       ['dashboard', 'Dashboard', '/admin', ''], ['utenti', 'Utenti', '/admin/utenti', c.users ? c.users.toLocaleString('it-IT') : ''],
       ['foto', 'Foto da controllare', '/admin/foto', c.photos ? String(c.photos) : ''], ['bloccati', 'Contenuti bloccati', '/admin/bloccati', c.blocked ? String(c.blocked) : ''], ['segnalazioni', 'Segnalazioni', '/admin/segnalazioni', c.reports ? String(c.reports) : ''],
       ['supporto', 'Supporto', '/admin/supporto', c.support ? String(c.support) : ''],
-      ['analytics', 'Analytics', '/admin/analytics', ''], ['esportazioni', 'Esportazioni', '/admin/esportazioni', ''], ['registro', 'Registro accessi', '/admin/registro', ''],
+      ['analytics', 'Analytics', '/admin/analytics', ''], ['esportazioni', 'Esportazioni', '/admin/esportazioni', ''], ['registro', 'Registro accessi', '/admin/registro', ''], ['errori', 'Errori', '/admin/errori', c.errors ? String(c.errors) : ''],
     ].map(([k, label, href, count]) => ({
       label, href, count, hasCount: !!count, current: k === a ? 'page' : false,
       bg: k === a ? '#FFFFFF' : 'transparent', fg: k === a ? '#1A1726' : '#C9C0F0', fw: k === a ? 600 : 400, mark: k === a ? '#6C4DF5' : '#3A3550', cc: k === a ? '#6B6680' : '#8C84AE',

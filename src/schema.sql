@@ -547,3 +547,19 @@ CREATE TABLE IF NOT EXISTS login_methods (
   last_used_at  TEXT NOT NULL,
   PRIMARY KEY (user_id, method)
 );
+
+-- What went wrong, on the server and in the browsers (error-log.js, Admin › Errori), 30 days
+CREATE TABLE IF NOT EXISTS error_log (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  first_at  TEXT NOT NULL,
+  last_at   TEXT NOT NULL,
+  count     INTEGER NOT NULL DEFAULT 1,
+  source    TEXT NOT NULL,             -- server | browser
+  level     TEXT NOT NULL DEFAULT 'error', -- error | warn
+  kind      TEXT,
+  message   TEXT NOT NULL,
+  path      TEXT,
+  user_id   TEXT,
+  detail    TEXT
+);
+CREATE INDEX IF NOT EXISTS error_log_last ON error_log(last_at);

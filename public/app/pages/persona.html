@@ -24,9 +24,9 @@
 <div class="persona-mini"><div><div class="persona-mini-in">
 <sc-if value="{{ idea }}"><a href="#idea" onClick="{{ toIdea }}" aria-label="{{ badgeLabel }}: vai all’idea" style="text-decoration:none;cursor:pointer"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></a></sc-if><sc-if value="{{ noIdea }}"><dc-import name="UI Badge" kind="{{ badgeKind }}" label="{{ badgeLabel }}"></dc-import></sc-if>
 <span class="persona-mini-name">{{ name }}</span>
-<sc-if value="{{ hasPlaces }}"><span style="font-size:13px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
-<sc-if value="{{ unknownPlaces }}"><span style="font-size:13px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> non lo so ancora</span></sc-if>
-<sc-if value="{{ isBack }}"><span style="font-size:13px;color:#6B6680"><sc-if value="{{ backFrom }}">{{ backFrom }} <span style="color:#6C4DF5">→</span> </sc-if><b style="font-weight:600;color:#1A1726">{{ from }}</b></span></sc-if>
+<sc-if value="{{ hasPlaces }}"><span style="font-size:13px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> <b style="font-weight:600;color:#1A1726">{{ places }}</b></span></sc-if>
+<sc-if value="{{ unknownPlaces }}"><span style="font-size:13px;color:#6B6680">{{ from }} <span style="color:#6C4DF5">→</span> non lo so ancora</span></sc-if>
+<sc-if value="{{ isBack }}"><span style="font-size:13px;color:#6B6680"><sc-if value="{{ backFrom }}">{{ backFrom }} <span style="color:#6C4DF5">→</span> </sc-if><b style="font-weight:600;color:#1A1726">{{ from }}</b></span></sc-if>
 </div></div></div>
 <div style="height:4px"></div>
 <sc-if value="{{ isNone }}"><div class="{{ previewClass }}"><dc-import name="UI Button" label="Connettiti" variant="accent" size="lg" full="{{ true }}" on-click="{{ connect }}" host-aria-disabled="{{ preview }}"></dc-import></div></sc-if>

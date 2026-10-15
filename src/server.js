@@ -36,6 +36,7 @@ import * as groups from './groups.js';
 import * as support from './support.js';
 import { HttpError } from './validate.js';
 import { nameCase } from '../public/app/text-case.js';
+import { captureConsole, clientError, listErrors, logError } from './error-log.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
 // still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
@@ -256,7 +257,7 @@ function streamFile(req, res, f) {
 const PUBLIC_PAGES = [/^\/$/, /^\/prelancio$/, /^\/press$/, /^\/gruppi\/[^/]+$/, /^\/rientro-dei-cervelli$/, /^\/territori\/[^/]+$/, /^\/accedi$/, /^\/legal\/(privacy|termini|cookie)$/];
 const MEMBER_PAGES = [/^\/onboarding$/, /^\/scopri$/, /^\/cerca$/, /^\/supporto(\/[^/]+)?$/, /^\/persone\/[^/]+$/, /^\/connessioni(\/[^/]+)?$/, /^\/messaggi(\/[^/]+)?$/,
   /^\/notifiche$/, /^\/profilo$/, /^\/benvenuto$/, /^\/gruppi$/, /^\/impostazioni(\/(account|privacy|dati|notifiche|sicurezza))?$/];
-const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|supporto(\/\d+)?|analytics|esportazioni|registro))?$/];
+const ADMIN_PAGES = [/^\/admin(\/(utenti(\/[^/]+)?|foto|bloccati|segnalazioni|supporto(\/\d+)?|analytics|esportazioni|registro|errori))?$/];
 
 // --- app -----------------------------------------------------------------------------------
 
@@ -669,6 +670,14 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/admin/exports/recent', () => admin.recentExports(db), adm);
   route('GET', '/api/admin/audit', ({ user, url }) => admin.auditLog(db, user, url.searchParams), adm);
   route('GET', '/api/admin/processing', () => admin.processingRegister(db), adm);
+  route('GET', '/api/admin/errors', ({ url }) => listErrors(db, url.searchParams), adm);
+  // A member's browser saw something go wrong (public/app/error-report.js): signed in or not
+  const limitReports = rateLimiter(30, 15 * 60_000);
+  route('POST', '/api/client-error', async ({ req, cookies }) => {
+    limitReports(`e:${clientIp(req)}`);
+    clientError(db, await readJson(req), auth.userForSession(db, cookies[SESSION_COOKIE])?.id ?? null);
+    return { ok: true };
+  }, pub);
 
   async function handle(req, res) {
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
@@ -811,6 +820,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (!r.raw) send(res, 200, out);
     } catch (err) {
       if (!(err instanceof HttpError)) console.error(err);
+      // Sign-in refused (robot check, address refused, wrong or expired code, too many tries):
+      // in Admin › Errori, to see whether people get stuck before signing up
+      else if (url?.pathname?.startsWith('/api/auth/') && err.status !== 401) logError(db, { source: 'server', level: err.status >= 500 ? 'error' : 'warn', kind: `accesso: ${err.code}`, message: err.message, path: url.pathname });
       const status = err instanceof HttpError ? err.status : 500;
       if (res.headersSent) { res.end(); return; }
       send(res, status, { error: err instanceof HttpError ? err.code : 'server_error', message: err instanceof HttpError ? err.message : 'Errore interno' });
@@ -834,6 +846,7 @@ async function defaultSendLoginCode(email, code) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { db, server } = createApp();
+  captureConsole(db);
   server.listen(config.port, '0.0.0.0', () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
   // Videos never confirmed: converted once they are half an hour old
   sweepVideoConversions(db);
