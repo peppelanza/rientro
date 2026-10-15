@@ -1067,7 +1067,7 @@ def('App Complete Profile', String.raw`
     // the options of "Come hai conosciuto Rientro", from the catalog (once)
     if (!this.askedSources) { this.askedSources = true; getCatalog().then(cat => { this.state.sources = cat.sources || []; this.__rerender(); }).catch(() => {}); }
     const gaps = this.props.gaps || [];
-    const TOTAL = 10; // the items profileGaps can list
+    const TOTAL = 13; // the items profileGaps can list
     const n = gaps.length;
     return {
       show: n > 0, full: !b(this.props.compact), compact: b(this.props.compact), allDone: !n && b(this.props.bare),

@@ -75,9 +75,10 @@ test('admin endpoints require the admin role and every access is audited', async
 test('CSV export is admin-only, audited, and guards against formula injection', async () => {
   await t.approved('csv@x.it', { first_name: '=HYPERLINK("x")' });
   const a = await t.asAdmin();
-  const r = await a.post('/api/admin/exports', { dataset: 'users', status: 'approved', columns: ['Nome e cognome', 'Email'] });
+  const r = await a.post('/api/admin/exports', { dataset: 'users', status: 'approved', columns: ['Nome e cognome', 'Email', 'Tempo'] });
   assert.equal(r.status, 200);
   assert.ok(r.body.includes("'=HYPERLINK"));
+  assert.ok(r.body.split('\r\n')[0].endsWith('Tempo'), 'every column the page offers');
   const log = (await a.get('/api/admin/audit')).body.items;
   assert.ok(log.find(e => e.action === 'export.csv' && e.details.dataset === 'users'));
   const m = await t.member('nocsv@x.it');

@@ -20,9 +20,11 @@ export default class extends AdminPage {
     const s = this.state;
     if (!s.cols.length) { toast('Scegli almeno una colonna.', { tone: 'err' }); return; }
     const body = { dataset: s.dataset, columns: s.cols, ...(s.dataset === 'users' ? { status: s.status || null } : {}) };
-    const r = await api('POST', '/api/admin/exports', body);
-    download(r.filename, new Blob([r.csv], { type: 'text/csv;charset=utf-8' }));
-    toast(`${r.rows} righe esportate. L'esportazione è stata registrata.`);
+    // the server sends the file itself: its name and row count in the headers
+    const res = await api('POST', '/api/admin/exports', body, { raw: true });
+    const filename = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || `${s.dataset}.csv`;
+    download(filename, await res.blob());
+    toast(`${res.headers.get('x-rows') ?? 0} righe esportate. L'esportazione è stata registrata.`);
     s.recent = await api('GET', '/api/admin/exports/recent');
   });
 

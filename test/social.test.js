@@ -558,7 +558,7 @@ test('background: one of the areas, or "Altro" in your own words (up to 25 chara
   assert.equal((await a.patch('/api/me/profile', { background_area: 'x'.repeat(26) })).status, 400);
   // "Altro" in the search filter finds whoever wrote their own
   const b = await t.approved('cercaaltro@x.it');
-  const names = (await b.get('/api/profiles?backgrounds=Altro')).body.people.map(p => p.first_name);
+  const names = (await b.get('/api/profiles?backgrounds=Altro')).body.people.map(p => p.first_name.toLowerCase());
   assert.ok(names.includes('altro') && !names.includes('cercaaltro'), names.join());
   // Old names in the database become the new ones
   t.app.db.prepare("UPDATE profiles SET background_area = 'Prodotto', seeking_backgrounds = '[\"Finanza\",\"Operations\"]' WHERE user_id = ?").run(b.id);

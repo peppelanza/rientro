@@ -57,3 +57,29 @@ test('"Completa il tuo profilo": one email 24 hours after signing up, listing wh
   await sendProfileReminders(db, { send: async m => sent.push(m) });
   assert.equal(sent.length, 1, 'once');
 });
+
+test('name and surname from Google / LinkedIn: online without Presentati (photo, year and Su di me in Completa); from email, Presentati is needed', async () => {
+  const db = t.app.db;
+  const base = { lives_in: 'abroad', lives_in_country: 'Svezia', lives_in_city: 'Stoccolma', desired_comuni: ['Milano'], move_when: '0_3m', primary_intent: 'networking' };
+  const g = await t.login('dal-login@x.it');
+  db.prepare("UPDATE profiles SET first_name = 'Lia', last_name = 'Verdi' WHERE user_id = ?").run(g.id);
+  db.prepare("INSERT INTO login_methods (user_id, method, first_used_at, last_used_at) VALUES (?, 'google', '', '')").run(g.id);
+  await g.patch('/api/me/profile', base);
+  const me = (await g.get('/api/me')).body;
+  assert.equal(me.name_from_login, true);
+  assert.deepEqual(me.missing, []);
+  assert.equal((await g.post('/api/me/submit')).status, 200);
+  const after = (await g.get('/api/me')).body;
+  assert.equal(after.user.status, 'approved');
+  assert.deepEqual(after.gaps.slice(0, 3).map(x => x.key), ['foto', 'anno', 'bio']);
+  // other sections save without them; the bio once written can't be emptied
+  assert.equal((await g.patch('/api/me/profile', { bio: null, achievement: 'Ho aperto uno studio.' })).status, 200);
+  assert.equal((await g.patch('/api/me/profile', { birth_year: null })).status, 200);
+
+  const e = await t.login('da-email@x.it');
+  await e.patch('/api/me/profile', { ...base, first_name: 'Ugo', last_name: 'Neri' });
+  const meE = (await e.get('/api/me')).body;
+  assert.equal(meE.name_from_login, false);
+  assert.ok(meE.missing.includes('Foto') && meE.missing.includes('Su di me'));
+  assert.equal((await e.post('/api/me/submit')).status, 409);
+});

@@ -1,6 +1,7 @@
 import { AREA_OTHER, AREA_OTHER_MAX, AREAS, SEEK_MAX, seeksAny, seeksLabel, areaKey, ageBandFor, COMUNI, IDEA_STAGES, label, orList, REGIONS, SECTORS, SEEKING_LOCATION, SOURCES, YEARS } from './catalog.js';
 import { newId, now, tx } from './db.js';
 import { cardFields } from '../public/app/card-fields.js';
+import { nameCase, realName } from '../public/app/text-case.js';
 import { paginate } from './paging.js';
 import { hit, terms, wordsOf } from './search.js';
 import { HttpError, bad, handle, httpsUrl, linkedinUrl, list, oneOf, only, text } from './validate.js';
@@ -62,14 +63,14 @@ export const isBack = p => p.lives_in === 'italy';
 export const myPlace = p => (p.lives_in === 'italy' ? p.lives_in_city || null : p.desired_unknown ? null : orList(p.desired_comuni || []) || null);
 
 // A name as people write it: invisible characters (zero-width, fillers) and the ones that turn the
-// direction of the text around (they'd reverse what follows the name: chat, Cerca) taken out; at
-// least one letter left
+// direction of the text around (they'd reverse what follows the name: chat, Cerca) taken out; a
+// real name, not initials ("G", "L."); all in capitals or all lower case fixed ("GIUSEPPE" → "Giuseppe")
 const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\u115F\u1160\u3164\uFFA0\u00AD]/g;
 function personName(v, field) {
   const t = typeof v === 'string' ? v.replace(INVISIBLE, '').replace(/\s+/g, ' ') : v;
   const out = text(t, field, { max: 60 });
-  if (out && !/\p{L}/u.test(out)) throw bad('invalid_field', `${field}: scrivi un nome con delle lettere.`);
-  return out;
+  if (out && !realName(out)) throw bad('invalid_field', `${field}: inserisci il tuo ${field.toLowerCase()} vero, per intero.`);
+  return out && nameCase(out);
 }
 
 const EDITABLE = {
@@ -179,7 +180,7 @@ export function updateProfile(db, user, body) {
   }
   // The birth year stays private: others see the age band, kept in step here and every day after
   if ('birth_year' in live) {
-    if (live.birth_year === null && user.status !== 'onboarding') throw bad('invalid_field', 'Indica il tuo anno di nascita.');
+    if (live.birth_year === null && current.birth_year != null && user.status !== 'onboarding') throw bad('invalid_field', 'Indica il tuo anno di nascita.');
     live.age_band = ageBandFor(live.birth_year);
   }
   // "Vivo fuori" includes the North, and the city before coming back may be Italian too
@@ -194,6 +195,8 @@ export function updateProfile(db, user, body) {
     const desired = 'desired_comuni' in live ? JSON.parse(live.desired_comuni || '[]') : null;
     const unknown = 'desired_unknown' in live ? live.desired_unknown : current.desired_unknown;
     if (desired && !desired.length && !unknown) throw bad('invalid_field', 'Scegli dove vorresti vivere, oppure “Non lo so ancora”.');
+    // (bio: online without Presentati it may still be empty, then it may stay so: Completa il tuo profilo)
+    if ('bio' in live && live.bio == null && current.bio == null) delete live.bio;
     const NEEDED = { bio: 'Scrivi qualcosa su di te.', years_experience: 'Indica gli anni di esperienza.', misses_italy: 'Scrivi cosa ti manca di casa.', seeking_description: 'Descrivi la persona che cerchi.' };
     for (const [k, say] of Object.entries(NEEDED)) if (k in live && live[k] == null) throw bad('invalid_field', say);
     if ('bio' in live && live.bio.trim().length < MIN_BIO) throw bad('invalid_field', `Su di me: scrivi almeno ${MIN_BIO} caratteri.`);
@@ -294,18 +297,30 @@ export function deleteRow(db, table, userId, id) {
 // That's what's needed to go online; the rest is "Completa il tuo profilo" (profileGaps).
 export const MIN_BIO = 20;
 const has = v => (typeof v === 'string' ? !!v.trim() : v != null);
-export function missingForSubmit(p) {
+// nameKnown: first and last name came with a Google / LinkedIn sign-in (nameFromLogin): then the
+// profile goes online without Presentati, and photo, year and Su di me join "Completa il tuo profilo".
+export function missingForSubmit(p, { nameKnown = false } = {}) {
   const missing = [];
   if (!p.lives_in || !p.lives_in_city) missing.push('Dove vivi');
   if (p.lives_in === 'abroad' && !p.desired_comuni.length && !p.desired_unknown) missing.push('Dove vorresti vivere');
   if (p.lives_in === 'abroad' && !p.move_when) missing.push('Quando vorresti trasferirti');
   if (!p.primary_intent) missing.push('Obiettivo');
   if (p.primary_intent === 'has_idea' && (!has(p.idea_title) || !has(p.idea_description) || !p.idea_stage)) missing.push('La tua idea');
+  if (nameKnown && realName(p.first_name || '') && realName(p.last_name || '')) return missing;
   if (!p.photo_url) missing.push('Foto');
   if (!p.first_name || !p.last_name) missing.push('Nome e cognome');
   if (!p.birth_year) missing.push('Anno di nascita');
   if ((p.bio || '').trim().length < MIN_BIO) missing.push('Su di me');
   return missing;
+}
+
+// Signed in with Google or LinkedIn, and that gave first and last name: Presentati isn't needed to go
+// online (an email sign-up types the name there)
+export function nameFromLogin(db, userId) {
+  const p = db.prepare('SELECT first_name, last_name FROM profiles WHERE user_id = ?').get(userId);
+  // (initials only, "G" "L": Presentati asks for the real one)
+  return !!(p?.first_name && p?.last_name && realName(p.first_name) && realName(p.last_name))
+    && !!db.prepare("SELECT 1 FROM login_methods WHERE user_id = ? AND method IN ('google', 'linkedin')").get(userId);
 }
 
 // "Completa il tuo profilo": what's still empty once online, each with where to fill it in (a
@@ -314,6 +329,10 @@ export function missingForSubmit(p) {
 export function profileGaps(p, { invitedBy = null } = {}) {
   const LINKS = ['linkedin_url', 'website_url', 'instagram_handle', 'x_handle', 'calendar_url'];
   return [
+    // (Presentati, for who went online without it: nameFromLogin)
+    [!p.photo_url, 'foto', 'La tua foto', 'intestazione'],
+    [!p.birth_year, 'anno', 'Il tuo anno di nascita', 'intestazione'],
+    [(p.bio || '').trim().length < MIN_BIO, 'bio', 'Qualcosa su di te', 'su-di-me'],
     [!p.background_area || !p.years_experience, 'background', 'Il tuo background e gli anni di esperienza', 'percorso'],
     [!(p.experiences || []).length && !(p.education || []).length, 'lavoro', 'Dove hai lavorato e studiato', 'percorso'],
     [!(p.sectors || []).length, 'interessi', 'I settori che ti interessano', 'interessi'],
@@ -331,7 +350,7 @@ export function profileGaps(p, { invitedBy = null } = {}) {
 // photo checks, reports, suspension). Status "approved" means "published".
 export function publishProfile(db, user) {
   const p = effectiveProfile(db, user.id);
-  const missing = missingForSubmit(p);
+  const missing = missingForSubmit(p, { nameKnown: nameFromLogin(db, user.id) });
   if (missing.length) throw new HttpError(409, 'incomplete', `Completa: ${missing.join(', ')}.`);
   if (user.status !== 'onboarding') return;
   const ts = now();

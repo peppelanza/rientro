@@ -10,7 +10,7 @@ import { removePost } from './groups.js';
 import { eraseAccount } from './privacy.js';
 import { announceGone } from './social.js';
 import { disconnect } from './live.js';
-import { arrivedText, effectiveProfile, ERASED_DOMAIN, missingForSubmit, moveLabel, myPlace, profileGaps, rawProfile } from './profiles.js';
+import { arrivedText, effectiveProfile, ERASED_DOMAIN, missingForSubmit, moveLabel, nameFromLogin, myPlace, profileGaps, rawProfile } from './profiles.js';
 import { matches, pageParams, paginate } from './paging.js';
 import { HttpError, bad, list, oneOf, only, text } from './validate.js';
 
@@ -160,7 +160,7 @@ export function getUser(db, admin, userId) {
       invited_by: db.prepare("SELECT TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS name, i.email FROM users u JOIN users i ON i.id = u.invited_by LEFT JOIN profiles p ON p.user_id = i.id WHERE u.id = ?").get(userId) ?? null,
       invite_code: db.prepare('SELECT invite_code FROM users WHERE id = ?').get(userId)?.invite_code ?? null,
       // still in onboarding: what's left before it can go online
-      missing: user.status === 'onboarding' ? missingForSubmit(p) : [],
+      missing: user.status === 'onboarding' ? missingForSubmit(p, { nameKnown: nameFromLogin(db, user.id) }) : [],
       // online, and still to fill in ("Completa il tuo profilo")
       gaps: user.status === 'approved' ? profileGaps(p).map(g => g.label) : [],
     },
@@ -361,7 +361,7 @@ export const EXPORT_COLUMNS = {
   users: {
     'Nome e cognome': u => name(u), Email: u => u.email, 'Vive a': u => [u.lives_in_city, u.lives_in_country].filter(Boolean).join(', '),
     'Vuole vivere a': u => u.desired_comuni.join('; '), Intento: u => INTENT[u.primary_intent] ?? '', Background: u => u.background_area ?? '',
-    Settori: u => u.sectors.join('; '), Fonte: u => u.source ?? '', Stato: u => STATUS_LABEL[u.status],
+    Settori: u => u.sectors.join('; '), Tempo: u => (u.lives_in === 'italy' ? 'rientrato/a' : moveLabel(u) ?? ''), Fonte: u => u.source ?? '', Stato: u => STATUS_LABEL[u.status],
   },
   connections: { Da: r => r.from_name, A: r => r.to_name, Stato: r => r.status, Creata: r => r.created_at, Risposta: r => r.responded_at ?? '' },
   reports: { Segnalato: r => r.reported_name, Motivo: r => REASON[r.reason], Stato: r => r.status, Aperta: r => r.created_at },

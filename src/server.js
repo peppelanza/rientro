@@ -35,6 +35,7 @@ import * as social from './social.js';
 import * as groups from './groups.js';
 import * as support from './support.js';
 import { HttpError } from './validate.js';
+import { nameCase } from '../public/app/text-case.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
 // still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
@@ -323,8 +324,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       if (!profile.emailVerified) return back(res, `${p}_email`);
       const { sessionToken, user, restored, isNew } = tx(db, () => {
         const out = auth.startSession(db, email, { userAgent: req.headers['user-agent'], method: p });
-        // Fill in the name from the provider only where the profile has none yet
-        db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(profile.firstName || null, profile.lastName || null, out.user.id);
+        // Fill in the name from the provider only where the profile has none yet ("MARIO ROSSI" as
+        // "Mario Rossi"; initials only are kept, and Presentati asks for the real name: nameFromLogin)
+        const fix = v => (typeof v === 'string' && v.trim() ? nameCase(v.trim().slice(0, 60)) : null);
+        db.prepare('UPDATE profiles SET first_name = COALESCE(first_name, ?), last_name = COALESCE(last_name, ?) WHERE user_id = ?').run(fix(profile.firstName), fix(profile.lastName), out.user.id);
         // The account's photo, offered as the first profile photo if it shows a face (see /api/me/suggested-photo)
         if (profile.picture) db.prepare('UPDATE profiles SET suggested_photo_url = ? WHERE user_id = ? AND photo_file_id IS NULL').run(profile.picture, out.user.id);
         return out;
@@ -414,7 +417,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     user: { id: user.id, email: user.email, role: user.role, status: user.status, created_at: user.created_at, last_login_method: user.last_login_method ?? null, login_methods: auth.loginMethods(db, user.id) },
     legal: auth.legalStatus(db, user.id),
     profile: profiles.effectiveProfile(db, user.id),
-    missing: profiles.missingForSubmit(profiles.effectiveProfile(db, user.id)),
+    missing: profiles.missingForSubmit(profiles.effectiveProfile(db, user.id), { nameKnown: profiles.nameFromLogin(db, user.id) }),
+    // name and surname from Google / LinkedIn: the onboarding publishes before Presentati
+    name_from_login: profiles.nameFromLogin(db, user.id),
     // what's left to fill in once online ("Completa il tuo profilo")
     gaps: profiles.profileGaps(profiles.effectiveProfile(db, user.id), { invitedBy: inviteInfo(db, user).invited_by?.first_name ?? null }),
     job_seeking: prefs.getJobPreferences(db, user.id),

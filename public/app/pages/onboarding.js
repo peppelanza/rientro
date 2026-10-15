@@ -9,6 +9,7 @@ import { canRecord, confirmVideo, durationProblem, recordVideo, setPreview, vide
 import { canTakePhoto, takePhoto } from '../camera.js';
 import { preparePhoto, warmUpFaceCheck } from '../face.js';
 import { homeFor, Page } from './_base.js';
+import { realName } from '../text-case.js';
 
 export const title = 'Il tuo profilo';
 
@@ -74,9 +75,8 @@ export default class extends Page {
       const at = keys.indexOf(this.state.step);
       const open = keys.findIndex(k => this.blocker(k));
       // (a step that's no longer in the onboarding, from before it ended with Presentati: the first
-      // one still unanswered, or the preview when everything is)
-      if (at < 0 && open < 0 && this.state.step !== 'benvenuto') this.state.step = 'presentati';
-      if (at < 0 || (open >= 0 && open < at)) this.state.step = open >= 0 ? keys[open] : keys[0];
+      // one still unanswered, or the last one, which publishes, when everything is)
+      if (at < 0 || (open >= 0 && open < at)) this.state.step = open >= 0 ? keys[open] : keys[keys.length - 1];
     }
     // Each step is a place in the history: the phone's back (or the browser's) goes to the step
     // before, not out of the onboarding (goTo adds them)
@@ -118,11 +118,13 @@ export default class extends Page {
   };
 
   // "Da dove sei arrivato" only for who lives in Italy, "Dove vorresti vivere" not for who already
-  // came back (it's where they live); the idea step only for who has one
+  // came back (it's where they live); the idea step only for who has one; Presentati not for who
+  // got name and surname from Google / LinkedIn (src/profiles.js nameFromLogin): the step before
+  // publishes, and photo, year and Su di me are in "Completa il tuo profilo"
   get steps() {
     const p = this.state.p;
     return STEPS.filter(([k]) => (k !== 'arrivo' || p?.lives_in === 'italy') && (k !== 'dove' || !isBack(p)) && (k !== 'idea' || p?.primary_intent === 'has_idea')
-      && (k !== 'invito' || !!this.state.me?.invite?.invited_by));
+      && (k !== 'invito' || !!this.state.me?.invite?.invited_by) && (k !== 'presentati' || !this.state.me?.name_from_login));
   }
 
   goTo(step, { push = true } = {}) {
@@ -151,7 +153,7 @@ export default class extends Page {
       case 'obiettivo': return p.primary_intent ? null : 'Scegli una delle tre opzioni';
       case 'invito': return p.invite_connect === null || p.invite_connect === undefined ? 'Scegli una delle due opzioni' : null;
       case 'idea': return p.primary_intent !== 'has_idea' ? null : !nz(p.idea_title) ? 'Dai un titolo alla tua idea' : !nz(p.idea_description) ? 'Descrivi la tua idea' : !p.idea_stage ? 'Indica a che punto sei' : null;
-      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido, di 4 cifre (almeno 18 anni)' : (p.bio || '').trim().length < MIN_BIO ? `Scrivi qualcosa su di te (almeno ${MIN_BIO} caratteri)` : null;
+      case 'presentati': return !p.photo_url ? 'Aggiungi una foto per continuare' : !nz(p.first_name) || !nz(p.last_name) ? 'Inserisci nome e cognome' : !realName(p.first_name) || !realName(p.last_name) ? 'Inserisci il tuo nome e cognome veri, per intero' : !p.birth_year ? 'Indica il tuo anno di nascita' : !validBirthYear(p.birth_year) ? 'Indica un anno di nascita valido, di 4 cifre (almeno 18 anni)' : (p.bio || '').trim().length < MIN_BIO ? `Scrivi qualcosa su di te (almeno ${MIN_BIO} caratteri)` : null;
       case 'background': return !p.background_area ? (this.state.bgOther ? 'Scrivi il tuo background' : 'Scegli la tua area') : !p.years_experience ? 'Indica gli anni di esperienza' : null;
       case 'settori': return p.sectors.length ? null : 'Scegli almeno un interesse';
       case 'manca': return nz(p.misses_italy) ? null : 'Scrivi cosa ti manca di casa';
@@ -198,9 +200,11 @@ export default class extends Page {
       // Leaving the video step with a video: that's the take, the server converts it now
       if (s.step === 'video' && s.p.video_url) confirmVideo();
       s.edu = null; s.exp = null;
-      // Presentati was the last step: the profile goes online now (no preview), then Benvenuto
-      // before launch, Scopri after it ("Completa il tuo profilo" there for the rest)
+      // The last step (Presentati, or the one before for a name from the login): the profile goes
+      // online now (no preview), then Benvenuto before launch, Scopri after it ("Completa il tuo
+      // profilo" there for the rest). Without Presentati, the login's photo if it shows a face.
       if (nextStep === 'anteprima') {
+        if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) await this.trySuggestedPhoto();
         const me = await api('POST', '/api/me/submit');
         setMe(me);
         flash('Il tuo profilo è online.');
@@ -325,9 +329,10 @@ export default class extends Page {
     const is = k => s.step === k;
     const blocker = this.blocker(s.step);
     this.lastBlocker = blocker;
-    if (s.step === 'presentati') {
+    const isLast = idx >= 0 && idx === steps.length - 1;
+    if (s.step === 'presentati' || (isLast && s.p.suggested_photo_url && !s.p.photo_url)) {
       warmUpFaceCheck(); // the photo check needs its model: fetch it now
-      if (!s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
+      if (s.step === 'presentati' && !s.p.photo_url && s.p.suggested_photo_url && !s.triedSuggested) this.trySuggestedPhoto();
     }
     const card = (on, fn, role = 'radio') => ({ on, fn, role, aria: on ? 'true' : 'false' });
     const inviter = s.me?.invite?.invited_by || {};
@@ -365,7 +370,7 @@ export default class extends Page {
       footStatus: blocker && !optional ? blocker : (stepStatus || statusSaved), footError: !!blocker && !optional && ['presentati'].includes(s.step),
       // phones: short labels, so Indietro, Salta and the main button fit on one line
       footDisabled: !!blocker, footSkip: optional ? ((!narrow && { video: 'Lo aggiungo dopo' }[s.step]) || 'Salta') : null,
-      footPrimary: is('presentati') ? 'Pubblica il profilo' : 'Continua', footAccent: is('presentati'),
+      footPrimary: isLast ? 'Pubblica il profilo' : 'Continua', footAccent: isLast,
       is_luogo: is('luogo'), is_residenza: is('residenza'), is_arrivo: is('arrivo'), is_dove: is('dove'), is_obiettivo: is('obiettivo'), is_idea: is('idea'),
       is_presentati: is('presentati'), is_background: is('background'), is_formazione: is('formazione'), is_esperienze: is('esperienze'),
       is_risultato: is('risultato'), is_video: is('video'), is_settori: is('settori'), is_chi: is('chi'),
