@@ -77,3 +77,20 @@ test('onboarding: il tasto indietro torna al passo prima, Continua disabilitato 
   await expect(page.getByRole('radio', { name: /Vivo fuori/ })).toBeVisible();
   await expect(page).toHaveURL(/passo=luogo/);
 });
+
+test('onboarding: Annulla iscrizione, confermato, esce e l’account è in eliminazione (30 giorni per ripensarci)', async ({ page }) => {
+  const email = uniqueEmail('annulla');
+  await signIn(page.request, email);
+  await page.goto('/onboarding');
+  await page.getByRole('button', { name: 'Annulla iscrizione' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Annullare l’iscrizione?' })).toBeVisible();
+  // ripensarci: si resta
+  await page.getByRole('button', { name: 'Continua l’iscrizione' }).click();
+  await expect(page.getByRole('heading', { name: 'Annullare l’iscrizione?' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Annulla iscrizione' }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Annulla iscrizione' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText(/Iscrizione annullata/)).toBeVisible();
+  // signed out
+  expect((await page.request.get('/api/me')).status()).toBe(401);
+});

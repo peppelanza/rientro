@@ -1,5 +1,6 @@
 // Side menu shared by the settings pages (design 05 · UI Side Menu "Impostazioni"), and the
-// two-step "Elimina account" dialog (design 05 · 41a/41b), at the bottom of Impostazioni → Account.
+// two-step "Elimina account" dialog (design 05 · 41a/41b), at the bottom of Impostazioni → Account,
+// and "Annulla iscrizione" from the onboarding (the same deletion: 30 days to change one's mind).
 import { DCLogic } from '../../dc/runtime.js';
 import { api, flash, go, openModal, template } from '../lib.js';
 
@@ -38,4 +39,28 @@ export async function openDeleteAccount({ onExport }) {
     },
   });
   if (result?.deleted) { flash('Account in eliminazione. Hai 30 giorni per ripensarci: ti basta accedere di nuovo.'); go('/'); }
+}
+
+export async function openCancelSignup() {
+  const tpl = await template('/app/pages/onboarding-annulla.html');
+  const result = await openModal({
+    template: tpl,
+    Logic: class extends DCLogic {
+      state = { busy: false, error: null };
+      renderVals() {
+        const s = this.state;
+        return {
+          effects: ['Esci subito e quello che hai inserito non è visibile a nessuno.', 'Hai 30 giorni per ripensarci: se accedi di nuovo ritrovi tutto com’era.', 'Dopo 30 giorni cancelliamo definitivamente l’account e i dati inseriti.'],
+          busy: s.busy, error: s.error, cancel: () => this.close(),
+          confirm: async () => {
+            if (s.busy) return;
+            this.setState({ busy: true, error: null });
+            // (the server's deletion wants the confirmation word: this dialog is the confirmation)
+            try { this.close(await api('DELETE', '/api/me', { confirm: 'ELIMINA', reason: 'Iscrizione annullata durante l’onboarding' })); } catch (err) { this.setState({ busy: false, error: err.message }); }
+          },
+        };
+      }
+    },
+  });
+  if (result?.deleted) { flash('Iscrizione annullata. Hai 30 giorni per ripensarci: ti basta accedere di nuovo.'); go('/'); }
 }

@@ -1,9 +1,10 @@
-// Who started the profile and left it halfway gets one email, an hour after their last change, inviting
-// them back to finish it. Once per account (users.onboarding_reminded_at), never while they're still
+// Who started the profile and left it halfway gets one email, an hour after their last change, with
+// what's still missing, inviting them back to finish it. Once per account (users.onboarding_reminded_at), never while they're still
 // at it. Runs every minute from server.js, a small batch at a time.
 import { canSendEmail, onboardingReminderEmail, sendEmail } from './mail.js';
 import { getCommunicationPreferences } from './preferences.js';
 import { now } from './db.js';
+import { effectiveProfile, missingForSubmit, nameFromLogin } from './profiles.js';
 
 export const REMINDER_AFTER_HOURS = 1;
 const BATCH = 20;
@@ -22,7 +23,8 @@ export async function sendOnboardingReminders(db, { send = sendEmail, at = Date.
     // Marked first: a failed send isn't retried, nobody gets it twice
     db.prepare('UPDATE users SET onboarding_reminded_at = ? WHERE id = ?').run(now(), u.id);
     if (!getCommunicationPreferences(db, u.id).notify_status_email) continue;
-    try { await send({ to: u.email, ...onboardingReminderEmail({ firstName: u.first_name }) }); sent++; } catch (err) { console.error('[onboarding reminder]', err); }
+    const missing = missingForSubmit(effectiveProfile(db, u.id), { nameKnown: nameFromLogin(db, u.id) });
+    try { await send({ to: u.email, ...onboardingReminderEmail({ firstName: u.first_name, missing }) }); sent++; } catch (err) { console.error('[onboarding reminder]', err); }
   }
   return { sent };
 }

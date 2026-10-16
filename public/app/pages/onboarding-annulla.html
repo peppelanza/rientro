@@ -1,0 +1,7 @@
+<!-- "Annulla iscrizione" from the onboarding bar (_settings.js openCancelSignup): the same as Elimina account -->
+<div style="width:520px;max-width:100%;background:#FFFFFF;border-radius:32px;box-shadow:0 14px 40px rgba(80,60,160,.12);padding:32px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;font-family:'Geist',sans-serif">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.05em">Annullare l’iscrizione?</h2>
+<div style="display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.5;color:#4A4560"><sc-for list="{{ effects }}" as="d"><div style="display:flex;gap:12px"><span aria-hidden="true" style="width:7px;height:7px;border-radius:50%;background:#6C4DF5;margin-top:8px;flex:none"></span><span>{{ d }}</span></div></sc-for></div>
+<sc-if value="{{ error }}"><span role="alert" style="font-size:13px;color:#B42318">{{ error }}</span></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px"><dc-import name="UI Button" label="Annulla iscrizione" variant="destructive" size="lg" full="{{ true }}" on-click="{{ confirm }}" host-aria-disabled="{{ busy }}"></dc-import><dc-import name="UI Button" label="Continua l’iscrizione" variant="ghost" full="{{ true }}" on-click="{{ cancel }}"></dc-import></div>
+</div>

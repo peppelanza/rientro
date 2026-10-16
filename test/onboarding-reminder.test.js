@@ -27,8 +27,9 @@ test('profile left halfway: one email a day after the last change, never twice, 
   const send = async m => { sent.push(m); };
   await sendOnboardingReminders(db, { send });
   assert.deepEqual(sent.map(m => m.to), ['meta@x.it']);
-  assert.equal(sent[0].subject, 'Il tuo profilo su Rientro è quasi pronto');
-  assert.match(sent[0].text, /^Ciao Giulia, non hai completato la tua iscrizione su Rientro\./);
+  assert.equal(sent[0].subject, 'Ti manca poco per entrare su Rientro');
+  assert.match(sent[0].text, /^Ciao Giulia, per pubblicare il profilo ti manca solo:\n- Dove vivi\n/);
+  assert.match(sent[0].text, /- Foto\n/);
   assert.match(sent[0].html, /\/onboarding/);
 
   // Once only

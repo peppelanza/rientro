@@ -26,6 +26,8 @@ export const steps = items => `<table role="presentation" cellpadding="0" cellsp
 <td valign="top" style="padding:3px 0 16px"><div style="font-family:${BODY};font-size:15px;font-weight:600;color:${C.ink}">${title}</div><div style="font-family:${BODY};font-size:14px;line-height:1.5;color:${C.body}">${text}</div></td></tr>`).join('')}</table>`;
 // One person in a digest: initials/photo-free row (images are often blocked), name, what happened
 export const row = ({ title, text, href }) => `<tr><td style="padding:14px 0;border-top:1px solid ${C.line}"><a href="${esc(href)}" style="text-decoration:none"><div style="font-family:${BODY};font-size:15px;font-weight:600;color:${C.ink}">${title}</div>${text ? `<div style="margin-top:3px;font-family:${BODY};font-size:14px;line-height:1.45;color:${C.body}">${text}</div>` : ''}</a></td></tr>`;
+// A short list with purple dots ("what's missing")
+export const checklist = items => `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 22px;border-radius:20px;background:${C.tint}"><tr><td style="padding:14px 20px">${items.map(t => `<div style="padding:5px 0;font-family:${BODY};font-size:16px;line-height:1.4;color:${C.ink}"><span style="display:inline-block;width:8px;height:8px;margin:0 12px 2px 0;border-radius:50%;background:${C.accent}"></span>${t}</div>`).join('')}</td></tr></table>`;
 export const rows = items => `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px;border-bottom:1px solid ${C.line}">${items.join('')}</table>`;
 
 /**

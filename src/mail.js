@@ -1,7 +1,7 @@
 // Transactional email through Brevo (EU). https://developers.brevo.com/reference/sendtransacemail
 // Every email uses the branded layout in email-templates.js, with a plain-text twin.
 import { config, isLaunched } from './config.js';
-import { button, code, eyebrow, esc, h1, layout, note, p, row, rows, steps, textFooter, url } from './email-templates.js';
+import { button, checklist, code, eyebrow, esc, h1, layout, note, p, row, rows, steps, textFooter, url } from './email-templates.js';
 import { HttpError } from './validate.js';
 
 export const canSendEmail = () => !!config.brevoApiKey;
@@ -79,16 +79,16 @@ export const sendWelcomeEmail = (email, opts) => sendEmail({ to: email, ...welco
 
 // --- Profile left halfway (onboarding-reminder.js): once, an hour after the last change ------------
 
-export function onboardingReminderEmail({ firstName = null } = {}) {
-  const hello = `Ciao${firstName ? ` ${firstName}` : ''}, non hai completato la tua iscrizione su Rientro.`;
-  const next = 'Compila adesso gli step mancanti cliccando il pulsante.';
-  const cta = ['Completa il profilo', url('/onboarding')];
+// missing: what's still needed to go online (profiles.js missingForSubmit), as a short list
+export function onboardingReminderEmail({ firstName = null, missing = [] } = {}) {
+  const hello = `Ciao${firstName ? ` ${firstName}` : ''}, ${missing.length ? 'per pubblicare il profilo ti manca solo:' : 'la tua iscrizione è quasi finita.'}`;
+  const cta = ['Completa l’iscrizione', url('/onboarding')];
   return {
-    subject: 'Il tuo profilo su Rientro è quasi pronto',
-    text: `${hello}\n\n${next}\n\n${cta[0]}: ${cta[1]}${textFooter}`,
+    subject: 'Ti manca poco per entrare su Rientro',
+    text: `${hello}\n${missing.map(m => `- ${m}`).join('\n')}\n\n${cta[0]}: ${cta[1]}${textFooter}`,
     html: layout({
-      preheader: 'Ti mancano pochi step per completare il profilo.',
-      body: h1('Ti manca poco') + p(esc(hello)) + p(esc(next)) + button(...cta),
+      preheader: 'Bastano due minuti per pubblicare il profilo.',
+      body: h1('Ti manca poco') + p(esc(hello)) + (missing.length ? checklist(missing.map(esc)) : '') + button(...cta),
     }),
   };
 }
