@@ -7,6 +7,7 @@ import path from 'node:path';
 import { COMUNI, REGIONS, TERRITORY_CITIES } from './catalog.js';
 import { NOT_DEMO_SQL } from './demo.js';
 import { config } from './config.js';
+import { sameProvinceComuni } from './places.js';
 
 // Photo of a territory: public/img/territori/<slug>.<ext> (regions use a photo of their capital).
 // "Valle d'Aosta" → valle-d-aosta, "Forlì" → forli.
@@ -38,7 +39,8 @@ export function territory(db, raw) {
   const isRegion = REGIONS.includes(place);
   const isCity = !isRegion && COMUNI.some(c => c[0] === place);
   if (!isRegion && !isCity) return null;
-  const cities = isRegion ? COMUNI.filter(c => c[2] === place).map(c => c[0]) : [place];
+  // a city stands for its province (places.js): Benevento counts who chose Paupisi too
+  const cities = isRegion ? COMUNI.filter(c => c[2] === place).map(c => c[0]) : sameProvinceComuni(place);
   const rows = db.prepare(
     `SELECT p.* FROM profiles p JOIN users u ON u.id = p.user_id WHERE u.status = 'approved' AND p.visible = 1 AND u.deletion_requested_at IS NULL AND ${NOT_DEMO_SQL}`,
   ).all().map(p => ({ ...p, desired: JSON.parse(p.desired_comuni), sectors: JSON.parse(p.sectors) }));

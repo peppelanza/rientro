@@ -45,3 +45,18 @@ test('Admin › Errori: refused sign-ins (warn), browser errors, server errors; 
   const m = await t.member('noerrori@x.it');
   assert.equal((await m.get('/api/admin/errors')).status, 403);
 });
+
+test('admin user card: a deletion request is said, with when it is erased; the admin still opens the profile, members do not', async () => {
+  const a = await t.approved('va-via@x.it');
+  const other = await t.approved('altro-membro@x.it');
+  assert.equal((await a.del('/api/me', { confirm: 'ELIMINA', reason: 'Non mi serve più' })).status, 200);
+  const admin = await t.asAdmin();
+  const card = (await admin.get(`/api/admin/users/${a.id}`)).body.user;
+  assert.equal(card.status_label, 'In eliminazione');
+  assert.ok(card.deletion_requested_at && card.erase_on > card.deletion_requested_at);
+  assert.equal(card.deletion_reason, 'Non mi serve più');
+  assert.equal((await admin.get(`/api/profiles/${a.id}`)).status, 200);
+  assert.equal((await other.get(`/api/profiles/${a.id}`)).status, 404);
+  const row = (await admin.get('/api/admin/users?q=va-via')).body.users.find(u => u.id === a.id);
+  assert.equal(row.status_label, 'In eliminazione');
+});

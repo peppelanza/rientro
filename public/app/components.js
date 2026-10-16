@@ -753,7 +753,7 @@ if (typeof window !== 'undefined') {
 def('App People Filters', String.raw`
 <aside aria-label="Filtri" class="{{ filterClass }}" style="background:rgba(255,255,255,.6);border:1px solid #FFFFFF;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;align-self:start">
 <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:16px;font-weight:600">Filtri</h2><button type="button" onClick="{{ clearAll }}" style="border:none;background:none;padding:0;font:13px 'Geist',sans-serif;color:#6B6680;text-decoration:underline;cursor:pointer">Azzera</button></div>
-<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Destinazione"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" dc-props="{{ desiredProps }}"></dc-import>
+<div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Destinazione"></dc-import><dc-import name="App Comune Picker" comuni="{{ comuni }}" selected="{{ desired }}" counts="{{ comuneCounts }}" max="10" field="f-desired" placeholder="Cerca città o regione" none-text="Nessuna città o regione trovata" dc-props="{{ desiredProps }}"></dc-import><span style="font-size:12px;color:#8C84AE;line-height:1.4">Una città comprende tutta la sua provincia.</span>
 <sc-if value="{{ hasDesired }}"><dc-import name="UI Checkbox" label="Includi chi ha scelto “Non lo so ancora”" checked="{{ includeUnknown }}" on-click="{{ toggleUnknown }}" host-role="checkbox" host-aria-checked="{{ includeUnknown }}"></dc-import></sc-if></div>
 <div style="display:flex;flex-direction:column;gap:10px"><dc-import name="UI Eyebrow" text="Residenza"></dc-import><dc-import name="App Segmented" label="Residenza" options="{{ livesOpts }}" value="{{ lives }}" onWhite="{{ true }}" dc-props="{{ livesProps }}"></dc-import></div>
 <sc-if value="{{ moreClosed }}"><button type="button" class="filters-more-toggle" aria-expanded="{{ moreOpen }}" onClick="{{ toggleMore }}">{{ moreLabel }}<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></sc-if>
@@ -947,7 +947,9 @@ def('App Comune Picker', String.raw`
   renderVals() {
     const sel = this.props.selected || [];
     const q = this.state.query;
+    // (a comune shows its province's count, "@BN": the filter finds the whole province)
     const counts = this.props.counts;
+    const people = n => `${n || 0} ${n === 1 ? 'persona' : 'persone'}`;
     const max = Number(this.props.max || 10);
     const found = this.matchesFor(q);
     const typed = q.trim();
@@ -957,7 +959,7 @@ def('App Comune Picker', String.raw`
         const a = h.f.at[h.pos];
         const z = h.f.at[h.pos + h.len];
         const c = h.c;
-        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? `${counts[c[0]] || 0} ${counts[c[0]] === 1 ? "persona" : "persone"}` : (c[2]?.toUpperCase() ?? '') };
+        return { name: c[0], pre: c[0].slice(0, a), head: c[0].slice(a, z), rest: c[0].slice(z), meta: counts ? people(counts[c[0]] ?? (c[1] ? counts[`@${c[1]}`] : 0)) : (c[2]?.toUpperCase() ?? '') };
       }),
       ...(offerTyped ? [{ name: typed, pre: 'Usa “', head: typed, rest: '”', meta: '' }] : []),
     ];

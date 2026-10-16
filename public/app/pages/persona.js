@@ -99,7 +99,7 @@ export default class extends Page {
     // a request accepted or answered while the page is open (live.js): the buttons follow
     if (!this.state.self) addEventListener('rientro:connections', () => this.refresh().catch(() => {}));
     // Still in onboarding: the others' profiles open once yours is online
-    if (!this.state.self && me.user.status === 'onboarding') return go('/onboarding');
+    if (!this.state.self && me.user.status === 'onboarding' && me.user.role !== 'admin') return go('/onboarding');
     try {
       this.state.p = await api('GET', `/api/profiles/${encodeURIComponent(this.props.params.id)}${this.state.self ? '?anteprima=1' : ''}`);
     } catch (err) {

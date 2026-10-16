@@ -2,6 +2,7 @@ import { AREA_OTHER, AREA_OTHER_MAX, AREAS, SEEK_MAX, seeksAny, seeksLabel, area
 import { newId, now, tx } from './db.js';
 import { cardFields } from '../public/app/card-fields.js';
 import { nameCase, realName } from '../public/app/text-case.js';
+import { PROVINCE_NAMES, provincesOf, sameProvince } from './places.js';
 import { paginate } from './paging.js';
 import { hit, terms, wordsOf } from './search.js';
 import { HttpError, bad, handle, httpsUrl, linkedinUrl, list, oneOf, only, text } from './validate.js';
@@ -401,6 +402,7 @@ export function connectionState(db, viewerId, targetId) {
 //   they look for your background           35  "Cerca …, il tuo background"
 //   you look for theirs                     30  "Tu cerchi …: è il background di Luca"
 //   the same city (to live in, or theirs)   25  "Anche Luca vuole vivere a Palermo"
+//   (or the same province: places.js)          "Anche Luca vuole vivere a Paupisi, nella tua provincia"
 //   one has an idea, the other looks for one 15 "Ha già un'idea: …" / "Cerca un'idea da costruire insieme"
 //   each sector in common (up to 3)          6  "Ha scelto … e …, come te" (from two)
 //   a complete profile (photo, video, about) up to 8, no words
@@ -411,7 +413,7 @@ export function affinityFor(viewerP, { noIdea = false } = {}) {
   if (!viewerP) return () => ({ score: 0, reason: null });
   const vBg = viewerP.background_area;
   const vSeek = seeksAny(viewerP.seeking_backgrounds) ? new Set() : new Set(viewerP.seeking_backgrounds);
-  const vPlaces = new Set(viewerP.lives_in === 'italy' ? [viewerP.lives_in_city].filter(Boolean) : viewerP.desired_comuni);
+  const vPlaces = viewerP.lives_in === 'italy' ? [viewerP.lives_in_city].filter(Boolean) : viewerP.desired_comuni;
   const vSectors = new Set(viewerP.sectors);
   return p => {
     let score = 0;
@@ -423,8 +425,11 @@ export function affinityFor(viewerP, { noIdea = false } = {}) {
     else if (theySeekYou) add(35, `Cerca ${vBg}, il tuo background`);
     else if (youSeekThem) add(30, `Tu cerchi ${p.background_area}: è il background di ${p.first_name}`);
     const theirPlaces = p.lives_in === 'italy' ? [p.lives_in_city].filter(Boolean) : p.desired_comuni;
-    const city = theirPlaces.find(c => vPlaces.has(c));
+    // the same city, or else one in the same province ("Benevento" and "Paupisi")
+    const city = theirPlaces.find(c => vPlaces.includes(c));
+    const near = !city && theirPlaces.find(c => vPlaces.some(v => sameProvince(v, c)));
     if (city) add(25, p.lives_in === 'italy' ? `${p.first_name} vive già a ${city}` : `Anche ${p.first_name} vuole vivere a ${city}`);
+    else if (near) add(25, p.lives_in === 'italy' ? `${p.first_name} vive già a ${near}, nella tua provincia` : `Anche ${p.first_name} vuole vivere a ${near}, nella tua provincia`);
     if (viewerP.primary_intent === 'seeking_idea' && p.primary_intent === 'has_idea') add(15, noIdea ? null : p.idea_title ? `Ha già un'idea: ${p.idea_title}` : "Ha già un'idea e cerca con chi costruirla");
     else if (viewerP.primary_intent === 'has_idea' && p.primary_intent === 'seeking_idea') add(15, "Cerca un'idea da costruire insieme");
     const shared = p.sectors.filter(x => vSectors.has(x));
@@ -443,7 +448,8 @@ function visibleTarget(db, viewer, targetId) {
   const self = viewer.id === targetId;
   const p = u && rawProfile(db, targetId);
   const ok = u && p && (self || viewer.role === 'admin' || (u.status === 'approved' && p.visible === 1));
-  if (!ok || (!self && isBlocked(db, viewer.id, targetId))) throw new HttpError(404, 'not_found', 'Profilo non disponibile.');
+  // (an admin sees it anyway, "Vedi come lo vedono i membri": also with a block or a deletion request)
+  if (!ok || (!self && viewer.role !== 'admin' && isBlocked(db, viewer.id, targetId))) throw new HttpError(404, 'not_found', 'Profilo non disponibile.');
   return { u, p, self };
 }
 
@@ -515,14 +521,15 @@ export function card(db, viewer, p, viewerP, filters = null) {
 // --- Discover (26a) ----------------------------------------------------------------------
 
 // "Dove vuole vivere" takes comuni and whole regions, written "Sicilia (regione)" (Molise is also a
-// comune): a region matches anyone who chose at least one comune in it
+// comune): a region matches anyone who chose at least one comune in it, a comune anyone who chose
+// one in its province (places.js: Benevento finds Paupisi)
 const REGION_SUFFIX = ' (regione)';
 const regionsOf = new Map();
 for (const [name, , region] of COMUNI) regionsOf.set(name, (regionsOf.get(name) || new Set()).add(region));
 const regionOf = place => (place.endsWith(REGION_SUFFIX) && REGIONS.includes(place.slice(0, -REGION_SUFFIX.length)) ? place.slice(0, -REGION_SUFFIX.length) : null);
 function wantsPlace(p, place) {
   const region = regionOf(place);
-  return region ? p.desired_comuni.some(c => regionsOf.get(c)?.has(region)) : p.desired_comuni.includes(place);
+  return region ? p.desired_comuni.some(c => regionsOf.get(c)?.has(region)) : p.desired_comuni.some(c => sameProvince(c, place));
 }
 
 const FACETS = {
@@ -543,7 +550,8 @@ const FACETS = {
 const SEARCH_PARTS = [
   ['', 10, p => [p.first_name, p.last_name]],
   ['', 6, p => [p.current_role, p.current_company]],
-  ['', 5, p => [p.lives_in_city, p.lives_in_country, ...p.desired_comuni]],
+  // (with their provinces: "Benevento" finds who wants Paupisi)
+  ['', 5, p => [p.lives_in_city, p.lives_in_country, ...p.desired_comuni, ...new Set([p.lives_in_city, ...p.desired_comuni].flatMap(c => [...provincesOf(c)].map(s => PROVINCE_NAMES[s])))]],
   // where they came back from (the card shows it: "Zurigo → Catania")
   ['', 5, p => (p.lives_in === 'italy' ? [p.arrived_from_city, p.arrived_from_country] : [])],
   [p => (p.primary_intent === 'has_idea' ? 'cosa vuole costruire' : 'cosa vorrebbe costruire'), 4, p => [p.idea_title, p.idea_description]],
@@ -707,13 +715,14 @@ export function discover(db, viewer, filters) {
   };
 }
 
-// For the "N persone" hint in the comune picker (27a): per comune, and per region (each person once)
+// For the "N persone" hint in the comune picker (27a): per province ("@BN", which every comune of
+// it shows, as the filter finds the whole province) and per region (each person once)
 export function comuneCounts(db) {
   const ix = discoverIndex(db);
   if (ix.comuni) return ix.comuni;
   const counts = {};
   for (const { desired_comuni: comuni } of ix.rows) {
-    for (const c of comuni) counts[c] = (counts[c] || 0) + 1;
+    for (const s of new Set(comuni.flatMap(c => [...provincesOf(c)]))) counts[`@${s}`] = (counts[`@${s}`] || 0) + 1;
     for (const r of new Set(comuni.flatMap(c => [...(regionsOf.get(c) || [])]))) counts[r + REGION_SUFFIX] = (counts[r + REGION_SUFFIX] || 0) + 1;
   }
   ix.comuni = counts;

@@ -99,10 +99,14 @@ export default class extends AdminPage {
       notes: d.notes.map(n => ({ b: n.body, m: `${(n.admin_email || 'admin').split('@')[0].toUpperCase()} · ${fmtShort(n.created_at).toUpperCase()}` })),
       note: s.note, noteProps: { onInput: v => { s.note = v; }, onEnter: () => this.addNote() }, addNote: this.addNote,
       canSuspend: st !== 'suspended', canUnsuspend: st === 'suspended', canView: st === 'approved',
+      // asked to delete the account (Impostazioni): already gone for the others, erased on erase_on
+      deleting: !!u.deletion_requested_at,
+      deletingText: u.deletion_requested_at ? `Ha chiesto di eliminare l’account il ${fmtDate(u.deletion_requested_at)}. Per gli altri membri non c’è più; verrà cancellato definitivamente il ${fmtDate(u.erase_on)}, a meno che non rientri prima.` : '',
+      deletingReason: u.deletion_reason ? `Motivo: “${u.deletion_reason}”` : '',
       canImpersonate: st !== 'suspended' && u.id !== this.me?.user.id, impersonateLabel: `Accedi come ${p.first_name || name}`,
       impersonate: this.act(async () => { const r = await api('POST', `/api/admin/users/${u.id}/impersonate`); go(r.go); }),
       // Hiding takes the profile out of Discover and profile pages; the account keeps working
-      canHide: p.visible !== false && st === 'approved', canShow: p.visible === false, hidden: p.visible === false,
+      canHide: p.visible !== false && st === 'approved' && !u.deletion_requested_at, canShow: p.visible === false, hidden: p.visible === false,
       hide: () => this.review('hide'), show: () => this.review('show'),
       suspend: () => this.review('suspend'), unsuspend: () => this.review('unsuspend'),
       // a suspended account erased for good: the admin types its email to confirm

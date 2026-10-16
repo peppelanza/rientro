@@ -31,7 +31,7 @@ const name = p => [p?.first_name, p?.last_name].filter(Boolean).join(' ');
 
 // (the anonymous placeholders of erased accounts, which only keep their messages, are nobody)
 function allProfiles(db, where = '1 = 1', params = []) {
-  return db.prepare(`SELECT u.id, u.email, u.status, u.created_at, u.last_seen_at, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.email NOT LIKE '%@${ERASED_DOMAIN}' AND (${where})`)
+  return db.prepare(`SELECT u.id, u.email, u.status, u.created_at, u.last_seen_at, u.deletion_requested_at, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.email NOT LIKE '%@${ERASED_DOMAIN}' AND (${where})`)
     .all(...params).map(r => ({ ...r, desired_comuni: JSON.parse(r.desired_comuni || '[]'), sectors: JSON.parse(r.sectors || '[]'), seeking_backgrounds: JSON.parse(r.seeking_backgrounds || '[]'), pending_changes: JSON.parse(r.pending_changes || '{}') }));
 }
 
@@ -119,7 +119,8 @@ export function listUsers(db, admin, query) {
       // still in onboarding: the step they stopped at
       step: u.status === 'onboarding' ? (ONBOARDING_STEPS[u.onboarding_step] ?? 'Inizio') : null,
       intent: INTENT[u.primary_intent] ?? '—',
-      status: u.status, status_label: STATUS_LABEL[u.status], joined: u.created_at,
+      // asked to delete the account: gone for the others until erased (or until they sign in again)
+      status: u.status, status_label: u.deletion_requested_at ? 'In eliminazione' : STATUS_LABEL[u.status], deleting: !!u.deletion_requested_at, joined: u.created_at,
     })),
   };
 }
@@ -128,13 +129,17 @@ export function listUsers(db, admin, query) {
 const ONBOARDING_STEPS = { benvenuto: 'Inizio', luogo: 'Dove vivi', residenza: 'Dove vivi (città)', arrivo: 'Dove vivevi prima', dove: 'Dove vorresti vivere', obiettivo: 'Obiettivo', idea: 'Idea', presentati: 'Presentati', anteprima: 'Anteprima' };
 
 export function getUser(db, admin, userId) {
-  const user = db.prepare('SELECT id, email, role, status, created_at, last_seen_at, signup_method, last_login_method FROM users WHERE id = ?').get(userId);
+  const user = db.prepare('SELECT id, email, role, status, created_at, last_seen_at, signup_method, last_login_method, deletion_requested_at, deletion_reason FROM users WHERE id = ?').get(userId);
   if (!user) throw new HttpError(404, 'not_found');
   audit(db, admin.id, 'user.view', userId);
   const p = effectiveProfile(db, userId);
   const count = (sql, ...a) => db.prepare(sql).get(...a).n;
   return {
-    user: { ...user, status_label: STATUS_LABEL[user.status], login_methods: db.prepare('SELECT method, first_used_at, last_used_at FROM login_methods WHERE user_id = ? ORDER BY last_used_at DESC').all(userId) },
+    user: {
+      ...user, status_label: user.deletion_requested_at ? 'In eliminazione' : STATUS_LABEL[user.status],
+      // their own deletion request: erased on this day unless they sign in again before (privacy.js)
+      erase_on: user.deletion_requested_at ? new Date(Date.parse(user.deletion_requested_at) + config.retention.deletionGraceDays * 86_400_000).toISOString() : null,
+      login_methods: db.prepare('SELECT method, first_used_at, last_used_at FROM login_methods WHERE user_id = ? ORDER BY last_used_at DESC').all(userId) },
     profile: p,
     job_seeking: getJobPreferences(db, userId),
     preference_history: preferenceHistory(db, userId),

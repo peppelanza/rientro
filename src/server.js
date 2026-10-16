@@ -541,7 +541,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('GET', '/api/profiles/:id', ({ user, params, url }) => {
     if (user.id !== params.id) {
       social.requireLaunched(user);
-      if (user.status !== 'approved') throw new HttpError(403, 'not_approved');
+      // (an admin opens any profile from the admin panel, whatever its own account's state)
+      if (user.status !== 'approved' && user.role !== 'admin') throw new HttpError(403, 'not_approved');
     }
     return profiles.publicProfile(db, user, params.id, { asMember: url.searchParams.has('anteprima') });
   });
