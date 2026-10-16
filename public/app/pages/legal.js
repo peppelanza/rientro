@@ -12,7 +12,7 @@ export const DOCS = {
     title: 'Privacy Policy', updated: 'AGGIORNATA IL 13 OTTOBRE 2026',
     summary: [
       ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Della data di nascita solo l’anno, che non mostriamo agli altri utenti.'],
-      ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. I tuoi link (LinkedIn, sito, Instagram, X, calendario) solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
+      ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro. I tuoi link (LinkedIn, sito, Instagram, X, calendario) solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
       ['Cosa non facciamo', 'Non vendiamo i tuoi dati e non li cediamo a terzi per il loro marketing. Nessun cookie di tracciamento o pubblicità.'],
       ['Il controllo è tuo', 'Scarica o elimina tutto dalle impostazioni quando vuoi. Newsletter e notifiche si gestiscono in un clic. Per tutto il resto: privacy@rientro.it.'],
     ],
