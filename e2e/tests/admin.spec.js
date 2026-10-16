@@ -28,6 +28,8 @@ test('Errori: un errore del browser arriva nella pagina dell’admin', async ({ 
   // (an admin page: Scopri may send an admin still in onboarding to /onboarding meanwhile)
   await page.goto('/admin/registro');
   await expect(page.getByRole('heading', { name: 'Registro' })).toBeVisible();
+  // an outside script that doesn't load (a blocker, Cloudflare's counter): not logged
+  await page.evaluate(() => document.head.append(Object.assign(document.createElement('script'), { src: 'https://esterno.invalid/beacon.min.js' })));
   await page.evaluate(() => setTimeout(() => { throw new Error('prova e2e errore browser'); }));
   await page.waitForTimeout(500);
   await page.goto('/admin/errori');
@@ -35,4 +37,5 @@ test('Errori: un errore del browser arriva nella pagina dell’admin', async ({ 
   await expect(page.getByText(/prova e2e errore browser/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Browser', exact: true }).click();
   await expect(page.getByText(/prova e2e errore browser/).first()).toBeVisible();
+  await expect(page.getByText(/esterno\.invalid/)).toHaveCount(0);
 });

@@ -54,7 +54,7 @@ export function clientError(db, body, userId) {
   const message = str(body?.message, 500);
   if (!message) return;
   const detail = [str(body?.stack, 3000), str(body?.ua, 200) && `UA: ${str(body.ua, 200)}`].filter(Boolean).join('\n') || null;
-  logError(db, { source: 'browser', level: kind === 'api' ? 'warn' : 'error', kind, message, path: str(body?.path, 200), userId, detail });
+  logError(db, { source: 'browser', level: ['api', 'network'].includes(kind) ? 'warn' : 'error', kind, message, path: str(body?.path, 200), userId, detail });
 }
 
 export function listErrors(db, query = new URLSearchParams()) {
