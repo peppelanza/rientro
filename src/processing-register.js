@@ -54,9 +54,9 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'company_visibility',
-    description: 'IN ARRIVO: aziende registrate e verificate trovano i profili e contattano i membri dentro Rientro. Avviso preventivo agli iscritti e interruttore per non essere visibili.',
+    description: 'Le aziende verificate registrate a Rientro sono membri (Privacy Policy, Termini): quando potranno registrarsi vedranno i profili come gli altri membri e li contatteranno dentro Rientro.',
     data_categories: 'dati del profilo visibili ai membri',
-    proposed_basis: 'Esecuzione del contratto (art. 6.1.b), con opposizione tramite impostazione',
+    proposed_basis: 'Esecuzione del contratto (art. 6.1.b)',
     retention: 'Fino alla cancellazione dell’account',
     recipients: 'Aziende verificate registrate su Rientro (mai email né dati fuori piattaforma)',
   },

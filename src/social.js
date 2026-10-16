@@ -14,6 +14,11 @@ export function requireLaunched(user) {
   }
 }
 
+// "Accedi come": the admin sees the member's site, never their conversations (nor writes in them)
+export function requireOwnChat(user) {
+  if (user.impersonated_by) throw new HttpError(403, 'impersonating_chat', 'Con “Accedi come” le chat non sono visibili.');
+}
+
 function requireApproved(user) {
   if (user.status !== 'approved') {
     throw new HttpError(403, 'not_approved', 'Completa il profilo per connetterti con le altre persone.');

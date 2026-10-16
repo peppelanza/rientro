@@ -2,6 +2,7 @@
 <div style="height:100vh;background:#E9E6F5;display:flex;flex-direction:column" class="chat-page">
 <dc-import name="App Nav" active="messaggi" me="{{ me }}"></dc-import>
 
+<sc-if value="{{ chatOff }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:60px var(--gutter);box-sizing:border-box"><h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:24px;font-weight:600;letter-spacing:-.045em">Chat non disponibili</h1><span style="font-size:16px;color:#4A4560;max-width:420px;line-height:1.5">Con “Accedi come” le conversazioni di questa persona non sono visibili.</span></main></sc-if>
 <sc-if value="{{ noThreads }}"><main style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:60px var(--gutter);box-sizing:border-box">
 <div aria-hidden="true" style="display:flex;gap:6px;flex-direction:column;width:150px"><div style="height:22px;width:100px;border-radius:12px 12px 12px 4px;background:#FFFFFF"></div><div style="height:22px;width:76px;border-radius:12px 12px 4px 12px;background:#6C4DF5;align-self:flex-end"></div></div>
 <h1 style="margin:0;font-family:'Unbounded',sans-serif;font-size:26px;font-weight:600;letter-spacing:-.045em">Non hai ancora messaggi.</h1>

@@ -25,12 +25,14 @@ test('Utenti: chi si è iscritto oggi ha l’orario, non la data', async ({ page
 test('Errori: un errore del browser arriva nella pagina dell’admin', async ({ page }, info) => {
   test.skip(info.project.name !== 'computer');
   await signIn(page.request, 'admin@rientro.local');
-  await page.goto('/scopri');
+  // (an admin page: Scopri may send an admin still in onboarding to /onboarding meanwhile)
+  await page.goto('/admin/registro');
+  await expect(page.getByRole('heading', { name: 'Registro' })).toBeVisible();
   await page.evaluate(() => setTimeout(() => { throw new Error('prova e2e errore browser'); }));
   await page.waitForTimeout(500);
   await page.goto('/admin/errori');
   await expect(page.getByRole('heading', { name: 'Errori' })).toBeVisible();
   await expect(page.getByText(/prova e2e errore browser/).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Browser' }).click();
+  await page.getByRole('button', { name: 'Browser', exact: true }).click();
   await expect(page.getByText(/prova e2e errore browser/).first()).toBeVisible();
 });

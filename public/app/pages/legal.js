@@ -44,7 +44,7 @@ export const DOCS = {
         'Trattiamo i tuoi dati solo per le finalità qui sotto, ciascuna con la propria base giuridica ai sensi dell’art. 6 del GDPR.',
       ], 'purposes'],
       ['Quali dati sono obbligatori', [
-        'Per usare Rientro sono necessari l’indirizzo email e i dati del profilo segnati come obbligatori durante l’iscrizione: senza di essi non possiamo creare il tuo account, rivedere il profilo e mostrarlo agli altri membri.',
+        'Per usare Rientro sono necessari l’indirizzo email e i dati del profilo segnati come obbligatori durante l’iscrizione: senza di essi non possiamo creare il tuo account e mostrare il profilo agli altri membri.',
         'Tutti gli altri dati sono facoltativi: se non li inserisci il tuo profilo sarà semplicemente meno completo. Anche il consenso alla newsletter è facoltativo e negarlo non ha alcuna conseguenza sull’uso di Rientro.',
       ]],
       ['Chi può vedere i tuoi dati', [
@@ -52,8 +52,8 @@ export const DOCS = {
         '• Le tue connessioni vedono i messaggi che vi scambiate: i messaggi sono visibili solo a chi partecipa alla conversazione.',
         '• Chi ti ha invitato: se ti sei iscritto con il suo link e scegli di chiedergli di connettervi, riceve la tua richiesta segnata come arrivata dal suo link. Se non la invii, non gli diciamo che ti sei iscritto.',
         '• Gruppi: i post (testi e foto) e i commenti che pubblichi nei gruppi sono pubblici. Chiunque, anche senza essere iscritto a Rientro, può leggerli insieme al tuo nome, cognome e foto, e le pagine dei gruppi possono essere indicizzate dai motori di ricerca (per esempio Google). Il resto del tuo profilo resta riservato ai membri: per vederlo bisogna iscriversi. Puoi eliminare i tuoi post e commenti in qualsiasi momento; scrivere nei gruppi è facoltativo.',
-        '• Il pubblico non vede il tuo profilo: fuori da Rientro compaiono soltanto il tuo nome, cognome e foto accanto a quello che scrivi nei gruppi e, se condividi il tuo link di invito, a chi lo apre, nella pagina di accesso. Le altre pagine pubbliche del sito, come quelle dedicate alle città, mostrano solo numeri aggregati, e mai gruppi di meno di 5 persone.',
-        '• Il titolare e le persone autorizzate che lo aiutano a gestire Rientro, vincolate alla riservatezza, accedono ai dati solo quando serve: per rivedere i profili prima della pubblicazione, gestire le segnalazioni e dare assistenza. Ogni accesso dell’area di amministrazione ai dati personali viene registrato. In caso di segnalazione, un moderatore può leggere la conversazione tra chi segnala e la persona segnalata.',
+        '• Il pubblico non vede il tuo profilo: fuori da Rientro compaiono soltanto il tuo nome, cognome e foto accanto a quello che scrivi nei gruppi e, se condividi il tuo link di invito, nell’anteprima del link (il tuo nome e la tua foto, per esempio su WhatsApp o LinkedIn, che possono conservarla) e nella pagina di accesso di chi lo apre. Le altre pagine pubbliche del sito, come quelle dedicate alle città, mostrano solo numeri aggregati, e mai gruppi di meno di 5 persone.',
+        '• Il titolare e le persone autorizzate che lo aiutano a gestire Rientro, vincolate alla riservatezza, accedono ai dati solo quando serve: per moderare i profili già pubblicati, gestire le segnalazioni e dare assistenza. Ogni accesso dell’area di amministrazione ai dati personali viene registrato. In caso di segnalazione, un moderatore può leggere la conversazione tra chi segnala e la persona segnalata.',
         '• I fornitori che ci aiutano a far funzionare il servizio, indicati al punto 7, nominati responsabili del trattamento (art. 28 GDPR).',
         '• Autorità pubbliche e giudiziarie, solo quando la legge ci obbliga.',
         'Non vendiamo i tuoi dati personali e non li cediamo a terzi per loro finalità di marketing.',
@@ -62,7 +62,7 @@ export const DOCS = {
         'Ci affidiamo a pochi fornitori, scelti per le garanzie che offrono e vincolati da un accordo sul trattamento dei dati:',
         '• Render Services, Inc. (Stati Uniti): hosting del sito e del database. I server che usiamo si trovano a Francoforte, in Germania, quindi i dati sono conservati nell’Unione europea.',
         '• Brevo (Sendinblue SAS, Francia): invio delle email di servizio (per esempio il codice di accesso e le notifiche) e, se ci hai dato il consenso, della newsletter.',
-        '• Cloudflare, Inc. (Stati Uniti): verifica anti-bot (Turnstile) quando chiedi il codice di accesso, per proteggere il servizio da iscrizioni automatiche, e statistiche aggregate delle visite senza cookie (Web Analytics). Il trasferimento verso gli Stati Uniti è coperto dal Data Privacy Framework UE-USA e dalle clausole contrattuali standard.',
+        '• Cloudflare, Inc. (Stati Uniti): rete di distribuzione e protezione del sito, attraverso cui passa il traffico verso rientro.it (per esempio indirizzo IP e richieste del browser, per proteggerlo da attacchi e abusi); verifica anti-bot (Turnstile) quando chiedi il codice di accesso, per proteggere il servizio da iscrizioni automatiche, e statistiche aggregate delle visite senza cookie (Web Analytics). Il trasferimento verso gli Stati Uniti è coperto dal Data Privacy Framework UE-USA e dalle clausole contrattuali standard.',
         'Se accedi con LinkedIn o Google, LinkedIn Ireland Unlimited Company e Google Ireland Limited trattano i dati relativi al tuo accesso come titolari autonomi, secondo le rispettive informative privacy.',
         'Alcuni fornitori hanno sede o sub-fornitori fuori dallo Spazio economico europeo, in particolare negli Stati Uniti. In questi casi il trasferimento avviene solo con le garanzie previste dal GDPR: la decisione di adeguatezza della Commissione europea per le aziende aderenti all’EU-U.S. Data Privacy Framework oppure le Clausole contrattuali standard approvate dalla Commissione (artt. 45 e 46 GDPR). Puoi chiederci copia delle garanzie scrivendo a privacy@rientro.it.',
       ]],
@@ -82,6 +82,7 @@ export const DOCS = {
         '• Registro degli accessi dell’area di amministrazione e registro delle richieste di esportazione dei dati: 24 mesi.',
         '• Prova delle tue scelte sulla newsletter: per tutta la durata dell’account e per 36 mesi dopo la sua cancellazione, in forma pseudonima (senza nome né email), per poter dimostrare di aver rispettato le tue scelte.',
         '• Motivo facoltativo della cancellazione dell’account: conservato insieme alla richiesta per 30 giorni e poi, in forma anonima, per 24 mesi.',
+        '• Registro degli errori tecnici (cosa non ha funzionato, in quale pagina, con quale browser e, se eri connesso, il tuo account): 30 giorni.',
         '• Registri tecnici del fornitore di hosting (che includono l’indirizzo IP): per il periodo breve stabilito dal fornitore.',
         'Possiamo conservare alcuni dati più a lungo solo se la legge lo impone o se servono per difendere un nostro diritto in giudizio, e solo per il tempo strettamente necessario.',
       ]],
@@ -108,7 +109,7 @@ export const DOCS = {
         'Non prendiamo decisioni basate unicamente su trattamenti automatizzati che producano effetti giuridici o incidano in modo analogo su di te (art. 22 GDPR). L’unico controllo automatico riguarda le foto: un’immagine esplicita viene bloccata prima di essere pubblicata e, se era la foto del profilo, l’account viene sospeso in via cautelativa; una persona del team rivede ogni caso e può annullare la sospensione. Le altre decisioni di moderazione, come quelle sulle segnalazioni, sono prese da persone.',
       ]],
       ['Modifiche a questa informativa', [
-        'Potremo aggiornare questa informativa. In cima alla pagina trovi sempre la data dell’ultimo aggiornamento. Se le modifiche sono rilevanti te lo comunicheremo prima via email o dentro Rientro, e ti chiederemo di prenderne visione al primo accesso successivo.',
+        'Potremo aggiornare questa informativa. La versione in vigore è sempre pubblicata su questa pagina, con la data dell’ultimo aggiornamento in cima.',
       ]],
     ],
     purposes: [
@@ -116,10 +117,9 @@ export const DOCS = {
       ['Farti conoscere e far funzionare la community', 'Mostrare il tuo profilo agli altri membri, suggerirti persone affini, gestire richieste di connessione, messaggi e notifiche in app.', 'Dati del profilo, connessioni, messaggi.', 'Esecuzione del contratto (art. 6.1.b).'],
       ['Gruppi', 'Pubblicare i post (testi e foto) e i commenti che scrivi nei gruppi, visibili a chiunque anche fuori da Rientro e indicizzabili dai motori di ricerca, insieme al tuo nome, cognome e foto.', 'Post con le loro foto, commenti, nome, cognome e foto profilo.', 'Esecuzione del contratto (art. 6.1.b): sei tu a scegliere di scrivere in un gruppo.'],
       ['Inviti', 'Darti un link personale per invitare altre persone, ricordare chi ti ha invitato e, se lo scegli, inviargli una richiesta di connessione quando il tuo profilo è online.', 'Chi ti ha invitato, la tua scelta, la nota facoltativa, il tuo nome (per il link).', 'Esecuzione del contratto (art. 6.1.b).'],
-      ['Email di servizio', 'Codice di accesso, email di benvenuto quando il profilo è online, un promemoria se lasci il profilo a metà, avvisi su nuove richieste e messaggi, conferma della richiesta di cancellazione dell’account, comunicazioni importanti sul servizio e sui tuoi dati. Dalle impostazioni scegli quali notifiche ricevere via email.', 'Email, dati necessari al singolo avviso.', 'Esecuzione del contratto (art. 6.1.b).'],
+      ['Email di servizio', 'Codice di accesso, email di benvenuto quando il profilo è online, un promemoria se lasci l’iscrizione a metà e uno, il giorno dopo, se al tuo profilo online manca ancora qualcosa, avvisi su nuove richieste, messaggi e novità dei gruppi che segui, conferma della richiesta di cancellazione dell’account, comunicazioni importanti sul servizio e sui tuoi dati. Dalle impostazioni scegli quali notifiche ricevere via email.', 'Email, dati necessari al singolo avviso.', 'Esecuzione del contratto (art. 6.1.b).'],
       ['Newsletter e comunicazioni promozionali', 'Novità su Rientro, eventi e iniziative. Solo se ci dai il consenso; puoi revocarlo quando vuoi dalle impostazioni o dal link in ogni email.', 'Email, nome.', 'Consenso (art. 6.1.a), separato e facoltativo.'],
-      ['Visibilità alle aziende verificate (in arrivo)', 'Permettere alle aziende registrate e verificate di trovare il tuo profilo e contattarti dentro Rientro. Prima dell’attivazione ti avviseremo e potrai scegliere di non essere visibile.', 'Dati del profilo visibili ai membri.', 'Esecuzione del contratto (art. 6.1.b): è parte del servizio descritto nei Termini.'],
-      ['Sicurezza, moderazione e prevenzione degli abusi', 'Rivedere i profili prima della pubblicazione, gestire segnalazioni e blocchi, prevenire accessi abusivi, spam e profili falsi.', 'Dati del profilo, segnalazioni, conversazioni oggetto di segnalazione, dati tecnici (incluso l’indirizzo IP).', 'Legittimo interesse a garantire una community sicura e affidabile (art. 6.1.f). Puoi opporti scrivendo a privacy@rientro.it.'],
+      ['Sicurezza, moderazione e prevenzione degli abusi', 'Moderare i profili pubblicati (anche con controlli automatici sulle foto), gestire segnalazioni e blocchi, prevenire accessi abusivi, spam e profili falsi.', 'Dati del profilo, segnalazioni, conversazioni oggetto di segnalazione, dati tecnici (incluso l’indirizzo IP).', 'Legittimo interesse a garantire una community sicura e affidabile (art. 6.1.f). Puoi opporti scrivendo a privacy@rientro.it.'],
       ['Statistiche anonime', 'Contare iscritti e attività in forma aggregata per migliorare il servizio e mostrare nelle pagine pubbliche quante persone rientrano in una città (mai gruppi sotto le 5 persone).', 'Dati aggregati, che non identificano nessuno.', 'Legittimo interesse a migliorare e far conoscere il servizio (art. 6.1.f).'],
       ['Dimostrare di aver rispettato le tue scelte e la legge', 'Registrare quando hai dato o revocato il consenso alla newsletter e preso visione dei documenti legali; rispondere a richieste delle autorità; difendere i nostri diritti.', 'Registro pseudonimo delle scelte, versioni dei documenti, dati strettamente necessari.', 'Obbligo di legge (art. 6.1.c, in relazione agli artt. 5.2 e 7.1 GDPR) e legittimo interesse alla difesa in giudizio (art. 6.1.f).'],
     ],
@@ -140,7 +140,7 @@ export const DOCS = {
       ['Il servizio', [
         'Rientro è una community online per chi è rientrato, sta per rientrare o pensa di rientrare in Italia o al Sud. Permette di creare un profilo, scoprire altre persone, inviare richieste di connessione e, una volta accettate, scambiarsi messaggi.',
         'Fino alla data di lancio indicata sul sito (1° gennaio 2027) puoi iscriverti e preparare il tuo profilo; la ricerca delle persone, le connessioni e i messaggi si attivano dal lancio.',
-        'In futuro potremo permettere ad aziende registrate e verificate di trovare i profili e contattare i membri dentro Rientro, secondo quanto descritto nella Privacy Policy. Te lo comunicheremo prima e potrai scegliere di non essere visibile alle aziende.',
+        'Per “membri” di Rientro si intendono le persone iscritte e le aziende verificate registrate a Rientro.',
         'Rientro mette in contatto le persone ma non partecipa ai rapporti che nascono tra loro: non è un’agenzia per il lavoro, non fa intermediazione, non offre consulenza legale, fiscale o finanziaria e non garantisce che troverai un socio, un progetto o un lavoro. Le guide pubblicate sul sito, come quella sul rientro dei cervelli, hanno scopo informativo e non sostituiscono il parere di un professionista.',
       ]],
       ['Chi può iscriversi', [
@@ -190,7 +190,7 @@ export const DOCS = {
         'Possiamo chiudere un account in caso di violazioni gravi o ripetute di questi Termini, come indicato al punto 7. Se dovessimo interrompere del tutto il servizio, ti avviseremo con almeno 30 giorni di anticipo e potrai scaricare i tuoi dati prima della chiusura.',
       ]],
       ['Modifiche ai Termini', [
-        'Possiamo aggiornare questi Termini, per esempio per nuove funzioni o nuove norme. Se le modifiche sono rilevanti te le comunichiamo via email o dentro Rientro almeno 15 giorni prima che si applichino, e ti chiederemo di prenderne visione al primo accesso successivo; se non sei d’accordo puoi cancellare l’account in qualsiasi momento. Le modifiche imposte dalla legge o necessarie per la sicurezza possono applicarsi subito.',
+        'Possiamo aggiornare questi Termini, per esempio per nuove funzioni o nuove norme. La versione in vigore è sempre pubblicata su questa pagina, con la data dell’ultimo aggiornamento in cima; se non sei d’accordo puoi cancellare l’account in qualsiasi momento. Le modifiche imposte dalla legge o necessarie per la sicurezza possono applicarsi subito.',
       ]],
       ['Legge applicabile e controversie', [
         'Questi Termini sono regolati dalla legge italiana. Se sei un consumatore restano salve le tutele inderogabili previste dalla legge del Paese in cui risiedi, e per qualsiasi controversia è competente il giudice del luogo in cui risiedi o hai il domicilio. Se usi Rientro per la tua attività professionale, è competente in via esclusiva il Foro di Catania.',

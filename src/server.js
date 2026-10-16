@@ -19,7 +19,6 @@ import * as prefs from './preferences.js';
 import { deleteAccount, exportData } from './privacy.js';
 import { canSendEmail, sendDeletionScheduledEmail, sendLoginCodeEmail, sendWelcomeEmail } from './mail.js';
 import { sendNotificationDigests } from './email-digest.js';
-import { sendLegalNotices } from './legal-notice.js';
 import { sendOnboardingReminders } from './onboarding-reminder.js';
 import { sendProfileReminders } from './profile-reminder.js';
 import { disconnect as liveDisconnect, subscribe } from './live.js';
@@ -445,8 +444,6 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return auth.acknowledgeLegal(db, user.id, await readJson(req));
   });
 
-  // Updated Terms/Privacy never block anything here: the member pages ask for them in a dialog
-  // (main.js askLegalUpdate), so a bug there can't stop anyone from using Rientro.
   route('PATCH', '/api/me/profile', async ({ user, req }) => {
     const body = await readJson(req);
     const out = profiles.updateProfile(db, user, body);
@@ -558,10 +555,10 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return social.respondConnection(db, user, params.id, params.action);
   });
 
-  route('GET', '/api/threads', ({ user, url }) => { social.requireLaunched(user); return social.listThreads(db, user, url.searchParams); });
-  route('GET', '/api/threads/:id', ({ user, params, url }) => (social.requireLaunched(user), social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' })));
-  route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.setReaction(db, user, params.id, params.msg, await readJson(req)));
-  route('POST', '/api/threads/:id', async ({ user, params, req }) => social.sendMessage(db, user, params.id, await readJson(req)));
+  route('GET', '/api/threads', ({ user, url }) => { social.requireLaunched(user); social.requireOwnChat(user); return social.listThreads(db, user, url.searchParams); });
+  route('GET', '/api/threads/:id', ({ user, params, url }) => (social.requireLaunched(user), social.requireOwnChat(user), social.getThread(db, user, params.id, { after: Number(url.searchParams.get('after')) || 0, before: Number(url.searchParams.get('before')) || 0, since: url.searchParams.get('since') || '' })));
+  route('PUT', '/api/threads/:id/messages/:msg/reaction', async ({ user, params, req }) => social.requireOwnChat(user) ?? social.setReaction(db, user, params.id, params.msg, await readJson(req)));
+  route('POST', '/api/threads/:id', async ({ user, params, req }) => social.requireOwnChat(user) ?? social.sendMessage(db, user, params.id, await readJson(req)));
 
   route('GET', '/api/public/groups/:id', ({ params, url }) => groups.publicGroup(db, params.id, url.searchParams), pub);
   route('GET', '/api/public/photos/:id', ({ params, req, res }) => {
@@ -864,8 +861,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     if (digesting) return;
     digesting = true;
     try { await sendNotificationDigests(db); } catch (err) { console.error('[digest]', err); }
-    // Terms / Privacy updated: the members told by email, a batch a minute (legal-notice.js)
-    try { await sendLegalNotices(db); } catch (err) { console.error('[legal notice]', err); }
     // Profile left halfway for a day: one email inviting to finish it (onboarding-reminder.js)
     try { await sendOnboardingReminders(db); } catch (err) { console.error('[onboarding reminder]', err); }
     // Online but not complete, 24 hours after signing up: one email listing what's left (profile-reminder.js)

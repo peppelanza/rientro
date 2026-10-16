@@ -31,6 +31,8 @@ export function openDb(file = config.dbPath) {
       'For a dev database, delete the data/ folder and restart.');
   }
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
+  // (updated Terms / Privacy are no longer emailed: their send records go)
+  db.exec('DROP TABLE IF EXISTS legal_notice_sends; DROP TABLE IF EXISTS legal_notices;');
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   addProfileColumns(db);
   migrateUserColumns(db);

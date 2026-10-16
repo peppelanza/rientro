@@ -95,6 +95,8 @@ export default class extends Page {
     const me = await getMe();
     if (me.user.status !== 'approved' || (!me.launched && me.user.role !== 'admin')) return go(homeFor(me));
     Object.assign(this.state, { me, query: '', page: 1, draft: '', menuOpen: false });
+    // "Accedi come": the member's conversations stay theirs (the server refuses them too)
+    if (me.impersonated) { this.state.chatOff = true; return; }
     this.__rerender(); // the top bar for real, the list still a skeleton
     await this.fetchList();
     // Whether there's any conversation at all (the search can empty the list)
@@ -432,6 +434,7 @@ export default class extends Page {
 
   renderVals() {
     const s = this.state;
+    if (s.chatOff) return { loading: false, me: s.me, chatOff: true };
     if (!s.threads) return this.skeleton({ threads: FAKE_THREADS, list: { total: 1, page: 1, pages: 1, per_page: 30, items: FAKE_THREADS }, anyThreads: true, query: s.query ?? '', active: null });
     const q = s.query.trim();
     const threads = s.threads.map(t => ({

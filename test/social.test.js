@@ -212,6 +212,12 @@ test('admin "Accedi come": acts as the member, banner flag, exit gives the admin
     assert.equal((await giulia.get('/api/me')).body.impersonated, false);
     assert.equal((await as.post(`/api/connections/${req.body.id}/accept`)).status, 200);
     assert.equal((await as.get('/api/admin/users')).status, 403);
+    // her conversations stay hers: not read, not written in
+    await marco.post(`/api/threads/${giulia.id}`, { body: 'Ciao Giulia' });
+    assert.equal((await as.get('/api/threads')).status, 403);
+    assert.equal((await as.get(`/api/threads/${marco.id}`)).status, 403);
+    assert.equal((await as.post(`/api/threads/${marco.id}`, { body: 'scritto dall’admin' })).status, 403);
+    assert.equal((await giulia.get(`/api/threads/${marco.id}`)).status, 200, 'she reads them as always');
     assert.equal((await as.post('/api/me/legal', { accept: true })).status, 403);
     // Not among Giulia's own devices, and not her activity
     assert.ok((await giulia.get('/api/me/sessions')).body.every(s => s.current));
