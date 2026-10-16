@@ -11,7 +11,7 @@ export const DOCS = {
   privacy: {
     title: 'Privacy Policy', updated: 'AGGIORNATA IL 13 OTTOBRE 2026',
     summary: [
-      ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Non la data di nascita.'],
+      ['Cosa raccogliamo', 'L’email per accedere, quello che scrivi nel tuo profilo, le connessioni e i messaggi, e pochi dati tecnici per la sicurezza. Della data di nascita solo l’anno, che non mostriamo agli altri utenti.'],
       ['Chi lo vede', 'Il tuo profilo, solo gli altri membri di Rientro e, quando attiveremo la funzione, aziende verificate dentro Rientro. I tuoi link (LinkedIn, sito, Instagram, X, calendario) solo le tue connessioni. Mai la tua email. Quello che scrivi nei gruppi invece è pubblico, con il tuo nome, cognome e foto, e può comparire sui motori di ricerca.'],
       ['Cosa non facciamo', 'Non vendiamo i tuoi dati e non li cediamo a terzi per il loro marketing. Nessun cookie di tracciamento o pubblicità.'],
       ['Il controllo è tuo', 'Scarica o elimina tutto dalle impostazioni quando vuoi. Newsletter e notifiche si gestiscono in un clic. Per tutto il resto: privacy@rientro.it.'],
@@ -37,7 +37,7 @@ export const DOCS = {
         'Controllo del volto: quando carichi una foto profilo verifichiamo che mostri un volto. Il controllo avviene soltanto nel tuo browser, con un modello ospitato sui nostri server: la foto non viene inviata a terzi e non ricaviamo né conserviamo dati biometrici.',
         'Contenuti espliciti: sempre nel tuo browser, un secondo controllo automatico verifica che la foto non sia un contenuto esplicito (nudo o pornografia). Se lo è, la foto non viene pubblicata, l’account viene sospeso e l’immagine arriva soltanto a noi per una verifica manuale: se il blocco era un errore diventa la tua foto profilo, riattiviamo l’account e te lo comunichiamo via email; altrimenti la cancelliamo appena verificata e comunque entro 30 giorni. Base giuridica: il nostro legittimo interesse a proteggere gli utenti e la piattaforma (art. 6.1.f).',
         'Dati tecnici raccolti automaticamente: indirizzo IP (usato per la sicurezza, per esempio per limitare i tentativi di accesso ripetuti), tipo di browser e dispositivo, data e ora degli accessi, cookie tecnico di sessione. L’indirizzo IP non viene salvato nel nostro database; compare nei registri tecnici del nostro fornitore di hosting.',
-        'Dati che non chiediamo: non chiediamo la data di nascita né dati “particolari” come salute, religione, orientamento sessuale, opinioni politiche o appartenenza sindacale (art. 9 GDPR). Ti chiediamo di non inserirli nel profilo o nei messaggi.',
+        'Dati che non chiediamo: della data di nascita chiediamo solo l’anno (non il giorno né il mese), e non chiediamo dati “particolari” come salute, religione, orientamento sessuale, opinioni politiche o appartenenza sindacale (art. 9 GDPR). Ti chiediamo di non inserirli nel profilo o nei messaggi.',
       ]],
       ['Perché usiamo i dati e su quale base giuridica', [
         'Trattiamo i tuoi dati solo per le finalità qui sotto, ciascuna con la propria base giuridica ai sensi dell’art. 6 del GDPR.',
