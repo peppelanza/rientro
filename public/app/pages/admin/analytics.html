@@ -31,7 +31,7 @@
 <sc-if value="{{ sv }}">
 <div class="r-grid-1 r-grid-md-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
 <dc-import name="UI Stat" label="Aperture" value="{{ sv.total }}" delta="{{ sv.periodLabel }}" tone="neutral" size="lg"></dc-import>
-<dc-import name="UI Stat" label="Aperture → iscrizioni" value="{{ sv.conversion }}" delta="iscrizioni sulle aperture, negli stessi giorni" tone="neutral" size="lg"></dc-import>
+<dc-import name="UI Stat" label="Aperture → iscrizioni" value="{{ sv.conversion }}" delta="{{ sv.conversionNote }}" tone="neutral" size="lg"></dc-import>
 <dc-import name="UI Stat" label="In più rispetto a Cloudflare" value="{{ sv.extra }}" delta="{{ sv.extraNote }}" tone="neutral" size="lg"></dc-import>
 </div>
 <sc-if value="{{ sv.sinceNote }}"><span style="font-size:12px;color:#8C84AE">{{ sv.sinceNote }}</span></sc-if>

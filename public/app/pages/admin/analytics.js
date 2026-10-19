@@ -54,16 +54,19 @@ export default class extends AdminPage {
     const t = this.state.t;
     const n = x => x.toLocaleString('it-IT');
     const max = Math.max(1, ...v.days.map(d => d.n));
-    // compared with Cloudflare's visits only over the days both have counted
-    const cf = t?.enabled && !t.error && !t.hourly ? t.days.filter(d => d.date >= v.since).reduce((a, d) => a + d.visits, 0) : null;
-    const ours = v.days.reduce((a, d) => a + d.n, 0);
-    const sinceDay = v.since ? new Date(`${v.since}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' }) : null;
+    // Sign-ups and Cloudflare's visits are compared over whole days only, from the day after counting
+    // started (that one was partial): the same days on both sides (src/visits.js compare)
+    const c = v.compare;
+    const cf = c && t?.enabled && !t.error && !t.hourly ? t.days.filter(d => d.date >= c.from).reduce((a, d) => a + d.visits, 0) : null;
+    const dayName = d => new Date(`${d}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+    const pct = (a, b) => `${((a / b) * 100).toFixed(1).replace('.', ',')}%`;
     return {
       total: n(v.total), periodLabel: PERIOD_LONG[this.state.period],
-      conversion: v.total ? `${((v.signups / v.total) * 100).toFixed(1).replace('.', ',')}%` : '—',
-      extra: cf !== null && cf > 0 ? `${ours >= cf ? '+' : ''}${Math.round(((ours - cf) / cf) * 100)}%` : '—',
-      extraNote: cf !== null && cf > 0 ? `${n(ours)} contro ${n(cf)} visite Cloudflare` : 'serve anche Cloudflare collegato',
-      sinceNote: sinceDay ? `Conteggio attivo dal ${sinceDay}: prima di quel giorno non ci sono dati.` : 'Il conteggio è appena partito.',
+      conversion: c?.openings ? pct(c.signups, c.openings) : '—',
+      conversionNote: c?.openings ? `${n(c.signups)} iscrizioni su ${n(c.openings)} aperture, dal ${dayName(c.from)}` : 'da domani: si confrontano solo giorni interi',
+      extra: c?.openings && cf ? `${c.openings >= cf ? '+' : ''}${Math.round(((c.openings - cf) / cf) * 100)}%` : '—',
+      extraNote: !t?.enabled || t.error ? 'serve anche Cloudflare collegato' : t.hourly ? 'scegli 30 giorni o più' : c?.openings && cf ? `${n(c.openings)} contro ${n(cf)} visite Cloudflare, dal ${dayName(c.from)}` : 'da domani: si confrontano solo giorni interi',
+      sinceNote: v.since ? `Conteggio attivo dal ${dayName(v.since)}, da metà giornata: quel giorno resta fuori dai confronti.` : 'Il conteggio è appena partito.',
       days: v.days.map(d => ({ h: `${(d.n / max) * 100}%`, title: `${d.day}: ${d.n} aperture` })),
       sources: v.sources.map(x => ({ l: x.l, v: n(x.v) })), pages: v.pages.map(x => ({ l: x.l, v: n(x.v) })), none: !v.total,
     };

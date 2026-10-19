@@ -79,10 +79,24 @@ export function visitsReport(db, days) {
     const day = d.toISOString().slice(0, 10);
     perDay.push({ day, n: counted.get(day) ?? 0 });
   }
+  // For the comparisons (sign-ups, Cloudflare's visits): whole days only. Counting started partway
+  // through its first day, so that day is left out: both sides from the next midnight (UTC, as
+  // Cloudflare's days), up to now. Null until there is one.
+  let compare = null;
+  if (first) {
+    const next = new Date(`${first}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    const cmpFrom = [next.toISOString().slice(0, 10), from].sort().at(-1);
+    if (cmpFrom <= now().slice(0, 10)) {
+      compare = {
+        from: cmpFrom,
+        openings: db.prepare('SELECT coalesce(SUM(n), 0) AS n FROM site_visits WHERE day >= ?').get(cmpFrom).n,
+        signups: db.prepare("SELECT COUNT(*) AS n FROM users WHERE created_at >= ? AND role <> 'admin' AND email NOT LIKE '%.invalid'").get(`${cmpFrom}T00:00:00.000Z`).n,
+      };
+    }
+  }
   return {
-    total, since: first, days: perDay,
-    // sign-ups over the same days as the openings (for the conversion)
-    signups: db.prepare("SELECT COUNT(*) AS n FROM users WHERE created_at >= ? AND role <> 'admin' AND email NOT LIKE '%.invalid'").get(start).n,
+    total, since: first, days: perDay, compare,
     sources: db.prepare('SELECT source AS l, SUM(n) AS v FROM site_visits WHERE day >= ? GROUP BY source ORDER BY v DESC LIMIT 12').all(from),
     pages: db.prepare('SELECT page AS l, SUM(n) AS v FROM site_visits WHERE day >= ? GROUP BY page ORDER BY v DESC LIMIT 12').all(from),
   };

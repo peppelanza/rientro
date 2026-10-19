@@ -48,6 +48,18 @@ test('counted: a page opened from outside, the invite link from Facebook, a memb
   // Admin › Analytics
   const r = (await admin.get('/api/admin/visits?period=30')).body;
   assert.equal(r.total, 4);
+  assert.equal(r.compare, null, 'the first day (partial) is left out of the comparisons');
+  // a day later: the comparisons start from that midnight, with that day's sign-ups only
+  const db = t.app.db;
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  db.prepare('UPDATE site_visits SET day = ?').run(yesterday);
+  db.prepare("INSERT INTO site_visits (day, page, source, n) VALUES (?, '/', 'Google', 5)").run(new Date().toISOString().slice(0, 10));
+  db.prepare('UPDATE users SET created_at = ?').run(`${yesterday}T10:00:00.000Z`);
+  await t.approved('nuova-oggi@x.it');
+  const r2 = (await admin.get('/api/admin/visits?period=30')).body;
+  assert.equal(r2.compare.from, new Date().toISOString().slice(0, 10));
+  assert.equal(r2.compare.openings, 5);
+  assert.equal(r2.compare.signups, 1);
   assert.deepEqual(r.sources[0], { l: 'LinkedIn', v: 2 });
   assert.equal((await a.get('/api/admin/visits')).status, 403);
 });
