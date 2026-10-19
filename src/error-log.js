@@ -48,6 +48,26 @@ export function captureConsole(db) {
   };
 }
 
+// Not ours (the browser's add-ons, in-app browsers, outside scripts): an outside script that didn't
+// load (a blocker, Cloudflare's visit counter, Facebook's); errors from scripts that in-app browsers
+// and extensions add, crypto wallets among them ("window.ethereum"); "Script error.", which is all a
+// browser tells of an error in another site's script (ours come with their message and line)
+function notOurs(message, stack = '') {
+  if (/^https?:\/\//.test(message) && !message.startsWith(config.baseUrl)) return true;
+  if (/^(Uncaught )?Script error\.?$/i.test(message)) return true;
+  if (/window\.ethereum|__firefox__|webkit\.messageHandlers|(iabjs|chrome-extension|moz-extension|safari-(web-)?extension):\/\//.test(`${message}\n${stack}`)) return true;
+  return false;
+}
+
+// Rows from before a filter existed: gone at start (server.js)
+export function dropForeignErrors(db) {
+  const rows = db.prepare("SELECT id, message, detail FROM error_log WHERE source = 'browser'").all();
+  const del = db.prepare('DELETE FROM error_log WHERE id = ?');
+  let n = 0;
+  for (const r of rows) if (notOurs(r.message, r.detail || '')) { del.run(r.id); n++; }
+  return n;
+}
+
 // What a browser sends (public/app/error-report.js): checked and cut to size
 export function clientError(db, body, userId) {
   const str = (v, n) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, n) : null);
@@ -57,9 +77,7 @@ export function clientError(db, body, userId) {
   // Not ours, whatever the page's code (one opened before an update still sends these): an outside
   // script that didn't load (a blocker, Cloudflare's visit counter, Facebook's), or errors from
   // scripts that in-app browsers and extensions add
-  const stack = str(body?.stack, 3000) || '';
-  if (/^https?:\/\//.test(message) && !message.startsWith(config.baseUrl)) return;
-  if (/(iabjs|chrome-extension|moz-extension|safari-(web-)?extension):\/\//.test(`${message}\n${stack}`)) return;
+  if (notOurs(message, str(body?.stack, 3000) || '')) return;
   const detail = [str(body?.stack, 3000), str(body?.ua, 200) && `UA: ${str(body.ua, 200)}`].filter(Boolean).join('\n') || null;
   logError(db, { source: 'browser', level: ['api', 'network'].includes(kind) ? 'warn' : 'error', kind, message, path: str(body?.path, 200), userId, detail });
 }

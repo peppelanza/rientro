@@ -44,6 +44,8 @@ if (typeof window !== 'undefined') {
     // an error thrown by a script that isn't ours (in-app browsers, extensions)
     if (e.filename && !ours(e.filename)) return;
     if (!e.filename && /^(iabjs|chrome-extension|moz-extension|safari-(web-)?extension):/.test(e.error?.stack || '')) return;
+    // "Script error.": an error in another site's script (the browser hides the rest); a wallet extension's
+    if (/^(Uncaught )?Script error\.?$/i.test(e.message || '') || /window\.ethereum/.test(e.message || '')) return;
     const where = e.filename ? ` (${e.filename.replace(location.origin, '')}:${e.lineno})` : '';
     reportError('js', `${e.message || 'errore'}${where}`, e.error?.stack);
   }, true);

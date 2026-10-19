@@ -29,9 +29,13 @@ const fmt = n => n.toLocaleString('it-IT');
 const hoursAgo = iso => (iso ? Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 3600_000)) : 0);
 const name = p => [p?.first_name, p?.last_name].filter(Boolean).join(' ');
 
+// Where an account is, the same on every admin page: "deleting" (asked to delete it: gone for the
+// others, whatever its status) before its status (onboarding / approved = online / suspended)
+export const stateOf = u => (u.deletion_requested_at ? 'deleting' : u.status);
+
 // (the anonymous placeholders of erased accounts, which only keep their messages, are nobody)
 function allProfiles(db, where = '1 = 1', params = []) {
-  return db.prepare(`SELECT u.id, u.email, u.status, u.created_at, u.last_seen_at, u.deletion_requested_at, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.email NOT LIKE '%@${ERASED_DOMAIN}' AND (${where})`)
+  return db.prepare(`SELECT u.id, u.email, u.role, u.status, u.created_at, u.last_seen_at, u.deletion_requested_at, u.invited_by, u.signup_method, p.* FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.email NOT LIKE '%@${ERASED_DOMAIN}' AND (${where})`)
     .all(...params).map(r => ({ ...r, desired_comuni: JSON.parse(r.desired_comuni || '[]'), sectors: JSON.parse(r.sectors || '[]'), seeking_backgrounds: JSON.parse(r.seeking_backgrounds || '[]'), pending_changes: JSON.parse(r.pending_changes || '{}') }));
 }
 
@@ -51,8 +55,9 @@ export function dashboard(db, admin, query) {
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
   const newUsers = users.filter(u => u.created_at >= from).length;
   const prevUsers = users.filter(u => u.created_at >= prev && u.created_at < from).length;
-  const published = users.filter(u => u.status === 'approved').length;
-  const drafting = users.filter(u => u.status === 'onboarding').length;
+  const published = users.filter(u => stateOf(u) === 'approved').length;
+  const drafting = users.filter(u => stateOf(u) === 'onboarding').length;
+  const deleting = users.filter(u => stateOf(u) === 'deleting').length;
   const accepted = count("SELECT COUNT(*) AS n FROM connections WHERE status = 'accepted'");
   const acceptedPeriod = count("SELECT COUNT(*) AS n FROM connections WHERE status = 'accepted' AND responded_at >= ?", from);
   const messages = count('SELECT COUNT(*) AS n FROM messages');
@@ -68,13 +73,13 @@ export function dashboard(db, admin, query) {
     const d0 = new Date(Date.now() - (chartDays - 1 - i) * DAY).toISOString().slice(0, 10);
     return { day: d0, signups: users.filter(u => u.created_at.slice(0, 10) === d0).length, approved: users.filter(u => (u.approved_at || '').slice(0, 10) === d0).length };
   });
-  const approvedUsers = users.filter(u => u.status === 'approved');
+  const approvedUsers = users.filter(u => stateOf(u) === 'approved');
   audit(db, admin.id, 'dashboard.view', null, { period: days });
   return {
     kpis: [
       { label: 'Utenti', value: fmt(users.length), delta: `+${fmt(newUsers)}` },
       { label: 'Nuove iscrizioni', value: fmt(newUsers), delta: delta(newUsers, prevUsers) },
-      { label: 'Profili online', value: fmt(published), delta: `${pct(published, users.length)}% degli utenti` },
+      { label: 'Profili online', value: fmt(published), delta: `${pct(published, users.length)}% degli utenti${deleting ? ` · ${fmt(deleting)} in eliminazione` : ''}` },
       { label: 'In compilazione', value: fmt(drafting), delta: 'onboarding non finito', tone: 'neutral' },
       { label: 'Connessioni', value: fmt(accepted), delta: `+${fmt(acceptedPeriod)}` },
       { label: 'Messaggi', value: fmt(messages), delta: delta(msgPeriod, msgPrev) },
@@ -94,14 +99,14 @@ export function dashboard(db, admin, query) {
 // --- Users (45a) --------------------------------------------------------------------------
 
 export function listUsers(db, admin, query) {
-  const status = oneOf(query.get('status') || undefined, Object.keys(STATUS_LABEL), 'status');
+  const status = oneOf(query.get('status') || undefined, [...Object.keys(STATUS_LABEL), 'deleting'], 'status');
   const intent = oneOf(query.get('intent') || undefined, Object.keys(INTENT), 'intent');
   const place = (query.get('place') || '').trim();
   const source = query.get('source') || '';
   const q = (query.get('q') || '').trim().toLowerCase();
   const page = Math.max(1, Number(query.get('page')) || 1);
   let rows = allProfiles(db).sort((a, b) => b.created_at.localeCompare(a.created_at));
-  rows = rows.filter(u => (!status || u.status === status) && (!intent || u.primary_intent === intent)
+  rows = rows.filter(u => (!status || stateOf(u) === status) && (!intent || u.primary_intent === intent)
     && (!place || u.desired_comuni.includes(place)) && (!source || u.source === source)
     && (!q || [u.first_name, u.last_name, u.email, u.lives_in_city].filter(Boolean).join(' ').toLowerCase().includes(q)));
   const perPage = 10;
@@ -117,7 +122,7 @@ export function listUsers(db, admin, query) {
         ? { from: u.arrived_from_city || u.arrived_from_country || '—', to: u.lives_in_city || '—', back: true }
         : { from: u.lives_in_city || '—', to: orList(u.desired_comuni, 3) || (u.desired_unknown ? 'Non lo sa' : '—'), back: false }),
       // still in onboarding: the step they stopped at
-      step: u.status === 'onboarding' ? (ONBOARDING_STEPS[u.onboarding_step] ?? 'Inizio') : null,
+      step: stateOf(u) === 'onboarding' ? (ONBOARDING_STEPS[u.onboarding_step] ?? 'Inizio') : null,
       intent: INTENT[u.primary_intent] ?? '—',
       // asked to delete the account: gone for the others until erased (or until they sign in again)
       status: u.status, status_label: u.deletion_requested_at ? 'In eliminazione' : STATUS_LABEL[u.status], deleting: !!u.deletion_requested_at, joined: u.created_at,
@@ -325,8 +330,18 @@ export function analytics(db, admin, query) {
   const days = { '1': 1, '30': 30, '90': 90, '365': 365 }[query.get('period') || '90'] ?? 90;
   const from = since(days);
   const users = allProfiles(db);
-  const approved = users.filter(u => u.status === 'approved');
+  const approved = users.filter(u => stateOf(u) === 'approved');
   const count = (sql, ...p) => db.prepare(sql).get(...p).n;
+  // Sign-ups of the period: how many, per day (per hour over 24 hours), and where they are now
+  const joined = users.filter(u => u.created_at >= from);
+  const buckets = days === 1 ? 24 : days;
+  const step = days === 1 ? 3600_000 : DAY;
+  const start = Date.now() - buckets * step;
+  const perBucket = Array.from({ length: buckets }, (_, i) => {
+    const a = new Date(start + i * step).toISOString();
+    const b = new Date(start + (i + 1) * step).toISOString();
+    return { at: a, n: joined.filter(u => u.created_at >= a && u.created_at < b).length };
+  });
   const requests = count('SELECT COUNT(*) AS n FROM connections WHERE created_at >= ?', from);
   const decided = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status IN ('accepted', 'declined')", from);
   const accepted = count("SELECT COUNT(*) AS n FROM connections WHERE created_at >= ? AND status = 'accepted'", from);
@@ -343,16 +358,24 @@ export function analytics(db, admin, query) {
   const share = (arr, pred) => pct(arr.filter(pred).length, arr.length);
   audit(db, admin.id, 'analytics.view', null, { period: days });
   return {
-    total: users.length, new_in_period: users.filter(u => u.created_at >= from).length,
+    total: users.length, new_in_period: joined.length,
+    signups: {
+      hourly: days === 1, buckets: perBucket,
+      online: joined.filter(u => stateOf(u) === 'approved').length,
+      onboarding: joined.filter(u => stateOf(u) === 'onboarding').length,
+      leaving: joined.filter(u => stateOf(u) === 'deleting').length,
+      suspended: joined.filter(u => stateOf(u) === 'suspended').length,
+      via_invite: joined.filter(u => u.invited_by).length,
+    },
     requests_per_active: (requests / active / Math.max(1, days / 30)).toFixed(1).replace('.', ','),
     acceptance: pct(accepted, decided),
     abroad, italy: 100 - abroad,
     // how each member signed up (auth.startSession); accounts from before it was recorded aside
     sign_in_methods: (() => {
-      const rows = db.prepare(`SELECT signup_method AS m FROM users WHERE signup_method IS NOT NULL AND role <> 'admin' AND email NOT LIKE '%@${ERASED_DOMAIN}'`).all();
+      const rows = joined.filter(u => u.signup_method).map(u => ({ m: u.signup_method }));
       return [['google', 'Google'], ['linkedin', 'LinkedIn'], ['email', 'Email']].map(([m, l]) => ({ l, v: share(rows, r => r.m === m) }));
     })(),
-    sources: SOURCES.map(s => ({ l: s, v: share(users.filter(u => u.source), u => u.source === s) })),
+    sources: SOURCES.map(s => ({ l: s, v: share(joined.filter(u => u.source), u => u.source === s) })),
     top_comuni: topCounts(approved.flatMap(u => u.desired_comuni), 7).map(([n, v]) => ({ n, v })),
     distinct_comuni: new Set(approved.flatMap(u => u.desired_comuni)).size,
     unknown_pct: share(approved, u => u.desired_unknown === 1),

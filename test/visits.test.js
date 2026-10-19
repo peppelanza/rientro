@@ -9,7 +9,7 @@ after(() => t.close());
 
 const U = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1';
 const open = (path, headers = {}) => fetch(`${t.base}${path}`, { redirect: 'manual', headers: { 'user-agent': U, 'sec-fetch-dest': 'document', ...headers } });
-const rows = () => t.app.db.prepare('SELECT page, source, n FROM site_visits ORDER BY page, source').all().map(r => ({ ...r }));
+const rows = () => t.app.db.prepare('SELECT page, source, SUM(n) AS n FROM site_visits GROUP BY page, source ORDER BY page, source').all().map(r => ({ ...r }));
 
 test('where from and which page', () => {
   const u = s => new URL(`https://www.rientro.it${s}`);
@@ -26,8 +26,8 @@ test('where from and which page', () => {
 
 test('counted: a page opened from outside, the invite link from Facebook, a member page; not: bots, previews, files, APIs, our own links, admins', async () => {
   const a = await t.approved('visite@x.it');
-  await open('/', { referer: 'https://www.linkedin.com/feed/' });
-  await open('/', { referer: 'https://www.linkedin.com/feed/' });
+  await open('/', { referer: 'https://www.linkedin.com/feed/', 'cf-ipcountry': 'IT' });
+  await open('/', { referer: 'https://www.linkedin.com/feed/', 'cf-ipcountry': 'IT' });
   const code = (await a.get('/api/me')).body.invite.url.split('?')[1];
   await open(`/?${code}&fbclid=IwAR123`);
   await open('/accedi', { referer: `${t.base}/` }); // the invite page's redirect: already counted
@@ -45,6 +45,7 @@ test('counted: a page opened from outside, the invite link from Facebook, a memb
     { page: '/ (link d’invito)', source: 'Facebook', n: 1 },
     { page: '/scopri', source: 'Diretto', n: 1 },
   ]);
+  assert.deepEqual(t.app.db.prepare("SELECT country, device, SUM(n) AS n FROM site_visits WHERE page = '/' GROUP BY 1, 2").all().map(r => ({ ...r })), [{ country: 'IT', device: 'Telefono', n: 2 }]);
   // Admin › Analytics
   const r = (await admin.get('/api/admin/visits?period=30')).body;
   assert.equal(r.total, 4);
@@ -61,5 +62,7 @@ test('counted: a page opened from outside, the invite link from Facebook, a memb
   assert.equal(r2.compare.openings, 5);
   assert.equal(r2.compare.signups, 1);
   assert.deepEqual(r.sources[0], { l: 'LinkedIn', v: 2 });
+  assert.deepEqual(r.countries, [{ l: 'IT', v: 2 }]);
+  assert.equal(r.devices[0].l, 'Telefono');
   assert.equal((await a.get('/api/admin/visits')).status, 403);
 });

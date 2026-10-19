@@ -35,7 +35,7 @@ import * as groups from './groups.js';
 import * as support from './support.js';
 import { HttpError } from './validate.js';
 import { nameCase } from '../public/app/text-case.js';
-import { captureConsole, clientError, listErrors, logError } from './error-log.js';
+import { captureConsole, clientError, dropForeignErrors, listErrors, logError } from './error-log.js';
 import { countVisit, visitsReport } from './visits.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
@@ -855,6 +855,7 @@ async function defaultSendLoginCode(email, code) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { db, server } = createApp();
   captureConsole(db);
+  dropForeignErrors(db); // what older pages sent before the filters (error-log.js)
   server.listen(config.port, '0.0.0.0', () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
   // Videos never confirmed: converted once they are half an hour old
   sweepVideoConversions(db);

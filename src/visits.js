@@ -1,7 +1,8 @@
 // Site openings counted by our own server, next to Cloudflare Web Analytics (web-analytics.js), for
 // the people Cloudflare's counter misses: its script blocked by an ad blocker, Safari's tracking
 // protection, or the page left before it ran. Only aggregate numbers (day, page, where from): no
-// cookie, no IP, nothing that tells who visited. Shown in Admin › Analytics (visitsReport).
+// cookie, no IP, nothing that tells who visited: the country comes from Cloudflare's header (the
+// site is behind it), the kind of device from the browser's name. Shown in Admin › Analytics.
 //
 // What counts: a browser opening a page of the site (the HTML, not the files and APIs), as
 // Cloudflare counts a pageload. Not counted, to stay comparable and honest:
@@ -44,6 +45,15 @@ export function pageOf(path, inviteCode) {
   return path.replace(/^\/(persone|gruppi|messaggi|connessioni|supporto)\/[^/]+$/, '/$1/…').slice(0, 120) || '/';
 }
 
+// Telefono / Tablet / Computer, from the browser's name
+export function deviceOf(ua) {
+  if (/iPad|Tablet|PlayBook|Silk|Android(?!.*Mobile)/i.test(ua)) return 'Tablet';
+  if (/Mobi|iPhone|iPod|Android|Windows Phone/i.test(ua)) return 'Telefono';
+  return 'Computer';
+}
+// The country Cloudflare saw ("IT"; not "XX" unknown nor "T1" Tor)
+const countryOf = h => (/^[A-Z]{2}$/.test(h['cf-ipcountry'] || '') && !['XX', 'T1'].includes(h['cf-ipcountry']) ? h['cf-ipcountry'] : '');
+
 const ownHost = () => new URL(config.baseUrl).hostname.replace(/^www\./, '');
 
 // Called for every page served (server.js): counts it when it's a real opening of the site
@@ -61,8 +71,8 @@ export function countVisit(db, req, url, { inviteCode = null, isAdmin = false } 
     const here = (h.host || '').split(':')[0].replace(/^www\./, '');
     if (refHost && (refHost === here || refHost === ownHost() || refHost.endsWith(`.${ownHost()}`))) return;
     const day = now().slice(0, 10);
-    db.prepare(`INSERT INTO site_visits (day, page, source, n) VALUES (?, ?, ?, 1)
-      ON CONFLICT(day, page, source) DO UPDATE SET n = n + 1`).run(day, pageOf(url.pathname, inviteCode), sourceOf(url, h.referer, inviteCode));
+    db.prepare(`INSERT INTO site_visits (day, page, source, country, device, n) VALUES (?, ?, ?, ?, ?, 1)
+      ON CONFLICT(day, page, source, country, device) DO UPDATE SET n = n + 1`).run(day, pageOf(url.pathname, inviteCode), sourceOf(url, h.referer, inviteCode), countryOf(h), deviceOf(ua));
   } catch { /* counting never gets in the way of the page */ }
 }
 
@@ -99,5 +109,7 @@ export function visitsReport(db, days) {
     total, since: first, days: perDay, compare,
     sources: db.prepare('SELECT source AS l, SUM(n) AS v FROM site_visits WHERE day >= ? GROUP BY source ORDER BY v DESC LIMIT 12').all(from),
     pages: db.prepare('SELECT page AS l, SUM(n) AS v FROM site_visits WHERE day >= ? GROUP BY page ORDER BY v DESC LIMIT 12').all(from),
+    countries: db.prepare("SELECT country AS l, SUM(n) AS v FROM site_visits WHERE day >= ? AND country <> '' GROUP BY country ORDER BY v DESC LIMIT 10").all(from),
+    devices: db.prepare("SELECT device AS l, SUM(n) AS v FROM site_visits WHERE day >= ? AND device <> '' GROUP BY device ORDER BY v DESC").all(from),
   };
 }

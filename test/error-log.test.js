@@ -36,6 +36,13 @@ test('Admin › Errori: refused sign-ins (warn), browser errors, server errors; 
   assert.equal(find('Brevo').kind, 'mail');
   assert.match(find('not defined').detail, /main\.js/);
   assert.ok(!find('cloudflareinsights') && !find('Java object'), 'outside scripts are not logged');
+  for (const message of ['Script error.', "TypeError: undefined is not an object (evaluating 'window.ethereum.selectedAddress = undefined') (/:1)"]) await fetch(`${t.base}/api/client-error`, { method: 'POST', headers: H, body: JSON.stringify({ kind: 'js', message }) });
+  // and the rows from before the filters go at start
+  logError(t.app.db, { source: 'browser', kind: 'js', message: 'https://static.cloudflareinsights.com/beacon.min.js' });
+  const { dropForeignErrors } = await import('../src/error-log.js');
+  assert.equal(dropForeignErrors(t.app.db), 1);
+  const after = (await a.get('/api/admin/errors')).body.items;
+  assert.ok(!after.some(x => /Script error|ethereum|cloudflareinsights/.test(x.message)));
   const refused = list.items.find(x => x.kind?.startsWith('accesso:'));
   assert.equal(refused.level, 'warn');
   assert.equal(refused.path, '/api/auth/request-code');
@@ -63,4 +70,17 @@ test('admin user card: a deletion request is said, with when it is erased; the a
   assert.equal((await other.get(`/api/profiles/${a.id}`)).status, 404);
   const row = (await admin.get('/api/admin/users?q=va-via')).body.users.find(u => u.id === a.id);
   assert.equal(row.status_label, 'In eliminazione');
+});
+
+test('admin numbers agree: who asked to delete the account is "In eliminazione", not online, on the dashboard as in Utenti', async () => {
+  const admin = await t.asAdmin();
+  const online = await t.approved('conta-online@x.it');
+  const leaving = await t.approved('conta-via@x.it');
+  await leaving.del('/api/me', { confirm: 'ELIMINA' });
+  const dash = (await admin.get('/api/admin/dashboard?period=all')).body.kpis.find(k => k.label === 'Profili online');
+  const listed = (await admin.get('/api/admin/users?status=approved')).body.total;
+  assert.equal(Number(dash.value.replace(/\D/g, '')), listed);
+  assert.match(dash.delta, /in eliminazione/);
+  const deleting = (await admin.get('/api/admin/users?status=deleting')).body.users.map(u => u.id);
+  assert.ok(deleting.includes(leaving.id) && !deleting.includes(online.id));
 });

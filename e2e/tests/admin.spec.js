@@ -40,11 +40,12 @@ test('Errori: un errore del browser arriva nella pagina dell’admin', async ({ 
   await expect(page.getByText(/esterno\.invalid/)).toHaveCount(0);
 });
 
-test('Analytics: le aperture contate dal server, accanto a Cloudflare', async ({ page }, info) => {
+test('Analytics: traffico dal server, iscrizioni e community dal database, Cloudflare a parte', async ({ page }, info) => {
   test.skip(info.project.name !== 'computer');
   await signIn(page.request, 'admin@rientro.local');
   await page.goto('/admin/analytics');
-  await expect(page.getByRole('heading', { name: 'Aperture del sito, contate dal server' })).toBeVisible();
-  await expect(page.getByText('Da dove arrivano').last()).toBeVisible();
+  for (const h of ['Traffico', 'Iscrizioni', 'Community', 'Cloudflare Web Analytics']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
+  await expect(page.getByText('Da dove arrivano', { exact: true })).toBeVisible();
+  await expect(page.getByText('Dispositivi', { exact: true })).toBeVisible();
   await page.screenshot({ path: 'data/analytics-aperture.png', fullPage: true });
 });

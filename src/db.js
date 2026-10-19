@@ -30,7 +30,14 @@ export function openDb(file = config.dbPath) {
     throw new Error(`Database ${file} uses schema v${version}; this build needs v${SCHEMA_VERSION}. ` +
       'For a dev database, delete the data/ folder and restart.');
   }
+  // site_visits before it had country and device: rebuilt with them, its rows kept (before the schema runs)
+  if (db.prepare("SELECT 1 FROM sqlite_master WHERE name = 'site_visits'").get() && !db.prepare('PRAGMA table_info(site_visits)').all().some(c => c.name === 'country')) {
+    db.exec('ALTER TABLE site_visits RENAME TO site_visits_old');
+  }
   db.exec(fs.readFileSync(schemaPath, 'utf8'));
+  if (db.prepare("SELECT 1 FROM sqlite_master WHERE name = 'site_visits_old'").get()) {
+    db.exec("INSERT INTO site_visits (day, page, source, n) SELECT day, page, source, n FROM site_visits_old; DROP TABLE site_visits_old;");
+  }
   // (updated Terms / Privacy are no longer emailed: their send records go)
   db.exec('DROP TABLE IF EXISTS legal_notice_sends; DROP TABLE IF EXISTS legal_notices;');
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
