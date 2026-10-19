@@ -547,3 +547,12 @@ CREATE TABLE IF NOT EXISTS error_log (
   detail    TEXT
 );
 CREATE INDEX IF NOT EXISTS error_log_last ON error_log(last_at);
+
+-- Openings of the site counted by the server (visits.js), per day, page and source: numbers only
+CREATE TABLE IF NOT EXISTS site_visits (
+  day     TEXT NOT NULL,
+  page    TEXT NOT NULL,
+  source  TEXT NOT NULL,
+  n       INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, page, source)
+);

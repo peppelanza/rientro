@@ -347,7 +347,11 @@ export function analytics(db, admin, query) {
     requests_per_active: (requests / active / Math.max(1, days / 30)).toFixed(1).replace('.', ','),
     acceptance: pct(accepted, decided),
     abroad, italy: 100 - abroad,
-    sign_in_methods: [{ l: 'Email', v: 100 }], // LinkedIn and Google are not connected yet
+    // how each member signed up (auth.startSession); accounts from before it was recorded aside
+    sign_in_methods: (() => {
+      const rows = db.prepare(`SELECT signup_method AS m FROM users WHERE signup_method IS NOT NULL AND role <> 'admin' AND email NOT LIKE '%@${ERASED_DOMAIN}'`).all();
+      return [['google', 'Google'], ['linkedin', 'LinkedIn'], ['email', 'Email']].map(([m, l]) => ({ l, v: share(rows, r => r.m === m) }));
+    })(),
     sources: SOURCES.map(s => ({ l: s, v: share(users.filter(u => u.source), u => u.source === s) })),
     top_comuni: topCounts(approved.flatMap(u => u.desired_comuni), 7).map(([n, v]) => ({ n, v })),
     distinct_comuni: new Set(approved.flatMap(u => u.desired_comuni)).size,

@@ -8,6 +8,7 @@
 // - browser: uncaught errors, server errors seen by the page, the robot check failing on the
 //   sign-in page (POST /api/client-error, public/app/error-report.js).
 // No email addresses, codes or tokens in here: only what went wrong and where.
+import { config } from './config.js';
 import { now } from './db.js';
 
 const KEEP_DAYS = 30;
@@ -53,6 +54,12 @@ export function clientError(db, body, userId) {
   const kind = ['js', 'promise', 'api', 'network', 'turnstile'].includes(body?.kind) ? body.kind : 'js';
   const message = str(body?.message, 500);
   if (!message) return;
+  // Not ours, whatever the page's code (one opened before an update still sends these): an outside
+  // script that didn't load (a blocker, Cloudflare's visit counter, Facebook's), or errors from
+  // scripts that in-app browsers and extensions add
+  const stack = str(body?.stack, 3000) || '';
+  if (/^https?:\/\//.test(message) && !message.startsWith(config.baseUrl)) return;
+  if (/(iabjs|chrome-extension|moz-extension|safari-(web-)?extension):\/\//.test(`${message}\n${stack}`)) return;
   const detail = [str(body?.stack, 3000), str(body?.ua, 200) && `UA: ${str(body.ua, 200)}`].filter(Boolean).join('\n') || null;
   logError(db, { source: 'browser', level: ['api', 'network'].includes(kind) ? 'warn' : 'error', kind, message, path: str(body?.path, 200), userId, detail });
 }

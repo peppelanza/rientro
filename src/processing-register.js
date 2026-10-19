@@ -70,10 +70,10 @@ export const PROCESSING_REGISTER = [
   },
   {
     purpose: 'statistics',
-    description: 'Statistiche aggregate interne e conteggi pubblici per città (mai gruppi sotto le 5 persone); conteggio delle visite al sito senza cookie (Cloudflare Web Analytics, non nelle pagine admin).',
+    description: 'Statistiche aggregate interne e conteggi pubblici per città (mai gruppi sotto le 5 persone); conteggio delle visite al sito senza cookie (Cloudflare Web Analytics, non nelle pagine admin) e aperture del sito contate dal nostro server per giorno, pagina di ingresso e provenienza (senza IP né identificativi).',
     data_categories: 'dati aggregati non identificativi; per le visite: indirizzo IP e dati tecnici della visita, trattati da Cloudflare, che ci restituisce solo aggregati',
     proposed_basis: 'Legittimo interesse (art. 6.1.f)',
-    retention: 'Calcolate al momento, non conservate; visite: secondo i tempi di Cloudflare Web Analytics (piano gratuito, alcuni mesi)',
+    retention: 'Calcolate al momento; aperture contate dal server: solo totali per giorno, senza dati personali; visite: secondo i tempi di Cloudflare Web Analytics (piano gratuito, alcuni mesi)',
     recipients: 'Titolare; conteggi aggregati pubblici; Cloudflare (Web Analytics)',
   },
   {

@@ -26,6 +26,23 @@
 </div>
 </sc-if>
 </section>
+<section style="display:flex;flex-direction:column;gap:12px"><h2 style="margin:0;font-size:16px;font-weight:600">Aperture del sito, contate dal server</h2>
+<span style="font-size:13px;color:#6B6680;line-height:1.5;max-width:760px">Ogni volta che qualcuno apre il sito da fuori (un link, un post, Google, un preferito), contato dal nostro server. Comprende anche chi blocca il contatore di Cloudflare (adblock, Safari), quindi questi numeri di solito sono più alti delle visite qui sopra. Non contano i passaggi tra una pagina e l’altra dentro il sito, i bot e le anteprime dei link, né le tue visite da admin. Solo numeri: nessun cookie, nessun indirizzo IP.</span>
+<sc-if value="{{ sv }}">
+<div class="r-grid-1 r-grid-md-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+<dc-import name="UI Stat" label="Aperture" value="{{ sv.total }}" delta="{{ sv.periodLabel }}" tone="neutral" size="lg"></dc-import>
+<dc-import name="UI Stat" label="Aperture → iscrizioni" value="{{ sv.conversion }}" delta="iscrizioni sulle aperture, negli stessi giorni" tone="neutral" size="lg"></dc-import>
+<dc-import name="UI Stat" label="In più rispetto a Cloudflare" value="{{ sv.extra }}" delta="{{ sv.extraNote }}" tone="neutral" size="lg"></dc-import>
+</div>
+<sc-if value="{{ sv.sinceNote }}"><span style="font-size:12px;color:#8C84AE">{{ sv.sinceNote }}</span></sc-if>
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:14px"><span style="font-size:14px;font-weight:600">Aperture per giorno</span>
+<div role="img" aria-label="Aperture per giorno" style="height:120px;display:flex;align-items:flex-end;gap:2px;border-bottom:1px solid #ECE8F7"><sc-for list="{{ sv.days }}" as="d"><div title="{{ d.title }}" style="flex:1;min-width:2px;max-width:28px;height:{{ d.h }};background:#1A1726;border-radius:4px 4px 0 0"></div></sc-for></div></div>
+<div class="r-grid-1" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:10px"><span style="font-size:14px;font-weight:600">Da dove arrivano</span><div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{ sv.sources }}" as="x"><div style="display:flex;justify-content:space-between;gap:10px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ x.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ x.v }}</span></div></sc-for></div><sc-if value="{{ sv.none }}"><span style="font-size:13px;color:#8C84AE">Ancora nessun dato.</span></sc-if></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:10px"><span style="font-size:14px;font-weight:600">Pagine di ingresso</span><div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{ sv.pages }}" as="x"><div style="display:flex;justify-content:space-between;gap:10px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ x.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ x.v }}</span></div></sc-for></div><sc-if value="{{ sv.none }}"><span style="font-size:13px;color:#8C84AE">Ancora nessun dato.</span></sc-if></div>
+</div>
+</sc-if>
+</section>
 <h2 style="margin:8px 0 0;font-size:16px;font-weight:600">Iscritti</h2>
 <sc-if value="{{ total }}">
 <div class="r-grid-2 r-grid-md-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
@@ -37,7 +54,7 @@
 <div class="r-grid-1 r-grid-md-1" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
 <div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-size:14px;font-weight:600">Iscrizioni per metodo</span>
 <sc-for list="{{ methods }}" as="m"><dc-import name="UI Bar Row" label="{{ m.l }}" value="{{ m.v }}" pct="{{ m.w }}" tone="ink" thick="{{ true }}"></dc-import></sc-for>
-<span style="font-size:12px;color:#8C84AE">LinkedIn e Google non sono ancora attivi.</span>
+<span style="font-size:12px;color:#8C84AE">Come si sono iscritti (gli account più vecchi, di prima che lo registrassimo, esclusi).</span>
 <div style="height:1px;background:#ECE8F7"></div><span style="font-size:13px;font-weight:600">Come ci hanno conosciuto</span>
 <div style="display:flex;flex-direction:column;gap:6px;font-size:13px"><sc-for list="{{ sources }}" as="x"><div style="display:flex;justify-content:space-between;gap:10px"><span>{{ x.l }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px">{{ x.v }}</span></div></sc-for></div></div>
 <div style="background:#FFFFFF;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-size:14px;font-weight:600">Comuni più scelti</span>

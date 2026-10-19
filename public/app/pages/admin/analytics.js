@@ -14,8 +14,8 @@ export default class extends AdminPage {
 
   // Members (our database) and visits (Cloudflare Web Analytics, src/web-analytics.js) side by side
   async loadPeriod(p) {
-    const [d, t] = await Promise.all([api('GET', `/api/admin/analytics?period=${p}`), api('GET', `/api/admin/traffic?period=${p}`).catch(() => null)]);
-    Object.assign(this.state, { period: p, d, t });
+    const [d, t, v] = await Promise.all([api('GET', `/api/admin/analytics?period=${p}`), api('GET', `/api/admin/traffic?period=${p}`).catch(() => null), api('GET', `/api/admin/visits?period=${p}`).catch(() => null)]);
+    Object.assign(this.state, { period: p, d, t, v });
   }
 
   setPeriod(p) { return this.act(() => this.loadPeriod(p))(); }
@@ -47,6 +47,28 @@ export default class extends AdminPage {
     };
   }
 
+  // Openings counted by our server (src/visits.js): the people Cloudflare's counter misses too
+  serverVisits() {
+    const v = this.state.v;
+    if (!v) return null;
+    const t = this.state.t;
+    const n = x => x.toLocaleString('it-IT');
+    const max = Math.max(1, ...v.days.map(d => d.n));
+    // compared with Cloudflare's visits only over the days both have counted
+    const cf = t?.enabled && !t.error && !t.hourly ? t.days.filter(d => d.date >= v.since).reduce((a, d) => a + d.visits, 0) : null;
+    const ours = v.days.reduce((a, d) => a + d.n, 0);
+    const sinceDay = v.since ? new Date(`${v.since}T12:00:00`).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' }) : null;
+    return {
+      total: n(v.total), periodLabel: PERIOD_LONG[this.state.period],
+      conversion: v.total ? `${((v.signups / v.total) * 100).toFixed(1).replace('.', ',')}%` : '—',
+      extra: cf !== null && cf > 0 ? `${ours >= cf ? '+' : ''}${Math.round(((ours - cf) / cf) * 100)}%` : '—',
+      extraNote: cf !== null && cf > 0 ? `${n(ours)} contro ${n(cf)} visite Cloudflare` : 'serve anche Cloudflare collegato',
+      sinceNote: sinceDay ? `Conteggio attivo dal ${sinceDay}: prima di quel giorno non ci sono dati.` : 'Il conteggio è appena partito.',
+      days: v.days.map(d => ({ h: `${(d.n / max) * 100}%`, title: `${d.day}: ${d.n} aperture` })),
+      sources: v.sources.map(x => ({ l: x.l, v: n(x.v) })), pages: v.pages.map(x => ({ l: x.l, v: n(x.v) })), none: !v.total,
+    };
+  }
+
   renderVals() {
     const s = this.state;
     if (!s.d) return { loading: true, side: this.side('analytics') };
@@ -55,7 +77,7 @@ export default class extends AdminPage {
     const maxW = Math.max(1, ...d.weeks.map(w => w.requests));
     return {
       loading: false, side: this.side('analytics'),
-      tr: this.traffic(), trOff: !s.t?.enabled, trError: s.t?.error ?? '',
+      tr: this.traffic(), sv: this.serverVisits(), trOff: !s.t?.enabled, trError: s.t?.error ?? '',
       periodOpts: [{ v: '1', l: '24 h' }, { v: '30', l: '30 g' }, { v: '90', l: '90 g' }, { v: '365', l: '12 mesi' }], period: s.period, periodProps: { onSelect: v => v && this.setPeriod(v) },
       total: d.total.toLocaleString('it-IT'), newIn: `+${d.new_in_period} in ${PERIOD_SHORT[s.period]}`,
       rate: d.requests_per_active, acceptance: `${d.acceptance}%`,

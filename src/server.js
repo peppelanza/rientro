@@ -36,6 +36,7 @@ import * as support from './support.js';
 import { HttpError } from './validate.js';
 import { nameCase } from '../public/app/text-case.js';
 import { captureConsole, clientError, listErrors, logError } from './error-log.js';
+import { countVisit, visitsReport } from './visits.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
 // still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
@@ -658,6 +659,8 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
   route('POST', '/api/admin/reports/:id', async ({ user, params, req }) => admin.resolveReport(db, user, params.id, await readJson(req)), adm);
   route('GET', '/api/admin/reports/:id/chat', ({ user, params }) => admin.reportChat(db, user, params.id), adm);
   route('DELETE', '/api/admin/reports/:id/post', ({ user, params }) => admin.deleteReportedPost(db, user, params.id), adm);
+  // Openings counted by our server (visits.js), next to Cloudflare's numbers
+  route('GET', '/api/admin/visits', ({ url }) => visitsReport(db, Math.min(365, Math.max(1, Number(url.searchParams.get('period')) || 30))), adm);
   route('GET', '/api/admin/traffic', ({ url }) => traffic(Math.min(365, Math.max(1, Number(url.searchParams.get('period')) || 30)), cfFetch), adm);
   route('GET', '/api/admin/analytics', ({ user, url }) => admin.analytics(db, user, url.searchParams), adm);
   route('POST', '/api/admin/exports', async ({ user, req, res }) => {
@@ -723,14 +726,19 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
       }
       if (!p.startsWith('/api/')) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed');
+        // A page opened: counted by the server too, for who Cloudflare's counter misses (visits.js)
+        const visit = (opts = {}) => countVisit(db, req, url, { isAdmin: !!cookies[SESSION_COOKIE] && auth.userForSession(db, cookies[SESSION_COOKIE])?.role === 'admin', ...opts });
         // An invite link (rientro.it/?gius2839, invites.js): remembered for the sign-up, then straight to it
-        const invite = url.search.slice(1).toLowerCase();
+        // (the code is the first thing after "?": Facebook, Instagram, WhatsApp… add their own
+        // parameters after it, "?gius2839&fbclid=…")
+        const invite = url.search.slice(1).split('&')[0].replace(/=$/, '').toLowerCase();
         if (INVITE_CODE.test(invite) && !path.extname(p)) {
           const setInvite = cookie(INVITE_COOKIE, invite, INVITE_COOKIE_DAYS * 86400);
           // a page with its own preview ("Giuseppe ti ha invitato su Rientro", invite-card.js) that
           // goes on to /accedi; a code of nobody online: straight there
           const page = req.method === 'GET' ? invitePage(db, invite) : null;
           if (page) {
+            visit({ inviteCode: invite });
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Set-Cookie': setInvite, 'Cache-Control': 'no-store' });
             res.end(page);
             return;
@@ -751,6 +759,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
         // The app shell, with Cloudflare's visit counter except in the admin panel (web-analytics.js)
         const shell = ({ track = true } = {}) => {
+          if (track) visit();
           const tag = track ? beaconTag() : '';
           if (!tag) return appPage('app.html');
           const html = fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8').replace('</body>', `${tag}\n</body>`);
@@ -779,6 +788,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
           if (seo?.notFound) return sendNotFound(res);
           if (seo?.redirect) { res.writeHead(301, { Location: `${seo.redirect}${url.search}` }); res.end(); return; }
           if (seo) {
+            visit();
             const html = pageHtml(fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8'), seo).replace('</body>', `${beaconTag()}\n</body>`);
             return reply(res, 200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }, Buffer.from(html));
           }

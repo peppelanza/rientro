@@ -69,6 +69,7 @@ export const DOCS = {
       ['Cookie', [
         'Usiamo solo cookie tecnici, necessari a tenerti connesso e a far funzionare l’accesso. Non usiamo cookie di analisi, di profilazione o pubblicitari, e i caratteri tipografici del sito sono ospitati sui nostri server.',
         'Statistiche delle visite: per sapere quante persone visitano il sito, da dove arrivano (per esempio da LinkedIn o da Google) e quali pagine guardano, usiamo Cloudflare Web Analytics. Non usa cookie né altri identificativi salvati sul tuo dispositivo e non ti segue su altri siti: Cloudflare riceve il tuo indirizzo IP e informazioni tecniche sulla visita (pagina, provenienza, paese, tipo di dispositivo e browser) e ci restituisce solo numeri aggregati. Non la usiamo nelle pagine di amministrazione. Base giuridica: il nostro legittimo interesse a capire come viene usato il sito e a migliorarlo (art. 6.1.f). Trovi i dettagli nella Cookie Policy.',
+        'Contiamo inoltre sul nostro server, solo in forma aggregata, quante volte il sito viene aperto: per giorno, pagina di ingresso e sito di provenienza (per esempio LinkedIn o un link d’invito). Non usiamo cookie, non salviamo l’indirizzo IP e non ricaviamo nulla che permetta di riconoscere chi visita. Base giuridica: lo stesso legittimo interesse.',
       ]],
       ['Per quanto tempo conserviamo i dati', [
         'Conserviamo i dati solo per il tempo necessario alle finalità per cui li raccogliamo. Le cancellazioni indicate qui sotto avvengono automaticamente, ogni giorno:',

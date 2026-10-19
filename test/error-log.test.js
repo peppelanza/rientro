@@ -16,6 +16,9 @@ test('Admin › Errori: refused sign-ins (warn), browser errors, server errors; 
   // the browser reports twice the same thing, and once something else
   for (let i = 0; i < 2; i++) await fetch(`${t.base}/api/client-error`, { method: 'POST', headers: H, body: JSON.stringify({ kind: 'turnstile', message: 'Verifica anti-robot non riuscita nel browser: turnstile timeout', path: '/accedi' }) });
   await fetch(`${t.base}/api/client-error`, { method: 'POST', headers: H, body: JSON.stringify({ kind: 'js', message: 'x is not defined', stack: 'at y (main.js:1)' }) });
+  // not ours, even from a page with older code: an outside script stopped by a blocker, an in-app browser's
+  await fetch(`${t.base}/api/client-error`, { method: 'POST', headers: H, body: JSON.stringify({ kind: 'js', message: 'https://static.cloudflareinsights.com/beacon.min.js' }) });
+  await fetch(`${t.base}/api/client-error`, { method: 'POST', headers: H, body: JSON.stringify({ kind: 'js', message: 'Uncaught Error: Java object is gone', stack: 'at sendDataToNative (iabjs://navigation_performance_logger_android:1:11853)' }) });
   // the server: console.error, as captured in production
   const original = console.error;
   console.error = () => {};
@@ -32,6 +35,7 @@ test('Admin › Errori: refused sign-ins (warn), browser errors, server errors; 
   assert.equal(find('anti-robot').kind, 'turnstile');
   assert.equal(find('Brevo').kind, 'mail');
   assert.match(find('not defined').detail, /main\.js/);
+  assert.ok(!find('cloudflareinsights') && !find('Java object'), 'outside scripts are not logged');
   const refused = list.items.find(x => x.kind?.startsWith('accesso:'));
   assert.equal(refused.level, 'warn');
   assert.equal(refused.path, '/api/auth/request-code');

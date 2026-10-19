@@ -31,6 +31,12 @@ test('invite link: gius2839-style code, the link remembers it, the invitee asks 
   assert.match(open.headers.get('set-cookie'), new RegExp(`rientro_invite=${code}`));
   assert.equal((await (await fetch(`${t.base}/api/public/invite`, { headers: { cookie: `rientro_invite=${code}` } })).json()).inviter.first_name, 'Giuseppe');
 
+  // Shared on Facebook (or anywhere that adds its own parameters): the same
+  const fb = await fetch(`${t.base}/?${code}&fbclid=IwZXh0bgNhZW0CMTEAAR4abc&utm_source=fb`, { redirect: 'manual' });
+  assert.equal(fb.status, 200);
+  assert.match(fb.headers.get('set-cookie'), new RegExp(`rientro_invite=${code}`));
+  assert.match(await fb.text(), /url=\/accedi/);
+
   // Sign-up with it: no welcome email yet, it comes with the profile online
   const anna = await loginWith(code, 'anna@x.it');
   assert.equal(welcomes.filter(w => w.email === 'anna@x.it').length, 0);
