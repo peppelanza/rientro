@@ -1211,3 +1211,9 @@ html.search-sheet-open { overflow: hidden; }
 .an-i { font-family: 'Geist Mono', monospace; font-size: 11px; color: #8C84AE; }
 @media (max-width: 1100px) { .an-grid4 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 900px) { .an-stats4 { grid-template-columns: 1fr 1fr; } .an-grid4, .an-grid2 { grid-template-columns: 1fr; } }
+
+/* Homepage partners: their logos, each a link to their site */
+.partners { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.partner { height: 150px; border-radius: 24px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 24px; transition: transform .15s ease, box-shadow .15s ease; }
+.partner:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(80,60,160,.12); }
+.partner img { max-width: 100%; object-fit: contain; }

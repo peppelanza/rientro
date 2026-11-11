@@ -78,11 +78,11 @@ const wrap = inner => `<div class="ssr-page">${inner}\n${nav()}</div>`;
 // path → { title, description, image, type, robots, ld[], body } | { redirect } | { notFound } | null
 export function seoFor(db, p) {
   if (p === '/' || p === '/prelancio') {
-    const { title, faq, steps, forWho } = pages.home;
+    const { title, faq, steps, forWho, partners } = pages.home;
     return {
       canonical: '/', title: `${title} · Rientro`, description: SITE_DESCRIPTION, image: OG.home,
       ld: [ORG, { '@type': 'WebSite', '@id': abs('/#sito'), name: 'Rientro', url: abs('/'), inLanguage: 'it-IT', publisher: { '@id': ORG['@id'] } }, faqPage(faq.map(f => [f.q, f.a]))],
-      body: wrap(templateText('home.html', { faq, steps, forWho, launched: isLaunched(), heroPeople: [] })),
+      body: wrap(templateText('home.html', { faq, steps, forWho, partners, launched: isLaunched(), heroPeople: [] })),
     };
   }
   if (p === '/rientro-dei-cervelli') {

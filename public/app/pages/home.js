@@ -27,6 +27,12 @@ export const steps = [
   { n: '03', t: 'Connettiti e fai due chiacchiere', d: 'Invii una richiesta. Se viene accettata, si apre la chat.' },
 ];
 // Illustrative example profiles from the design (not real members).
+// Partner (homepage, #partner): their logo, linking to their site
+export const partners = [
+  { name: 'Isola che Torna', href: 'https://www.isolachetorna.it', logo: '/img/partner/isola-che-torna.png', h: '96px' },
+  { name: 'La Tornanza', href: 'https://www.latornanza.it', logo: '/img/partner/la-tornanza.png', h: '44px' },
+];
+
 const heroPeople = [['Giulia', 'Product Strategist', 'LONDRA', 'MILANO'], ['Marco', 'Software Engineer', 'BERLINO', 'CAGLIARI'], ['Sara', 'Product Designer', 'AMSTERDAM', 'TORINO'], ['Luca', 'Ex consulente strategico', 'NEW YORK', 'NAPOLI']]
   .map(([n, r, a, b], i) => ({ n, r, a, b, mt: i % 2 ? '36px' : '0' }));
 
@@ -54,7 +60,7 @@ export default class extends Page {
   renderVals() {
     const me = this.state.me;
     return {
-      launched: this.state.launched !== false, forWho, steps, faq, heroPeople,
+      launched: this.state.launched !== false, forWho, steps, faq, heroPeople, partners,
       enter: () => { location.href = me ? homeFor(me) : '/accedi'; },
       headerProps: { onEnter: () => { location.href = me ? homeFor(me) : '/accedi'; } },
     };

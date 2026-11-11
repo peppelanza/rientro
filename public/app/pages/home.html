@@ -94,6 +94,10 @@
 <h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.04em">Domande e risposte</h2>
 <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ faq }}" as="q"><details class="faq-item"><summary>{{ q.q }}</summary><p>{{ q.a }}</p></details></sc-for></div>
 </section>
+<section id="partner" class="r-grid-1" style="padding:0 var(--gutter) var(--section-gap);display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start">
+<h2 style="margin:0;font-family:'Unbounded',sans-serif;font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.04em">Partner</h2>
+<div class="partners"><sc-for list="{{ partners }}" as="p"><a class="partner" href="{{ p.href }}" target="_blank" rel="noopener" aria-label="{{ p.name }} (si apre in una nuova scheda)"><img src="{{ p.logo }}" alt="{{ p.name }}" loading="lazy" style="height:{{ p.h }}"></a></sc-for></div>
+</section>
 <section class="r-stack" style="margin:0 var(--gutter) 24px;border-radius:32px;background:radial-gradient(circle at 85% 20%,#8E7FE0,transparent 45%),#6C4DF5;color:#FFFFFF;padding:80px var(--card-pad);display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
 <h2 class="r-h1" style="margin:0;font-family:'Unbounded',sans-serif;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.055em;max-width:900px">Trova qualcuno con cui <span class="r-serif" style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:76px">costruire.</span></h2>
 <dc-import name="UI Button" label="Accedi a Rientro" variant="light" size="lg" on-click="{{ enter }}"></dc-import>
