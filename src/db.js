@@ -23,7 +23,11 @@ export const subjectRef = userId =>
 export function openDb(file = config.dbPath) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
-  db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+  // WAL: readers and the writer don't wait for each other. synchronous NORMAL is safe with WAL (a
+  // power cut can lose the last moments, never corrupt the file) and spares a disk flush per write.
+  // busy_timeout: a write that finds the file locked (a backup, an SSH script) waits up to 5 s
+  // instead of failing at once.
+  db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;');
   const version = db.prepare('PRAGMA user_version').get().user_version;
   const hasTables = db.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name = 'users'").get().n > 0;
   if (hasTables && version < SCHEMA_VERSION) {
@@ -43,25 +47,46 @@ export function openDb(file = config.dbPath) {
   db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
   addProfileColumns(db);
   migrateUserColumns(db);
-  migrateIdeaStages(db);
-  migrateAreas(db);
-  migrateSectors(db);
+  // Indexes on columns migrateUserColumns may have just added (an older database), so not in schema.sql:
+  // - the accounts away (suspended, leaving): the lists that leave them out read only these. A query
+  //   uses it only when its WHERE says exactly this, in this order (social.js, groups.js AWAY)
+  // - notifications not emailed yet: what the email digest looks for every few minutes (email-digest.js)
+  db.exec(`CREATE INDEX IF NOT EXISTS users_away ON users(id) WHERE ${AWAY};
+    CREATE INDEX IF NOT EXISTS notifications_unemailed ON notifications(created_at) WHERE emailed_at IS NULL;`);
+  // One-off changes to the data: each runs once per database, then later starts skip it (once()).
+  // They read whole tables, which with thousands of members costs seconds on every deploy.
+  once(db, 'idea-stages', migrateIdeaStages);
+  once(db, 'areas', migrateAreas);
+  once(db, 'sectors', migrateSectors);
+  // (these fix what the app can still write — a role typed in, a demo profile —, so on every start)
   roleToExperience(db);
   freezeArrivals(db);
   // "Mostra il video solo alle connessioni" is gone: the video is for every member
-  db.exec('UPDATE profiles SET video_connections_only = 0 WHERE video_connections_only = 1');
+  once(db, 'video-for-all', () => db.exec('UPDATE profiles SET video_connections_only = 0 WHERE video_connections_only = 1'));
   // "In Italia" is no longer offered: indifferent
-  db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'");
+  once(db, 'seeking-not-italy', () => db.exec("UPDATE profiles SET seeking_location = 'any' WHERE seeking_location = 'italy'"));
   migrateChecks(db);
-  migrateNoReview(db);
+  once(db, 'no-review', migrateNoReview);
   desiredFollowsHome(db);
-  migrateNoRequestExpiry(db);
-  settleDuplicateConnections(db);
-  collapseMessageNotifications(db);
+  once(db, 'no-request-expiry', migrateNoRequestExpiry);
+  once(db, 'settle-duplicate-connections', settleDuplicateConnections);
+  once(db, 'collapse-message-notifications', collapseMessageNotifications);
   // Before the birth year there was a band to pick; the only such profile (the founder's) gets 1990
-  db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL');
+  once(db, 'birth-year-from-band', () => db.exec('UPDATE profiles SET birth_year = 1990 WHERE birth_year IS NULL AND age_band IS NOT NULL'));
   seed(db);
   return db;
+}
+
+// An account away: suspended, or waiting to be deleted. Written the same everywhere so the
+// users_away index serves it (SQLite matches a partial index's condition word for word).
+export const AWAY = "status = 'suspended' OR deletion_requested_at IS NOT NULL";
+
+// A one-off migration, run once per database: its name is noted in `migrations` when it's done. If
+// a start stops halfway it runs again next time (each one can run twice without harm).
+function once(db, name, fn) {
+  if (db.prepare('SELECT 1 FROM migrations WHERE name = ?').get(name)) return;
+  fn(db);
+  db.prepare('INSERT INTO migrations (name, done_at) VALUES (?, ?)').run(name, now());
 }
 
 // users: the deletion-request columns, the onboarding reminder (onboarding-reminder.js), and the inactivity-warning column of a retention rule that

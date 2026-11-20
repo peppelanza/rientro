@@ -62,3 +62,27 @@ That works too (the repo has a `Dockerfile`). In the service settings:
 - *"Non riusciamo a inviare il codice"*: check the Brevo key and that `MAIL_FROM` is verified; the
   Render logs show Brevo's error.
 - Logs: Render → rientro → Logs.
+
+## Is the server keeping up?
+
+Two kinds of lines in Render → rientro → Logs (src/perf.js) tell how busy it is:
+
+- `[lento] GET /api/threads 812 ms`: a request the server took more than 300 ms to answer, with its
+  route (ids left out). A few a day are harmless; the same route again and again is a slow query to look at.
+- `[carico] ultimi 10 min: 1840 richieste, 2 lente (oltre 300 ms), la più lenta …; ritardo dell'event
+  loop p50 0 ms, p99 12 ms, max 95 ms; memoria 310 MB`, every 10 minutes. The event loop's delay is
+  how long a request waited before the server could start on it. A p99 under 50 ms is comfortable;
+  a p99 in the hundreds of ms, or memory near the plan's RAM, means it's close to its limit: scale up
+  the instance (section 3).
+
+Search the logs for `[carico]` to see the day at a glance.
+
+## Load test
+
+`npm run load` builds a throwaway database the size Rientro is planned for (30,000 members, a million
+messages, in the system's temp folder) and times the main pages against it, plus how long the server
+takes to start and the memory Scopri's index holds. `npm run load -- --reuse` times again without
+rebuilding. It runs on your computer, never on the server, and refuses the real `data/` folder.
+
+The first start after a deploy that adds indexes builds them (seconds on a big database); later
+starts skip the one-off data migrations already done (the `migrations` table).

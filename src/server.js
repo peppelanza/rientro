@@ -37,6 +37,7 @@ import { HttpError } from './validate.js';
 import { nameCase } from '../public/app/text-case.js';
 import { captureConsole, clientError, dropForeignErrors, listErrors, logError } from './error-log.js';
 import { countVisit, visitsReport } from './visits.js';
+import { recordRequest, routeLabel, startLoadLog } from './perf.js';
 
 // A __Host- cookie can't carry a Domain, so the shared one is __Secure-; the old __Host- cookie is
 // still read (sessions opened before the admin host existed) and cleared at sign-in and sign-out.
@@ -187,9 +188,29 @@ function serveFile(res, file) {
     res.end(gzipped.get(file));
     return;
   }
-  reply(res, 200, headers, fs.readFileSync(file));
+  // Streamed from the disk, not read whole first: while it's read, the server answers everyone else.
+  // Text over 1 KB is compressed on the way (zlib works off the main thread); pictures and fonts
+  // are compressed already, so they go as they are, with their length.
+  const size = fs.statSync(file).size;
+  const gzip = COMPRESSIBLE.test(headers['Content-Type']) && size > 1024 && /\bgzip\b/.test(res.req?.headers['accept-encoding'] || '');
+  res.writeHead(200, gzip ? { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' } : { ...headers, 'Content-Length': size });
+  if (res.req?.method === 'HEAD') { res.end(); return; }
+  const fail = err => { console.error('[file]', err.code || err.message); res.destroy(); };
+  const read = fs.createReadStream(file).on('error', fail);
+  if (gzip) read.pipe(zlib.createGzip().on('error', fail)).pipe(res);
+  else read.pipe(res);
 }
 const gzipped = new Map();
+const COMPRESSIBLE = /^(text\/|application\/(json|javascript|xml)|image\/svg)/;
+
+// The app's page and the 404 page: read once in production (they change only with a deploy), from
+// the disk each time in development (edited while the server runs)
+const pageCache = new Map();
+function pageText(name) {
+  if (!config.production) return fs.readFileSync(path.join(config.publicDir, name), 'utf8');
+  if (!pageCache.has(name)) pageCache.set(name, fs.readFileSync(path.join(config.publicDir, name), 'utf8'));
+  return pageCache.get(name);
+}
 
 // Unknown addresses get a real page with status 404 (not the JSON the API uses)
 // Unknown addresses get a real page with status 404 (not the JSON the API uses). city: the text for
@@ -205,7 +226,7 @@ function knownHost(host) {
 }
 
 function sendNotFound(res, { kind = 'page', home = '/' } = {}) {
-  const html = fs.readFileSync(path.join(config.publicDir, '404.html'), 'utf8')
+  const html = pageText('404.html')
     .replace('{{text}}', NOT_FOUND_TEXT[kind])
     .replaceAll('href="/"', `href="${home}"`);
   reply(res, 404, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache', 'X-Robots-Tag': 'noindex' }, Buffer.from(html));
@@ -270,7 +291,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
   const routes = [];
   const route = (method, pattern, handler, opts = {}) =>
-    routes.push({ method, re: new RegExp(`^${pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)')}$`), handler, ...opts });
+    routes.push({ method, pattern, re: new RegExp(`^${pattern.replace(/:(\w+)/g, '(?<$1>[^/]+)')}$`), handler, ...opts });
   const pub = { public: true };
   const adm = { admin: true };
 
@@ -680,7 +701,18 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
     return { ok: true };
   }, pub);
 
+  // Every request timed (perf.js): the server's own work, from arrival to the answer handed over.
+  // Not uploads (a body that isn't JSON: the member's connection sets their time)
   async function handle(req, res) {
+    const start = performance.now();
+    const label = { name: null };
+    try { await serve(req, res, label); } finally {
+      const upload = req.method !== 'GET' && req.method !== 'HEAD' && !/^application\/json/.test(req.headers['content-type'] || 'application/json');
+      if (!upload) recordRequest(`${req.method} ${label.name ?? routeLabel((req.url || '/').split('?')[0])}`, performance.now() - start);
+    }
+  }
+
+  async function serve(req, res, label) {
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
     const url = new URL(req.url, config.baseUrl);
     const cookies = parseCookies(req.headers.cookie);
@@ -752,8 +784,9 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
         if (og) {
           const file = await inviteImage(db, og[1]);
           if (!file) throw new HttpError(404, 'not_found');
-          res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' });
-          res.end(req.method === 'HEAD' ? undefined : fs.readFileSync(file));
+          res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff', 'Content-Length': fs.statSync(file).size });
+          if (req.method === 'HEAD') { res.end(); return; }
+          fs.createReadStream(file).on('error', err => { console.error('[file]', err.code || err.message); res.destroy(); }).pipe(res);
           return;
         }
         const appPage = file => serveFile(res, path.join(config.publicDir, file));
@@ -762,7 +795,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
           if (track) visit();
           const tag = track ? beaconTag() : '';
           if (!tag) return appPage('app.html');
-          const html = fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8').replace('</body>', `${tag}\n</body>`);
+          const html = pageText('app.html').replace('</body>', `${tag}\n</body>`);
           reply(res, 200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }, Buffer.from(html));
         };
         if (p === '/accedi') {
@@ -789,7 +822,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
           if (seo?.redirect) { res.writeHead(301, { Location: `${seo.redirect}${url.search}` }); res.end(); return; }
           if (seo) {
             visit();
-            const html = pageHtml(fs.readFileSync(path.join(config.publicDir, 'app.html'), 'utf8'), seo).replace('</body>', `${beaconTag()}\n</body>`);
+            const html = pageHtml(pageText('app.html'), seo).replace('</body>', `${beaconTag()}\n</body>`);
             return reply(res, 200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' }, Buffer.from(html));
           }
         }
@@ -812,6 +845,7 @@ export function createApp({ db = openDb(), sendLoginCode = defaultSendLoginCode,
 
       const r = routes.find(x => x.method === req.method && x.re.test(p));
       if (!r) throw new HttpError(404, 'not_found');
+      label.name = r.pattern;
 
       // CSRF: state-changing calls need a custom header, which cross-site requests can't set
       // without a CORS preflight (never granted).
@@ -855,6 +889,7 @@ async function defaultSendLoginCode(email, code) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { db, server } = createApp();
   captureConsole(db);
+  startLoadLog(); // "[carico]" every 10 minutes (perf.js)
   dropForeignErrors(db); // what older pages sent before the filters (error-log.js)
   server.listen(config.port, '0.0.0.0', () => console.log(`Rientro in ascolto su ${config.baseUrl}`));
   // Videos never confirmed: converted once they are half an hour old

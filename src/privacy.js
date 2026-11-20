@@ -101,7 +101,7 @@ export function eraseAccount(db, user, reason = null) {
     announceGone(db, user.id);
     // The conversations stay for the people on the other side, as "Account disattivato": the
     // messages move to an anonymous placeholder (no email, no name, no profile, can't sign in)
-    if (db.prepare('SELECT 1 FROM messages WHERE sender_id = ? OR recipient_id = ? LIMIT 1').get(user.id, user.id)) {
+    if (db.prepare('SELECT EXISTS (SELECT 1 FROM messages WHERE sender_id = ?) OR EXISTS (SELECT 1 FROM messages WHERE recipient_id = ?) AS n').get(user.id, user.id).n) {
       const gone = newId();
       db.prepare(`INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, 'member', 'suspended', ?, ?)`).run(gone, `${gone}@${ERASED_DOMAIN}`, now(), now());
       db.prepare('UPDATE messages SET sender_id = ? WHERE sender_id = ?').run(gone, user.id);

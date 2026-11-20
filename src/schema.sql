@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   user_agent    TEXT,
   impersonator_id TEXT REFERENCES users(id) ON DELETE CASCADE  -- admin "accedi come"
 );
+-- A member's sessions (Sicurezza, "esci ovunque", an account erased)
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
 
 -- ---------------------------------------------------------------------------
 -- Profile (16-step onboarding). Public serialisation is allowlisted in profiles.js.
@@ -125,6 +127,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   approved_at            TEXT,
   updated_at             TEXT NOT NULL
 );
+-- A public photo (group authors, /api/public/photos): whose it is (groups.publicPhotoAllowed)
+CREATE INDEX IF NOT EXISTS profiles_photo ON profiles(photo_file_id);
 
 CREATE TABLE IF NOT EXISTS education (
   id        TEXT PRIMARY KEY,
@@ -134,6 +138,7 @@ CREATE TABLE IF NOT EXISTS education (
   years     TEXT,
   position  INTEGER NOT NULL DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS education_user ON education(user_id);
 
 CREATE TABLE IF NOT EXISTS experiences (
   id           TEXT PRIMARY KEY,
@@ -146,6 +151,7 @@ CREATE TABLE IF NOT EXISTS experiences (
   current      INTEGER NOT NULL DEFAULT 0,
   position     INTEGER NOT NULL DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS experiences_user ON experiences(user_id);
 
 -- ---------------------------------------------------------------------------
 -- Job-seeking preference + structured opportunity data (future Rientro Talent).
@@ -217,6 +223,8 @@ CREATE TABLE IF NOT EXISTS legal_acknowledgements (
   version      TEXT NOT NULL,
   created_at   TEXT NOT NULL
 );
+-- read on every /api/me (auth.legalStatus)
+CREATE INDEX IF NOT EXISTS legal_acknowledgements_user ON legal_acknowledgements(user_id);
 
 CREATE TABLE IF NOT EXISTS processing_register (
   purpose          TEXT PRIMARY KEY,
@@ -255,6 +263,9 @@ CREATE TABLE IF NOT EXISTS messages (
   reply_to_id   INTEGER REFERENCES messages(id) ON DELETE SET NULL -- a reply quotes this message (like WhatsApp)
 );
 CREATE INDEX IF NOT EXISTS messages_pair ON messages(sender_id, recipient_id, id);
+-- By recipient: the unread badge and each conversation's unread count (recipient, unread, from whom:
+-- found without reading the rows), and "everyone I wrote with" from the other side (social.js)
+CREATE INDEX IF NOT EXISTS messages_recipient ON messages(recipient_id, read_at, sender_id);
 
 -- Reactions to the other person's messages, one per person per message (like WhatsApp). A removed
 -- reaction keeps its row with emoji NULL, so an open chat learns about it by polling (updated_at).
@@ -278,6 +289,8 @@ CREATE TABLE IF NOT EXISTS notifications (
   emailed_at  TEXT   -- when it went out in an email digest (email-digest.js), or was settled without one
 );
 CREATE INDEX IF NOT EXISTS notifications_user ON notifications(user_id, id);
+-- Who caused it: a block clears both people's notifications of each other; an account erased takes its own
+CREATE INDEX IF NOT EXISTS notifications_actor ON notifications(actor_id);
 
 CREATE TABLE IF NOT EXISTS blocks (
   blocker_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -285,6 +298,8 @@ CREATE TABLE IF NOT EXISTS blocks (
   created_at  TEXT NOT NULL,
   PRIMARY KEY (blocker_id, blocked_id)
 );
+-- Who blocked me (Scopri, the groups, the chats read blocks both ways)
+CREATE INDEX IF NOT EXISTS blocks_blocked ON blocks(blocked_id);
 
 CREATE TABLE IF NOT EXISTS reports (
   id           TEXT PRIMARY KEY,
@@ -299,6 +314,8 @@ CREATE TABLE IF NOT EXISTS reports (
   resolved_by  TEXT,
   group_post_id INTEGER  -- a report from a group post's "···" menu: which post (groups.js)
 );
+-- the reports about a member (admin user card), which go with the account
+CREATE INDEX IF NOT EXISTS reports_reported ON reports(reported_id);
 
 -- ---------------------------------------------------------------------------
 -- Moderation
@@ -335,6 +352,8 @@ CREATE TABLE IF NOT EXISTS files (
   sha256        TEXT NOT NULL,
   created_at    TEXT NOT NULL
 );
+-- a member's files (export, an account erased)
+CREATE INDEX IF NOT EXISTS files_owner ON files(owner_id);
 
 -- Anonymous answers to "Perché te ne vai?" (41b). No user link; month precision only.
 CREATE TABLE IF NOT EXISTS deletion_feedback (
@@ -423,6 +442,8 @@ CREATE TABLE IF NOT EXISTS group_posts (
   created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS group_posts_group ON group_posts(group_id, id);
+-- By author: whether a profile photo is public (they wrote in a group: groups.publicPhotoAllowed)
+CREATE INDEX IF NOT EXISTS group_posts_author ON group_posts(author_id);
 CREATE TABLE IF NOT EXISTS group_comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   post_id     INTEGER NOT NULL REFERENCES group_posts(id) ON DELETE CASCADE,
@@ -431,6 +452,7 @@ CREATE TABLE IF NOT EXISTS group_comments (
   created_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS group_comments_post ON group_comments(post_id, id);
+CREATE INDEX IF NOT EXISTS group_comments_author ON group_comments(author_id);
 -- Groups a member follows (the bell on the group): their new posts reach the bell, and email too
 -- with notify_groups_email on
 CREATE TABLE IF NOT EXISTS group_follows (
@@ -558,4 +580,10 @@ CREATE TABLE IF NOT EXISTS site_visits (
   device   TEXT NOT NULL DEFAULT '',
   n        INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (day, page, source, country, device)
+);
+
+-- One-off data migrations already done on this database (db.js once()): later starts skip them
+CREATE TABLE IF NOT EXISTS migrations (
+  name     TEXT PRIMARY KEY,
+  done_at  TEXT NOT NULL
 );

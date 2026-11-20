@@ -1,6 +1,6 @@
 import { config, isLaunched } from './config.js';
 import { publish } from './live.js';
-import { newId, now, tx } from './db.js';
+import { AWAY, newId, now, tx } from './db.js';
 import { blockedBetween, card, connectionBetween, isBlocked, isGone, rawProfile } from './profiles.js';
 import { REPORT_REASONS } from './catalog.js';
 import { matches, pageParams, paginate } from './paging.js';
@@ -54,17 +54,17 @@ export function notify(db, userId, kind, actorId = null, data = {}) {
 export function listNotifications(db, user, query = new URLSearchParams()) {
   const perPage = Math.min(50, Math.max(1, Math.floor(Number(query.get('per_page')) || 20)));
   // (from an account away — suspended, waiting to be deleted — they wait out of sight)
-  const total = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n;
+  const total = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE ${AWAY}))`).get(user.id).n;
   const pages = Math.max(1, Math.ceil(total / perPage));
   const page = Math.min(pages, Math.max(1, Math.floor(Number(query.get('page')) || 1)));
-  const items = db.prepare(`SELECT * FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL)) ORDER BY id DESC LIMIT ? OFFSET ?`).all(user.id, perPage, (page - 1) * perPage).map(n => {
+  const items = db.prepare(`SELECT * FROM notifications WHERE user_id = ? AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE ${AWAY})) ORDER BY id DESC LIMIT ? OFFSET ?`).all(user.id, perPage, (page - 1) * perPage).map(n => {
     const actor = n.actor_id ? rawProfile(db, n.actor_id) : null;
     return {
       id: n.id, kind: n.kind, created_at: n.created_at, read: !!n.read_at, data: JSON.parse(n.data),
       actor: actor && { id: n.actor_id, name: nameOf(db, n.actor_id), first_name: actor.first_name, photo_url: actor.photo_file_id ? `/api/files/${actor.photo_file_id}` : null },
     };
   });
-  const unread = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n;
+  const unread = db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE ${AWAY}))`).get(user.id).n;
   return { items, total, page, pages, per_page: perPage, unread };
 }
 
@@ -75,12 +75,12 @@ export function markNotificationsRead(db, user) {
 export function badgeCounts(db, user) {
   return {
     received: db.prepare(`SELECT COUNT(*) AS n FROM connections WHERE addressee_id = ? AND status = 'pending'
-      AND requester_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL)`).get(user.id).n,
+      AND requester_id NOT IN (SELECT id FROM users WHERE ${AWAY})`).get(user.id).n,
     // as the Messaggi list: not from someone blocked
     unread_messages: db.prepare(`SELECT COUNT(DISTINCT m.sender_id) AS n FROM messages m WHERE m.recipient_id = ? AND m.read_at IS NULL
       AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = m.sender_id AND b.blocked_id = m.recipient_id) OR (b.blocker_id = m.recipient_id AND b.blocked_id = m.sender_id))
 `).get(user.id).n,
-    notifications: db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE status = 'suspended' OR deletion_requested_at IS NOT NULL))`).get(user.id).n,
+    notifications: db.prepare(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL AND (actor_id IS NULL OR actor_id NOT IN (SELECT id FROM users WHERE ${AWAY}))`).get(user.id).n,
     // tickets with an answer from the team not read yet ("Non letto" by Supporto in the account menu)
     support_unread: db.prepare(`SELECT COUNT(*) AS n FROM support_tickets t WHERE t.user_id = ? AND EXISTS (SELECT 1 FROM support_messages m
       WHERE m.ticket_id = t.id AND m.from_team = 1 AND (t.user_read_at IS NULL OR m.created_at > t.user_read_at))`).get(user.id).n,
@@ -202,6 +202,9 @@ function requireConnected(db, a, b) {
 }
 
 const PAIR = '((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))';
+// Everyone a member wrote with or heard from: two indexed lookups (by sender, by recipient) instead of
+// "sender_id = ? OR recipient_id = ?", which reads every message there is. Params: id, id
+const TALKED_WITH = 'SELECT recipient_id AS other FROM messages WHERE sender_id = ? UNION SELECT sender_id FROM messages WHERE recipient_id = ?';
 // A conversation stays readable after the connection is removed and once the other account is
 // gone (suspended, deleted: "Account disattivato"), not after a block: the messages are there,
 // writing waits for a new connection (never, with an account gone)
@@ -220,8 +223,7 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   // and who you're no longer connected with but wrote to (the chat stays, read-only)
   const viewerP = rawProfile(db, viewer.id);
   const known = new Set(now_.map(c => c.id));
-  const past = db.prepare(`SELECT DISTINCT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other FROM messages WHERE sender_id = ? OR recipient_id = ?`)
-    .all(viewer.id, viewer.id, viewer.id).map(r => r.other)
+  const past = db.prepare(TALKED_WITH).all(viewer.id, viewer.id).map(r => r.other)
     .filter(id => !known.has(id) && !blockedBetween(db, viewer.id, id))
     .map(id => (isGone(db, id) || !rawProfile(db, id)
       ? { id, name: 'Account disattivato', role: '', from: '', to: '', back_from: '', photo_url: null, not_connected: true, deactivated: true }
@@ -234,7 +236,8 @@ export function listThreads(db, viewer, query = new URLSearchParams()) {
   const ts = terms(pp.q);
   if (ts.length) {
     // all the viewer's messages, newest first, each split into words once (they never change)
-    const mine = db.prepare('SELECT * FROM messages WHERE sender_id = ? OR recipient_id = ? ORDER BY id DESC').all(viewer.id, viewer.id);
+    // (two lookups, by sender and by recipient: "sender_id = ? OR recipient_id = ?" reads the whole table)
+    const mine = db.prepare('SELECT * FROM messages WHERE sender_id = ? UNION ALL SELECT * FROM messages WHERE recipient_id = ? ORDER BY id DESC').all(viewer.id, viewer.id);
     // by the other person, once (not every message for every conversation)
     const withWhom = Map.groupBy(mine, m => (m.sender_id === viewer.id ? m.recipient_id : m.sender_id));
     // a conversation counts the most words its name or one of its messages has (that message shown)
@@ -404,6 +407,6 @@ export function report(db, viewer, body) {
 export function announceGone(db, userId) {
   const others = db.prepare(`SELECT CASE WHEN requester_id = ? THEN addressee_id ELSE requester_id END AS other FROM connections
     WHERE (requester_id = ? OR addressee_id = ?) AND status IN ('pending', 'accepted')`).all(userId, userId, userId).map(r => r.other);
-  const talked = db.prepare('SELECT DISTINCT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS other FROM messages WHERE sender_id = ? OR recipient_id = ?').all(userId, userId, userId).map(r => r.other);
+  const talked = db.prepare(TALKED_WITH).all(userId, userId).map(r => r.other);
   for (const other of new Set([...others, ...talked])) { publish(other, 'counts'); publish(other, 'connections'); publish(other, 'message', { from: userId }); }
 }

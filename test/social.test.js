@@ -170,6 +170,8 @@ test('moderation is only suspend / give back; old review states are migrated', a
     db.prepare('INSERT INTO users (id, email, role, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(id, `${id}@x.it`, 'member', status, ts, ts);
     db.prepare('INSERT INTO profiles (user_id, first_name, pending_changes, updated_at) VALUES (?, ?, ?, ?)').run(id, 'Vecchio', pending, ts);
   }
+  // a database from before the one-off migrations were recorded (db.js once()): none done yet
+  db.exec('DROP TABLE migrations');
   db.close();
   db = openDb(file);
   const st = Object.fromEntries(db.prepare('SELECT id, status FROM users').all().map(r => [r.id, r.status]));

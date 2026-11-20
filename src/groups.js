@@ -5,10 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { REGIONS } from './catalog.js';
 import { config } from './config.js';
-import { now, tx } from './db.js';
+import { AWAY, now, tx } from './db.js';
 import { removeFile } from './files.js';
 import { fileUrl, isBlocked, rawProfile } from './profiles.js';
-import { pageParams, paginate } from './paging.js';
+import { pageParams, paginateQuery } from './paging.js';
 import { hit, terms, wordsOf } from './search.js';
 import { nameOf, notify, requireLaunched } from './social.js';
 import { HttpError, bad, only, text } from './validate.js';
@@ -41,7 +41,7 @@ function groupOr404(db, id) {
 
 // Authors hidden from the viewer: blocked either way, or leaving Rientro
 const HIDDEN = `(SELECT blocked_id FROM blocks WHERE blocker_id = $viewer UNION SELECT blocker_id FROM blocks WHERE blocked_id = $viewer
-  UNION SELECT id FROM users WHERE deletion_requested_at IS NOT NULL OR status = 'suspended')`;
+  UNION SELECT id FROM users WHERE ${AWAY})`;
 
 function author(db, id) {
   const p = rawProfile(db, id);
@@ -98,7 +98,7 @@ export function removePost(db, postId) {
 // A picture of a post is public while its author is visible
 export function publicImageAllowed(db, fileId) {
   return !!db.prepare(`SELECT 1 FROM group_post_images i JOIN group_posts p ON p.id = i.post_id
-    WHERE i.file_id = ? AND p.${VISIBLE_AUTHOR}`).get(fileId);
+    WHERE i.file_id = ? AND ${VISIBLE_AUTHOR}`).get(fileId);
 }
 
 function postView(db, viewer, p) {
@@ -116,9 +116,8 @@ const commentView = (db, viewer, c) => ({ id: c.id, body: c.body, created_at: c.
 export function listPosts(db, viewer, id, query = new URLSearchParams()) {
   requireMemberArea(viewer);
   groupOr404(db, id);
-  const rows = db.prepare(`SELECT * FROM group_posts WHERE group_id = $group AND author_id NOT IN ${HIDDEN} ORDER BY id DESC`)
-    .all({ $group: id, $viewer: viewer.id });
-  return paginate(rows, pageParams(query, 20), p => postView(db, viewer, p));
+  return paginateQuery(db, `FROM group_posts WHERE group_id = $group AND author_id NOT IN ${HIDDEN}`, 'id DESC',
+    { $group: id, $viewer: viewer.id }, pageParams(query, 20), p => postView(db, viewer, p));
 }
 
 // Search in the groups (the search's "Gruppi" tab: src/search.js): posts and comments by what they say,
@@ -352,7 +351,8 @@ export function deleteComment(db, viewer, id, postId, commentId) {
 // public site; the sitemap lists them). Next to posts and comments only the author's name and photo;
 // the profile itself is for members.
 
-const VISIBLE_AUTHOR = `author_id IN (SELECT u.id FROM users u WHERE u.status = 'approved' AND u.deletion_requested_at IS NULL)`;
+// (each row's author looked up by id: the list of every approved member would be read in full)
+const VISIBLE_AUTHOR = `EXISTS (SELECT 1 FROM users u WHERE u.id = author_id AND u.status = 'approved' AND u.deletion_requested_at IS NULL)`;
 
 function publicAuthor(db, id) {
   const p = rawProfile(db, id);
@@ -361,8 +361,7 @@ function publicAuthor(db, id) {
 
 export function publicGroup(db, id, query = new URLSearchParams()) {
   const g = groupOr404(db, id);
-  const rows = db.prepare(`SELECT * FROM group_posts WHERE group_id = ? AND ${VISIBLE_AUTHOR} ORDER BY id DESC`).all(id);
-  const posts = paginate(rows, pageParams(query, 20), p => {
+  const posts = paginateQuery(db, `FROM group_posts WHERE group_id = $group AND ${VISIBLE_AUTHOR}`, 'id DESC', { $group: id }, pageParams(query, 20), p => {
     const comments = db.prepare(`SELECT * FROM group_comments WHERE post_id = ? AND ${VISIBLE_AUTHOR} ORDER BY id`).all(p.id)
       .map(c => ({ id: c.id, body: c.body, created_at: c.created_at, author: publicAuthor(db, c.author_id) }));
     return { id: p.id, body: p.body, images: imagesOf(db, p.id), created_at: p.created_at, author: publicAuthor(db, p.author_id), comments_count: comments.length, comments };
