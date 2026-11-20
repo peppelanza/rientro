@@ -12,8 +12,8 @@ const SLOW_MS = 300;
 const EVERY_MS = 10 * 60_000;
 let period = { requests: 0, slow: 0, slowest: null };
 
-// "/persone/8c1f…" → "/persone/:id": member ids, numbers and long codes out
-export const routeLabel = path => path.split('/').map(s => (/^\d+$|^[0-9a-f]{8}-[0-9a-f-]{27}$|^[\w-]{20,}$/i.test(s) ? ':id' : s)).join('/');
+// "/persone/8c1f…" → "/persone/:id": member ids, numbers and long codes out (not page names)
+export const routeLabel = path => path.split('/').map(s => (/^\d+$|^[0-9a-f]{8}-[0-9a-f-]{27}$|^(?=.*\d)[\w-]{20,}$/i.test(s) ? ':id' : s)).join('/');
 
 // Called once a request has been handled (server.js): label is the route ("GET /api/threads/:id")
 export function recordRequest(label, ms) {

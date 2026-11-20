@@ -30,6 +30,7 @@ test('slow-request labels carry the route, not the ids', () => {
   assert.equal(routeLabel('/persone/8c1f2b3a-1234-4abc-9def-0123456789ab'), '/persone/:id');
   assert.equal(routeLabel('/supporto/42'), '/supporto/:id');
   assert.equal(routeLabel('/scopri'), '/scopri');
+  assert.equal(routeLabel('/rientro-dei-cervelli'), '/rientro-dei-cervelli');
 });
 
 // Raw HTTP: fetch would undo the compression before we see it
